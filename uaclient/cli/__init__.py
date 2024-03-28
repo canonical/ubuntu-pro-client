@@ -12,6 +12,7 @@ from typing import List, Optional, Tuple  # noqa
 
 from uaclient import (
     actions,
+    api,
     apt,
     apt_news,
     config,
@@ -548,13 +549,12 @@ def _print_help_for_subcommand(
         )
 
 
-def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
+def _perform_disable(entitlement, cfg, *, json_output, update_status=True):
     """Perform the disable action on a named entitlement.
 
     :param entitlement_name: the name of the entitlement to enable
     :param cfg: the UAConfig to pass to the entitlement
-    :param assume_yes:
-        Assume a yes response for any prompts during service enable
+    :param json_output: output should be json only
 
     @return: True on success, False otherwise
     """
@@ -564,7 +564,12 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
     if variant is not None:
         entitlement = variant
 
-    ret, reason = entitlement.disable()
+    if json_output:
+        progress = api.ProgressWrapper()
+    else:
+        progress = api.ProgressWrapper(cli_util.CLIEnableDisableProgress())
+
+    ret, reason = entitlement.disable(progress)
 
     if not ret:
         event.service_failed(entitlement.name)
@@ -807,7 +812,9 @@ def action_detach(args, *, cfg, **kwargs) -> int:
 
     @return: 0 on success, 1 otherwise
     """
-    ret = _detach(cfg, assume_yes=args.assume_yes)
+    ret = _detach(
+        cfg, assume_yes=args.assume_yes, json_output=(args.format == "json")
+    )
     if ret == 0:
         daemon.start()
         timer.stop()
@@ -815,13 +822,14 @@ def action_detach(args, *, cfg, **kwargs) -> int:
     return ret
 
 
-def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
+def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
     """Detach the machine from the active Ubuntu Pro subscription,
 
     :param cfg: a ``config.UAConfig`` instance
     :param assume_yes: Assume a yes answer to any prompts requested.
          In this case, it means automatically disable any service during
          detach.
+    :param json_output: output should be json only
 
     @return: 0 on success, 1 otherwise
     """
@@ -847,7 +855,9 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
-        _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
+        _perform_disable(
+            ent, cfg, json_output=json_output, update_status=False
+        )
 
     cfg.machine_token_file.delete()
     state_files.delete_state_files()

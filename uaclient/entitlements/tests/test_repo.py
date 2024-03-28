@@ -7,6 +7,7 @@ from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
 )
 from uaclient.entitlements.repo import RepoEntitlement
+from uaclient.testing.helpers import does_not_raise
 
 M_PATH = "uaclient.entitlements.repo."
 M_CONTRACT_PATH = "uaclient.entitlements.repo.contract.UAContractClient."
@@ -73,7 +74,7 @@ class TestProcessContractDeltas:
             {"entitlement": {"entitled": True}},
             {"entitlement": {"entitled": entitled}},
         )
-        assert [mock.call()] == m_disable.call_args_list
+        assert [mock.call(mock.ANY)] == m_disable.call_args_list
 
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
     @mock.patch.object(RepoTestEntitlement, "application_status")
@@ -205,7 +206,7 @@ class TestProcessContractDeltas:
         assert entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}}, deltas
         )
-        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call(mock.ANY)] == m_remove_apt_config.call_args_list
         assert [mock.call(mock.ANY)] == m_setup_apt_config.call_args_list
         if packages:
             assert [
@@ -263,7 +264,7 @@ class TestProcessContractDeltas:
                 "resourceToken": "repotest-token",
             },
         )
-        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call(mock.ANY)] == m_remove_apt_config.call_args_list
         assert [mock.call(mock.ANY)] == m_setup_apt_config.call_args_list
         apt_auth_remove_calls = [
             mock.call(
@@ -343,62 +344,6 @@ class TestProcessContractDeltas:
 
 
 class TestRepoEnable:
-    @pytest.mark.parametrize(
-        "pre_disable_msg,post_disable_msg,output,retval",
-        (
-            (
-                ["pre1", (lambda: False, {}), "pre2"],
-                ["post1"],
-                "pre1\n",
-                False,
-            ),
-            (["pre1", (lambda: True, {}), "pre2"], [], "pre1\npre2\n", True),
-            (
-                ["pre1", (lambda: True, {}), "pre2"],
-                ["post1", (lambda: False, {}), "post2"],
-                "pre1\npre2\npost1\n",
-                False,
-            ),
-            (
-                ["pre1", (lambda: True, {}), "pre2"],
-                ["post1", (lambda: True, {}), "post2"],
-                "pre1\npre2\npost1\npost2\n",
-                True,
-            ),
-        ),
-    )
-    @mock.patch(M_PATH + "system.subp", return_value=("", ""))
-    @mock.patch(M_PATH + "system.should_reboot")
-    @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
-    @mock.patch.object(
-        RepoTestEntitlement, "can_disable", return_value=(True, None)
-    )
-    def test_enable_can_exit_on_pre_or_post_disable_messaging_hooks(
-        self,
-        _can_disable,
-        remove_apt_config,
-        m_should_reboot,
-        m_subp,
-        pre_disable_msg,
-        post_disable_msg,
-        output,
-        retval,
-        entitlement,
-        capsys,
-        event,
-    ):
-        messaging = {
-            "pre_disable": pre_disable_msg,
-            "post_disable": post_disable_msg,
-        }
-        m_should_reboot.return_value = False
-        with mock.patch.object(type(entitlement), "messaging", messaging):
-            with mock.patch.object(type(entitlement), "packages", []):
-                ret, fail = entitlement.disable()
-                assert retval == ret
-        stdout, _ = capsys.readouterr()
-        assert output == stdout
-
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
     @pytest.mark.parametrize(
@@ -660,10 +605,8 @@ class TestRepoPerformDisable:
                 affordances={"series": ["xenial"]},
                 purge=purge_value,
             )
-            assert entitlement._perform_disable() is True
-            assert m_remove_apt_config.call_args_list == [
-                mock.call(silent=mock.ANY)
-            ]
+            assert entitlement._perform_disable(mock.MagicMock()) is True
+            assert m_remove_apt_config.call_args_list == [mock.call(mock.ANY)]
 
             if purge_value:
                 assert m_get_installed_packages.call_args_list == [
@@ -680,6 +623,7 @@ class TestRepoPerformDisable:
                     mock.call(
                         [m_packages[0], m_packages[2], m_packages[4]],
                         [(m_packages[1], 2), (m_packages[3], 4)],
+                        mock.ANY,
                     )
                 ]
                 assert m_execute_removal.call_args_list == [
@@ -726,9 +670,9 @@ class TestRepoPerformDisable:
                 entitlement, "remove_apt_config"
             ) as m_remove_apt_config:
                 with mock_remove_packages as m_remove_packages:
-                    assert entitlement.disable(True)
+                    assert entitlement.disable(mock.MagicMock())
 
-        assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
+        assert [mock.call(mock.ANY)] == m_remove_apt_config.call_args_list
 
         if isinstance(entitlement, RepoTestEntitlementRepoWithRemovePackages):
             assert [mock.call()] == m_remove_packages.call_args_list
@@ -757,14 +701,19 @@ class TestPurge:
             purge=True,
         )
 
-        assert entitlement.purge_kernel_check(self.packages_to_remove) is True
+        assert (
+            entitlement.purge_kernel_check(
+                self.packages_to_remove, mock.MagicMock()
+            )
+            is True
+        )
 
     @mock.patch(
         M_PATH + "system.get_installed_ubuntu_kernels", return_value=[]
     )
     @mock.patch(M_PATH + "system.get_kernel_info")
     def test_purge_kernel_check_false_when_no_other_kernels(
-        self, _m_kernel_info, _m_installed_kernels, entitlement_factory, capsys
+        self, _m_kernel_info, _m_installed_kernels, entitlement_factory
     ):
         entitlement = entitlement_factory(
             RepoTestEntitlement,
@@ -772,17 +721,30 @@ class TestPurge:
             purge=True,
         )
 
+        mock_progress = mock.MagicMock()
         assert (
-            entitlement.purge_kernel_check(self.mock_kernel_package) is False
+            entitlement.purge_kernel_check(
+                self.mock_kernel_package, mock_progress
+            )
+            is False
         )
-        out, _err = capsys.readouterr()
-        assert "No other valid Ubuntu kernel was found in the system" in out
+        assert (
+            mock.call(
+                "info",
+                (
+                    "No other valid Ubuntu kernel was found in the system.\n"
+                    "Removing the package would potentially make the system "
+                    "unbootable.\n"
+                    "Aborting.\n"
+                ),
+            )
+            in mock_progress.emit.call_args_list
+        )
 
     @pytest.mark.parametrize("prompt_answer", (True, False))
     @pytest.mark.parametrize(
         "current_kernel", ("1.2.3-4-fake", "2.3.4-5-fake")
     )
-    @mock.patch(M_PATH + "util.prompt_for_confirmation")
     @mock.patch(
         M_PATH + "system.get_installed_ubuntu_kernels",
         return_value=["2.3.4-5-fake"],
@@ -792,33 +754,56 @@ class TestPurge:
         self,
         m_kernel_info,
         _m_installed_kernels,
-        m_confirmation,
         prompt_answer,
         current_kernel,
         entitlement_factory,
-        capsys,
     ):
         m_kernel_info.return_value.uname_release = current_kernel
-        m_confirmation.return_value = prompt_answer
         entitlement = entitlement_factory(
             RepoTestEntitlement,
             affordances={"series": ["xenial"]},
             purge=True,
         )
 
-        assert (
-            entitlement.purge_kernel_check(self.mock_kernel_package)
-            is prompt_answer
-        )
+        mock_progress = mock.MagicMock()
 
-        out, _err = capsys.readouterr()
-        assert "would uninstall the following kernel(s):" in out
+        def fake_emit(name, payload):
+            if name == "message_operation" and prompt_answer is False:
+                raise exceptions.PromptDeniedError()
+
+        mock_progress.emit.side_effect = fake_emit
+
+        expect_raises = (
+            does_not_raise()
+            if prompt_answer
+            else pytest.raises(exceptions.PromptDeniedError)
+        )
+        with expect_raises:
+            entitlement.purge_kernel_check(
+                self.mock_kernel_package, mock_progress
+            )
+
         assert (
-            "{} is the current running kernel.".format(current_kernel) in out
+            mock.call(
+                "info",
+                messages.PURGE_KERNEL_REMOVAL.format(
+                    service="Repo Test Class"
+                ),
+            )
+            in mock_progress.emit.call_args_list
+        )
+        assert (
+            mock.call(
+                "info",
+                messages.PURGE_CURRENT_KERNEL.format(
+                    kernel_version=current_kernel
+                ),
+            )
+            in mock_progress.emit.call_args_list
         )
 
     @pytest.mark.parametrize(
-        "remove,reinstall,expected_print,expected_prompt",
+        ["remove", "reinstall", "expected_print", "expected_progress_emits"],
         (
             (
                 packages_to_remove,
@@ -827,45 +812,65 @@ class TestPurge:
                     mock.call(["remove1", "remove2"]),
                     mock.call(["reinstall1", "reinstall2"]),
                 ],
-                [mock.call(messages.PROCEED_YES_NO)],
+                [
+                    mock.call("info", messages.WARN_PACKAGES_REMOVAL),
+                    mock.call("info", messages.WARN_PACKAGES_REINSTALL),
+                    mock.call(
+                        "message_operation",
+                        [(mock.ANY, {"msg": messages.PROCEED_YES_NO})],
+                    ),
+                ],
             ),
             (
                 packages_to_remove,
                 [],
                 [mock.call(["remove1", "remove2"])],
-                [mock.call(messages.PROCEED_YES_NO)],
+                [
+                    mock.call("info", messages.WARN_PACKAGES_REMOVAL),
+                    mock.call(
+                        "message_operation",
+                        [(mock.ANY, {"msg": messages.PROCEED_YES_NO})],
+                    ),
+                ],
             ),
             (
                 [],
                 packages_to_reinstall,
                 [mock.call(["reinstall1", "reinstall2"])],
-                [mock.call(messages.PROCEED_YES_NO)],
+                [
+                    mock.call("info", messages.WARN_PACKAGES_REINSTALL),
+                    mock.call(
+                        "message_operation",
+                        [(mock.ANY, {"msg": messages.PROCEED_YES_NO})],
+                    ),
+                ],
             ),
             ([], [], [], []),
         ),
     )
     @mock.patch(M_PATH + "util.print_package_list")
-    @mock.patch(M_PATH + "util.prompt_for_confirmation")
     def test_prompt_for_purge(
         self,
-        m_confirmation,
         m_print_packages,
         remove,
         reinstall,
         expected_print,
-        expected_prompt,
+        expected_progress_emits,
         entitlement_factory,
     ):
-        m_confirmation.return_value = True
         entitlement = entitlement_factory(
             RepoTestEntitlement,
             affordances={"series": ["xenial"]},
             purge=True,
         )
 
-        assert entitlement.prompt_for_purge(remove, reinstall) is True
+        mock_progress = mock.MagicMock()
+        assert (
+            entitlement.prompt_for_purge(remove, reinstall, mock_progress)
+            is True
+        )
         assert m_print_packages.call_args_list == expected_print
-        assert m_confirmation.call_args_list == expected_prompt
+        assert mock_progress.emit.call_args_list == expected_progress_emits
 
     @pytest.mark.parametrize(
         "remove,expected_remove",
@@ -956,7 +961,7 @@ class TestRemoveAptConfig:
         entitlement = entitlement_factory(RepoTestEntitlement, directives={})
 
         with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
-            entitlement.remove_apt_config()
+            entitlement.remove_apt_config(mock.MagicMock())
 
         assert "repotest" in str(excinfo.value)
 
@@ -966,7 +971,7 @@ class TestRemoveAptConfig:
     def test_apt_get_update_called(
         self, m_run_apt_update_command, _m_apt1, _m_apt2, entitlement
     ):
-        entitlement.remove_apt_config()
+        entitlement.remove_apt_config(mock.MagicMock())
 
         assert mock.call() in m_run_apt_update_command.call_args_list
 
@@ -989,7 +994,7 @@ class TestRemoveAptConfig:
             RepoTestEntitlement,
             affordances={"series": ["xenial"]},
         )
-        entitlement.remove_apt_config()
+        entitlement.remove_apt_config(mock.MagicMock())
 
         assert [
             mock.call("http://REPOTEST", "xenial")
@@ -1026,7 +1031,7 @@ class TestRemoveAptConfig:
         )
 
         assert 1000 == entitlement.repo_pin_priority
-        entitlement.remove_apt_config()
+        entitlement.remove_apt_config(mock.MagicMock())
         assert [
             mock.call("/etc/apt/preferences.d/ubuntu-repotest")
         ] == m_ensure_file_absent.call_args_list

@@ -386,8 +386,16 @@ class IncompatibleServiceStopsEnable(UbuntuProError):
     _formatted_msg = messages.E_INCOMPATIBLE_SERVICE_STOPS_ENABLE
 
 
+class DependentServiceStopsDisable(UbuntuProError):
+    _formatted_msg = messages.E_DEPENDENT_SERVICE_STOPS_DISABLE
+
+
 class LandscapeConfigFailed(UbuntuProError):
     _msg = messages.E_LANDSCAPE_CONFIG_FAILED
+
+
+class NonInteractiveKernelPurgeDisallowed(UbuntuProError):
+    _msg = messages.E_NON_INTERACTIVE_KERNEL_PURGE_DISALLOWED
 
 
 ###############################################################################

@@ -85,6 +85,9 @@ class LivepatchEntitlement(UAEntitlement):
     def enable_steps(self) -> int:
         return 2
 
+    def disable_steps(self) -> int:
+        return 1
+
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         """Enable specific entitlement.
 
@@ -220,14 +223,18 @@ class LivepatchEntitlement(UAEntitlement):
                 return False
         return True
 
-    def _perform_disable(self, silent=False):
+    def _perform_disable(self, progress: api.ProgressWrapper):
         """Disable specific entitlement
 
         @return: True on success, False otherwise.
         """
         if not livepatch.is_livepatch_installed():
             return True
-        system.subp([livepatch.LIVEPATCH_CMD, "disable"], capture=True)
+        cmd = [livepatch.LIVEPATCH_CMD, "disable"]
+        progress.progress(
+            messages.EXECUTING_COMMAND.format(command=" ".join(cmd))
+        )
+        system.subp(cmd, capture=True)
         return True
 
     def application_status(

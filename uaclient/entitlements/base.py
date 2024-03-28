@@ -343,6 +343,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
+    @abc.abstractmethod
+    def disable_steps(self) -> int:
+        """
+        The number of steps that are reported as progress while disabling
+        this specific entitlement that are not shared with other entitlements.
+        """
+        pass
+
     def calculate_total_enable_steps(self) -> int:
         total_steps = self.enable_steps()
         required_snaps = (
@@ -360,12 +368,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if required_packages is not None and len(required_packages) > 0:
             total_steps += 1
         for incompatible_service in self.blocking_incompatible_services():
-            # TODO: calculate disable steps when progress is added to disable
-            total_steps += 1
+            total_steps += incompatible_service.entitlement(
+                self.cfg
+            ).disable_steps()
         for required_service in self.blocking_required_services():
             total_steps += required_service.entitlement(
                 self.cfg
             ).enable_steps()
+        return total_steps
+
+    def calculate_total_disable_steps(self) -> int:
+        total_steps = self.disable_steps()
+        for dependent_service in self.blocking_dependent_services():
+            total_steps += dependent_service(self.cfg).disable_steps()
         return total_steps
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
@@ -687,23 +702,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def detect_dependent_services(self) -> bool:
-        """
-        Check for depedent services.
-
-        :return:
-            True if there are dependent services enabled
-            False if there are no dependent services enabled
-        """
-        for dependent_service_cls in self.dependent_services:
-            ent_status, _ = dependent_service_cls(
-                self.cfg
-            ).application_status()
-            if ent_status == ApplicationStatus.ENABLED:
-                return True
-
-        return False
-
     def blocking_incompatible_services(self) -> List[EntitlementWithMessage]:
         """
         :return: List of incompatible services that are enabled
@@ -762,13 +760,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if cfg_block_disable_on_enable:
                 return False, e_msg
 
-            progress.progress(
+            progress.emit(
+                "info",
                 messages.DISABLING_INCOMPATIBLE_SERVICE.format(
                     service=ent.title
-                )
+                ),
             )
 
-            ret, fail = ent.disable(silent=True)
+            ret, fail = ent.disable(progress)
             if not ret:
                 return (ret, fail.message if fail else None)
 
@@ -892,7 +891,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True, None
 
     def disable(
-        self, silent: bool = False
+        self, progress: api.ProgressWrapper
     ) -> Tuple[bool, Optional[CanDisableFailure]]:
         """Disable specific entitlement
 
@@ -904,9 +903,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 populated CanDisableFailure reason. This may expand to
                 include other types of reasons in the future.
         """
-        msg_ops = self.messaging.get("pre_disable", [])
-        if not util.handle_message_operations(msg_ops, event.info):
-            return False, None
+        progress.emit("message_operation", self.messaging.get("pre_disable"))
 
         can_disable, fail = self.can_disable()
         if not can_disable:
@@ -917,7 +914,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 fail.reason
                 == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
             ):
-                ret, msg = self._disable_dependent_services(silent=silent)
+                ret, msg = self._disable_dependent_services(progress)
                 if not ret:
                     fail.message = msg
                     return False, fail
@@ -925,23 +922,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 # every other reason means we can't continue
                 return False, fail
 
-        if not self._perform_disable(silent=silent):
+        if not self._perform_disable(progress):
             return False, None
 
         if not self.handle_removing_required_packages():
             return False, None
 
-        msg_ops = self.messaging.get("post_disable", [])
-        if not util.handle_message_operations(msg_ops, event.info):
-            return False, None
+        progress.emit("message_operation", self.messaging.get("post_disable"))
 
-        self._check_for_reboot_msg(
-            operation="disable operation", silent=silent
-        )
         return True, None
 
     @abc.abstractmethod
-    def _perform_disable(self, silent: bool = False) -> bool:
+    def _perform_disable(self, progress: api.ProgressWrapper) -> bool:
         """
         Disable specific entitlement. This should be implemented by subclasses.
         This method does the actual disable, and does not check can_disable
@@ -953,8 +945,33 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
+    def detect_dependent_services(self) -> bool:
+        """
+        Check for depedent services.
+
+        :return:
+            True if there are dependent services enabled
+            False if there are no dependent services enabled
+        """
+        return len(self.blocking_dependent_services()) > 0
+
+    def blocking_dependent_services(self) -> List[Type["UAEntitlement"]]:
+        """
+        Return list of depedent services that must be disabled
+        before disabling this service.
+        """
+        blocking = []
+        for dependent_service_cls in self.dependent_services:
+            ent_status, _ = dependent_service_cls(
+                self.cfg
+            ).application_status()
+            if ent_status == ApplicationStatus.ENABLED:
+                blocking.append(dependent_service_cls)
+
+        return blocking
+
     def _disable_dependent_services(
-        self, silent: bool
+        self, progress: api.ProgressWrapper
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Disable dependent services
@@ -967,46 +984,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         @param silent: Boolean set True to silence print/log of messages
         """
-        for dependent_service_cls in self.dependent_services:
+        for dependent_service_cls in self.blocking_dependent_services():
             ent = dependent_service_cls(cfg=self.cfg, assume_yes=True)
 
-            is_service_enabled = (
-                ent.application_status()[0] == ApplicationStatus.ENABLED
+            progress.emit(
+                "info",
+                messages.DISABLING_DEPENDENT_SERVICE.format(
+                    required_service=ent.title
+                ),
             )
 
-            if is_service_enabled:
-                user_msg = messages.DEPENDENT_SERVICE.format(
-                    dependent_service=ent.title,
-                    service_being_disabled=self.title,
+            ret, fail = ent.disable(progress)
+            if not ret:
+                error_msg = ""
+                if fail and fail.message and fail.message.msg:
+                    error_msg = "\n" + fail.message.msg
+
+                msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
+                    error=error_msg, required_service=ent.title
                 )
-
-                e_msg = messages.DEPENDENT_SERVICE_STOPS_DISABLE.format(
-                    service_being_disabled=self.title,
-                    dependent_service=ent.title,
-                )
-
-                if not util.prompt_for_confirmation(
-                    msg=user_msg, assume_yes=self.assume_yes
-                ):
-                    return False, e_msg
-
-                if not silent:
-                    event.info(
-                        messages.DISABLING_DEPENDENT_SERVICE.format(
-                            required_service=ent.title
-                        )
-                    )
-
-                ret, fail = ent.disable(silent=True)
-                if not ret:
-                    error_msg = ""
-                    if fail and fail.message and fail.message.msg:
-                        error_msg = "\n" + fail.message.msg
-
-                    msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
-                        error=error_msg, required_service=ent.title
-                    )
-                    return False, msg
+                return False, msg
 
         return True, None
 
@@ -1290,7 +1287,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         "Disabling %s after refresh transition to unentitled",
                         self.name,
                     )
-                    self.disable()
+                    self.disable(api.ProgressWrapper())
                     event.info(
                         messages.DISABLE_DURING_CONTRACT_REFRESH.format(
                             service=self.name

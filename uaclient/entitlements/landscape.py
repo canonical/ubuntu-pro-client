@@ -19,6 +19,9 @@ class LandscapeEntitlement(UAEntitlement):
     def enable_steps(self) -> int:
         return 1
 
+    def disable_steps(self) -> int:
+        return 1
+
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         cmd = ["landscape-config"] + self.extra_args
         if self.assume_yes and "--silent" not in cmd:
@@ -42,17 +45,18 @@ class LandscapeEntitlement(UAEntitlement):
             return False
         return True
 
-    def _perform_disable(self, silent: bool = False) -> bool:
+    def _perform_disable(self, progress: api.ProgressWrapper) -> bool:
         cmd = ["landscape-config", "--disable"]
-        event.info(messages.EXECUTING_COMMAND.format(command=" ".join(cmd)))
+        progress.progress(
+            messages.EXECUTING_COMMAND.format(command=" ".join(cmd))
+        )
         try:
             system.subp(cmd)
         except exceptions.ProcessExecutionError as e:
             LOG.error(e)
-            event.info(str(e).strip())
-            event.warning(str(e), self.name)
+            progress.emit("info", str(e).strip())
 
-        event.info(messages.LANDSCAPE_CONFIG_REMAINS)
+        progress.emit("info", messages.LANDSCAPE_CONFIG_REMAINS)
 
         return True
 

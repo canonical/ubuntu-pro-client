@@ -126,7 +126,7 @@ class TestLandscapeEntitlement:
     ):
         m_subp.side_effect = subp_sideeffect
         landscape = LandscapeEntitlement(FakeConfig())
-        assert expected_result == landscape._perform_disable()
+        assert expected_result == landscape._perform_disable(mock.MagicMock())
         assert expected_subp_calls == m_subp.call_args_list
 
     @pytest.mark.parametrize(

@@ -65,7 +65,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._blocking_incompatible_services = blocking_incompatible_services
         self._variant_name = variant_name
 
-    def _perform_disable(self, **kwargs):
+    def _perform_disable(self, *args, **kwargs):
         self._application_status = (
             ApplicationStatus.DISABLED,
             "disable() called",
@@ -76,6 +76,9 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         return self._enable
 
     def enable_steps(self):
+        return 1
+
+    def disable_steps(self):
         return 1
 
     def applicability_status(self):
@@ -719,11 +722,9 @@ class TestEntitlementCanDisable:
 
 
 class TestEntitlementDisable:
-    @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_disable_when_dependent_service_found(
-        self, m_prompt, base_entitlement_factory, mock_entitlement
+        self, base_entitlement_factory, mock_entitlement
     ):
-        m_prompt.return_value = True
         m_dependent_service_cls, m_dependent_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.ENABLED, ""),
             disable=(True, None),
@@ -737,32 +738,27 @@ class TestEntitlementDisable:
             },
         )
 
-        ret, fail = entitlement.disable()
+        ret, fail = entitlement.disable(mock.MagicMock())
 
-        expected_prompt_call = 1
         expected_ret = True
         expected_disable_call = 1
 
         assert ret == expected_ret
         assert fail is None
-        assert m_prompt.call_count == expected_prompt_call
         assert (
             m_dependent_service_obj.disable.call_count == expected_disable_call
         )
 
     @pytest.mark.parametrize("disable_fail_message", (("error"), (None)))
     @mock.patch("uaclient.util.handle_message_operations")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_disable_false_when_fails_to_disable_dependent_service(
         self,
         m_handle_msg,
-        m_prompt_for_confirmation,
         disable_fail_message,
         base_entitlement_factory,
         mock_entitlement,
     ):
         m_handle_msg.return_value = True
-        m_prompt_for_confirmation.return_vale = True
 
         fail_reason = CanDisableFailure(
             CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
@@ -792,7 +788,7 @@ class TestEntitlementDisable:
 
         with mock.patch.object(entitlement, "can_disable") as m_can_disable:
             m_can_disable.return_value = (False, fail_reason)
-            ret, fail = entitlement.disable()
+            ret, fail = entitlement.disable(mock.MagicMock())
 
         assert not ret
         expected_msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
@@ -802,10 +798,8 @@ class TestEntitlementDisable:
         assert expected_msg == fail.message.msg
         assert 1 == m_can_disable.call_count
 
-    @pytest.mark.parametrize("silent", [False, True])
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
         self,
-        silent,
         base_entitlement_factory,
     ):
         """When can_disable is false disable returns false and noops."""
@@ -814,7 +808,7 @@ class TestEntitlementDisable:
         with mock.patch.object(
             entitlement, "can_disable", return_value=(False, None)
         ) as m_can_disable:
-            ret, fail = entitlement.disable(silent)
+            ret, fail = entitlement.disable(mock.MagicMock())
 
         assert ret is False
         assert fail is None

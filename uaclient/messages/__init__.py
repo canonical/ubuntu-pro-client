@@ -341,6 +341,7 @@ A reboot is required to complete {operation}."""
 CONFIGURING_APT_ACCESS = t.gettext("Configuring APT access to {service}")
 
 # DISABLE
+REMOVING_APT_CONFIGURATION = t.gettext("Removing APT access to {title}")
 DISABLE_FAILED_TMPL = t.gettext("Could not disable {title}.")
 DEPENDENT_SERVICE = t.gettext(
     """\
@@ -355,6 +356,9 @@ Disabling dependent service: {required_service}"""
 APT_REMOVING_SOURCE_FILE = t.gettext("Removing apt source file: {filename}")
 APT_REMOVING_PREFERENCES_FILE = t.gettext(
     "Removing apt preferences file: {filename}"
+)
+PURGING_PACKAGES = t.gettext(
+    "Uninstalling all packages installed from {title}"
 )
 
 # Kernel checks for Purge
@@ -1627,14 +1631,6 @@ FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
 Cannot disable dependent service: {required_service}{error}"""
     ),
 )
-DEPENDENT_SERVICE_STOPS_DISABLE = FormattedNamedMessage(
-    "depedent-service-stops-disable",
-    t.gettext(
-        """\
-Cannot disable {service_being_disabled} when {dependent_service} is enabled.
-"""
-    ),
-)
 REPO_PURGE_FAIL_NO_ORIGIN = FormattedNamedMessage(
     "repo-purge-fail-no-origin",
     t.gettext(
@@ -2266,6 +2262,14 @@ Cannot enable {service_being_enabled} when \
 {incompatible_service} is enabled."""
     ),
 )
+E_DEPENDENT_SERVICE_STOPS_DISABLE = FormattedNamedMessage(
+    "depedent-service-stops-disable",
+    t.gettext(
+        """\
+Cannot disable {service_being_disabled} when {dependent_service} is enabled.
+"""
+    ),
+)
 
 E_INVALID_PRO_IMAGE = FormattedNamedMessage(
     name="invalid-pro-image",
@@ -2606,4 +2610,12 @@ E_ENTITLEMENTS_APT_DIRECTIVES_ARE_NOT_UNIQUE = FormattedNamedMessage(
 E_LANDSCAPE_CONFIG_FAILED = NamedMessage(
     "landscape-config-failed",
     t.gettext("landscape-config command failed"),
+)
+
+E_NON_INTERACTIVE_KERNEL_PURGE_DISALLOWED = NamedMessage(
+    "non-interactive-kernel-purge-disallowed",
+    t.gettext(
+        "You must use the pro command to purge a service that has installed a "
+        "kernel"
+    ),
 )

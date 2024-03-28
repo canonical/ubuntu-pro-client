@@ -51,9 +51,9 @@ class TestESMEntitlementDisable:
         ) as m_remove_apt_config, mock.patch.object(
             entitlement, "setup_local_esm_repo"
         ) as m_setup_repo:
-            assert entitlement.disable(True)
+            assert entitlement.disable(mock.MagicMock())
 
-        assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
+        assert [mock.call(mock.ANY)] == m_remove_apt_config.call_args_list
         assert [
             mock.call(entitlement.cfg)
         ] == m_update_apt_and_motd_msgs.call_args_list

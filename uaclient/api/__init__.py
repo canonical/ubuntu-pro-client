@@ -59,3 +59,9 @@ class ProgressWrapper:
         """
         if hasattr(self.progress_object, "_on_event"):
             self.progress_object._on_event(event, payload)
+
+    def is_interactive(self) -> bool:
+        if hasattr(self.progress_object, "is_interactive"):
+            return self.progress_object.is_interactive
+        else:
+            return False

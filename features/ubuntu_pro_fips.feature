@@ -100,6 +100,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
       """
       One moment, checking your subscription first
       Disabling incompatible service: FIPS
+      Removing APT access to FIPS
+      Updating package lists
       Configuring APT access to FIPS Updates
       Updating FIPS Updates package lists
       Updating standard Ubuntu package lists
