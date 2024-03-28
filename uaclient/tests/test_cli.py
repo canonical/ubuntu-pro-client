@@ -40,6 +40,8 @@ Client to manage Ubuntu Advantage services on a machine.
  - cis-audit: Center for Internet Security Audit Tools
    (https://ubuntu.com/cis-audit)
  - esm-infra: UA Infra: Extended Security Maintenance (https://ubuntu.com/esm)
+ - esm-infra-legacy: Expanded Security Maintenance for Infrastructure on Legacy
+   Instances (https://ubuntu.com/esm)
  - fips: NIST-certified FIPS modules (https://ubuntu.com/fips)
  - fips-updates: Uncertified security updates to FIPS modules
  - livepatch: Canonical Livepatch service (https://ubuntu.com/livepatch)
@@ -104,6 +106,7 @@ class TestCLIParser:
 
     def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
         """Help output is sourced from entitlement name and description."""
+        print(get_help())
         assert SERVICES_WRAPPED_HELP in get_help()
 
 
