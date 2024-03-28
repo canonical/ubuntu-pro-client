@@ -12,7 +12,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
     ContractExpiryStatus,
     _is_attached,
 )
-from uaclient.apt import ensure_apt_pkg_init
+from uaclient.apt import ensure_apt_pkg_init, get_pkg_version, version_compare
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
 from uaclient.data_types import (
@@ -33,6 +33,10 @@ class AptNewsMessageSelectors(DataObject):
         Field("codenames", data_list(StringDataValue), required=False),
         Field("clouds", data_list(StringDataValue), required=False),
         Field("pro", BoolDataValue, required=False),
+        Field("architectures", data_list(StringDataValue), required=False),
+        Field(
+            "packages", data_list(data_list(StringDataValue)), required=False
+        ),
     ]
 
     def __init__(
@@ -40,11 +44,15 @@ class AptNewsMessageSelectors(DataObject):
         *,
         codenames: Optional[List[str]] = None,
         clouds: Optional[List[str]] = None,
-        pro: Optional[bool] = None
+        pro: Optional[bool] = None,
+        architectures: Optional[List[str]] = None,
+        packages: Optional[List[List[str]]] = None
     ):
         self.codenames = codenames
         self.clouds = clouds
         self.pro = pro
+        self.architectures = architectures
+        self.packages = packages
 
 
 class AptNewsMessage(DataObject):
@@ -89,6 +97,41 @@ def do_selectors_apply(
     if selectors.pro is not None:
         if selectors.pro != _is_attached(cfg).is_attached:
             return False
+
+    if selectors.architectures is not None:
+        if system.get_dpkg_arch() not in selectors.architectures:
+            return False
+
+    if selectors.packages is not None:
+        for package in selectors.packages:
+            try:
+                package_name, version_operator, package_version = package
+            except ValueError:
+                LOG.warning("Invalid package selector: %r", package)
+                return False
+            installed_package_version = get_pkg_version(package_name)
+            if installed_package_version is None:
+                return False
+            version_comparison = version_compare(
+                installed_package_version, package_version
+            )
+            if not any(
+                [
+                    (
+                        version_comparison == 0
+                        and version_operator in ["==", "<=", ">="]
+                    ),
+                    (
+                        version_comparison < 0
+                        and version_operator in ["<", "<="]
+                    ),
+                    (
+                        version_comparison > 0
+                        and version_operator in [">", ">="]
+                    ),
+                ]
+            ):
+                return False
 
     return True
 

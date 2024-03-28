@@ -737,7 +737,7 @@ def get_installed_packages() -> List[InstalledAptPackage]:
     ]
 
 
-def get_installed_packages_names(include_versions: bool = False) -> List[str]:
+def get_installed_packages_names() -> List[str]:
     package_list = get_installed_packages()
     pkg_names = [pkg.name for pkg in package_list]
     return pkg_names
