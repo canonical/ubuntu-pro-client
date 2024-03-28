@@ -104,6 +104,15 @@ Ubuntu Pro Client for Clouds
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
 
+CVE/USN resolution
+==================
+
+.. toctree::
+   :maxdepth: 1
+
+   How to know if a system is affected by a CVE/USN <howtoguides/how_to_know_if_system_affected_by_cve>
+   Resolving a given CVE/USN <howtoguides/how_to_resolve_given_cve>
+
 Fixing multiple CVEs
 ====================
 
