@@ -31,6 +31,7 @@ VALID_ENDPOINTS = [
     "u.security.package_manifest.v1",
     "u.unattended_upgrades.status.v1",
     "u.apt_news.current_news.v1",
+    "u.pro.detach.v1",
 ]
 
 
