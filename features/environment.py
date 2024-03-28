@@ -9,6 +9,7 @@ import tarfile
 from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
 import pycloudlib  # type: ignore  # noqa: F401
+import yaml
 from behave.model import Feature, Scenario
 from behave.runner import Context
 
@@ -64,6 +65,7 @@ class UAClientBehaveConfig:
     """
 
     prefix = "UACLIENT_BEHAVE_"
+    file_config_path = "./features/config/protest.yaml"
 
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
@@ -80,6 +82,9 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
+        "contract_token_staging_expired_sometimes",
+        "contract_staging_service_account_username",
+        "contract_staging_service_account_password",
         "landscape_registration_key",
         "landscape_api_access_key",
         "landscape_api_secret_key",
@@ -102,6 +107,8 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
+        "contract_token_staging_expired_sometimes",
+        "contract_staging_service_account_password",
         "landscape_registration_key",
         "landscape_api_access_key",
         "landscape_api_secret_key",
@@ -127,6 +134,9 @@ class UAClientBehaveConfig:
         contract_token: Optional[str] = None,
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
+        contract_token_staging_expired_sometimes: Optional[str] = None,
+        contract_staging_service_account_username: Optional[str] = None,
+        contract_staging_service_account_password: Optional[str] = None,
         landscape_registration_key: Optional[str] = None,
         landscape_api_access_key: Optional[str] = None,
         landscape_api_secret_key: Optional[str] = None,
@@ -150,6 +160,15 @@ class UAClientBehaveConfig:
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
+        self.contract_token_staging_expired_sometimes = (
+            contract_token_staging_expired_sometimes
+        )
+        self.contract_staging_service_account_username = (
+            contract_staging_service_account_username
+        )
+        self.contract_staging_service_account_password = (
+            contract_staging_service_account_password
+        )
         self.landscape_registration_key = landscape_registration_key
         self.landscape_api_access_key = landscape_api_access_key
         self.landscape_api_secret_key = landscape_api_secret_key
@@ -242,11 +261,24 @@ class UAClientBehaveConfig:
 
     @classmethod
     def from_environ(cls, config) -> "UAClientBehaveConfig":
-        """Gather config options from os.environ and return a config object"""
+        """Gather config options from:
+
+        1. features/config/protest.yaml
+        2. os.environ with prefix UACLIENT_BEHAVE_
+        3. -D command line options
+
+        each of which can override the previous.
+        """
         # First, gather all known options
         kwargs = (
             {}
         )  # type: Dict[str, Union[str, bool, List, InstallationSource]]
+
+        try:
+            with open(cls.file_config_path) as file_config:
+                kwargs = yaml.safe_load(file_config)
+        except FileNotFoundError:
+            print("No config file found at {}".format(cls.file_config_path))
 
         for key, value in os.environ.items():
             if not key.startswith(cls.prefix):
