@@ -111,6 +111,7 @@ Feature: Attached status
       fips            +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
       livepatch       +yes      +enabled  +Canonical Livepatch service
       """
 
@@ -151,6 +152,7 @@ Feature: Attached status
       fips            +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
       livepatch       +yes      +warning  +Current kernel is not supported
       """
 
@@ -192,6 +194,7 @@ Feature: Attached status
       fips            +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
       livepatch       +yes      +enabled  +Canonical Livepatch service
       """
 
@@ -234,6 +237,7 @@ Feature: Attached status
       fips            +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
       livepatch       +yes      +enabled  +Canonical Livepatch service
       usg             +yes      +disabled +Security compliance and audit tools
       """
@@ -277,6 +281,7 @@ Feature: Attached status
       fips            +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
       livepatch       +yes      +enabled  +Canonical Livepatch service
       usg             +yes      +disabled +Security compliance and audit tools
       """
