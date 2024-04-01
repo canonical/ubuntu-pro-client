@@ -109,6 +109,7 @@ to get the latest bug fixes and new features."""
     )
 )
 
+UNKNOWN_ERROR = t.gettext("an unknown error")
 
 ###############################################################################
 #                      GENERIC SYSTEM OPERATIONS                              #
@@ -416,7 +417,6 @@ RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = t.gettext(
 )
 RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = t.gettext("a connectivity error")
 RETRY_ERROR_DETAIL_URL_ERROR_URL = t.gettext("an error while reaching {url}")
-RETRY_ERROR_DETAIL_UNKNOWN = t.gettext("an unknown error")
 
 # These are related messages but actually occur during a "refresh"
 DISABLE_DURING_CONTRACT_REFRESH = t.gettext(
@@ -1931,6 +1931,11 @@ USNs should follow the pattern USN-nnnn."""
 )
 
 
+GENERIC_UNKNOWN_ISSUE = NamedMessage(
+    "unknown-issue",
+    UNKNOWN_ERROR,
+)
+
 ###############################################################################
 #                              ERROR MESSAGES                                 #
 ###############################################################################
@@ -2199,6 +2204,11 @@ E_ENTITLEMENT_NOT_FOUND = FormattedNamedMessage(
 E_ENTITLEMENTS_NOT_ENABLED_ERROR = NamedMessage(
     "entitlements-not-enabled",
     t.gettext("failed to enable some services"),
+)
+
+E_ENTITLEMENT_NOT_ENABLED_ERROR = FormattedNamedMessage(
+    "entitlement-not-enabled",
+    t.gettext("failed to enable {service}"),
 )
 
 E_ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
@@ -2618,4 +2628,9 @@ E_NON_INTERACTIVE_KERNEL_PURGE_DISALLOWED = NamedMessage(
         "You must use the pro command to purge a service that has installed a "
         "kernel"
     ),
+)
+
+E_NOT_SUPPORTED = NamedMessage(
+    "not-supported",
+    t.gettext("The operation is not supported"),
 )

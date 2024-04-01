@@ -59,7 +59,7 @@ def full_auto_attach_exception_to_failure_reason(e: Exception) -> str:
         return '"{}"'.format(e.msg)
     else:
         LOG.error("Unexpected exception", exc_info=e)
-        return str(e) or messages.RETRY_ERROR_DETAIL_UNKNOWN
+        return str(e) or messages.UNKNOWN_ERROR
 
 
 def cleanup(cfg: UAConfig):
@@ -103,7 +103,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         )
         msg_reason = failure_reason
         if msg_reason is None:
-            msg_reason = messages.RETRY_ERROR_DETAIL_UNKNOWN
+            msg_reason = messages.UNKNOWN_ERROR
         try:
             next_attempt = next_attempt.astimezone()
         except Exception:
@@ -168,7 +168,7 @@ def retry_auto_attach(cfg: UAConfig) -> None:
         )
         msg_reason = failure_reason
         if msg_reason is None:
-            msg_reason = messages.RETRY_ERROR_DETAIL_UNKNOWN
+            msg_reason = messages.UNKNOWN_ERROR
         auto_attach_status_msg = (
             messages.AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE.format(
                 num_attempts=len(RETRY_INTERVALS) + 1, reason=msg_reason

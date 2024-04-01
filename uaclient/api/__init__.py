@@ -51,6 +51,15 @@ class ProgressWrapper:
         self.previous_step_message = message
         self.done_steps += 1
 
+    def finish(self):
+        self.done_steps = self.total_steps
+        self.progress_object.progress(
+            total_steps=self.total_steps,
+            done_steps=self.done_steps,
+            previous_step_message=self.previous_step_message,
+            current_step_message=None,
+        )
+
     def emit(self, event: str, payload=None):
         """
         This is our secret event system. We use it internally to insert prompts
