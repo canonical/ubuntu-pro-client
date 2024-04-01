@@ -230,7 +230,7 @@ When reviewing the release PR, please use the following guidelines when reviewin
 
 
 4. Approval and upload to `devel` and `-proposed` unapproved queue
-    * Once the SRU team member gives a pre-SRU approval, create the branches for each stable release. They should be named `release-$version-$release`.
+    * Once the SRU team member gives a pre-SRU approval, create backport branches for each stable release. They should be named `release-$version-$release`.
       * The only addition for each branch should be the changelog entry for the new version. The entry should be in the format
       ```
       ubuntu-advantage-tools (31.2~20.04) focal; urgency=medium
