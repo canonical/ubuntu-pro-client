@@ -26,6 +26,7 @@ VALID_ENDPOINTS = [
     "u.pro.security.status.livepatch_cves.v1",
     "u.pro.security.status.reboot_required.v1",
     "u.pro.services.dependencies.v1",
+    "u.pro.services.enable.v1",
     "u.pro.status.enabled_services.v1",
     "u.pro.status.is_attached.v1",
     "u.pro.version.v1",

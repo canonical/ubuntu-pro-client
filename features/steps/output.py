@@ -119,6 +119,18 @@ def then_api_errors_output_matches_regexp(context):
     compare_regexp(text, content)
 
 
+@then("API errors field output is")
+def then_api_errors_output_is(context):
+    content = process_api_data(context, api_key="errors", escape=False)
+    text = process_template_vars(context, context.text)
+    if not text == content:
+        raise AssertionError(
+            "Expected to find exactly:\n{}\nBut got:\n{}".format(
+                textwrap.indent(text, "  "), textwrap.indent(content, "  ")
+            )
+        )
+
+
 @then("API warnings field output matches regexp")
 def then_api_warnings_output_matches_regexp(context):
     content = process_api_data(context, api_key="warnings")
