@@ -144,7 +144,7 @@ jobs:
           sh -c 'printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/cloudinit_id_rsa'
           sh -c 'printf "%s\n" "$SSH_PUBLIC_KEY" > ~/.ssh/cloudinit_id_rsa.pub'
 
-          sg lxd -c "tox -e behave -- -D machine_types=${{ matrix.platform }} -D releases=${{ matrix.release }} --tags=-slow --tags=-upgrade"
+          sg lxd -c "tox -e behave -- -D machine_types=${{ matrix.platform }} -D releases=${{ matrix.release }} --tags=-slow --tags=-upgrade --tags=-no_gh"
       - name: Archive test artifacts
         if: always()
         uses: actions/upload-artifact@v3
