@@ -25,6 +25,7 @@ from uaclient import (
     lock,
     log,
     messages,
+    secret_manager,
     security_status,
     status,
     timer,
@@ -1044,6 +1045,7 @@ def action_attach(args, *, cfg, **kwargs):
         enable_services_override = None
     elif args.token:
         token = args.token
+        secret_manager.secrets.add_secret(token)
         enable_services_override = None
     else:
         try:

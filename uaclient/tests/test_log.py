@@ -118,7 +118,7 @@ class TestLogger:
     )
     @pytest.mark.parametrize("caplog_text", [logging.INFO], indirect=True)
     def test_redacted_text(self, caplog_text, raw_log, expected):
-        LOG.addFilter(log.RedactionFilter())
+        LOG.addFilter(log.RegexRedactionFilter())
         LOG.info(raw_log)
         log_text = caplog_text()
         assert expected in log_text

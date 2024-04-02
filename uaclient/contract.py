@@ -9,6 +9,7 @@ from uaclient import (
     exceptions,
     http,
     messages,
+    secret_manager,
     system,
     util,
     version,
@@ -93,8 +94,13 @@ class UAContractClient(serviceclient.UAServiceClient):
                 code=response.code,
                 body=response.body,
             )
-
-        return response.json_dict
+        response_json = response.json_dict
+        secret_manager.secrets.add_secret(
+            response_json.get("machineToken", "")
+        )
+        for token in response_json.get("resourceTokens", []):
+            secret_manager.secrets.add_secret(token.get("token", ""))
+        return response_json
 
     def available_resources(self) -> Dict[str, Any]:
         """Requests list of entitlements available to this machine type."""
@@ -157,7 +163,11 @@ class UAContractClient(serviceclient.UAServiceClient):
                 body=response.body,
             )
 
-        return response.json_dict
+        response_json = response.json_dict
+        secret_manager.secrets.add_secret(
+            response_json.get("contractToken", "")
+        )
+        return response_json
 
     def get_resource_machine_access(
         self,
@@ -191,7 +201,11 @@ class UAContractClient(serviceclient.UAServiceClient):
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
-        return response.json_dict
+
+        response_json = response.json_dict
+        for token in response_json.get("resourceTokens", []):
+            secret_manager.secrets.add_secret(token.get("token", ""))
+        return response_json
 
     def update_activity_token(self):
         """Report current activity token and enabled services.
@@ -253,8 +267,11 @@ class UAContractClient(serviceclient.UAServiceClient):
                 code=response.code,
                 body=response.body,
             )
-
-        return response.json_dict
+        response_json = response.json_dict
+        secret_fields = ["token", "userCode", "contractToken"]
+        for field in secret_fields:
+            secret_manager.secrets.add_secret(response_json.get(field, ""))
+        return response_json
 
     def new_magic_attach_token(self) -> Dict[str, Any]:
         """Create a magic attach token for the user."""
@@ -273,8 +290,11 @@ class UAContractClient(serviceclient.UAServiceClient):
                 code=response.code,
                 body=response.body,
             )
-
-        return response.json_dict
+        response_json = response.json_dict
+        secret_fields = ["token", "userCode", "contractToken"]
+        for field in secret_fields:
+            secret_manager.secrets.add_secret(response_json.get(field, ""))
+        return response_json
 
     def revoke_magic_attach_token(self, magic_token: str):
         """Revoke a magic attach token for the user."""
