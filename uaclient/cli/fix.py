@@ -127,9 +127,9 @@ class FixContext:
                     status=status,
                     pkg_index=self.pkg_index,
                     num_pkgs=len(self.affected_pkgs),
-                    pocket_source=get_pocket_description(pocket)
-                    if pocket
-                    else None,
+                    pocket_source=(
+                        get_pocket_description(pocket) if pocket else None
+                    ),
                 )
             )
 

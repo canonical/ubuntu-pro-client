@@ -408,9 +408,11 @@ class UAContractClient(serviceclient.UAServiceClient):
                     for service in enabled_services
                     if service.variant_enabled
                 },
-                "lastAttachment": attachment_data.attached_at.isoformat()
-                if attachment_data
-                else None,
+                "lastAttachment": (
+                    attachment_data.attached_at.isoformat()
+                    if attachment_data
+                    else None
+                ),
             }
         else:
             activity_info = {}
@@ -738,9 +740,9 @@ def _select_overrides(
 
     series_overrides = entitlement.pop("series", {}).pop(series_name, {})
     if series_overrides:
-        overrides[
-            OVERRIDE_SELECTOR_WEIGHTS["series_overrides"]
-        ] = series_overrides
+        overrides[OVERRIDE_SELECTOR_WEIGHTS["series_overrides"]] = (
+            series_overrides
+        )
 
     general_overrides = copy.deepcopy(entitlement.get("overrides", []))
     for override in general_overrides:

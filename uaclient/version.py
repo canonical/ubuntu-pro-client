@@ -1,6 +1,7 @@
 """
 Client version related functions
 """
+
 import os.path
 from math import inf
 from typing import Optional

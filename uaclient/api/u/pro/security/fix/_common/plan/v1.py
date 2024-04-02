@@ -747,9 +747,9 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     )
     additional_data = {
         "associated_cves": [] if not usn.cves_ids else usn.cves_ids,
-        "associated_launchpad_bugs": []
-        if not usn.references
-        else usn.references,
+        "associated_launchpad_bugs": (
+            [] if not usn.references else usn.references
+        ),
     }
 
     target_usn_plan = _generate_fix_plan(
@@ -772,9 +772,9 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
         )
         additional_data = {
             "associated_cves": [] if not usn.cves_ids else usn.cves_ids,
-            "associated_launchpad_bugs": []
-            if not usn.references
-            else usn.references,
+            "associated_launchpad_bugs": (
+                [] if not usn.references else usn.references
+            ),
         }
 
         related_usns_plan.append(

@@ -500,13 +500,15 @@ class TestStatus:
         expected_services = [
             {
                 "description": cls.description,
-                "entitled": uf_entitled
-                if cls.name in resource_names
-                else default_entitled,
+                "entitled": (
+                    uf_entitled
+                    if cls.name in resource_names
+                    else default_entitled
+                ),
                 "name": cls.name,
-                "status": uf_status
-                if cls.name in resource_names
-                else default_status,
+                "status": (
+                    uf_status if cls.name in resource_names else default_status
+                ),
                 "status_details": mock.ANY,
                 "description_override": None,
                 "available": mock.ANY,

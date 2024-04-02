@@ -149,12 +149,16 @@ def _reboot_required(cfg: UAConfig) -> RebootRequiredResult:
     return RebootRequiredResult(
         reboot_required=reboot_status.value,
         reboot_required_packages=RebootRequiredPkgs(
-            standard_packages=reboot_required_pkgs.standard_packages
-            if reboot_required_pkgs
-            else None,
-            kernel_packages=reboot_required_pkgs.kernel_packages
-            if reboot_required_pkgs
-            else None,
+            standard_packages=(
+                reboot_required_pkgs.standard_packages
+                if reboot_required_pkgs
+                else None
+            ),
+            kernel_packages=(
+                reboot_required_pkgs.kernel_packages
+                if reboot_required_pkgs
+                else None
+            ),
         ),
         livepatch_enabled_and_kernel_patched=livepatch_enabled_and_kernel_patched,  # noqa
         livepatch_enabled=livepatch_enabled,

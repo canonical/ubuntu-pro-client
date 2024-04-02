@@ -152,8 +152,8 @@ class TestNotices:
     def test_list(self, m_load_file, m_get_notice_file_names):
         notice = NoticesManager()
 
-        m_get_notice_file_names.side_effect = (
-            lambda directory: []
+        m_get_notice_file_names.side_effect = lambda directory: (
+            []
             if directory == defaults.NOTICES_TEMPORARY_DIRECTORY
             else ["fakeNotice1"]
         )

@@ -75,10 +75,10 @@ def set_apt_mirror_file_with_credentials(
         )
 
         apt_mirror_file += "\n" + apt_mirror_cfg + "\n"
-        context.service_mirror_cfg[service.replace("-", "_")][
-            "path"
-        ] = "/var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/".format(
-            service_type
+        context.service_mirror_cfg[service.replace("-", "_")]["path"] = (
+            "/var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/".format(
+                service_type
+            )
         )
 
     apt_mirror_file += "clean http://archive.ubuntu.com/ubuntu"

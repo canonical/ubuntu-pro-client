@@ -1,4 +1,5 @@
 """Tests related to uaclient.entitlement.base module."""
+
 import copy
 import logging
 from functools import partial
