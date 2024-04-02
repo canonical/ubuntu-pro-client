@@ -84,7 +84,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then stdout matches regexp
       """
       One moment, checking your subscription first
-      Real-time kernel is already enabled.
+      Real-time kernel is already enabled - nothing to do.
       See: sudo pro status
       """
     When I reboot the machine
@@ -183,7 +183,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
     Then stdout contains substring:
       """
-      Real-time kernel is already enabled.
+      Real-time kernel is already enabled - nothing to do.
       """
     When I run `pro disable realtime-kernel --assume-yes` with sudo
     When I run `apt-cache policy ubuntu-intel-iot-realtime` as non-root

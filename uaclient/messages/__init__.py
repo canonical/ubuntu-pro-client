@@ -1692,7 +1692,8 @@ ALREADY_ENABLED = FormattedNamedMessage(
     "service-already-enabled",
     t.gettext(
         """\
-{title} is already enabled.\nSee: sudo pro status"""
+{title} is already enabled - nothing to do.
+See: sudo pro status"""
     ),
 )
 UNENTITLED = FormattedNamedMessage(
