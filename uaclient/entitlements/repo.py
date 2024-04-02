@@ -169,13 +169,13 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def disable_steps(self) -> int:
-        if self.purge:
+        if not self.purge:
             # 1. Unconfigure APT
-            # 2. Purge
+            # 2. Update package lists
             return 2
         else:
-            # 1. Unconfigure APT
-            return 1
+            # 3. Purge
+            return 3
 
     def _perform_disable(self, progress: api.ProgressWrapper):
         if self.purge and self.origin:

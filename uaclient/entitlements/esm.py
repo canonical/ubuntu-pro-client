@@ -20,7 +20,7 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
             ROSUpdatesEntitlement,
         )
 
-        return (ROSEntitlement, ROSUpdatesEntitlement)
+        return (ROSUpdatesEntitlement, ROSEntitlement)
 
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         from uaclient.timer.update_messaging import update_motd_messages
