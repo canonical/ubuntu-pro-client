@@ -62,7 +62,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     When I verify that running `pro disable livepatch` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
-      Livepatch is not currently enabled
+      Livepatch is not currently enabled - nothing to do.
       See: sudo pro status
       """
     When I verify that running `pro disable foobar` `with sudo` exits `1`
@@ -79,7 +79,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     When I verify that running `pro disable livepatch foobar` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
-      Livepatch is not currently enabled
+      Livepatch is not currently enabled - nothing to do.
       See: sudo pro status
       """
     And stderr matches regexp:
@@ -134,7 +134,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     And stdout is a json matching the `ua_operation` schema
     And I will see the following on stdout:
       """
-      {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo pro status", "message_code": "service-already-disabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+      {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled - nothing to do.\nSee: sudo pro status", "message_code": "service-already-disabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
       """
     And I verify that running `pro disable esm-infra esm-apps --format json --assume-yes` `with sudo` exits `0`
     And stdout is a json matching the `ua_operation` schema

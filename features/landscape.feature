@@ -41,7 +41,7 @@ Feature: Enable landscape on Ubuntu
     When I verify that running `sudo pro disable landscape` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
-      Landscape is not currently enabled
+      Landscape is not currently enabled - nothing to do.
       See: sudo pro status
       """
     # Fail to enable with assume-yes
