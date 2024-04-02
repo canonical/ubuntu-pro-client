@@ -1678,7 +1678,8 @@ ALREADY_DISABLED = FormattedNamedMessage(
     "service-already-disabled",
     t.gettext(
         """\
-{title} is not currently enabled\nSee: sudo pro status"""
+{title} is not currently enabled - nothing to do.
+See: sudo pro status"""
     ),
 )
 CANNOT_DISABLE_NOT_APPLICABLE = FormattedNamedMessage(
