@@ -2215,6 +2215,11 @@ E_ENTITLEMENT_NOT_ENABLED_ERROR = FormattedNamedMessage(
     t.gettext("failed to enable {service}"),
 )
 
+E_ENTITLEMENT_NOT_DISABLED_ERROR = FormattedNamedMessage(
+    "entitlement-not-disabled",
+    t.gettext("failed to disable {service}"),
+)
+
 E_ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
     "attach-failure-default-service",
     t.gettext(

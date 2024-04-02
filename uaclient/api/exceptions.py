@@ -4,6 +4,7 @@ from uaclient.exceptions import (
     AlreadyAttachedError,
     ConnectivityError,
     ContractAPIError,
+    EntitlementNotDisabledError,
     EntitlementNotEnabledError,
     EntitlementNotFoundError,
     EntitlementsNotEnabledError,
@@ -34,6 +35,7 @@ __all__ = [
     "UserFacingError",
     "EntitlementsNotEnabledError",
     "EntitlementNotEnabledError",
+    "EntitlementNotDisabledError",
     "IncompatibleServiceStopsEnable",
     "RequiredServiceStopsEnable",
 ]

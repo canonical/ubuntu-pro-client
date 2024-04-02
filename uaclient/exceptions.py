@@ -366,6 +366,22 @@ class EntitlementNotEnabledError(UbuntuProError):
         )
 
 
+class EntitlementNotDisabledError(UbuntuProError):
+    _formatted_msg = messages.E_ENTITLEMENT_NOT_DISABLED_ERROR
+
+    def __init__(self, service: str, reason: messages.NamedMessage):
+        super().__init__(
+            service=service,
+            additional_info={
+                "reason": {
+                    "code": reason.name,
+                    "title": reason.msg,
+                    "additional_info": reason.additional_info,
+                }
+            },
+        )
+
+
 class AttachFailureDefaultServices(EntitlementsNotEnabledError):
     _msg = messages.E_ATTACH_FAILURE_DEFAULT_SERVICES
 
