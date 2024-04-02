@@ -24,13 +24,9 @@ def _wait_for_cloud_config():
         LOG.debug("cloud-init.service state: %r", ci_state)
         # if cloud-config.service is not yet activating but cloud-init is
         # running, wait for cloud-config to start
-        if state is not None and (
-            state == "activating"
-            or (
-                state == "inactive"
-                and ci_state is not None
-                and (ci_state == "activating" or ci_state == "active")
-            )
+        if state == "activating" or (
+            state == "inactive"
+            and (ci_state == "activating" or ci_state == "active")
         ):
             if i < WAIT_FOR_CLOUD_CONFIG_POLL_TIMES:
                 LOG.debug(
