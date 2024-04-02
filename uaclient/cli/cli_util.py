@@ -23,7 +23,6 @@ class CLIEnableDisableProgress(api.AbstractProgress):
     def _on_event(self, event: str, payload):
         if event == "info":
             print(payload)
-            return
         elif event == "message_operation":
             if not util.handle_message_operations(payload, print):
                 raise exceptions.PromptDeniedError()
