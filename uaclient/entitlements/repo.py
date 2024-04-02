@@ -295,15 +295,21 @@ class RepoEntitlement(base.UAEntitlement):
         prompt = False
         if packages_to_remove:
             progress.emit("info", messages.WARN_PACKAGES_REMOVAL)
-            util.print_package_list(
-                [package.name for package in packages_to_remove]
+            progress.emit(
+                "info",
+                util.create_package_list_str(
+                    [package.name for package in packages_to_remove]
+                ),
             )
             prompt = True
 
         if packages_to_reinstall:
             progress.emit("info", messages.WARN_PACKAGES_REINSTALL)
-            util.print_package_list(
-                [package.name for (package, _) in packages_to_reinstall]
+            progress.emit(
+                "info",
+                util.create_package_list_str(
+                    [package.name for (package, _) in packages_to_reinstall]
+                ),
             )
             prompt = True
 

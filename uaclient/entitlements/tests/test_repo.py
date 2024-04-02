@@ -814,7 +814,9 @@ class TestPurge:
                 ],
                 [
                     mock.call("info", messages.WARN_PACKAGES_REMOVAL),
+                    mock.call("info", "  remove1 remove2\n"),
                     mock.call("info", messages.WARN_PACKAGES_REINSTALL),
+                    mock.call("info", "  reinstall1 reinstall2\n"),
                     mock.call(
                         "message_operation",
                         [(mock.ANY, {"msg": messages.PROCEED_YES_NO})],
@@ -827,6 +829,7 @@ class TestPurge:
                 [mock.call(["remove1", "remove2"])],
                 [
                     mock.call("info", messages.WARN_PACKAGES_REMOVAL),
+                    mock.call("info", "  remove1 remove2\n"),
                     mock.call(
                         "message_operation",
                         [(mock.ANY, {"msg": messages.PROCEED_YES_NO})],
@@ -839,6 +842,7 @@ class TestPurge:
                 [mock.call(["reinstall1", "reinstall2"])],
                 [
                     mock.call("info", messages.WARN_PACKAGES_REINSTALL),
+                    mock.call("info", "  reinstall1 reinstall2\n"),
                     mock.call(
                         "message_operation",
                         [(mock.ANY, {"msg": messages.PROCEED_YES_NO})],
@@ -848,10 +852,8 @@ class TestPurge:
             ([], [], [], []),
         ),
     )
-    @mock.patch(M_PATH + "util.print_package_list")
     def test_prompt_for_purge(
         self,
-        m_print_packages,
         remove,
         reinstall,
         expected_print,
@@ -869,7 +871,6 @@ class TestPurge:
             entitlement.prompt_for_purge(remove, reinstall, mock_progress)
             is True
         )
-        assert m_print_packages.call_args_list == expected_print
         assert mock_progress.emit.call_args_list == expected_progress_emits
 
     @pytest.mark.parametrize(

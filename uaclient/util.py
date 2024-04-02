@@ -464,10 +464,10 @@ def set_filename_extension(filename: str, new_extension: str) -> str:
     return name + "." + new_extension
 
 
-def print_package_list(
+def create_package_list_str(
     package_list: List[str],
 ):
-    print(
+    return (
         "\n".join(
             textwrap.wrap(
                 " ".join(package_list),
@@ -478,5 +478,5 @@ def print_package_list(
                 subsequent_indent="  ",
             )
         )
+        + "\n"
     )
-    print("")
