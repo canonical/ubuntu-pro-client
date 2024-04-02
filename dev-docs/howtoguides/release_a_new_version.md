@@ -61,13 +61,13 @@ NOTE: There are fake commits ("Review" and "Release PR") in the mermaid definiti
 gitGraph LR:
   commit id: "v41-feature1"
   commit id: "v41-feature2" tag: "41"
-  branch review-v42 order: 1
+  branch review-v42 order: 3
   commit id: "Review" type: HIGHLIGHT
   checkout main
   commit id: "v42-feature1"
   commit id: "v42-feature2" tag: "42-rc"
 
-  branch next-v43 order: 3
+  branch next-v43 order: 1
   commit id: "v43-feature1"
   commit id: "v43-feature2"
   checkout main
@@ -78,6 +78,18 @@ gitGraph LR:
   commit id: "v42-fixup2" tag: "42"
   checkout review-v42
   merge main id: "Release PR" type:HIGHLIGHT
+
+  # release branches
+  checkout main
+  branch release-v42-xenial order: 4
+  commit id: "Xenial Backport" type: HIGHLIGHT
+  checkout main
+  branch release-v42-bionic order: 5
+  commit id: "Bionic Backport" type: HIGHLIGHT
+  checkout main
+  branch release-v42-focal order: 6
+  commit id: "Focal Backport" type: HIGHLIGHT
+
   checkout main
   merge next-v43
 ```
@@ -95,13 +107,17 @@ When we reach a point in `main` where we are ready to release version 42, we do 
 * Sponsor and SRU review uses the `main`->`review-v42` PR
   * Feedback that requires changes are added to `main`
 * When version 42 is approved, the tip of `main` is tagged `42` and the Sponsor uploads using that commit
+  * `release-v42-$release` branches are created with a backport changelog entry for each supported Ubuntu release. These are used to upload to the SRU unapproved queue for each release. (Only `xenial`, `bionic`, and `focal` shown in the diagram).
   * The `review-v42` branch is now deleted along with the `main`->`review-v42` PR (the PR is not merged).
 * After version 42 is released, `next-v43` is rebased on top of `main` and `next-v43` is deleted
 * Development continues on `main` until we are ready to begin releasing version 43
 
 ## Release process
 
-The process will use `$version` throughout in place of the version number, e.g., `42`. The process will also use `$devel_release` in place of the current devel release, e.g., `noble`.
+The process will use:
+- `$version` in place of the version number, e.g., `42`.
+- `$prev_version` in place of the most recently released version number, e.g., `41`.
+- `$devel_release` in place of the current devel release, e.g., `noble`.
 
 ### 1. Set up `review` and `next` branches
 
@@ -119,7 +135,7 @@ git switch -c next-v$((version+1))
 git push origin next-v$((version+1))
 
 # Create the review branch
-git switch main
+git checkout $prev_version
 git switch -c review-v$version
 git push origin review-v$version
 ```
