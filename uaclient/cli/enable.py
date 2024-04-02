@@ -151,15 +151,16 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     for ent_name in entitlements.order_entitlements_for_enabling(
         cfg, entitlements_found
     ):
-        try:
-            ent = entitlements.entitlement_factory(
-                cfg, ent_name, variant=variant
-            )(cfg, called_name=ent_name)
-            real_name = ent.name
-            ent_title = ent.title
-        except exceptions.UbuntuProError:
-            real_name = ent_name
-            ent_title = ent_name
+        ent = entitlements.entitlement_factory(cfg, ent_name, variant=variant)(
+            cfg,
+            assume_yes=args.assume_yes,
+            allow_beta=args.beta,
+            called_name=ent_name,
+            access_only=access_only,
+            extra_args=kwargs.get("extra_args"),
+        )
+        real_name = ent.name
+        ent_title = ent.title
 
         if not args.assume_yes:
             # this never happens for json output because we assert earlier that
@@ -190,16 +191,6 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                     cli_util.CLIEnableDisableProgress()
                 )
 
-            ent = entitlements.entitlement_factory(
-                cfg, ent_name, variant=variant
-            )(
-                cfg,
-                assume_yes=args.assume_yes,
-                allow_beta=args.beta,
-                called_name=ent_name,
-                access_only=access_only,
-                extra_args=kwargs.get("extra_args"),
-            )
             progress.total_steps = ent.calculate_total_enable_steps()
             ent_ret, reason = ent.enable(progress)
 

@@ -512,11 +512,6 @@ class TestActionEnable:
                 action_enable(args, cfg)
 
         assert [
-            # first one for getting title/real name
-            mock.call(
-                cfg,
-                called_name="testitlement",
-            ),
             mock.call(
                 cfg,
                 assume_yes=assume_yes,
@@ -620,11 +615,6 @@ class TestActionEnable:
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
-                # first one for getting title/real name
-                mock.call(
-                    cfg,
-                    called_name=m_ent_cls.name,
-                ),
                 mock.call(
                     cfg,
                     assume_yes=assume_yes,
@@ -795,11 +785,6 @@ class TestActionEnable:
 
         for m_ent_cls in mock_ent_list:
             assert [
-                # first one for getting title/real name
-                mock.call(
-                    cfg,
-                    called_name=m_ent_cls.name,
-                ),
                 mock.call(
                     cfg,
                     assume_yes=assume_yes,
@@ -1058,11 +1043,6 @@ class TestActionEnable:
                 ret = action_enable(args_mock, cfg=cfg)
 
         assert [
-            # first one for getting title/real name
-            mock.call(
-                cfg,
-                called_name="testitlement",
-            ),
             mock.call(
                 cfg,
                 assume_yes=True,
