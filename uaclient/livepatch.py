@@ -201,9 +201,9 @@ class UALivepatchClient(serviceclient.UAServiceClient):
             "flavour": flavor,
             "architecture": arch,
             "codename": codename,
-            "build-date": build_date.isoformat()
-            if build_date is not None
-            else "unknown",
+            "build-date": (
+                build_date.isoformat() if build_date is not None else "unknown"
+            ),
         }
         headers = self.headers()
         try:

@@ -130,10 +130,14 @@ class Test_GetFakeResponses:
                 code=response["code"],
                 headers=response.get("headers", {}),
                 body=json.dumps(response["response"], sort_keys=True),
-                json_dict=response["response"]
-                if isinstance(response["response"], dict)
-                else {},
-                json_list=response["response"]
-                if isinstance(response["response"], list)
-                else [],
+                json_dict=(
+                    response["response"]
+                    if isinstance(response["response"], dict)
+                    else {}
+                ),
+                json_list=(
+                    response["response"]
+                    if isinstance(response["response"], list)
+                    else []
+                ),
             ) == client._get_fake_responses(url)

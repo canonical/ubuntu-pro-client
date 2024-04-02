@@ -1,4 +1,5 @@
 """Tests related to uaclient.util module."""
+
 import datetime
 import json
 

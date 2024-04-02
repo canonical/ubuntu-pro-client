@@ -1,4 +1,5 @@
 """Tests related to uaclient.entitlement.__init__ module."""
+
 import mock
 import pytest
 

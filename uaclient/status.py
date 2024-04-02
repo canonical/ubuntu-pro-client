@@ -135,9 +135,11 @@ DEFAULT_STATUS = {
 def _get_blocked_by_services(ent):
     return [
         {
-            "name": service.entitlement.name
-            if not service.entitlement.is_variant
-            else service.entitlement.variant_name,
+            "name": (
+                service.entitlement.name
+                if not service.entitlement.is_variant
+                else service.entitlement.variant_name
+            ),
             "reason_code": service.named_msg.name,
             "reason": service.named_msg.msg,
         }
@@ -444,9 +446,13 @@ def _get_entitlement_information(
         if entitlement.get("type") == entitlement_name:
             return {
                 "entitled": "yes" if entitlement.get("entitled") else "no",
-                "auto_enabled": "yes"
-                if entitlement.get("obligations", {}).get("enableByDefault")
-                else "no",
+                "auto_enabled": (
+                    "yes"
+                    if entitlement.get("obligations", {}).get(
+                        "enableByDefault"
+                    )
+                    else "no"
+                ),
                 "affordances": entitlement.get("affordances", {}),
             }
     return {"entitled": "no", "auto_enabled": "no", "affordances": {}}
@@ -547,9 +553,9 @@ def simulate_status(
                 "description": ent.description,
                 "entitled": entitlement_information["entitled"],
                 "auto_enabled": entitlement_information["auto_enabled"],
-                "available": "yes"
-                if ent.name not in inapplicable_resources
-                else "no",
+                "available": (
+                    "yes" if ent.name not in inapplicable_resources else "no"
+                ),
             }
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
