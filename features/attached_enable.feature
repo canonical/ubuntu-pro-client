@@ -157,7 +157,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     And stdout is a json matching the `ua_operation` schema
     Then I will see the following on stdout:
       """
-      {"_schema_version": "0.1", "errors": [{"message": "Ubuntu Pro: ESM Infra is already enabled.\nSee: sudo pro status", "message_code": "service-already-enabled", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+      {"_schema_version": "0.1", "errors": [{"message": "Ubuntu Pro: ESM Infra is already enabled - nothing to do.\nSee: sudo pro status", "message_code": "service-already-enabled", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
       """
     When I run `pro disable esm-infra` with sudo
     And I run `pro enable esm-infra --format json --assume-yes` with sudo
@@ -214,7 +214,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     And I will see the following on stdout:
       """
       One moment, checking your subscription first
-      Ubuntu Pro: ESM Infra is already enabled.
+      Ubuntu Pro: ESM Infra is already enabled - nothing to do.
       See: sudo pro status
       Could not enable Ubuntu Pro: ESM Infra.
       """
@@ -344,7 +344,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then stdout matches regexp
       """
       One moment, checking your subscription first
-      CIS Audit is already enabled.
+      CIS Audit is already enabled - nothing to do.
       See: sudo pro status
       """
     When I run `cis-audit level1_server` with sudo
@@ -425,7 +425,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       From Ubuntu 20.04 onward 'pro enable cis' has been
       replaced by 'pro enable usg'. See more information at:
       https://ubuntu.com/security/certifications/docs/usg
-      CIS Audit is already enabled.
+      CIS Audit is already enabled - nothing to do.
       See: sudo pro status
       """
     When I run `cis-audit level1_server` with sudo
@@ -998,7 +998,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then stdout matches regexp
       """
       One moment, checking your subscription first
-      Ubuntu Pro: ESM Apps is already enabled.
+      Ubuntu Pro: ESM Apps is already enabled - nothing to do.
       See: sudo pro status
       """
 
