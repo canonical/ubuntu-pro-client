@@ -495,9 +495,12 @@ class TestDisable:
         args.command = "disable"
         if root:
             expected_error = expected_error_template.format(
-                valid_service="esm-infra"
+                valid_service="esm-infra", operation="disable"
             )
-            expected_info = {"valid_service": "esm-infra"}
+            expected_info = {
+                "valid_service": "esm-infra",
+                "operation": "disable",
+            }
         else:
             expected_error = expected_error_template
             expected_info = None

@@ -2181,8 +2181,9 @@ E_VALID_SERVICE_FAILURE_UNATTACHED = FormattedNamedMessage(
     "valid-service-failure-unattached",
     t.gettext(
         """\
-To use '{{valid_service}}' you need an Ubuntu Pro subscription
-Personal and community subscriptions are available at no charge
+Cannot {{operation}} services when unattached - nothing to do.
+To use '{{valid_service}}' you need an Ubuntu Pro subscription.
+Personal and community subscriptions are available at no charge.
 See {url}"""
     ).format(url=urls.PRO_HOME_PAGE),
 )

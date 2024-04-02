@@ -237,10 +237,11 @@ class TestActionEnable:
 
         if root:
             expected_error = expected_error_template.format(
-                valid_service="esm-infra"
+                valid_service="esm-infra", operation="enable"
             )
             expected_info = {
                 "valid_service": "esm-infra",
+                "operation": "enable",
             }
         else:
             expected_error = expected_error_template
