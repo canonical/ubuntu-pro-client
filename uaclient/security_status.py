@@ -7,7 +7,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple
 
 import apt_pkg  # type: ignore
 
-from uaclient import exceptions, livepatch, messages
+from uaclient import exceptions, livepatch, messages, util
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -32,7 +32,6 @@ from uaclient.system import (
     is_current_series_lts,
     is_supported,
 )
-from uaclient.util import print_package_list
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
 
@@ -43,6 +42,10 @@ class UpdateStatus(Enum):
     UNATTACHED = "pending_attach"
     NOT_ENABLED = "pending_enable"
     UNAVAILABLE = "upgrade_unavailable"
+
+
+def print_package_list(packages):
+    print(util.create_package_list_str(packages))
 
 
 @lru_cache(maxsize=None)
