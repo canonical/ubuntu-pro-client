@@ -105,7 +105,7 @@ def _raise_enable_disable_unattached_error(command, service_names, cfg):
         )
     elif entitlements_found:
         raise exceptions.UnattachedValidServicesError(
-            valid_service=", ".join(entitlements_found)
+            valid_service=", ".join(entitlements_found), operation=command
         )
     else:
         raise exceptions.UnattachedInvalidServicesError(
