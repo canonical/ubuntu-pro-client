@@ -133,7 +133,7 @@ And finally, create a draft PR from `main` to `review-v$version` on GitHub.
 
 ### 2. Write a changelog entry
 
-Create a PR against `main` finishing the changelog entry for the new version. There should be an entry at the top for `UNRELEASED` with the version `1:1+devel`. Change the version to `$version` and change `UNRELEASED` to `$devel_release`. Also review the contents of the changelog entry and add anything that is missing. This PR should be reviewed and merged before starting the release process.
+Create a PR against `main` finishing the changelog entry for the new version. In the top entry, change `1:1+devel` to `$version` and change `UNRELEASED` to `$devel_release`. Also review the contents of the changelog entry and add anything that is missing. This PR should be reviewed and merged before starting the release process.
 
 You don't need to include a note for all of the commits included in the release. Remember that the changelog should be read by the user to understand the new features/modifications in the package. If you think a commit will not add that much to the user experience, you can drop it from the changelog.
 
