@@ -41,55 +41,19 @@ mark_reboot_cmds_as_needed() {
     fi
 }
 
-#
-# Migration functions
-#
-create_public_user_config_file() {
-    # When we perform the write operation through
-    # UserConfigFile we already write the public
-    # version of the user-config file with all the
-    # sensitive data removed.
-    # We also move the user-config.json file to the private 
-    # directory
-    source_file="/var/lib/ubuntu-advantage/user-config.json"
-    destination_dir="/var/lib/ubuntu-advantage/private"
-    # Check if the source file exists
-    if [ -f "$source_file" ]; then
-        mkdir -p "$destination_dir"
-        # Move the user-config.json file to the private directory
-        mv "$source_file" "$destination_dir/user-config.json"
-
-        /usr/bin/python3 -c "
-from uaclient.files import UserConfigFileObject
-try:
-    user_config_file = UserConfigFileObject()
-    content = user_config_file.read()
-    user_config_file.write(content)
-except Exception as e:
-    print('Error while creating public user-config file: {}'.format(e))
-"
-    fi
-}
-
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
 
       #
-      # Migrations from previous ubuntu-pro-client package versions
-      #
-      # These should always be version-gated using PREVIOUS_PKG_VER and execute in order from oldest to newest.
-      # For example:
-      #   if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "33~"; then
-      #       # do the migrations to version 33
-      #   fi
-      #   if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "34~"; then
-      #       # do the migrations to version 34
-      #   fi
+      # Migrations from previous ubuntu-pro-client package versions.
+      # These all exist in postinst-migrations.sh.
+      # See the explanation in that file.
+      # Do not add additional version migrations directly in this file.
       #
 
-      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "32~"; then
-          create_public_user_config_file
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" gt "30"; then
+          /usr/lib/ubuntu-advantage/postinst-migrations.sh $PREVIOUS_PKG_VER
       fi
 
       #
