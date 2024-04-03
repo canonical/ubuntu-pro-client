@@ -1,3 +1,5 @@
+.. _explanation:
+
 Ubuntu Pro Client explanation
 *****************************
 
@@ -64,6 +66,7 @@ Other Pro features explained
 ..  toctree::
     :maxdepth: 1
 
+    explanations/which_services.rst
     explanations/about_esm.md
     explanations/what_are_the_timer_jobs.md
     explanations/using_pro_offline.rst
