@@ -1,4 +1,5 @@
 import json
+import sys
 from collections import OrderedDict
 from typing import Any, Optional  # noqa: F401
 
@@ -27,6 +28,10 @@ class CLIAPIProgress(AbstractProgress):
 def action_api(args, *, cfg, **kwargs):
     if args.options and args.data:
         raise exceptions.CLIAPIOptionsXORData()
+
+    if args.data and args.data == "-":
+        if not sys.stdin.isatty():
+            args.data = sys.stdin.read()
 
     if args.show_progress:
         progress = CLIAPIProgress()
