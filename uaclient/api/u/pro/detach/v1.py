@@ -9,6 +9,7 @@ from uaclient import (
     timer,
     util,
 )
+from uaclient.api import ProgressWrapper
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo, ErrorWarningObject
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
@@ -78,7 +79,7 @@ def _detach_in_lock(cfg: UAConfig) -> DetachResult:
         # since we are going to disable all of them anyway
         can_disable, _ = ent.can_disable(ignore_dependent_services=True)
         if can_disable:
-            ret, reason = ent.disable(silent=True)
+            ret, reason = ent.disable(ProgressWrapper())
             if not ret:
                 if reason and reason.message:
                     msg = reason.message.msg
