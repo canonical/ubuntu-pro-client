@@ -108,5 +108,14 @@ def when_i_attach_using_the_api_withot_enabling_services(context):
         '--data \'{{"token": "{}", "auto_enable_services": false}}\''
     )
     cmd = cmd.format(context.pro_config.contract_token)
-    print(cmd)
     when_i_run_command(context, cmd, "with sudo")
+
+
+@when("I attach using the API and stdin")
+def when_i_attach_using_the_api_and_stdin(context):
+    when_i_run_command(
+        context,
+        "pro api u.pro.attach.token.full_token_attach.v1 --data -",
+        "with sudo",
+        stdin=json.dumps({"token": context.pro_config.contract_token}),
+    )

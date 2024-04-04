@@ -104,6 +104,36 @@ Feature: Attach API endpoint
     And the machine is attached
     And I verify that `esm-apps` is disabled
     And I verify that `esm-infra` is disabled
+    When I run `pro detach --assume-yes` with sudo
+    And I attach using the API and stdin
+    Then stdout is a json matching the `api_response` schema
+    And the json API response data matches the `attach` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "v1",
+        "data": {
+          "attributes": {
+            "enabled": [
+              "esm-apps",
+              "esm-infra"
+            ],
+            "reboot_required": false
+          },
+          "meta": {
+            "environment_vars": []
+          },
+          "type": "FullTokenAttach"
+        },
+        "errors": [],
+        "result": "success",
+        "version": ".*",
+        "warnings": []
+      }
+      """
+    And the machine is attached
+    And I verify that `esm-apps` is enabled
+    And I verify that `esm-infra` is enabled
 
     Examples: ubuntu release
       | release | machine_type  |
