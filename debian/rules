@@ -62,8 +62,11 @@ override_dh_auto_install:
 	debian/jinja2_render debian/apparmor/ubuntu_pro_apt_news.jinja2 debian/apparmor/ubuntu_pro_apt_news ubuntu_codename=${UBUNTU_CODENAME}
 	debian/jinja2_render debian/apparmor/ubuntu_pro_esm_cache.jinja2 debian/apparmor/ubuntu_pro_esm_cache ubuntu_codename=${UBUNTU_CODENAME}
 	# quick syntax check on the generated profiles
-	apparmor_parser -K -T -Q debian/apparmor/ubuntu_pro_apt_news
-	apparmor_parser -K -T -Q debian/apparmor/ubuntu_pro_esm_cache
+	mkdir debian/apparmor/local
+	touch debian/apparmor/local/ubuntu_pro_apt_news
+	touch debian/apparmor/local/ubuntu_pro_esm_cache
+	apparmor_parser -I $(CURDIR)/debian/apparmor -K -T -Q debian/apparmor/ubuntu_pro_apt_news
+	apparmor_parser -I $(CURDIR)/debian/apparmor -K -T -Q debian/apparmor/ubuntu_pro_esm_cache
 	install -D -m 644 $(CURDIR)/debian/apparmor/ubuntu_pro_apt_news $(CURDIR)/debian/ubuntu-pro-client/etc/apparmor.d/ubuntu_pro_apt_news
 	install -D -m 644 $(CURDIR)/debian/apparmor/ubuntu_pro_esm_cache $(CURDIR)/debian/ubuntu-pro-client/etc/apparmor.d/ubuntu_pro_esm_cache
 	dh_apparmor -pubuntu-pro-client --profile-name=ubuntu_pro_apt_news
