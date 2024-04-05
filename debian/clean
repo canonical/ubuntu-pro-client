@@ -1,1 +1,3 @@
 debian/apparmor/ubuntu_pro_apt_news
+debian/apparmor/ubuntu_pro_esm_cache
+debian/apparmor/local/
