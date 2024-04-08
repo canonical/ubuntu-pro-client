@@ -117,6 +117,23 @@ Explaining the full syntax of the AppArmor profiles is out of scope for this doc
 
 ATTENTION: be mindful of the differences in Ubuntu Releases regarding the AppArmor profile syntax!
 
+## `esm-cache` specific AppArmor notes
+The `esm-cache` service has an AppArmor profile that is a bit more involved than the one for `apt-news`. Instead of just one profile, there are multiple profiles, all defined in the same `/etc/apparmor.d/ubuntu_pro_esm_cache` file:
+
+```
+profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
+  profile ps flags=(attach_disconnected) {
+  profile cloud_id flags=(attach_disconnected) {
+  profile dpkg flags=(attach_disconnected) {
+  profile ubuntu_distro_info flags=(attach_disconnected) {
+  profile apt_methods flags=(attach_disconnected) {
+  profile apt_methods_gpgv flags=(attach_disconnected) {
+profile ubuntu_pro_esm_cache_systemctl flags=(attach_disconnected) {
+profile ubuntu_pro_esm_cache_systemd_detect_virt flags=(attach_disconnected) {
+```
+
+This was done to avoid having to give the main profile (`ubuntu_pro_esm_cache`) too many privileges. Therefore, whenever other specific binaries are executed, the main profile switches to another one, which will have different rules just for that new execution.
+
 
 ## Troubleshooting systemd sandboxing
 
