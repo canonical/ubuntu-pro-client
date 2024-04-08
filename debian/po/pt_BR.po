@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-02 14:07-0400\n"
+"POT-Creation-Date: 2024-04-08 10:20-0400\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -18,72 +18,72 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../../apt-hook/json-hook.cc:159
+#: ../../apt-hook/json-hook.cc:245
 msgid "1 standard LTS security update"
 msgstr "1 atualização de segurança de LTS"
 
-#: ../../apt-hook/json-hook.cc:164
+#: ../../apt-hook/json-hook.cc:250
 #, c-format
 msgid "%lu standard LTS security updates"
 msgstr "%lu atualizações de segurança de LTS"
 
-#: ../../apt-hook/json-hook.cc:171
+#: ../../apt-hook/json-hook.cc:257
 msgid "1 esm-infra security update"
 msgstr "1 atualização de segurança do esm-infra"
 
-#: ../../apt-hook/json-hook.cc:173
+#: ../../apt-hook/json-hook.cc:259
 msgid "1 standard LTS security update and 1 esm-infra security update"
 msgstr ""
 "1 atualização de segurança de LTS e 1 atualização de segurança do esm-infra"
 
-#: ../../apt-hook/json-hook.cc:178
+#: ../../apt-hook/json-hook.cc:264
 #, c-format
 msgid "%lu standard LTS security updates and 1 esm-infra security update"
 msgstr ""
 "%lu atualizações de segurança de LTS e 1 atualização de segurança do esm-"
 "infra"
 
-#: ../../apt-hook/json-hook.cc:188
+#: ../../apt-hook/json-hook.cc:274
 #, c-format
 msgid "%lu esm-infra security updates"
 msgstr "%lu atualizações de segurança do esm-infra"
 
-#: ../../apt-hook/json-hook.cc:196
+#: ../../apt-hook/json-hook.cc:282
 #, c-format
 msgid "1 standard LTS security update and %lu esm-infra security updates"
 msgstr ""
 "1 atualização de segurança de LTS e %lu atualizações de segurança do esm-"
 "infra"
 
-#: ../../apt-hook/json-hook.cc:204
+#: ../../apt-hook/json-hook.cc:290
 #, c-format
 msgid "%lu standard LTS security updates and %lu esm-infra security updates"
 msgstr ""
 "%lu atualizações de segurança de LTS e %lu atualizações de segurança do esm-"
 "infra"
 
-#: ../../apt-hook/json-hook.cc:214
+#: ../../apt-hook/json-hook.cc:300
 msgid "1 esm-apps security update"
 msgstr "1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:216
+#: ../../apt-hook/json-hook.cc:302
 msgid "1 standard LTS security update and 1 esm-apps security update"
 msgstr ""
 "1 atualização de segurança de LTS e 1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:221
+#: ../../apt-hook/json-hook.cc:307
 #, c-format
 msgid "%lu standard LTS security updates and 1 esm-apps security update"
 msgstr ""
 "%lu atualizações de segurança de LTS e 1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:228
+#: ../../apt-hook/json-hook.cc:314
 msgid "1 esm-infra security update and 1 esm-apps security update"
 msgstr ""
 "1 atualização de segurança do esm-infra e 1 atualização de segurança do esm-"
 "apps"
 
-#: ../../apt-hook/json-hook.cc:230
+#: ../../apt-hook/json-hook.cc:316
 msgid ""
 "1 standard LTS security update, 1 esm-infra security update and 1 esm-apps "
 "security update"
@@ -91,7 +91,7 @@ msgstr ""
 "1 atualização de segurança de LTS, 1 atualização de segurança do esm-infra e "
 "1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:235
+#: ../../apt-hook/json-hook.cc:321
 #, c-format
 msgid ""
 "%lu standard LTS security updates, 1 esm-infra security update and 1 esm-"
@@ -100,14 +100,14 @@ msgstr ""
 "%lu atualizações de segurança de LTS, 1 atualização de segurança do esm-"
 "infra e 1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:245
+#: ../../apt-hook/json-hook.cc:331
 #, c-format
 msgid "%lu esm-infra security updates and 1 esm-apps security update"
 msgstr ""
 "%lu atualizações de segurança do esm-infra e 1 atualização de segurança do "
 "esm-apps"
 
-#: ../../apt-hook/json-hook.cc:253
+#: ../../apt-hook/json-hook.cc:339
 #, c-format
 msgid ""
 "1 standard LTS security update, %lu esm-infra security updates and 1 esm-"
@@ -116,7 +116,7 @@ msgstr ""
 "1 atualização de segurança de LTS, %lu atualizações de segurança do esm-"
 "infra e 1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:261
+#: ../../apt-hook/json-hook.cc:347
 #, c-format
 msgid ""
 "%lu standard LTS security updates, %lu esm-infra security updates and 1 esm-"
@@ -125,32 +125,32 @@ msgstr ""
 "%lu atualizações de segurança de LTS, %lu atualizações de segurança do esm-"
 "infra e 1 atualização de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:274
+#: ../../apt-hook/json-hook.cc:360
 #, c-format
 msgid "%lu esm-apps security updates"
 msgstr "%lu atualizações de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:282
+#: ../../apt-hook/json-hook.cc:368
 #, c-format
 msgid "1 standard LTS security update and %lu esm-apps security updates"
 msgstr ""
 "1 atualização de segurança de LTS e %lu atualizações de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:290
+#: ../../apt-hook/json-hook.cc:376
 #, c-format
 msgid "%lu standard LTS security updates and %lu esm-apps security updates"
 msgstr ""
 "%lu atualizações de segurança de LTS and %lu atualizações de segurança do "
 "esm-apps"
 
-#: ../../apt-hook/json-hook.cc:301
+#: ../../apt-hook/json-hook.cc:387
 #, c-format
 msgid "1 esm-infra security update and %lu esm-apps security updates"
 msgstr ""
 "1 atualização de segurança do esm-infra e %lu atualizações de segurança do "
 "esm-apps"
 
-#: ../../apt-hook/json-hook.cc:309
+#: ../../apt-hook/json-hook.cc:395
 #, c-format
 msgid ""
 "1 standard LTS security update, 1 esm-infra security update and %lu esm-apps "
@@ -159,7 +159,7 @@ msgstr ""
 "1 atualização de segurança de LTS, 1 atualização de segurança do esm-infra e "
 "%lu atualizações de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:317
+#: ../../apt-hook/json-hook.cc:403
 #, c-format
 msgid ""
 "%lu standard LTS security updates, 1 esm-infra security update and %lu esm-"
@@ -168,14 +168,14 @@ msgstr ""
 "%lu atualizações de segurança de LTS, 1 atualização de segurança de esm-"
 "infra e%lu atualizações de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:328
+#: ../../apt-hook/json-hook.cc:414
 #, c-format
 msgid "%lu esm-infra security updates and %lu esm-apps security updates"
 msgstr ""
 "%lu atualizações de segurança do esm-infra e %lu atualizações de segurança "
 "do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:337
+#: ../../apt-hook/json-hook.cc:423
 #, c-format
 msgid ""
 "1 standard LTS security update, %lu esm-infra security updates and %lu esm-"
@@ -184,7 +184,7 @@ msgstr ""
 "1 atualização de segurança de LTS, %lu atualizações de segurança do esm-"
 "infra e%lu atualizações de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:346
+#: ../../apt-hook/json-hook.cc:432
 #, c-format
 msgid ""
 "%lu standard LTS security updates, %lu esm-infra security updates and %lu "
@@ -193,47 +193,47 @@ msgstr ""
 "%lu atualizações de segurança de LTS, %lu atualizações de segurança do esm-"
 "infra e %lu atualizações de segurança do esm-apps"
 
-#: ../../apt-hook/json-hook.cc:403
+#: ../../apt-hook/json-hook.cc:489
 #, c-format
 msgid "Learn more about Ubuntu Pro for 16.04 on Azure at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro para a versão 16.04 no Azure em %s"
 
-#: ../../apt-hook/json-hook.cc:412
+#: ../../apt-hook/json-hook.cc:498
 #, c-format
 msgid "Learn more about Ubuntu Pro for 16.04 at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro para a versão 16.04 em %s"
 
-#: ../../apt-hook/json-hook.cc:423
+#: ../../apt-hook/json-hook.cc:509
 #, c-format
 msgid "Learn more about Ubuntu Pro for 18.04 on Azure at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro para a versão 18.04 no Azure em %s"
 
-#: ../../apt-hook/json-hook.cc:432
+#: ../../apt-hook/json-hook.cc:518
 #, c-format
 msgid "Learn more about Ubuntu Pro for 18.04 at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro para a versão 18.04 em %s"
 
-#: ../../apt-hook/json-hook.cc:443
+#: ../../apt-hook/json-hook.cc:529
 #, c-format
 msgid "Learn more about Ubuntu Pro on Azure at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro no Azure em %s"
 
-#: ../../apt-hook/json-hook.cc:452
+#: ../../apt-hook/json-hook.cc:538
 #, c-format
 msgid "Learn more about Ubuntu Pro on AWS at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro na AWS em %s"
 
-#: ../../apt-hook/json-hook.cc:461
+#: ../../apt-hook/json-hook.cc:547
 #, c-format
 msgid "Learn more about Ubuntu Pro on GCP at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro no GCP em %s"
 
-#: ../../apt-hook/json-hook.cc:472
+#: ../../apt-hook/json-hook.cc:558
 #, c-format
 msgid "Learn more about Ubuntu Pro at %s"
 msgstr "Saiba mais sobre o Ubuntu Pro em %s"
 
-#: ../../apt-hook/json-hook.cc:485
+#: ../../apt-hook/json-hook.cc:584
 #, c-format
 msgid "Get another security update through Ubuntu Pro with 'esm-apps' enabled:"
 msgid_plural ""
@@ -245,7 +245,7 @@ msgstr[1] ""
 "Obtenha mais atualizações de segurança através do Ubuntu Pro com 'esm-apps' "
 "habilitado:"
 
-#: ../../apt-hook/json-hook.cc:494
+#: ../../apt-hook/json-hook.cc:593
 #, c-format
 msgid ""
 "The following security update requires Ubuntu Pro with 'esm-infra' enabled:"
@@ -257,6 +257,18 @@ msgstr[0] ""
 msgstr[1] ""
 "As seguintes atualizações de segurança requerem o Ubuntu Pro com 'esm-infra' "
 "habilitado:"
+
+#: ../../apt-hook/json-hook.cc:609
+#, c-format
+msgid ""
+"The following packages will fail to download because your Ubuntu Pro "
+"subscription has expired"
+msgstr ""
+
+#: ../../apt-hook/json-hook.cc:618
+#, c-format
+msgid "Renew your subscription or `sudo pro detach` to remove these errors"
+msgstr ""
 
 #. Description
 #: ../ubuntu-advantage-tools.templates:3
@@ -479,11 +491,11 @@ msgid "The following package(s) will be reinstalled from the archive:"
 msgstr "O(s) pacote(s) à seguir serão reinstalados:"
 
 #: ../../uaclient/messages/__init__.py:163
-#, python-brace-format
+#, fuzzy, python-brace-format
 msgid ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
-"{{pkg_num}} additional security update require Ubuntu Pro with '{{service}}' "
-"enabled.\n"
+"{{pkg_num}} additional security update requires Ubuntu Pro with "
+"'{{service}}' enabled.\n"
 "Renew your subscription at {url}"
 msgid_plural ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
