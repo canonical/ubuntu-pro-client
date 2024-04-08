@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (19.7) trusty; urgency=medium
+
+  * Add support to new esm-infra-legacy service (LP: #2060566)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 28 Mar 2024 14:43:22 -0300
+
 ubuntu-advantage-tools (19.6~ubuntu14.04.4) trusty; urgency=medium
 
   * d/postinst: only configure ESM on supported architectures (LP: #1851858)
