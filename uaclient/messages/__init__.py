@@ -529,16 +529,17 @@ this service.
 SECURITY_DRY_RUN_UA_NOT_ATTACHED = t.gettext(
     """\
 {bold}The machine is not attached to an Ubuntu Pro subscription.
-To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
-{{ pro attach TOKEN }}{end_bold}"""
+To proceed with the fix, a prompt would ask to attach
+the machine to a subscription or use an existing token.
+{{ pro attach }}{end_bold}"""
 ).format(bold=TxtColor.BOLD, end_bold=TxtColor.ENDC)
 SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION = t.gettext(
     """\
 {bold}The machine has an expired subscription.
-To proceed with the fix, a prompt would ask for a new Ubuntu Pro
-token to renew the subscription.
+To proceed with the fix, a prompt would ask to attach the machine to a
+new subscription or use a new Ubuntu Pro subscription token.
 {{ pro detach --assume-yes }}
-{{ pro attach NEW_TOKEN }}{end_bold}"""
+{{ pro attach }}{end_bold}"""
 ).format(bold=TxtColor.BOLD, end_bold=TxtColor.ENDC)
 SECURITY_DRY_RUN_WARNING = t.gettext(
     """\
