@@ -1,22 +1,28 @@
-# How to troubleshoot apt_news security confinement
+# How to troubleshoot security confinement
 
-The `apt-news` service uses two types of security confinements:
+The Ubuntu Pro client ships some services with these special security confinement features:
   - [systemd sandboxing features](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing)
   - [AppArmor profile](https://ubuntu.com/server/docs/security-apparmor)
 
 In the git repository, these are located at:
   - [apt-news.service](https://github.com/canonical/ubuntu-pro-client/blob/main/systemd/apt-news.service)
+  - [esm-cache.service](https://github.com/canonical/ubuntu-pro-client/blob/main/systemd/esm-cache.service)
   - `debian/apparmor/ubuntu_pro_apt_news.jinja2`
+  - `debian/apparmor/ubuntu_pro_esm_cache.jinja2`
 
 These security features restrict what the service can do on the system, and it's quite common that an application faced with unexpected "permission denied" errors, or unavailability of resources, will either crash or behave unexpectedly.
 
-If you suspect the security confinement might be impacting the `apt-news` service, here are some troubleshooting tips.
+If you suspect the security confinement might be impacting these services, here are some troubleshooting tips.
 
 ## Panic: disable everything
 
-To completely remove the security features and make sure they are or are not the cause of the problem you are troubleshooting, do the following:
+To completely remove the security features and verify if they are the cause of the problem you are troubleshooting, we have to disable the AppArmor confinement for that service, and remove the systemd security sandboxing features.
 
-1. Edit `/lib/systemd/system/apt-news.service` and remove or comment the `AppArmorProfile` line, and the security isolation lines. Here is what the minimal version of that file should look like:
+Do the following:
+
+1. Edit the systemd service unit file in `/lib/systemd/system/<name>.service` and remove or comment the `AppArmorProfile` line, and the security isolation lines.
+
+For example, for `apt-news.service`, this is what the minimal version of that file should look like:
 ```
   [Unit]
   Description=Update APT News
@@ -24,6 +30,16 @@ To completely remove the security features and make sure they are or are not the
   [Service]
   Type=oneshot
   ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/apt_news.py
+```
+
+For `esm-cache.service`, we would have:
+```
+  [Unit]
+  Description=Update the local ESM caches
+
+  [Service]
+  Type=oneshot
+  ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/esm_cache.py
 ```
 
 An alternative to removing `AppArmorProfile` from the unit file is to just disable it on the system, or put it in complain mode. See "Troubleshooting Apparmor" below for details.
@@ -40,14 +56,16 @@ An alternative to removing `AppArmorProfile` from the unit file is to just disab
 
 ## Troubleshooting Apparmor
 
-The Apparmor profile for the `apt-news` service is loaded via the `AppArmorProfile` directive in the unit file `/lib/systemd/system/apt-news.service`:
+The Apparmor profile for the confined service is loaded via the `AppArmorProfile` directive in the unit file `/lib/systemd/system/<name>.service`. For example, for `apt-news.service`:
 ```
   [Service]
   ...
-  AppArmorProfile=ubuntu_pro_apt_news
+  AppArmorProfile=-ubuntu_pro_apt_news
 ```
 
-This will apply the specified AppArmor profile on service startup. If the profile does not exist, the service startup will fail. The actual profile is located in `/etc/apparmor.d/ubuntu_pro_apt_news`, and is loaded into the kernel at package install/upgrade time, or when the system boots.
+This will apply the specified AppArmor profile on service startup. If the profile does not exist, the service startup will fail in Pro client versions older than 31.2.2. In newer versions, that failure will be masked (see [LP: #2057937](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2057937) for details) and the service will run unconfined, i.e., without AppArmor protection.
+
+The AppArmor profiles are located in the `/etc/apparmor.d` directory, and are loaded into the kernel at package install/upgrade time, or when the system boots. While the filename of the profile is an indication about its name, that's not mandatory: the actual name of the profile is defined inside the file.
 
 To verify if the Apparmor profile is causing the issues you are observing, the first troubleshooting attempt should be to put it in "complain" mode. In that mode, it will allow everything, but log if something would have been blocked had the profile been in "enforce" mode.
 
@@ -56,9 +74,14 @@ To place the profile in complain mode, first install the `apparmor-utils` packag
   sudo apt install apparmor-utils
 ```
 
-Then run this command:
+Then run this command to place the `ubuntu_pro_apt_news` profile in complain mode:
 ```
   sudo aa-complain /etc/apparmor.d/ubuntu_pro_apt_news
+```
+
+For `ubuntu_pro_esm_cache`, the command is:
+```
+  sudo aa-complain /etc/apparmor.d/ubuntu_pro_esm_cache
 ```
 
 This will both change the profile file to include the `complain` flag, and reload it into the kernel.
@@ -68,21 +91,26 @@ Next, keep an eye on the `dmesg` output with something like this:
 sudo dmesg -wT | grep -E 'apparmor=\".*(profile=\"ubuntu_pro_|name=\"ubuntu_pro_)'
 ```
 
-And exercise the service. For example, to be sure it will run, first remove some files:
+And exercise the service. To make sure the service will run, and this applies to both `apt-news` and `esm-cache`, you should remove these files and directories:
 ```
 sudo rm -rf /var/lib/apt/periodic/update-success-stamp /run/ubuntu-advantage /var/lib/ubuntu-advantage/messages/*
 ```
 
 And then start the service:
 ```
-sudo systemctl start apt-news.service
+  sudo systemctl start apt-news.service
+```
+
+or, for `esm-cache`:
+```
+  sudo systemctl start esm-cache.service
 ```
 
 If you see any logs with `ALLOWED` in them, then that action is something that would have been blocked by the AppArmor profile had it not been in "complain" mode, and is something you should add to the AppArmor profile.
 
-To make changes to the AppArmor profile, edit the `/etc/apparmor.d/ubuntu_pro_apt_news` file, save, and reload the profile with the following command:
+To make changes to the AppArmor profile, edit the respective profile file in the `/etc/apparmor.d` directory, save, and reload the profile with the following command:
 ```
-sudo apparmor_parser -r -W -T /etc/apparmor.d/ubuntu_pro_apt_news
+sudo apparmor_parser -r -W -T /etc/apparmor.d/<modified-file>
 ```
 
 Explaining the full syntax of the AppArmor profiles is out of scope for this document. You can find more information in the [apparmor.d manpage](https://manpages.ubuntu.com/manpages/noble/man5/apparmor.d.5.html). The Ubuntu Server Guide also has a good introduction on the topic in the [Security - AppArmor](https://ubuntu.com/server/docs/security-apparmor) page.
@@ -92,9 +120,9 @@ ATTENTION: be mindful of the differences in Ubuntu Releases regarding the AppArm
 
 ## Troubleshooting systemd sandboxing
 
-Troubleshooting systemd sandboxing is not as straightforward as with AppArmor, because there are no specific logs telling you that a certain action was blocked. It will just be blocked, and it's up to the application to handle it. There is no "system" log to help with troubleshooting the sandbox rules.
+Troubleshooting systemd sandboxing is not as straightforward as with AppArmor, because there are no specific logs telling you that a certain action was blocked. It will just be blocked, and it's up to the application to handle the situation. There is no "system" log to help with troubleshooting the sandbox rules.
 
-The only way to troubleshoot this sandboxing is to methodically disable rule by rule in the `apt-news.service` file and test the service.
+The only way to troubleshoot this sandboxing is to methodically disable rule by rule in the unit file for the service, and test it.
 
 For example, let's take the `/lib/systemd/system/apt-news.service` unit file as below:
 ```
@@ -104,7 +132,7 @@ Description=Update APT News
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/apt_news.py
-AppArmorProfile=ubuntu_pro_apt_news
+AppArmorProfile=-ubuntu_pro_apt_news
 CapabilityBoundingSet=~CAP_SYS_ADMIN
 CapabilityBoundingSet=~CAP_NET_ADMIN
 CapabilityBoundingSet=~CAP_NET_BIND_SERVICE
