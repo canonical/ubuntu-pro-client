@@ -5,7 +5,7 @@ import os
 import pathlib
 import re
 import stat
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 import time
 import uuid
@@ -631,7 +631,7 @@ def _subp(
         rcs = [0]
     redacted_cmd = util.redact_sensitive_logs(" ".join(args))
     try:
-        proc = subprocess.Popen(
+        proc = subprocess.Popen(  # nosec B603
             bytes_args,
             stdout=stdout,
             stderr=stderr,
