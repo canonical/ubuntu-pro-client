@@ -172,6 +172,10 @@ class ErrorInstallingLivepatch(UbuntuProError):
 ###############################################################################
 
 
+class InvalidUrl(UbuntuProError):
+    _formatted_msg = messages.E_INVALID_URL
+
+
 class ProxyNotWorkingError(UbuntuProError):
     _formatted_msg = messages.E_NOT_SETTING_PROXY_NOT_WORKING
 

@@ -2649,3 +2649,8 @@ E_CONTRACT_EXPIRED = NamedMessage(
     "contract-expired",
     CONTRACT_EXPIRED,
 )
+
+E_INVALID_URL = FormattedNamedMessage(
+    "invalid-url",
+    t.gettext("Invalid URL: {url}"),
+)
