@@ -36,6 +36,31 @@ ubuntu-advantage-tools (32) noble; urgency=medium
 
  -- Lucas Moura <lucas.moura@canonical.com>  Tue, 09 Apr 2024 17:33:36 -0300
 
+ubuntu-advantage-tools (31.2.3) noble; urgency=medium
+
+  * daemon: wait for cloud-init.service to fully activate (LP: #2059952)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 02 Apr 2024 10:13:32 -0300
+
+ubuntu-advantage-tools (31.2.2build1) noble; urgency=medium
+
+  * No-change rebuild for CVE-2024-3094
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 31 Mar 2024 00:15:29 +0000
+
+ubuntu-advantage-tools (31.2.2) noble; urgency=medium
+
+  * version.py: fix internal version to match ubuntu package version (it was
+    missed in the previous upload, so 31.2.1 is "burned" now)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Sun, 24 Mar 2024 10:52:02 -0300
+
+ubuntu-advantage-tools (31.2.1) noble; urgency=medium
+
+  * apt-news.service: ignore apparmor errors when starting (LP: #2057937)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 19 Mar 2024 11:02:58 -0300
+
 ubuntu-advantage-tools (31.2) noble; urgency=medium
 
   * properly rename logrotate conffile to avoid duplicate confiles, keep user changes
