@@ -2219,6 +2219,16 @@ This endpoint shows if the machine is attached to a Pro subscription.
              * - ``is_attached``
                - *bool*
                - If the machine is attached to a Pro subscription
+             * - ``contract_status``
+               - *str*
+               - The current contract status (active, grace-period, active-soon-to-expire, expired).
+                 Please refer to the explanation tab for a description of each state.
+             * - ``contract_remaining_days``
+               - *int*
+               - The number of days remaining for the contract to be valid
+             * - ``is_attached_and_contract_valid``
+               - *bool*
+               - If the machine is attached and the contract is still valid
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2228,6 +2238,17 @@ This endpoint shows if the machine is attached to a Pro subscription.
         .. code-block:: bash
 
            pro api u.pro.status.is_attached.v1
+           
+   .. tab-item:: Explanation
+      :sync: explanation
+
+      The ``contract_status`` field can return 4 different states, they are:
+
+      * **active**: The contract is currently valid.
+      * **grace-period**: The contract is in the grace period. This means that it is expired,
+        but there are still some days where the contract will be valid.
+      * **active-soon-to-expire**: The contract is almost expired, but still valid.
+      * **expired**: The contract is expired and no longer valid.
 
 u.pro.status.enabled_services.v1
 ================================
