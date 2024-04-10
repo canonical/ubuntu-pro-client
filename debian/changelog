@@ -18,10 +18,10 @@ ubuntu-advantage-tools (32) noble; urgency=medium
       - improved cli/log message for unexpected errors (GH: #2600)
       - properly handle setting empty config values (GH: #2925)
     - cloud-init: support ubuntu_pro user-data
-    - collect-logs: update default output file to pro_logs.tar.gz (GH: #2849)
+    - collect-logs: update default output file to pro_logs.tar.gz (LP: #2033313)
     - config: create public and private config (GH: #2809)
     - entitlements:
-      + update logic that checks if a service is enabled (GH: #2031192)
+      + update logic that checks if a service is enabled (LP: #2031192)
     - fips: warn/confirm with user if enabling fips downgrades the kernel
     - fix: warn users if ESM cache cannot be updated (GH: #2841)
     - logging:
