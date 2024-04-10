@@ -355,8 +355,8 @@ Feature: Unattached status
       fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
       fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
       livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      ros             +yes       +no        +no           +Security Updates for the Robot Operating System
-      ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
+      ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
       """
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
