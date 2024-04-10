@@ -154,6 +154,7 @@ The currently available endpoints are:
 - `u.pro.attach.auto.full_auto_attach.v1`_
 - `u.pro.attach.auto.configure_retry_service.v1`_
 - `u.pro.attach.token.full_token_attach.v1`_
+- `u.pro.detach.v1`_
 - `u.pro.security.fix.cve.execute.v1`_
 - `u.pro.security.fix.usn.execute.v1`_
 - `u.pro.security.fix.cve.plan.v1`_
@@ -712,6 +713,65 @@ a token.
 
            {
                "enabled": ["service1", "service2"],
+               "reboot_required": false
+           }
+
+u.pro.detach.v1
+============================================
+
+This endpoint allow the user to detach the machine from a Pro subscription.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.detach.v1 import detach
+
+           result = detach()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.detach.v1.DetachResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``disabled``
+               - *List[str]*
+               - The services disabled during the detach operation
+             * - ``reboot_required``
+               - *bool*
+               - True if the system requires a reboot after the detach operation
+
+      - Raised exceptions:
+
+        - ``NonRootUserError``: Raised if a non-root user executes this endpoint
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.detach.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "disabled": ["service1", "service2"],
                "reboot_required": false
            }
 
