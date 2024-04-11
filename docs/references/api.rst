@@ -153,6 +153,8 @@ The currently available endpoints are:
 - `u.pro.attach.auto.should_auto_attach.v1`_
 - `u.pro.attach.auto.full_auto_attach.v1`_
 - `u.pro.attach.auto.configure_retry_service.v1`_
+- `u.pro.attach.token.full_token_attach.v1`_
+- `u.pro.detach.v1`_
 - `u.pro.security.fix.cve.execute.v1`_
 - `u.pro.security.fix.usn.execute.v1`_
 - `u.pro.security.fix.cve.plan.v1`_
@@ -630,6 +632,148 @@ like ``systemctl start ubuntu-advantage.service``.
 
         - This endpoint currently has no CLI support. Only the Python-based
           version is available.
+
+
+u.pro.attach.token.full_token_attach.v1
+============================================
+
+This endpoint allow the user to attach to a Pro subscription using
+a token.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+- Args:
+
+  - ``token``: The token associated with a Pro subscription
+  - ``auto_enable_services``: If false, the attach operation will not enable any service during the
+    operation
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.attach.token.full_token_attach.v1 import full_token_attach, FullTokenAttachOptions
+
+           options = FullTokenAttachOptions(token="TOKEN")
+           result = full_token_attach(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.attach.token.full_token_attach.v1.FullTokenAttachResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``enabled``
+               - *List[str]*
+               - The services enabled during the attach operation
+             * - ``reboot_required``
+               - *bool*
+               - True if the system requires a reboot after the attach operation
+
+      - Raised exceptions:
+
+        - ``NonRootUserError``: Raised if a non-root user executes this endpoint
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.attach.token.full_token_attach.v1
+
+        Note that we don't need to explicitly pass the token when calling the CLI command.
+        If we define a JSON file (i.e. ``file.json``) with the same attributes as the options for this endpoint:
+
+        .. code-block:: json
+
+           {
+               "token": "TOKEN",
+               "auto_enable_services": false
+           }
+
+        Then we can call the API like this:
+
+        .. code-block:: bash
+
+           cat file.json | pro api u.pro.attach.token.full_token_attach.v1 --data -
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "enabled": ["service1", "service2"],
+               "reboot_required": false
+           }
+
+u.pro.detach.v1
+============================================
+
+This endpoint allow the user to detach the machine from a Pro subscription.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.detach.v1 import detach
+
+           result = detach()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.detach.v1.DetachResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``disabled``
+               - *List[str]*
+               - The services disabled during the detach operation
+             * - ``reboot_required``
+               - *bool*
+               - True if the system requires a reboot after the detach operation
+
+      - Raised exceptions:
+
+        - ``NonRootUserError``: Raised if a non-root user executes this endpoint
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.detach.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "disabled": ["service1", "service2"],
+               "reboot_required": false
+           }
 
 .. _cve-execute-api-v1:
 
@@ -2219,6 +2363,16 @@ This endpoint shows if the machine is attached to a Pro subscription.
              * - ``is_attached``
                - *bool*
                - If the machine is attached to a Pro subscription
+             * - ``contract_status``
+               - *str*
+               - The current contract status (active, grace-period, active-soon-to-expire, expired).
+                 Please refer to the explanation tab for a description of each state.
+             * - ``contract_remaining_days``
+               - *int*
+               - The number of days remaining for the contract to be valid
+             * - ``is_attached_and_contract_valid``
+               - *bool*
+               - If the machine is attached and the contract is still valid
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2228,6 +2382,17 @@ This endpoint shows if the machine is attached to a Pro subscription.
         .. code-block:: bash
 
            pro api u.pro.status.is_attached.v1
+           
+   .. tab-item:: Explanation
+      :sync: explanation
+
+      The ``contract_status`` field can return 4 different states, they are:
+
+      * **active**: The contract is currently valid.
+      * **grace-period**: The contract is in the grace period. This means that it is expired,
+        but there are still some days where the contract will be valid.
+      * **active-soon-to-expire**: The contract is almost expired, but still valid.
+      * **expired**: The contract is expired and no longer valid.
 
 u.pro.status.enabled_services.v1
 ================================
