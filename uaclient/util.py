@@ -265,10 +265,7 @@ def redact_sensitive_logs(
     return redacted_log
 
 
-def handle_message_operations(
-    msg_ops: Optional[MessagingOperations],
-    print_fn: Callable[[str], None],
-) -> bool:
+def handle_message_operations(msg_ops: Optional[MessagingOperations]) -> bool:
     """Emit messages to the console for user interaction
 
     :param msg_op: A list of strings or tuples. Any string items are printed.
@@ -283,7 +280,7 @@ def handle_message_operations(
 
     for msg_op in msg_ops:
         if isinstance(msg_op, str):
-            print_fn(msg_op)
+            print(msg_op)
         else:  # Then we are a callable and dict of args
             functor, args = msg_op
             if not functor(**args):
