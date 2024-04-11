@@ -256,6 +256,10 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     ptrace read peer=unconfined,
 
+{% if ubuntu_codename in ["noble"] %}
+    unix bind addr=@*/bus/systemctl/{,system},
+{% endif %}
+
     /usr/bin/systemctl mr,
 
     /run/systemd/private rw,
