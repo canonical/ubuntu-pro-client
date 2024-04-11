@@ -25,7 +25,7 @@ class CLIEnableDisableProgress(api.AbstractProgress):
         if event == "info":
             print(payload)
         elif event == "message_operation":
-            if not util.handle_message_operations(payload, print):
+            if not util.handle_message_operations(payload):
                 raise exceptions.PromptDeniedError()
 
 

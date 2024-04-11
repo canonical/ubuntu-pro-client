@@ -1337,6 +1337,6 @@ class TestHandleMessageOperations:
     def test_handle_message_operations_for_strings_and_callables(
         self, msg_ops, retval, output, capsys
     ):
-        assert retval is util.handle_message_operations(msg_ops, print)
+        assert retval is util.handle_message_operations(msg_ops)
         out, _err = capsys.readouterr()
         assert output == out
