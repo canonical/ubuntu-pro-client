@@ -82,20 +82,33 @@ We have seen which service offerings are available to us, but to access them we
 first need to attach an Ubuntu Pro subscription. We can do this by running the
 ``attach`` command.
 
-Before you run this command, you will need to get your Ubuntu Pro token. Any
-user with an Ubuntu One account is entitled to a free personal token to use
-with Ubuntu Pro.
+.. code-block:: bash
 
-You can retrieve your Ubuntu Pro token from the `Ubuntu Pro portal <Pro_>`_.
-Log in with your "single sign on" (SSO) credentials -- the same credentials you
-use for https://login.ubuntu.com. Copy your Ubuntu Pro token, then go to the VM
-and run:
+    $ sudo pro attach
+    
+You should see output like this, giving you a link and a code:
 
 .. code-block:: bash
 
-    $ sudo pro attach YOUR_TOKEN
+    ubuntu@test:~$ sudo pro attach
+    Initiating attach operation...
 
-You should then see output similar to this:
+    Please sign in to your Ubuntu Pro account at this link:
+    https://ubuntu.com/pro/attach
+    And provide the following code: H31JIV
+
+Open the link without closing your terminal window. 
+
+In the field that asks you to enter your code, copy and paste the code shown
+in the terminal. Then, choose which subscription you want to attach to. 
+By default, the Free Personal Token will be selected, which is fine for the
+purposes of this tutorial.
+
+Once you have pasted your code and chosen the subscription you want to attach
+your machine to, click on the "Submit" button.
+
+The attach process will then continue in the terminal window, and you should
+eventually be presented with the following message:
 
 .. code-block:: text
 
