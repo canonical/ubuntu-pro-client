@@ -146,6 +146,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
 
     variant = getattr(args, "variant", "")
     access_only = args.access_only
+    assume_yes = args.assume_yes
 
     if variant and access_only:
         raise exceptions.InvalidOptionCombination(
@@ -205,7 +206,6 @@ def action_enable(args, *, cfg, **kwargs) -> int:
             cfg=cfg,
             name=ent_name,
             variant=variant,
-            assume_yes=args.assume_yes,
             allow_beta=args.beta,
             access_only=access_only,
             extra_args=kwargs.get("extra_args"),
@@ -213,7 +213,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
         real_name = ent.name
         ent_title = ent.title
 
-        if not args.assume_yes:
+        if not assume_yes:
             # this never happens for json output because we assert earlier that
             # assume_yes must be True for json output
             try:
@@ -239,7 +239,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                 progress = api.ProgressWrapper()
             else:
                 progress = api.ProgressWrapper(
-                    cli_util.CLIEnableDisableProgress()
+                    cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
                 )
 
             progress.total_steps = ent.calculate_total_enable_steps()

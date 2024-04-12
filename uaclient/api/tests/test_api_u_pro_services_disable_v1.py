@@ -150,7 +150,6 @@ class TestDisable:
                 mock.call(
                     cfg=cfg,
                     name=options.service,
-                    assume_yes=True,
                     purge=options.purge,
                 )
             ]

@@ -626,7 +626,6 @@ def process_entitlement_delta(
                 cfg=cfg,
                 name=name,
                 variant=variant,
-                assume_yes=allow_enable,
             )
         except exceptions.EntitlementNotFoundError as exc:
             LOG.debug(

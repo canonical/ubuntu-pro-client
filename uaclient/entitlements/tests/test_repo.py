@@ -1309,34 +1309,3 @@ class TestApplicationStatus:
             expected_explanation = "Repo Test Class is not configured"
         assert expected_status == application_status
         assert expected_explanation == explanation.msg
-
-
-def success_call():
-    print("success")
-    return True
-
-
-def fail_call(a=None):
-    print("fail %s" % a)
-    return False
-
-
-class TestHandleMessageOperations:
-    @pytest.mark.parametrize(
-        "msg_ops, retval, output",
-        (
-            ([], True, ""),
-            (["msg1", "msg2"], True, "msg1\nmsg2\n"),
-            (
-                [(success_call, {}), "msg1", (fail_call, {"a": 1}), "msg2"],
-                False,
-                "success\nmsg1\nfail 1\n",
-            ),
-        ),
-    )
-    def test_handle_message_operations_for_strings_and_callables(
-        self, msg_ops, retval, output, capsys
-    ):
-        assert retval is util.handle_message_operations(msg_ops)
-        out, _err = capsys.readouterr()
-        assert output == out

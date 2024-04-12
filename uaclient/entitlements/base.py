@@ -54,9 +54,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
-    # Whether to assume yes to any messaging prompts
-    assume_yes = False
-
     # Whether that entitlement is in beta stage
     is_beta = False
 
@@ -260,7 +257,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 continue
             variant = variant_cls(
                 cfg=self.cfg,
-                assume_yes=self.assume_yes,
                 allow_beta=self.allow_beta,
                 called_name=self._called_name,
                 access_only=self.access_only,
@@ -279,7 +275,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def __init__(
         self,
         cfg: Optional[config.UAConfig] = None,
-        assume_yes: bool = False,
         allow_beta: bool = False,
         called_name: str = "",
         access_only: bool = False,
@@ -294,7 +289,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             cfg = config.UAConfig()
         self.cfg = cfg
         self.machine_token_file = machine_token.get_machine_token_file()
-        self.assume_yes = assume_yes
         self.allow_beta = allow_beta
         self.access_only = access_only
         self.purge = purge
@@ -749,10 +743,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             path_to_value="features.block_disable_on_enable",
         )
         for service in self.blocking_incompatible_services():
-            ent = service.entitlement(
-                cfg=self.cfg,
-                assume_yes=True,
-            )
+            ent = service.entitlement(self.cfg)
 
             e_msg = messages.E_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
                 service_being_enabled=self.title,
@@ -990,10 +981,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         @param silent: Boolean set True to silence print/log of messages
         """
         for dependent_service_cls in self.blocking_dependent_services():
-            ent = dependent_service_cls(
-                cfg=self.cfg,
-                assume_yes=True,
-            )
+            ent = dependent_service_cls(cfg=self.cfg)
+
             progress.emit(
                 "info",
                 messages.DISABLING_DEPENDENT_SERVICE.format(

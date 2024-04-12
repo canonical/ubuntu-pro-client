@@ -65,7 +65,6 @@ def _disable(
     entitlement = entitlements.entitlement_factory(
         cfg=cfg,
         name=options.service,
-        assume_yes=True,
         purge=options.purge,
     )
 

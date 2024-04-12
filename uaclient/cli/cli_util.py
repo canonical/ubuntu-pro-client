@@ -7,8 +7,9 @@ from uaclient.files import machine_token
 
 
 class CLIEnableDisableProgress(api.AbstractProgress):
-    def __init__(self):
-        self.is_interactive = True
+    def __init__(self, *, assume_yes: bool):
+        self.is_interactive = not assume_yes
+        self.assume_yes = assume_yes
 
     def progress(
         self,
@@ -25,7 +26,7 @@ class CLIEnableDisableProgress(api.AbstractProgress):
         if event == "info":
             print(payload)
         elif event == "message_operation":
-            if not util.handle_message_operations(payload):
+            if not util.handle_message_operations(payload, self.assume_yes):
                 raise exceptions.PromptDeniedError()
 
 

@@ -635,3 +635,38 @@ class TestSetFilenameExtension:
             util.set_filename_extension(input_string, extension)
             == output_string
         )
+
+
+def success_call(**kwargs):
+    if kwargs.get("assume_yes"):
+        print("success")
+        return True
+    return False
+
+
+def fail_call(a=None, **kwargs):
+    print("fail %s" % a)
+    return False
+
+
+class TestHandleMessageOperations:
+    @pytest.mark.parametrize(
+        "msg_ops, retval, output",
+        (
+            ([], True, ""),
+            (["msg1", "msg2"], True, "msg1\nmsg2\n"),
+            (
+                [(success_call, {}), "msg1", (fail_call, {"a": 1}), "msg2"],
+                False,
+                "success\nmsg1\nfail 1\n",
+            ),
+        ),
+    )
+    def test_handle_message_operations_for_strings_and_callables(
+        self, msg_ops, retval, output, capsys
+    ):
+        assert retval is util.handle_message_operations(
+            msg_ops, assume_yes=True
+        )
+        out, _err = capsys.readouterr()
+        assert output == out

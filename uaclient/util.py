@@ -265,7 +265,9 @@ def redact_sensitive_logs(
     return redacted_log
 
 
-def handle_message_operations(msg_ops: Optional[MessagingOperations]) -> bool:
+def handle_message_operations(
+    msg_ops: Optional[MessagingOperations], assume_yes: bool
+) -> bool:
     """Emit messages to the console for user interaction
 
     :param msg_op: A list of strings or tuples. Any string items are printed.
@@ -283,6 +285,7 @@ def handle_message_operations(msg_ops: Optional[MessagingOperations]) -> bool:
             print(msg_op)
         else:  # Then we are a callable and dict of args
             functor, args = msg_op
+            args["assume_yes"] = assume_yes
             if not functor(**args):
                 return False
     return True

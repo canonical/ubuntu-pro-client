@@ -529,7 +529,9 @@ def _print_help_for_subcommand(
         )
 
 
-def _perform_disable(entitlement, cfg, *, json_output, update_status=True):
+def _perform_disable(
+    entitlement, cfg, *, json_output, assume_yes, update_status=True
+):
     """Perform the disable action on a named entitlement.
 
     :param entitlement_name: the name of the entitlement to enable
@@ -547,7 +549,9 @@ def _perform_disable(entitlement, cfg, *, json_output, update_status=True):
     if json_output:
         progress = api.ProgressWrapper()
     else:
-        progress = api.ProgressWrapper(cli_util.CLIEnableDisableProgress())
+        progress = api.ProgressWrapper(
+            cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
+        )
 
     ret, reason = entitlement.disable(progress)
 
@@ -819,7 +823,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
             ent = entitlements.entitlement_factory(
                 cfg=cfg,
                 name=ent_name,
-                assume_yes=assume_yes,
             )
         except exceptions.EntitlementNotFoundError:
             continue
@@ -839,7 +842,11 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
         return 1
     for ent in to_disable:
         _perform_disable(
-            ent, cfg, json_output=json_output, update_status=False
+            ent,
+            cfg,
+            json_output=json_output,
+            assume_yes=assume_yes,
+            update_status=False,
         )
 
     machine_token_file = machine_token.get_machine_token_file(cfg)
@@ -959,7 +966,7 @@ def action_attach(args, *, cfg, **kwargs):
             )
             for name in found:
                 ent_ret, reason = actions.enable_entitlement_by_name(
-                    cfg, name, assume_yes=True, allow_beta=True
+                    cfg, name, allow_beta=True
                 )
                 if not ent_ret:
                     ret = 1

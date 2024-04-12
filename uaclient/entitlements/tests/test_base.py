@@ -34,7 +34,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         applicability_status=None,
         application_status=(ApplicationStatus.DISABLED, ""),
         allow_beta=False,
-        assume_yes=False,
         supports_access_only=False,
         access_only=False,
         supports_purge=False,
@@ -49,7 +48,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         super().__init__(
             cfg,
             allow_beta=allow_beta,
-            assume_yes=assume_yes,
             access_only=access_only,
             purge=purge,
         )
@@ -368,7 +366,7 @@ class TestEntitlementCanEnable:
 
 class TestEntitlementEnable:
     @pytest.mark.parametrize(
-        "block_disable_on_enable,assume_yes",
+        "block_disable_on_enable",
         [(False, False), (False, True), (True, False), (True, True)],
     )
     @mock.patch("uaclient.util.is_config_value_true")
@@ -376,7 +374,6 @@ class TestEntitlementEnable:
         self,
         m_is_config_value_true,
         block_disable_on_enable,
-        assume_yes,
         base_entitlement_factory,
         mock_entitlement,
     ):
@@ -417,9 +414,8 @@ class TestEntitlementEnable:
         assert m_is_config_value_true.call_count == 1
         assert m_incompatible_obj.disable.call_count == expected_disable_call
 
-    @pytest.mark.parametrize("assume_yes", ((False), (True)))
     def test_enable_when_required_service_found(
-        self, assume_yes, base_entitlement_factory, mock_entitlement
+        self, base_entitlement_factory, mock_entitlement
     ):
         m_required_service_cls, m_required_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.DISABLED, ""),
@@ -602,7 +598,6 @@ class TestEntitlementEnable:
             incompatible_service_cls, messages.NamedMessage("code", "msg")
         )
         entitlement = base_entitlement_factory(
-            assume_yes=True,
             extra_args={
                 "blocking_incompatible_services": [
                     incompatible_services_definition

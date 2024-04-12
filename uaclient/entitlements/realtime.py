@@ -83,7 +83,6 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                     util.prompt_for_confirmation,
                     {
                         "msg": messages.REALTIME_PROMPT,
-                        "assume_yes": self.assume_yes,
                         "default": True,
                     },
                 )
@@ -96,7 +95,6 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                     util.prompt_for_confirmation,
                     {
                         "msg": messages.REALTIME_PRE_DISABLE_PROMPT,
-                        "assume_yes": self.assume_yes,
                     },
                 )
             ]

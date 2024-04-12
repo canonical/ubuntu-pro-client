@@ -41,7 +41,6 @@ def entitlement_factory(
     cfg: UAConfig,
     name: str,
     variant: str = "",
-    assume_yes: bool = False,
     allow_beta: bool = False,
     purge: bool = False,
     access_only: bool = False,
@@ -54,7 +53,6 @@ def entitlement_factory(
     :param cfg: UAConfig instance
     :param name: The name of the entitlement to return
     :param  variant: The variant name to be used
-    :param assume_yes: Assume a yes answer to any prompts requested.
     :param allow_beta: If True, allow beta services to be used
     :param purge: If purge operation is enabled
     :param access_only: If entitlement should be set with access only
@@ -68,7 +66,6 @@ def entitlement_factory(
     for entitlement in ENTITLEMENT_CLASSES:
         ent = entitlement(
             cfg=cfg,
-            assume_yes=assume_yes,
             allow_beta=allow_beta,
             access_only=access_only,
             called_name=name,
@@ -81,7 +78,6 @@ def entitlement_factory(
             elif variant in ent.variants:
                 return ent.variants[variant](
                     cfg=cfg,
-                    assume_yes=assume_yes,
                     allow_beta=allow_beta,
                     called_name=name,
                     purge=purge,
