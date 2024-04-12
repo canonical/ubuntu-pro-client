@@ -78,6 +78,8 @@ ESM_BASIC_FILE_STRUCTURE = {
         os.path.join(ESM_APT_ROOTDIR, "var/lib/dpkg/status"),
     ],
     "folders": [
+        os.path.join(ESM_APT_ROOTDIR, "etc/apt/apt.conf.d"),
+        os.path.join(ESM_APT_ROOTDIR, "etc/apt/preferences.d"),
         os.path.join(ESM_APT_ROOTDIR, "var/cache/apt/archives/partial"),
         os.path.join(ESM_APT_ROOTDIR, "var/lib/apt/lists/partial"),
     ],
