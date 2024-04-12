@@ -105,7 +105,6 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
         called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
-        assume_yes: Optional[bool] = None,
         suites: List[str] = None,
         additional_packages: List[str] = None,
         cfg: Optional[config.UAConfig] = None,
@@ -141,8 +140,6 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
             "access_only": access_only,
             "purge": purge,
         }
-        if assume_yes is not None:
-            args["assume_yes"] = assume_yes
 
         if extra_args:
             args = {**args, **extra_args}

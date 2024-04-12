@@ -44,7 +44,7 @@ def _enable_services_by_name(
     for name in order_entitlements_for_enabling(cfg, services):
         try:
             ent_ret, reason = actions.enable_entitlement_by_name(
-                cfg, name, assume_yes=True, allow_beta=allow_beta
+                cfg, name, allow_beta=allow_beta
             )
         except exceptions.UbuntuProError as e:
             failed_services.append(

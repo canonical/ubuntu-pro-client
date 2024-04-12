@@ -505,7 +505,7 @@ class TestActionAttach:
         ] == m_attach_with_token.call_args_list
         if auto_enable:
             assert [
-                mock.call(cfg, "cis", assume_yes=True, allow_beta=True)
+                mock.call(cfg, "cis", allow_beta=True)
             ] == m_enable.call_args_list
         else:
             assert [] == m_enable.call_args_list

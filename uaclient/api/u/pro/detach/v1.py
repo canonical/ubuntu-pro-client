@@ -69,9 +69,7 @@ def _detach_in_lock(cfg: UAConfig) -> DetachResult:
     warnings = []  # type: List[ErrorWarningObject]
     for ent_name in entitlements.entitlements_disable_order(cfg):
         try:
-            ent = entitlements.entitlement_factory(
-                cfg=cfg, name=ent_name, assume_yes=True
-            )
+            ent = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
         except exceptions.EntitlementNotFoundError:
             continue
 

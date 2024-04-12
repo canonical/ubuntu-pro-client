@@ -505,9 +505,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
     if choice == "e":
         print(colorize_commands([["pro", "enable", service]]))
-        ret, reason = enable_entitlement_by_name(
-            cfg=cfg, name=service, assume_yes=True
-        )
+        ret, reason = enable_entitlement_by_name(cfg=cfg, name=service)
 
         if (
             not ret

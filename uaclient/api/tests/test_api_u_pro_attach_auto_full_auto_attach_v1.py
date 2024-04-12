@@ -35,11 +35,7 @@ class TestEnableServicesByName:
                 ["esm-infra"],
                 True,
                 [(True, None)],
-                [
-                    mock.call(
-                        mock.ANY, "esm-infra", assume_yes=True, allow_beta=True
-                    )
-                ],
+                [mock.call(mock.ANY, "esm-infra", allow_beta=True)],
                 [],
             ),
             # success multi service, no allow beta
@@ -48,19 +44,15 @@ class TestEnableServicesByName:
                 False,
                 [(True, None), (True, None), (True, None)],
                 [
-                    mock.call(
-                        mock.ANY, "esm-apps", assume_yes=True, allow_beta=False
-                    ),
+                    mock.call(mock.ANY, "esm-apps", allow_beta=False),
                     mock.call(
                         mock.ANY,
                         "esm-infra",
-                        assume_yes=True,
                         allow_beta=False,
                     ),
                     mock.call(
                         mock.ANY,
                         "livepatch",
-                        assume_yes=True,
                         allow_beta=False,
                     ),
                 ],
@@ -78,19 +70,15 @@ class TestEnableServicesByName:
                     fakes.FakeUbuntuProError(),
                 ],
                 [
-                    mock.call(
-                        mock.ANY, "esm-apps", assume_yes=True, allow_beta=False
-                    ),
+                    mock.call(mock.ANY, "esm-apps", allow_beta=False),
                     mock.call(
                         mock.ANY,
                         "esm-infra",
-                        assume_yes=True,
                         allow_beta=False,
                     ),
                     mock.call(
                         mock.ANY,
                         "livepatch",
-                        assume_yes=True,
                         allow_beta=False,
                     ),
                 ],
@@ -120,19 +108,15 @@ class TestEnableServicesByName:
                     ),
                 ],
                 [
-                    mock.call(
-                        mock.ANY, "esm-apps", assume_yes=True, allow_beta=False
-                    ),
+                    mock.call(mock.ANY, "esm-apps", allow_beta=False),
                     mock.call(
                         mock.ANY,
                         "esm-infra",
-                        assume_yes=True,
                         allow_beta=False,
                     ),
                     mock.call(
                         mock.ANY,
                         "livepatch",
-                        assume_yes=True,
                         allow_beta=False,
                     ),
                 ],
@@ -190,7 +174,7 @@ class TestFullAutoAttachV1:
     ):
         cfg = FakeConfig()
 
-        def enable_ent_side_effect(cfg, name, assume_yes, allow_beta):
+        def enable_ent_side_effect(cfg, name, allow_beta):
             if name != "wrong":
                 return (True, None)
 

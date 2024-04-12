@@ -90,7 +90,7 @@ class TestDetachV1:
             ),
         )
 
-        def ent_factory_side_effect(cfg, name, assume_yes):
+        def ent_factory_side_effect(cfg, name):
             if name == "ent1":
                 return m_ent1_obj
             elif name == "ent2":

@@ -100,7 +100,6 @@ def _enable(
         cfg=cfg,
         name=options.service,
         variant=options.variant or "",
-        assume_yes=True,
         allow_beta=True,
         access_only=options.access_only,
     )

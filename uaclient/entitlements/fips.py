@@ -155,10 +155,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return FIPS_CONDITIONAL_PACKAGES.get(series, [])
 
-    def prompt_if_kernel_downgrade(
-        self,
-        assume_yes: bool = False,
-    ) -> bool:
+    def prompt_if_kernel_downgrade(self, *, assume_yes: bool) -> bool:
         """Check if installing a FIPS kernel will downgrade the kernel
         and prompt for confirmation if it will.
         """
@@ -194,8 +191,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     )
                 )
                 return util.prompt_for_confirmation(
-                    msg=messages.PROMPT_YES_NO,
-                    assume_yes=self.assume_yes,
+                    msg=messages.PROMPT_YES_NO, assume_yes=assume_yes
                 )
         else:
             LOG.warning(
@@ -530,7 +526,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                         "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
                             title=self.title
                         ),
-                        "assume_yes": self.assume_yes,
                     },
                 )
             ]
@@ -539,15 +534,13 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             "pre_enable": [
                 (
                     util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
+                    {"msg": pre_enable_prompt},
                 )
             ],
             "pre_install": [
                 (
                     self.prompt_if_kernel_downgrade,
-                    {
-                        "assume_yes": self.assume_yes,
-                    },
+                    {},
                 )
             ],
             "post_enable": post_enable,
@@ -614,7 +607,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                         "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
                             title=self.title
                         ),
-                        "assume_yes": self.assume_yes,
                     },
                 )
             ]
@@ -623,15 +615,13 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             "pre_enable": [
                 (
                     util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
+                    {"msg": pre_enable_prompt},
                 )
             ],
             "pre_install": [
                 (
                     self.prompt_if_kernel_downgrade,
-                    {
-                        "assume_yes": self.assume_yes,
-                    },
+                    {},
                 )
             ],
             "post_enable": post_enable,
