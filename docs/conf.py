@@ -40,7 +40,6 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.jquery",
     "sphinxext.opengraph",
-    "watchfiles",
 ]
 autosectionlabel_prefix_document = True
 
