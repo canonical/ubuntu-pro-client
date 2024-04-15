@@ -1610,10 +1610,12 @@ class TestEsmCacheStructure:
             mock.call(
                 tmpdir + "/var/cache/apt/archives/partial",
                 exist_ok=True,
-                mode=755,
+                mode=0o755,
             ),
             mock.call(
-                tmpdir + "/var/lib/apt/lists/partial", exist_ok=True, mode=755
+                tmpdir + "/var/lib/apt/lists/partial",
+                exist_ok=True,
+                mode=0o755,
             ),
         ]
 
