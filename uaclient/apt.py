@@ -843,7 +843,7 @@ def _ensure_esm_cache_structure():
     for file in ESM_BASIC_FILE_STRUCTURE["files"]:
         system.create_file(file)
     for folder in ESM_BASIC_FILE_STRUCTURE["folders"]:
-        os.makedirs(folder, exist_ok=True, mode=755)
+        os.makedirs(folder, exist_ok=True, mode=0o755)
 
 
 def update_esm_caches(cfg) -> None:
