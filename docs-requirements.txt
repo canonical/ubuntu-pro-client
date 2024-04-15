@@ -10,3 +10,4 @@ sphinx-notfound-page
 sphinxcontrib-mermaid
 sphinxcontrib-jquery
 sphinxext-opengraph
+watchfiles
