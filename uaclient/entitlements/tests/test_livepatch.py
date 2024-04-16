@@ -289,6 +289,21 @@ class TestLivepatchProcessContractDeltas:
             setup_calls = []
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
+    @mock.patch(M_PATH + "LivepatchEntitlement.enable")
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    def test_livepatch_disable_and_delta_with_enable_by_default(
+        self,
+        m_application_status,
+        m_enable,
+        entitlement,
+    ):
+        deltas = {"entitlement": {"obligations": {"enableByDefault": True}}}
+        m_enable.return_value = (True, None)
+        application_status = ApplicationStatus.DISABLED
+        m_application_status.return_value = (application_status, "")
+        entitlement.process_contract_deltas({}, deltas, False)
+        assert [mock.call(mock.ANY)] == m_enable.call_args_list
+
 
 @mock.patch(M_PATH + "snap.is_snapd_installed_as_a_snap")
 @mock.patch(M_PATH + "snap.is_snapd_installed")
