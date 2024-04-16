@@ -41,6 +41,7 @@ class TestExecute:
                 FixPlanResult(
                     title="CVE-12345-567",
                     description="description",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -99,6 +100,7 @@ class TestExecute:
                 FixPlanResult(
                     title="CVE-12345-567",
                     description="description",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -151,6 +153,7 @@ class TestExecute:
                 FixPlanResult(
                     title="CVE-12345-567",
                     description="description",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -211,6 +214,7 @@ class TestExecute:
                 FixPlanResult(
                     title="CVE-12345-567",
                     description="description",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -262,6 +266,7 @@ class TestExecute:
                 FixPlanResult(
                     title="CVE-1",
                     description=None,
+                    current_status=None,
                     expected_status="error",
                     affected_packages=None,
                     plan=[
@@ -304,6 +309,7 @@ class TestExecute:
                 FixPlanResult(
                     title="CVE-12345-567",
                     description="description",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=["pkg1", "pkg2"],
                     plan=[

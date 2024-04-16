@@ -145,6 +145,7 @@ class TestActionFix:
         cve = FixPlanResult(
             title="CVE-2020-1472",
             description="Samba vulnerability",
+            current_status="not-affected",
             expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
             affected_packages=["pkg1", "pkg2"],
             plan=[],
@@ -173,6 +174,7 @@ class TestActionFix:
                 FixPlanUSNResult(
                     target_usn_plan=FixPlanResult(
                         title="USN-4510-2",
+                        current_status="not-affected",
                         description="Samba vulnerability",
                         expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                         affected_packages=["pkg1", "pkg2"],
@@ -198,6 +200,7 @@ class TestActionFix:
                 FixPlanUSNResult(
                     target_usn_plan=FixPlanResult(
                         title="USN-4038-3",
+                        current_status="not-affected",
                         description="USN vulnerability",
                         expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                         affected_packages=["pkg1", "pkg2"],
@@ -238,6 +241,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=[],
                     plan=[
@@ -270,6 +274,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="CVE-###",
                     description="test",
+                    current_status="fixed",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=[],
                     plan=[
@@ -298,6 +303,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["slsrc"],
                     plan=[
@@ -335,6 +341,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["slsrc"],
                     plan=[
@@ -374,6 +381,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["slsrc"],
                     plan=[
@@ -438,6 +446,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["curl", "slsrc"],
                     plan=[
@@ -521,6 +530,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=[
                         "pkg1",
@@ -723,6 +733,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=[
                         "longpackagename1",
@@ -786,6 +797,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_STILL_VULNERABLE.value.msg,  # noqa
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -844,6 +856,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_STILL_VULNERABLE.value.msg,  # noqa
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -949,6 +962,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2", "pkg3"],
                     plan=[
@@ -1042,6 +1056,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2", "pkg3"],
                     plan=[
@@ -1202,6 +1217,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1336,6 +1352,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1387,6 +1404,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1509,6 +1527,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1570,6 +1589,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1684,6 +1704,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=[],
                     plan=[
@@ -1716,6 +1737,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1986,6 +2008,7 @@ class TestFixUSN:
                         target_usn_plan=FixPlanResult(
                             title="USN-1235-1",
                             description="test",
+                            current_status="still-affected",
                             expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                             affected_packages=["pkg1"],
                             plan=[
@@ -2009,6 +2032,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-4561-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg2"],
                                 plan=[
@@ -2046,6 +2070,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-7891-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg3", "pkg4"],
                                 plan=[
@@ -2083,6 +2108,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-8221-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg5"],
                                 plan=[],
@@ -2246,6 +2272,7 @@ class TestFixUSN:
                         target_usn_plan=FixPlanResult(
                             title=issue_id,
                             description="test",
+                            current_status="still-affected",
                             expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                             affected_packages=["pkg1"],
                             plan=[
@@ -2269,6 +2296,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-4561-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg2"],
                                 plan=[
@@ -2306,6 +2334,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-7891-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg3", "pkg4"],
                                 plan=[

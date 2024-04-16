@@ -14,6 +14,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": null,
+                "current_status": null,
                 "description": null,
                 "error": {
                   "code": "security-fix-not-found-issue",
@@ -49,6 +50,7 @@ Feature: Fix plan API endpoints
                 "target_usn_plan": {
                   "additional_data": {},
                   "affected_packages": null,
+                  "current_status": null,
                   "description": null,
                   "error": {
                     "code": "invalid-security-issue",
@@ -81,6 +83,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": null,
+                "current_status": null,
                 "description": null,
                 "error": {
                   "code": "invalid-security-issue",
@@ -94,6 +97,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": null,
+                "current_status": null,
                 "description": null,
                 "error": {
                   "code": "invalid-security-issue",
@@ -129,6 +133,7 @@ Feature: Fix plan API endpoints
                 "target_usn_plan": {
                   "additional_data": {},
                   "affected_packages": null,
+                  "current_status": null,
                   "description": null,
                   "error": {
                     "code": "invalid-security-issue",
@@ -145,6 +150,7 @@ Feature: Fix plan API endpoints
                 "target_usn_plan": {
                   "additional_data": {},
                   "affected_packages": null,
+                  "current_status": null,
                   "description": null,
                   "error": {
                     "code": "invalid-security-issue",
@@ -189,6 +195,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "krb5"
                 ],
+                "current_status": "fixed",
                 "description": "Kerberos vulnerability",
                 "error": null,
                 "expected_status": "fixed",
@@ -230,6 +237,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": [],
+                "current_status": "not-affected",
                 "description": "Linux kernel vulnerabilities",
                 "error": null,
                 "expected_status": "not-affected",
@@ -269,6 +277,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "krb5"
                 ],
+                "current_status": "fixed",
                 "description": "Kerberos vulnerability",
                 "error": null,
                 "expected_status": "fixed",
@@ -291,6 +300,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": [],
+                "current_status": "not-affected",
                 "description": "Linux kernel vulnerabilities",
                 "error": null,
                 "expected_status": "not-affected",
@@ -339,6 +349,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "awl"
                   ],
+                  "current_status": "still-affected",
                   "description": "AWL vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -390,6 +401,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "zlib vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -415,6 +427,7 @@ Feature: Fix plan API endpoints
                     "affected_packages": [
                       "zlib"
                     ],
+                    "current_status": "still-affected",
                     "description": "zlib vulnerability",
                     "error": null,
                     "expected_status": "fixed",
@@ -447,6 +460,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "rsync"
                   ],
+                  "current_status": "still-affected",
                   "description": "rsync vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -500,6 +514,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "awl"
                   ],
+                  "current_status": "not-affected",
                   "description": "AWL vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -639,6 +654,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": [],
+                "current_status": "not-affected",
                 "description": "MariaDB vulnerabilities",
                 "error": null,
                 "expected_status": "not-affected",
@@ -678,6 +694,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "krb5"
                 ],
+                "current_status": "fixed",
                 "description": "Kerberos vulnerability",
                 "error": null,
                 "expected_status": "fixed",
@@ -724,6 +741,7 @@ Feature: Fix plan API endpoints
                   "matanza",
                   "swish-e"
                 ],
+                "current_status": "still-affected",
                 "description": "Expat vulnerability",
                 "error": null,
                 "expected_status": "still-affected",
@@ -780,6 +798,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "krb5"
                 ],
+                "current_status": "fixed",
                 "description": "Kerberos vulnerability",
                 "error": null,
                 "expected_status": "fixed",
@@ -802,6 +821,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": [],
+                "current_status": "not-affected",
                 "description": "MariaDB vulnerabilities",
                 "error": null,
                 "expected_status": "not-affected",
@@ -824,6 +844,7 @@ Feature: Fix plan API endpoints
                   "matanza",
                   "swish-e"
                 ],
+                "current_status": "still-affected",
                 "description": "Expat vulnerability",
                 "error": null,
                 "expected_status": "still-affected",
@@ -889,6 +910,7 @@ Feature: Fix plan API endpoints
                     "associated_launchpad_bugs": []
                   },
                   "affected_packages": [],
+                  "current_status": "not-affected",
                   "description": "AWL vulnerability",
                   "error": null,
                   "expected_status": "not-affected",
@@ -936,6 +958,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "curl vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -963,6 +986,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "curl"
                   ],
+                  "current_status": "still-affected",
                   "description": "curl vulnerabilities",
                   "error": null,
                   "expected_status": "fixed",
@@ -1037,6 +1061,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "OpenSSL vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1060,6 +1085,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "OpenSSL vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1086,6 +1112,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "EDK II vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1112,6 +1139,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "openssl"
                   ],
+                  "current_status": "still-affected",
                   "description": "OpenSSL vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -1185,6 +1213,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Gzip vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1208,6 +1237,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "XZ Utils vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1233,6 +1263,7 @@ Feature: Fix plan API endpoints
                     "affected_packages": [
                       "xz-utils"
                     ],
+                    "current_status": "still-affected",
                     "description": "XZ Utils vulnerability",
                     "error": null,
                     "expected_status": "fixed",
@@ -1287,6 +1318,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "gzip"
                   ],
+                  "current_status": "still-affected",
                   "description": "Gzip vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -1360,6 +1392,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "OpenSSL vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1383,6 +1416,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "OpenSSL vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1409,6 +1443,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "EDK II vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1435,6 +1470,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "openssl"
                   ],
+                  "current_status": "still-affected",
                   "description": "OpenSSL vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -1489,6 +1525,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Gzip vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1512,6 +1549,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "XZ Utils vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1537,6 +1575,7 @@ Feature: Fix plan API endpoints
                     "affected_packages": [
                       "xz-utils"
                     ],
+                    "current_status": "still-affected",
                     "description": "XZ Utils vulnerability",
                     "error": null,
                     "expected_status": "fixed",
@@ -1591,6 +1630,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "gzip"
                   ],
+                  "current_status": "still-affected",
                   "description": "Gzip vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -1661,6 +1701,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "squid3"
                 ],
+                "current_status": "still-affected",
                 "description": "Squid vulnerabilities",
                 "error": null,
                 "expected_status": "still-affected",
@@ -1738,6 +1779,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "krb5"
                 ],
+                "current_status": "fixed",
                 "description": "Kerberos vulnerability",
                 "error": null,
                 "expected_status": "fixed",
@@ -1782,6 +1824,7 @@ Feature: Fix plan API endpoints
                 "affected_packages": [
                   "xterm"
                 ],
+                "current_status": "still-affected",
                 "description": "xterm vulnerability",
                 "error": null,
                 "expected_status": "fixed",
@@ -1834,6 +1877,7 @@ Feature: Fix plan API endpoints
                     "associated_launchpad_bugs": []
                   },
                   "affected_packages": [],
+                  "current_status": "not-affected",
                   "description": "AWL vulnerability",
                   "error": null,
                   "expected_status": "not-affected",
@@ -1882,6 +1926,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "bzip2"
                   ],
+                  "current_status": "still-affected",
                   "description": "bzip2 regression",
                   "error": null,
                   "expected_status": "fixed",
@@ -1950,6 +1995,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (OEM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -1974,6 +2020,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (OEM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2001,6 +2048,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (OEM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2029,6 +2077,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (OEM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2056,6 +2105,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2083,6 +2133,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2118,6 +2169,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2145,6 +2197,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (Azure CVM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2173,6 +2226,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2200,6 +2254,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2227,6 +2282,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (Intel IoTG) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2256,6 +2312,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (OEM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2298,6 +2355,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2340,6 +2398,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2393,6 +2452,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (Xilinx ZynqMP) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2450,6 +2510,7 @@ Feature: Fix plan API endpoints
                       ]
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (IoT) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2509,6 +2570,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel (OEM) vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2538,6 +2600,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2563,6 +2626,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "Linux kernel vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2590,6 +2654,7 @@ Feature: Fix plan API endpoints
                     "associated_launchpad_bugs": []
                   },
                   "affected_packages": [],
+                  "current_status": "not-affected",
                   "description": "Linux kernel vulnerabilities",
                   "error": null,
                   "expected_status": "not-affected",
@@ -2635,6 +2700,7 @@ Feature: Fix plan API endpoints
                     "associated_launchpad_bugs": []
                   },
                   "affected_packages": [],
+                  "current_status": "not-affected",
                   "description": "AWL vulnerability",
                   "error": null,
                   "expected_status": "not-affected",
@@ -2662,6 +2728,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "bzip2 vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2686,6 +2753,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "ClamAV vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2710,6 +2778,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "ClamAV vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -2737,6 +2806,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "bzip2"
                   ],
+                  "current_status": "still-affected",
                   "description": "bzip2 vulnerabilities",
                   "error": null,
                   "expected_status": "fixed",
@@ -2788,6 +2858,7 @@ Feature: Fix plan API endpoints
               {
                 "additional_data": {},
                 "affected_packages": [],
+                "current_status": "not-affected",
                 "description": "Linux kernel (BlueField) vulnerabilities",
                 "error": null,
                 "expected_status": "not-affected",
