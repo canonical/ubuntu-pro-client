@@ -327,7 +327,7 @@ class LivepatchEntitlement(UAEntitlement):
 
         delta_entitlement = deltas.get("entitlement", {})
         process_enable_default = delta_entitlement.get("obligations", {}).get(
-            "enabledByDefault", False
+            "enableByDefault", False
         )
 
         if process_enable_default:
