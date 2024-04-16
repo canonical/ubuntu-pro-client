@@ -377,6 +377,7 @@ class FixPlanResult(DataObject):
     fields = [
         Field("title", StringDataValue),
         Field("description", StringDataValue, required=False),
+        Field("current_status", StringDataValue, required=False),
         Field("expected_status", StringDataValue),
         Field("affected_packages", data_list(StringDataValue), required=False),
         Field("plan", data_list(FixPlanStep)),
@@ -395,10 +396,12 @@ class FixPlanResult(DataObject):
         error: Optional[FixPlanError],
         additional_data: AdditionalData,
         description: Optional[str] = None,
-        affected_packages: Optional[List[str]] = None
+        affected_packages: Optional[List[str]] = None,
+        current_status: Optional[str] = None
     ):
         self.title = title
         self.description = description
+        self.current_status = current_status
         self.expected_status = expected_status
         self.affected_packages = affected_packages
         self.plan = plan
@@ -429,11 +432,13 @@ class FixPlan:
         title: str,
         description: Optional[str],
         affected_packages: Optional[List[str]] = None,
+        current_status: Optional[str] = None,
     ):
         self.order = 1
         self.title = title
         self.description = description
         self.affected_packages = affected_packages
+        self.current_status = current_status
         self.fix_steps = []  # type: List[FixPlanStep]
         self.fix_warnings = []  # type: List[FixPlanWarning]
         self.error = None  # type: Optional[FixPlanError]
@@ -506,7 +511,7 @@ class FixPlan:
     def register_additional_data(self, additional_data: Dict[str, Any]):
         self.additional_data = AdditionalData(**additional_data)
 
-    def _get_status(self) -> str:
+    def _get_expected_status(self) -> str:
         if self.error:
             return "error"
 
@@ -515,18 +520,19 @@ class FixPlan:
             and isinstance(self.fix_steps[0], FixPlanNoOpStep)
             and self.fix_steps[0].data.status == "system-not-affected"
         ):
-            return str(FixStatus.SYSTEM_NOT_AFFECTED)
+            return FixStatus.SYSTEM_NOT_AFFECTED.value.msg
         elif self.fix_warnings:
-            return str(FixStatus.SYSTEM_STILL_VULNERABLE)
+            return FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
         else:
-            return str(FixStatus.SYSTEM_NON_VULNERABLE)
+            return FixStatus.SYSTEM_NON_VULNERABLE.value.msg
 
     @property
     def fix_plan(self):
         return FixPlanResult(
             title=self.title,
             description=self.description,
-            expected_status=self._get_status(),
+            expected_status=self._get_expected_status(),
+            current_status=self.current_status,
             affected_packages=self.affected_packages,
             plan=self.fix_steps,
             warnings=self.fix_warnings,
@@ -681,6 +687,7 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
 
     if livepatch_cve_status:
         fix_plan = get_fix_plan(title=issue_id)
+        fix_plan.current_status = FixStatus.SYSTEM_NON_VULNERABLE.value.msg
         fix_plan.register_step(
             operation=FixStepType.NOOP,
             data={
@@ -877,11 +884,14 @@ def _generate_fix_plan(
         fix_plan.register_additional_data(additional_data)
 
     if count == 0:
+        fix_plan.current_status = FixStatus.SYSTEM_NOT_AFFECTED.value.msg
         fix_plan.register_step(
             operation=FixStepType.NOOP,
             data={"status": FixPlanNoOpStatus.NOT_AFFECTED.value},
         )
         return fix_plan.fix_plan
+    else:
+        fix_plan.current_status = FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
 
     pkg_status_groups = group_by_usn_package_status(
         affected_pkg_status, usn_released_pkgs
@@ -897,6 +907,9 @@ def _generate_fix_plan(
                     ],
                     "status": status_value,
                 },
+            )
+            fix_plan.current_status = (
+                FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
             )
         else:
             (
@@ -923,6 +936,9 @@ def _generate_fix_plan(
 
         if not binary_pkgs:
             if source_pkgs:
+                fix_plan.current_status = (
+                    FixStatus.SYSTEM_NON_VULNERABLE.value.msg
+                )
                 fix_plan.register_step(
                     operation=FixStepType.NOOP,
                     data={
@@ -959,6 +975,9 @@ def _generate_fix_plan(
         )
 
         if unfixed_pkgs:
+            fix_plan.current_status = (
+                FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
+            )
             for unfixed_pkg in unfixed_pkgs:
                 fix_plan.register_warning(
                     warning_type=FixWarningType.PACKAGE_CANNOT_BE_INSTALLED,
