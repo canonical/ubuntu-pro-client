@@ -22,5 +22,5 @@ class ESMLegacyEntitlement(repo.RepoEntitlement):
     origin = "UbuntuESM"
     description = "Expanded Security Maintenance for Infrastructure on Legacy Instances"  # noqa
     repo_url = "https://esm.ubuntu.com/infra-legacy/"
-    repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+    repo_key_file = "ubuntu-advantage-esm-infra-legacy-trusty.gpg"
     disable_apt_auth_only = False
