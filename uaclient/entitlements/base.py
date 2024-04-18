@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
+import uaclient.files.machine_token as machine_token
 from uaclient import (
     api,
     apt,
@@ -29,7 +30,6 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingStatus,
 )
-from uaclient.files.machine_token import MachineTokenFile
 from uaclient.files.state_files import status_cache_file
 from uaclient.types import MessagingOperationsDict, StaticAffordance
 
@@ -259,7 +259,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if variant_cls.variant_name == "generic":
                 continue
             variant = variant_cls(
-                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
                 assume_yes=self.assume_yes,
                 allow_beta=self.allow_beta,
@@ -279,7 +278,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        machine_token_file: MachineTokenFile,
         cfg: Optional[config.UAConfig] = None,
         assume_yes: bool = False,
         allow_beta: bool = False,
@@ -295,7 +293,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not cfg:
             cfg = config.UAConfig()
         self.cfg = cfg
-        self.machine_token_file = machine_token_file
+        self.machine_token_file = machine_token.get_machine_token_file()
         self.assume_yes = assume_yes
         self.allow_beta = allow_beta
         self.access_only = access_only
@@ -368,7 +366,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             total_steps += 1
         for incompatible_service in self.blocking_incompatible_services():
             total_steps += incompatible_service.entitlement(
-                self.machine_token_file,
                 self.cfg,
             ).disable_steps()
         for required_service in self.blocking_required_services():
@@ -380,9 +377,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def calculate_total_disable_steps(self) -> int:
         total_steps = self.disable_steps()
         for dependent_service in self.blocking_dependent_services():
-            total_steps += dependent_service(
-                self.machine_token_file, self.cfg
-            ).disable_steps()
+            total_steps += dependent_service(self.cfg).disable_steps()
         return total_steps
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
@@ -711,7 +706,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         ret = []
         for service in self.incompatible_services:
             ent_status, _ = service.entitlement(
-                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
             ).application_status()
             if ent_status in (
@@ -756,7 +750,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         )
         for service in self.blocking_incompatible_services():
             ent = service.entitlement(
-                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
                 assume_yes=True,
             )
@@ -798,9 +791,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         ret = []
         for service in self.required_services:
-            ent_status, _ = service.entitlement(
-                self.machine_token_file, self.cfg
-            ).application_status()
+            ent_status, _ = service.entitlement(self.cfg).application_status()
             if ent_status not in (
                 ApplicationStatus.ENABLED,
                 ApplicationStatus.WARNING,
@@ -821,7 +812,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         for required_service in self.blocking_required_services():
             ent = required_service.entitlement(
-                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
                 allow_beta=True,
             )
@@ -978,7 +968,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         blocking = []
         for dependent_service_cls in self.dependent_services:
             ent_status, _ = dependent_service_cls(
-                self.machine_token_file, self.cfg
+                self.cfg
             ).application_status()
             if ent_status == ApplicationStatus.ENABLED:
                 blocking.append(dependent_service_cls)
@@ -1001,7 +991,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         for dependent_service_cls in self.blocking_dependent_services():
             ent = dependent_service_cls(
-                machine_token_file=self.machine_token_file,
                 cfg=self.cfg,
                 assume_yes=True,
             )

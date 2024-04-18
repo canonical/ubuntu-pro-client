@@ -3,7 +3,6 @@ import textwrap
 from collections import defaultdict
 from typing import Dict, List, NamedTuple, Optional, Tuple, Type  # noqa: F401
 
-import uaclient.files.machine_token as machine_token
 from uaclient import exceptions
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
@@ -67,10 +66,8 @@ def entitlement_factory(
     allow_beta = allow_beta or cfg.features.get("allow_beta")
 
     for entitlement in ENTITLEMENT_CLASSES:
-        machine_token_file = machine_token.get_machine_token_file()
         ent = entitlement(
             cfg=cfg,
-            machine_token_file=machine_token_file,
             assume_yes=assume_yes,
             allow_beta=allow_beta,
             access_only=access_only,
@@ -84,7 +81,6 @@ def entitlement_factory(
             elif variant in ent.variants:
                 return ent.variants[variant](
                     cfg=cfg,
-                    machine_token_file=machine_token_file,
                     assume_yes=assume_yes,
                     allow_beta=allow_beta,
                     called_name=name,
