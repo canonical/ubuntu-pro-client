@@ -435,6 +435,38 @@ Feature: Fix plan API endpoints
                     ],
                     "title": "USN-5570-2",
                     "warnings": []
+                  },
+                  {
+                    "additional_data": {
+                      "associated_cves": [
+                        "CVE-2018-25032",
+                        "CVE-2016-9840",
+                        "CVE-2022-37434",
+                        "CVE-2016-9841"
+                      ],
+                      "associated_launchpad_bugs": []
+                    },
+                    "affected_packages": [
+                      "klibc"
+                    ],
+                    "description": "klibc vulnerabilities",
+                    "error": null,
+                    "expected_status": "fixed",
+                    "plan": [
+                      {
+                        "data": {
+                          "pocket": "standard-updates",
+                          "source_packages": [
+                            "klibc"
+                          ],
+                          "status": "cve-already-fixed"
+                        },
+                        "operation": "no-op",
+                        "order": 1
+                      }
+                    ],
+                    "title": "USN-6736-1",
+                    "warnings": []
                   }
                 ],
                 "target_usn_plan": {
@@ -576,6 +608,38 @@ Feature: Fix plan API endpoints
                       }
                     ],
                     "title": "USN-5570-2",
+                    "warnings": []
+                  },
+                  {
+                    "additional_data": {
+                      "associated_cves": [
+                        "CVE-2018-25032",
+                        "CVE-2016-9840",
+                        "CVE-2022-37434",
+                        "CVE-2016-9841"
+                      ],
+                      "associated_launchpad_bugs": []
+                    },
+                    "affected_packages": [
+                      "klibc"
+                    ],
+                    "description": "klibc vulnerabilities",
+                    "error": null,
+                    "expected_status": "fixed",
+                    "plan": [
+                      {
+                        "data": {
+                          "pocket": "standard-updates",
+                          "source_packages": [
+                            "klibc"
+                          ],
+                          "status": "cve-already-fixed"
+                        },
+                        "operation": "no-op",
+                        "order": 1
+                      }
+                    ],
+                    "title": "USN-6736-1",
                     "warnings": []
                   }
                 ],
