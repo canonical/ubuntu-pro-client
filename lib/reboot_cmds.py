@@ -28,7 +28,7 @@ from uaclient import (
     upgrade_lts_contract,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.entitlements import entitlement_factory
+from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.files import notices, state_files
 
 LOG = logging.getLogger("ubuntupro.lib.reboot_cmds")
@@ -48,7 +48,7 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
                 return
 
     LOG.info("Attempting to remove Ubuntu Pro FIPS package holds")
-    fips = entitlement_factory(cfg=cfg, name="fips")
+    fips = FIPSEntitlement(cfg)
 
     try:
         fips.setup_apt_config(

@@ -1079,11 +1079,9 @@ class TestAttachedServiceStatus:
         expected_blocked_by,
         tmpdir,
         FakeConfig,
-        fake_machine_token_file,
     ):
         cfg = FakeConfig()
         ent = ConcreteTestEntitlement(
-            machine_token_file=fake_machine_token_file,
             cfg=cfg,
             blocking_incompatible_services=blocking_incompatible_services,
         )

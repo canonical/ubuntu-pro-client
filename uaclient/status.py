@@ -157,7 +157,6 @@ def _attached_service_status(
     contract_status = ent.contract_status()
     available = "no" if ent.name in inapplicable_resources else "yes"
     variants = {}
-    machine_token_file = machine_token.get_machine_token_file(cfg)
 
     if contract_status == ContractStatus.UNENTITLED:
         ent_status = UserFacingStatus.UNAVAILABLE
@@ -181,9 +180,7 @@ def _attached_service_status(
             if ent.variants:
                 variants = {
                     variant_name: _attached_service_status(
-                        variant_cls(
-                            machine_token_file=machine_token_file, cfg=cfg
-                        ),
+                        variant_cls(cfg=cfg),
                         inapplicable_resources,
                         cfg,
                     )
