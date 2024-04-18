@@ -111,6 +111,7 @@ Feature: Ua fix command behaviour
       Found related USNs:
       - USN-5570-1
       - USN-5570-2
+      - USN-6736-1
 
       Fixing related USNs:
       - USN-5570-1
@@ -126,10 +127,19 @@ Feature: Ua fix command behaviour
 
       .*✔.* USN-5570-2 is resolved.
 
+      - USN-6736-1
+      1 affected source package is installed: klibc
+      \(1/1\) klibc:
+      A fix is available in Ubuntu standard updates.
+      The update is already installed.
+
+      .*✔.* USN-6736-1 is resolved.
+
       Summary:
       .*✔.* USN-5573-1 \[requested\] is resolved.
       .*✔.* USN-5570-1 \[related\] does not affect your system.
       .*✔.* USN-5570-2 \[related\] is resolved.
+      .*✔.* USN-6736-1 \[related\] is resolved.
       """
     When I run `pro fix USN-5573-1` with sudo
     Then stdout matches regexp:
@@ -149,6 +159,7 @@ Feature: Ua fix command behaviour
       Found related USNs:
       - USN-5570-1
       - USN-5570-2
+      - USN-6736-1
 
       Fixing related USNs:
       - USN-5570-1
@@ -164,10 +175,19 @@ Feature: Ua fix command behaviour
 
       .*✔.* USN-5570-2 is resolved.
 
+      - USN-6736-1
+      1 affected source package is installed: klibc
+      \(1/1\) klibc:
+      A fix is available in Ubuntu standard updates.
+      The update is already installed.
+
+      .*✔.* USN-6736-1 is resolved.
+
       Summary:
       .*✔.* USN-5573-1 \[requested\] is resolved.
       .*✔.* USN-5570-1 \[related\] does not affect your system.
       .*✔.* USN-5570-2 \[related\] is resolved.
+      .*✔.* USN-6736-1 \[related\] is resolved.
       """
     When I run `pro fix USN-5573-1 --no-related` with sudo
     Then stdout matches regexp:
@@ -398,8 +418,6 @@ Feature: Ua fix command behaviour
       Choose: \[S\]ubscribe at https://ubuntu.com/pro/subscribe \[A\]ttach existing token \[C\]ancel
       > Enter your token \(from https://ubuntu.com/pro/dashboard\) to attach this system:
       > .*\{ pro attach .*\}.*
-      Ubuntu Pro: ESM Apps enabled
-      Ubuntu Pro: ESM Infra enabled
       """
     And stdout matches regexp:
       """
