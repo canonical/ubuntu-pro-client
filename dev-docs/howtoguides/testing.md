@@ -57,36 +57,33 @@ The testing can be overridden to install ubuntu-advantage-tools from other sourc
 > **Note**
 > Note that we cache the source when running with `UACLIENT_BEHAVE_INSTALL_FROM=local` based on a hash, calculated from the repository state. If you change the python code locally and run the behave tests against your new version, there will be new debs in the cache source with the new repo state hash.
 
-To run the tests, you can use `tox`:
+To run the integration tests, use the `tox` command as shown below. 
+Please note that, as shown here without arguments, this command would execute all the integration tests sequentially and would take an inordinate amount of time to complete. Always pass arguments to this command to specify a subset of tests to run, as demonstrated next.
 
 ```shell
-tox -e behave-lxd-20.04
+tox -e behave
 ```
 
 or, if you just want to run a specific file, or a test within a file:
 
 ```shell
-tox -e behave-lxd-20.04 features/unattached_commands.feature
-tox -e behave-lxd-20.04 features/unattached_commands.feature:28
+tox -e behave features/unattached_commands.feature
+tox -e behave features/unattached_commands.feature:28
 ```
 
-As can be seen, this will run behave tests only for release 20.04 (Focal Fossa). We are currently
-supporting 6 distinct releases:
+or, if you want to run a specific file for a specific release and machine type, or a specific test:
 
-* 23.04 (Lunar Lobster)
-* 21.10 (Kinetic Kudu)
-* 22.04 (Jammy Jellyfish)
-* 20.04 (Focal Fossa)
-* 18.04 (Bionic Beaver)
-* 16.04 (Xenial Xerus)
+```shell
+tox -e behave -- features/config.feature -D releases=jammy -D machine_types=lxd-container
+tox -e behave -- features/config.feature:132 -D releases=jammy -D machine_types=lxd-vm
+```
 
-Therefore, to change which release to run the behave tests against, just change the release version
-on the behave command.
+As can be seen, this will run behave tests for only the release 22.04 (Jammy Jellyfish). Similary the behave tests can be run for all supported releases, including LTS releases under ESM, and the development release at some point in the development cycle. Please note that the specific release versions may change over time, so it's recommended to refer to the documentation for the latest information.
 
 Furthermore, when developing/debugging a new scenario:
 
  1. Add a `@wip` tag decorator on the scenario
- 2. To only run @wip scenarios run: `tox -e behave-lxd-20.04 -- -w`
+ 2. To only run @wip scenarios run: `tox -e behave -- -w`
  3. If you want to use a debugger:
     1. Add ipdb to integration-requirements.txt
     2. Add ipdb.set_trace() in the code block you wish to debug
@@ -96,76 +93,21 @@ through [the behave
 tutorial](https://behave.readthedocs.io/en/latest/tutorial.html) to get
 an idea of how it works, and how tests are written.)
 
-## Iterating Locally
-
-To make running the tests repeatedly less time-intensive, our behave
-testing setup has support for reusing images between runs via two
-configuration options (provided in environment variables),
-`UACLIENT_BEHAVE_IMAGE_CLEAN` and `UACLIENT_BEHAVE_REUSE_IMAGE`.
-
-To avoid the test framework cleaning up the image it creates, you can
-run it like this:
-
-```sh
-UACLIENT_BEHAVE_IMAGE_CLEAN=0 tox -e behave
-```
-
-which will emit a line like this above the test summary:
-
-```
-Image cleanup disabled, not deleting: behave-image-1572443113978755
-```
-
-You can then reuse that image by plugging its name into your next test
-run, like so:
-
-```sh
-UACLIENT_BEHAVE_REUSE_IMAGE=behave-image-1572443113978755 tox -e behave
-```
-
-If you've done this correctly, you should see something like
-`reuse_image = behave-image-1572443113978755` in the "Config options"
-output, and test execution should start immediately (without the usual
-image build step).
-
-(Note that this handling is specific to our behave tests as it's
-performed in `features/environment.py`, so don't expect to find
-documentation about it outside of this codebase.)
-
-## Optimizing total run time of integration tests with snapshots
-When `UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1` we create a snapshot of an instance
-with ubuntu-advantage-tools installed and restore from that snapshot for all tests.
-This adds an upfront cost that is amortized across several test scenarios.
-
-Based on some rough testing in July 2021, these are the situations
-when you should set UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1
-
-> At time of writing, starting a lxd-vm instance from a local snapshot takes
-> longer than starting a fresh lxd-vm instance and installing ua.
-
-| machine_type  | condition          |
-| ------------- | ------------------ |
-| lxd-container | num_scenarios > 7  |
-| lxd-vm        | never              |
-| gcp           | num_scenarios > 5  |
-| azure         | num_scenarios > 14 |
-| aws           | num_scenarios > 11 |
-
 ## Integration testing on EC2
 The following tox environments allow for testing focal on EC2:
 
 ```
   # To test ubuntu-pro-images
-  tox -e behave-awspro-20.04
+  tox -e behave -- -D release=focal -D machine_types=aws.pro
   # To test Canonical cloud images (non-ubuntu-pro)
-  tox -e behave-awsgeneric-20.04
+  tox -e behave -- -D release=focal -D machine_types=aws.generic
 ```
 
 To run the test for a different release, just update the release version string. For example,
 to run AWS pro xenial tests, you can run:
 
 ```
-tox -e behave-awspro-16.04
+tox -e behave -- -D release=xenial -D machine_types=aws.pro
 ```
 
 In order to run EC2 tests, please set up the [pycloudlib toml
@@ -180,7 +122,7 @@ additional token obtained from https://ubuntu.com/pro needs to be set:
 following environment variable to launch your specific  AMI instead of building
 a daily ubuntu-advantage-tools image.
 ```sh
-UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-ami tox -e behave-awspro-20.04
+UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-ami tox -e behave -- -D release=focal -D machine_types=aws.pro
 ```
 
 ## Integration testing on Azure
@@ -188,16 +130,16 @@ The following tox environments allow for testing focal on Azure:
 
 ```
   # To test ubuntu-pro-images
-  tox -e behave-azurepro-20.04
+  tox -e behave -- -D release=focal -D machine_types=aws.pro
   # To test Canonical cloud images (non-ubuntu-pro)
-  tox -e behave-azuregeneric-20.04
+  tox -e behave -- -D release=focal -D machine_types=aws.generic
 ```
 
 To run the test for a different release, just update the release version string. For example,
 to run Azure pro xenial tests, you can run:
 
 ```
-tox -e behave-azurepro-16.04
+  tox -e behave -- -D machine_types=azure.pro
 ```
 
 In order to run Azure tests, please set up the [pycloudlib toml
@@ -212,7 +154,7 @@ additional token obtained from https://ubuntu.com/pro needs to be set:
 following environment variable to launch your specific Image Id instead of building
 a daily ubuntu-advantage-tools image.
 ```sh
-UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave-azurepro-20.04
+UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave -- -D release=focal -D machine_types=azure.pro
 ```
 
 ## Integration testing on GCP
@@ -220,16 +162,16 @@ The following tox environments allow for testing focal on GCP:
 
 ```
   # To test ubuntu-pro-images
-  tox -e behave-gcppro-20.04
+  tox -e behave -- -D release=focal -D machine_types=gcp.pro
   # To test Canonical cloud images (non-ubuntu-pro)
-  tox -e behave-gcpgeneric-20.04
+  tox -e behave -- -D release=focal -D machine_types=gcp.generic
 ```
 
 To run the test for a different release, just update the release version string. For example,
 to run GCP pro xenial tests, you can run:
 
 ```
-tox -e behave-gcppro-16.04
+tox -e behave -- -D release=xenial machine_types=gcp.pro
 ```
 
 In order to run GCP tests, please set up the [pycloudlib toml
@@ -244,5 +186,5 @@ additional token obtained from https://ubuntu.com/pro needs to be set:
 following environment variable to launch your specific Image Id instead of building
 a daily ubuntu-advantage-tools image.
 ```sh
-UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave-gcppro-20.04
+UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave -- -D release=focal -D machine_types=gcp.pro
 ```
