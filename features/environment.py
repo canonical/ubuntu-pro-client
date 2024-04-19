@@ -18,6 +18,7 @@ import features.cloud as cloud
 from features.util import (
     BUILDER_NAME_PREFIX,
     SUT,
+    UA_TMP_DIR,
     InstallationSource,
     landscape_reject_all_pending_computers,
     process_template_vars,
@@ -498,22 +499,48 @@ def after_scenario(context, scenario):
                 logging.warning("Failed to collect coverage")
 
 
-def _get_apparmor_logs_from_host():
-    # get apparmor DENIED messages from the host
-    with open("/var/log/syslog", "r") as syslog_fd:
-        syslog_messages = syslog_fd.readlines()
-        apparmor_denied = [
-            msg.strip()
-            for msg in syslog_messages
-            if ("DENIED" in msg and "ubuntu_pro_" in msg)
-        ]
-    return apparmor_denied
+def _get_relevant_apparmor_logs(context):
+    if hasattr(context, "machines") and SUT in context.machines:
+        sut = context.machines[SUT]
+        if sut.cloud == "lxd-container":
+            # get apparmor DENIED messages from the host
+            with open("/var/log/syslog", "r") as syslog_fd:
+                syslog_messages = syslog_fd.readlines()
+            apparmor_denied = [
+                msg.strip()
+                for msg in syslog_messages
+                if (
+                    "DENIED" in msg
+                    and "ubuntu_pro_" in msg
+                    and sut.instance.name in msg
+                )
+            ]
+            return apparmor_denied
+        else:
+            # get apparmor DENIED messages from the SUT
+            os.makedirs(UA_TMP_DIR, exist_ok=True)
+            syslog_dest = os.path.join(
+                UA_TMP_DIR, "{}-syslog".format(sut.instance.name)
+            )
+            sut.instance.pull_file("/var/log/syslog", syslog_dest)
+            with open(syslog_dest, "r") as syslog_fd:
+                syslog_messages = syslog_fd.readlines()
+            apparmor_denied = [
+                msg.strip()
+                for msg in syslog_messages
+                if ("DENIED" in msg and "ubuntu_pro_" in msg)
+            ]
+            return apparmor_denied
+    return None
 
 
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
-    apparmor_logs = _get_apparmor_logs_from_host()
+    apparmor_logs = _get_relevant_apparmor_logs(context)
     if apparmor_logs:
+        logging.warning("XXX apparmor DENIED begin")
+        logging.warning("\n".join(apparmor_logs))
+        logging.warning("XXX apparmor DENIED end")
         # naughty
         step.status = Status.failed
     if step.status == "failed":
@@ -547,11 +574,6 @@ def after_step(context, step):
                         stderr=process.stderr,
                     )
                 )
-
-        if apparmor_logs:
-            logging.warning("XXX apparmor DENIED from host begin")
-            logging.warning("\n".join(apparmor_logs))
-            logging.warning("XXX apparmor DENIED from host end")
 
         if hasattr(context, "machines") and SUT in context.machines:
             try:
