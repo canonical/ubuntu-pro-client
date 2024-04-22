@@ -42,6 +42,8 @@ Client to manage Ubuntu Advantage services on a machine.
    (https://ubuntu.com/cis-audit)
  - esm-apps: UA Apps: Extended Security Maintenance (https://ubuntu.com/esm)
  - esm-infra: UA Infra: Extended Security Maintenance (https://ubuntu.com/esm)
+ - esm-infra-legacy: Expanded Security Maintenance for Infrastructure on Legacy
+   Instances (https://ubuntu.com/esm)
  - fips: NIST-certified FIPS modules (https://ubuntu.com/fips)
  - fips-updates: Uncertified security updates to FIPS modules
  - livepatch: Canonical Livepatch service (https://ubuntu.com/livepatch)

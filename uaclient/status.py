@@ -163,14 +163,14 @@ See https://ubuntu.com/advantage"""
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 
-STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
+STATUS_UNATTACHED_TMPL = "{name: <18}{available: <11}{description}"
 
-STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
+STATUS_HEADER = "SERVICE           ENTITLED  STATUS    DESCRIPTION"
 # The widths listed below for entitled and status are actually 9 characters
 # less than reality because we colorize the values in entitled and status
 # columns. Colorizing has an opening and closing set of unprintable characters
 # that factor into formats len() calculations
-STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
+STATUS_TMPL = "{name: <18}{entitled: <19}{status: <19}{description}"
 
 MESSAGE_ATTACH_INVALID_TOKEN = """\
 Invalid token. See https://ubuntu.com/advantage"""

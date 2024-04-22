@@ -15,24 +15,29 @@ M_PATH = "uaclient.cli."
 
 RESPONSE_LIVEPATCH_AVAILABLE = [{"name": "livepatch", "available": True}]
 UNATTACHED_STATUS = """\
-SERVICE       AVAILABLE  DESCRIPTION
-livepatch     yes        Canonical Livepatch service
+SERVICE           AVAILABLE  DESCRIPTION
+livepatch         yes        Canonical Livepatch service
 
 This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage
 """
 
 ATTACHED_STATUS = """\
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
+SERVICE           ENTITLED  STATUS    DESCRIPTION
+cc-eal            no        {dash}         Common Criteria EAL2 Provisioning\
  Packages
-cis-audit     no        {dash}         Center for Internet Security Audit Tools
-esm-apps      no        {dash}         UA Apps: Extended Security Maintenance
-esm-infra     no        {dash}         UA Infra: Extended Security Maintenance
-fips          no        {dash}         NIST-certified FIPS modules
-fips-updates  no        {dash}         Uncertified security updates to FIPS\
- modules
-livepatch     no        {dash}         Canonical Livepatch service
+cis-audit         no        {dash}         Center for Internet Security Audit\
+ Tools
+esm-apps          no        {dash}         UA Apps: Extended Security\
+ Maintenance
+esm-infra         no        {dash}         UA Infra: Extended Security\
+ Maintenance
+esm-infra-legacy  no        {dash}         Expanded Security Maintenance\
+ for Infrastructure on Legacy Instances
+fips              no        {dash}         NIST-certified FIPS modules
+fips-updates      no        {dash}         Uncertified security updates to\
+ FIPS modules
+livepatch         no        {dash}         Canonical Livepatch service
 
 Enable services with: ua enable <service>
 
@@ -40,7 +45,7 @@ Enable services with: ua enable <service>
            Subscription: test_contract
             Valid until: n/a
 Technical support level: n/a
-"""
+"""  # noqa
 
 
 @mock.patch(

@@ -38,3 +38,12 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     def disable_apt_auth_only(self) -> bool:
         """Only trusty esm-infra should remove apt auth files upon disable"""
         return bool("trusty" == util.get_platform_info()["series"])
+
+
+class ESMLegacyEntitlement(ESMBaseEntitlement):
+    name = "esm-infra-legacy"
+    title = "Ubuntu Pro: ESM Infra (Legacy)"
+    origin = "UbuntuESM"
+    description = "Expanded Security Maintenance for Infrastructure on Legacy Instances"  # noqa
+    repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+    disable_apt_auth_only = False
