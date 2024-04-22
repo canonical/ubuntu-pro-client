@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (24.2~14.04.1) trusty; urgency=medium
+
+  * Add support to new esm-infra-legacy service (LP: #2060566)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Mon, 22 Apr 2024 12:44:02 -0300
+
 ubuntu-advantage-tools (24.1) groovy; urgency=medium
 
   * New bug-fix-only release 24.1:
