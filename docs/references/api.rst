@@ -203,7 +203,7 @@ This endpoint shows the installed Pro Client version.
                - Type
                - Description
              * - ``installed_version``
-               - *str*
+               - ``str``
                - The current installed version
 
       - Raised exceptions:
@@ -388,7 +388,7 @@ This endpoint checks if a given system should run auto-attach on boot.
                - Type
                - Description
              * - ``should_auto_attach``
-               - *bool*
+               - ``bool``
                - True if the system should run auto-attach on boot
 
       - Raised exceptions:
@@ -447,16 +447,16 @@ confirm the operation and the Token used to proceed.
                - Type
                - Description
              * - ``user_code``
-               - *str*
+               - ``str``
                - Code the user will see in the UI when confirming the Magic Attach
              * - ``token``
-               - *str*
+               - ``str``
                - Magic Token used by the tooling to continue the operation
              * - ``expires``
-               - *str*
+               - ``str``
                - Timestamp of the Magic Attach process expiration
              * - ``expires_in``
-               - *int*
+               - ``int``
                - Seconds before the Magic Attach process expires
 
       - Raised exceptions:
@@ -583,22 +583,22 @@ Magic Attach.
                - Type
                - Description
              * - ``user_code``
-               - *str*
+               - ``str``
                - Code the user will see in the UI when confirming the Magic Attach
              * - ``token``
-               - *str*
+               - ``str``
                - Magic Token used by the tooling to continue the operation
              * - ``expires``
-               - *str*
+               - ``str``
                - Timestamp of the Magic Attach process expiration
              * - ``expires_in``
-               - *int*
+               - ``int``
                - Seconds before the Magic Attach process expires
              * - ``contract_id``
-               - *str*
+               - ``str``
                - ID of the contract the machine will be attached to
              * - ``contract_token``
-               - *str*
+               - ``str``
                - The contract Token to attach the machine
 
       - Raised exceptions:
@@ -672,10 +672,10 @@ a token.
                - Type
                - Description
              * - ``enabled``
-               - *List[str]*
+               - ``List[str]``
                - The services enabled during the attach operation
              * - ``reboot_required``
-               - *bool*
+               - ``bool``
                - True if the system requires a reboot after the attach operation
 
       - Raised exceptions:
@@ -747,10 +747,10 @@ This endpoint allow the user to detach the machine from a Pro subscription.
                - Type
                - Description
              * - ``disabled``
-               - *List[str]*
+               - ``List[str]``
                - The services disabled during the detach operation
              * - ``reboot_required``
-               - *bool*
+               - ``bool``
                - True if the system requires a reboot after the detach operation
 
       - Raised exceptions:
@@ -810,7 +810,7 @@ by origin.
                - Type
                - Description
              * - ``summary``
-               - *PackageSummary*
+               - ``PackageSummary``
                - Summary of all installed packages
 
         - ``uaclient.api.u.pro.packages.summary.v1.PackageSummary``
@@ -822,31 +822,31 @@ by origin.
                - Type
                - Description
              * - ``num_installed_packages``
-               - *int*
+               - ``int``
                - Total count of installed packages
              * - ``num_esm_apps_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from ``esm-apps``
              * - ``num_esm_infra_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from ``esm-infra``
              * - ``num_main_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from ``main``
              * - ``num_multiverse_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from ``multiverse``
              * - ``num_restricted_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from ``restricted``
              * - ``num_third_party_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from third party sources
              * - ``num_universe_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from ``universe``
              * - ``num_unknown_packages``
-               - *int*
+               - ``int``
                - Count of packages installed from unknown sources
 
       - Raised exceptions:
@@ -915,10 +915,10 @@ where they can be obtained.
                - Type
                - Description
              * - ``summary``
-               - *UpdateSummary*
+               - ``UpdateSummary``
                - Summary of all available updates
              * - ``updates``
-               - *list(UpdateInfo)*
+               - ``List[UpdateInfo]``
                - Detailed list of all available updates
 
         - ``uaclient.api.u.pro.packages.updates.v1.UpdateSummary``
@@ -930,19 +930,19 @@ where they can be obtained.
                - Type
                - Description
              * - ``num_updates``
-               - *int*
+               - ``int``
                - Total count of available updates
              * - ``num_esm_apps_updates``
-               - *int*
+               - ``int``
                - Count of available updates from ``esm-apps``
              * - ``num_esm_infra_updates``
-               - *int*
+               - ``int``
                - Count of available updates from ``esm-infra``
              * - ``num_standard_security_updates``
-               - *int*
+               - ``int``
                - Count of available updates from the ``-security`` pocket
              * - ``num_standard_updates``
-               - *int*
+               - ``int``
                - Count of available updates from the ``-updates`` pocket
 
         - ``uaclient.api.u.pro.packages.updates.v1.UpdateInfo``
@@ -954,22 +954,22 @@ where they can be obtained.
                - Type
                - Description
              * - ``download_size``
-               - *int*
+               - ``int``
                - Download size for the update in bytes
              * - ``origin``
-               - *str*
+               - ``str``
                - Where the update is downloaded from
              * - ``package``
-               - *str*
+               - ``str``
                - Name of the package to be updated
              * - ``provided_by``
-               - *str*
+               - ``str``
                - Service which provides the update
              * - ``status``
-               - *str*
+               - ``str``
                - Whether this update is ready for download or not
              * - ``version``
-               - *str*
+               - ``str``
                - Version of the update
 
       - Raised exceptions:
@@ -1046,7 +1046,7 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``cves_data``
-               - *List[CVEAPIFixExecuteResult]*
+               - ``List[CVEAPIFixExecuteResult]``
                - A list of CVEAPIFixExecuteResult objects
 
         - ``uaclient.api.u.pro.security.fix.cve.execute.v1.CVEAPIFixExecuteResult``
@@ -1058,10 +1058,10 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of fixing the CVEs
              * - ``cves``
-               - *List[FixExecuteResult]*
+               - ``List[FixExecuteResult]``
                - A list of FixExecuteResult objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
@@ -1073,16 +1073,16 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``title``
-               - *str*
+               - ``str``
                - The title of the CVE
              * - ``expected_status``
-               - *str*
+               - ``str``
                - The status of fixing the CVE
              * - ``upgraded_packages``
-               - *List[UpgradedPackage]*
+               - ``List[UpgradedPackage]``
                - A list of UpgradedPackage objects
              * - ``error``
-               - *Optional[FixExecuteError]*
+               - ``Optional[FixExecuteError]``
                - A FixExecuteError object
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
@@ -1094,13 +1094,13 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``name``
-               - *str*
+               - ``str``
                - The name of the package
              * - ``version``
-               - *str*
+               - ``str``
                - The version that the package was upgraded to
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket which contained the package upgrade
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteError``
@@ -1112,13 +1112,13 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``error_type``
-               - *str*
+               - ``str``
                - The type of the error
              * - ``reason``
-               - *str*
+               - ``str``
                - The reason why the error occurred
              * - ``failed_upgrades``
-               - *Optional[List[FailedUpgrade]]*
+               - ``Optional[List[FailedUpgrade]]``
                - A list of FailedUpgrade objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
@@ -1130,10 +1130,10 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``name``
-               - *str*
+               - ``str``
                - The name of the package
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket which contained the package upgrade
 
       - Raised exceptions:
@@ -1298,8 +1298,8 @@ executing any of those steps.
                - Type
                - Description
              * - ``cves_data``
-               - *List[CVEFixPlanResult]*
-               - A list of CVEFixPlanResult objects
+               - ``List[CVEFixPlanResult]``
+               - A list of ``CVEFixPlanResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.cve.plan.v1.CVEFixPlanResult``
 
@@ -1310,11 +1310,11 @@ executing any of those steps.
                - Type
                - Description
              * - ``expected_status``
-               - *str*
+               - ``str``
                - The expected status of fixing the CVEs
              * - ``cves``
-               - *List[FixPlanResult]*
-               - A list of FixPlanResult objects
+               - ``List[FixPlanResult]``
+               - A list of ``FixPlanResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.FixPlanResult``
 
@@ -1325,22 +1325,22 @@ executing any of those steps.
                - Type
                - Description
              * - ``title``
-               - *str*
+               - ``str``
                - The title of the CVE
              * - ``expected_status``
-               - *str*
+               - ``str``
                - The expected status of fixing the CVE
              * - ``plan``
-               - *List[FixPlanStep]*
+               - ``List[FixPlanStep]``
                - A list of FixPlanStep objects
              * - ``warnings``
-               - *List[FixPlanWarning]*
+               - ``List[FixPlanWarning]``
                - A list of FixPlanWarning objects
              * - ``error``
-               - *Optional[FixPlanError]*
+               - ``Optional[FixPlanError]``
                - A list of FixPlanError objects
              * - ``additional_data``
-               - *AdditionalData*
+               - ``AdditionalData``
                - Additional data for the CVE
 
         - ``uaclient.api.u.pro.security.fix.FixPlanStep``
@@ -1352,14 +1352,14 @@ executing any of those steps.
                - Type
                - Description
              * - ``operation``
-               - *str*
+               - ``str``
                - The operation that would be performed to fix the CVE. This can be either an attach, enable, apt-upgrade or a no-op type
              * - ``order``
-               - *int*
+               - ``int``
                - The execution order of the operation
              * - ``data``
-               - *object*
-               - A data object that can be either an AptUpgradeData, AttachData, EnableData, NoOpData
+               - ``object``
+               - A data object that can be either an ``AptUpgradeData``, ``AttachData``, ``EnableData``, ``NoOpData``
 
         - ``uaclient.api.u.pro.security.fix.FixPlanWarning``
 
@@ -1370,13 +1370,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``warning_type``
-               - *str*
+               - ``str``
                - The type of warning
              * - ``order``
-               - *int*
+               - ``int``
                - The execution order of the operation
              * - ``data``
-               - *object*
+               - ``object``
                - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
 
         - ``uaclient.api.u.pro.security.fix.FixPlanError``
@@ -1388,10 +1388,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``msg``
-               - *str*
+               - ``str``
                - The error message
              * - ``code``
-               - *str*
+               - ``str``
                - The message code
 
         - ``uaclient.api.u.pro.security.fix.AdditionalData``
@@ -1407,13 +1407,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``binary_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of binary packages that need to be upgraded
              * - ``source_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of source packages that need to be upgraded
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket where the packages will be installed from
 
         - ``uaclient.api.u.pro.security.fix.AttachData``
@@ -1425,13 +1425,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``reason``
-               - *str*
+               - ``str``
                - The reason why an attach operation is needed
              * - ``source_packages``
-               - *List[str]*
+               - ``List[str]``
                - The source packages that require the attach operation
              * - ``required_service``
-               - *str*
+               - ``str``
                - The required service that requires the attach operation
 
         - ``uaclient.api.u.pro.security.fix.EnableData``
@@ -1443,10 +1443,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``service``
-               - *str*
+               - ``str``
                - The Pro client service that needs to be enabled
              * - ``source_packages``
-               - *str*
+               - ``str``
                - The source packages that require the service to be enabled
 
         - ``uaclient.api.u.pro.security.fix.NoOpData``
@@ -1458,7 +1458,7 @@ executing any of those steps.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the CVE when no operation can be performed
 
         - ``uaclient.api.u.pro.security.fix.NoOpAlreadyFixedData``
@@ -1470,13 +1470,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the CVE when no operation can be performed
              * - ``source_packages``
-               - *str*
+               - ``str``
                - The source packages that are already fixed
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket where the packages would have been installed from
 
         - ``uaclient.api.u.pro.security.fix.NoOpLivepatchFixData``
@@ -1488,10 +1488,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the CVE when no operation can be performed
              * - ``patch_version``
-               - *str*
+               - ``str``
                - Version of the path from Livepatch that fixed the CVE
 
         - ``uaclient.api.u.pro.security.fix.PackageCannotBeInstalledData``
@@ -1503,19 +1503,19 @@ executing any of those steps.
                - Type
                - Description
              * - ``binary_package``
-               - *str*
+               - ``str``
                - The binary package that cannot be installed
              * - ``binary_package_version``
-               - *str*
+               - ``str``
                - The version of the binary package that cannot be installed
              * - ``source_package``
-               - *str*
+               - ``str``
                - The source package associated with the binary package
              * - ``related_source_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of source packages that comes from the same pocket as the affected package
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket where the affected package should be installed from
 
         - ``uaclient.api.u.pro.security.fix.SecurityIssueNotFixedData``
@@ -1527,10 +1527,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``source_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of source packages that cannot be fixed at the moment
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the CVE regarding those packages
 
       - Raised exceptions:
@@ -1611,7 +1611,7 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``usns_data``
-               - *List[USNAPIFixExecuteResult]*
+               - ``List[USNAPIFixExecuteResult]``
                - A list of USNAPIFixExecuteResult objects
 
         - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNAPIFixExecuteResult``
@@ -1623,10 +1623,10 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of fixing the USNs
              * - ``cves``
-               - *List[FixExecuteUSNResult]*
+               - ``List[FixExecuteUSNResult]``
                - A list of FixExecuteResult objects
 
         - ``uaclient.api.u.pro.security.fix.usn.execute.v1.FixExecuteUSNResult``
@@ -1638,10 +1638,10 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``target_usn``
-               - *str*
+               - ``str``
                - The FixExecuteResult for the target USN
              * - ``related_usns``
-               - *List[FixExecuteResult]*
+               - ``List[FixExecuteResult]``
                - A list of FixExecuteResult objects for the related USNs
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
@@ -1653,16 +1653,16 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``title``
-               - *str*
+               - ``str``
                - The title of the USN
              * - ``expected_status``
-               - *str*
+               - ``str``
                - The status of fixing the USN
              * - ``upgraded_packages``
-               - *List[UpgradedPackage]*
+               - ``List[UpgradedPackage]``
                - A list of UpgradedPackage objects
              * - ``error``
-               - *Optional[FixExecuteError]*
+               - ``Optional[FixExecuteError]``
                - A FixExecuteError object
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
@@ -1674,13 +1674,13 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``name``
-               - *str*
+               - ``str``
                - The name of the package
              * - ``version``
-               - *str*
+               - ``str``
                - The version that the package was upgraded to
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket which contained the package upgrade
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteError``
@@ -1692,13 +1692,13 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``error_type``
-               - *str*
+               - ``str``
                - The type of the error
              * - ``reason``
-               - *str*
+               - ``str``
                - The reason why the error occurred
              * - ``failed_upgrades``
-               - *Optional[List[FailedUpgrade]]*
+               - ``Optional[List[FailedUpgrade]]``
                - A list of FailedUpgrade objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
@@ -1710,10 +1710,10 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``name``
-               - *str*
+               - ``str``
                - The name of the package
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket which contained the package upgrade
 
       - Raised exceptions:
@@ -1878,8 +1878,8 @@ executing any of those steps.
                - Type
                - Description
              * - ``usns_data``
-               - *List[USNFixPlanResult]*
-               - A list of USNFixPlanResult objects
+               - ``List[USNFixPlanResult]``
+               - A list of ``USNFixPlanResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.cve.plan.v1.USNFixPlanResult``
 
@@ -1890,10 +1890,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``expected_status``
-               - *str*
+               - ``str``
                - The expected status of fixing the USNs
              * - ``cves``
-               - *List[FixPlanUSNResult]*
+               - ``List[FixPlanUSNResult]``
                - A list of FixPlanUSNResult objects
 
         - ``uaclient.api.u.pro.security.fix.FixPlanUSNResult``
@@ -1905,11 +1905,11 @@ executing any of those steps.
                - Type
                - Description
              * - ``target_usn_plan``
-               - *FixPlanResult*
-               - A FixPlanResult object for the target USN
+               - ``FixPlanResult``
+               - A ``FixPlanResult`` object for the target USN
              * - ``related_usns_plan``
-               - *List[FixPlanResult]*
-               - A list of FixPlanResult objects for the related USNs
+               - ``List[FixPlanResult]``
+               - A list of ``FixPlanResult`` objects for the related USNs
 
         - ``uaclient.api.u.pro.security.fix.FixPlanResult``
 
@@ -1920,22 +1920,22 @@ executing any of those steps.
                - Type
                - Description
              * - ``title``
-               - *str*
+               - ``str``
                - The title of the USN
              * - ``expected_status``
-               - *str*
+               - ``str``
                - The expected status of fixing the USN
              * - ``plan``
-               - *List[FixPlanStep]*
+               - ``List[FixPlanStep]``
                - A list of FixPlanStep objects
              * - ``warnings``
-               - *List[FixPlanWarning]*
+               - ``List[FixPlanWarning]``
                - A list of FixPlanWarning objects
              * - ``error``
-               - *Optional[FixPlanError]*
+               - ``Optional[FixPlanError]``
                - A list of FixPlanError objects
              * - ``additional_data``
-               - *AdditionalData*
+               - ``AdditionalData``
                - Additional data for the USN
 
         - ``uaclient.api.u.pro.security.fix import FixPlanStep``
@@ -1947,14 +1947,14 @@ executing any of those steps.
                - Type
                - Description
              * - ``operation``
-               - *str*
+               - ``str``
                - The operation that would be performed to fix the USN
              * - ``order``
-               - *int*
+               - ``int``
                - The execution order of the operation
              * - ``data``
-               - *object*
-               - A data object that can be either an AptUpgradeData, AttachData, EnableData, NoOpData
+               - ``object``
+               - A data object that can be either an ``AptUpgradeData``, ``AttachData``, ``EnableData``, ``NoOpData``
 
         - ``uaclient.api.u.pro.security.fix import FixPlanWarning``
 
@@ -1965,13 +1965,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``warning_type``
-               - *str*
+               - ``str``
                - The type of warning
              * - ``order``
-               - *int*
+               - ``int``
                - The execution order of the operation
              * - ``data``
-               - *object*
+               - ``object``
                - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
 
         - ``uaclient.api.u.pro.security.fix import FixPlanError``
@@ -1983,10 +1983,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``msg``
-               - *str*
+               - ``str``
                - The error message
              * - ``code``
-               - *str*
+               - ``str``
                - The message code
 
         - ``uaclient.api.u.pro.security.fix.AdditionalData``
@@ -1998,10 +1998,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``associated_cves``
-               - *List[str]*
+               - ``List[str]``
                - The associated CVEs for the USN
              * - ``associated_launchpad_bugs``
-               - *List[str]*
+               - ``List[str]``
                - The associated Launchpad bugs for the USN
 
 
@@ -2014,13 +2014,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``binary_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of binary packages that need to be upgraded
              * - ``source_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of source packages that need to be upgraded
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket where the packages will be installed from
 
         - ``uaclient.api.u.pro.security.fix import AttachData``
@@ -2032,13 +2032,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``reason``
-               - *str*
+               - ``str``
                - The reason why an attach operation is needed
              * - ``source_packages``
-               - *List[str]*
+               - ``List[str]``
                - The source packages that require the attach operation
              * - ``required_service``
-               - *str*
+               - ``str``
                - The required service that requires the attach operation
 
         - ``uaclient.api.u.pro.security.fix import EnableData``
@@ -2050,10 +2050,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``service``
-               - *str*
+               - ``str``
                - The Pro client service that needs to be enabled
              * - ``source_packages``
-               - *str*
+               - ``str``
                - The source packages that require the service to be enabled
 
         - ``uaclient.api.u.pro.security.fix import NoOpData``
@@ -2065,7 +2065,7 @@ executing any of those steps.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the USN when no operation can be performed
 
         - ``uaclient.api.u.pro.security.fix.NoOpAlreadyFixedData``
@@ -2077,13 +2077,13 @@ executing any of those steps.
                - Type
                - Description
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the CVE when no operation can be performed
              * - ``source_packages``
-               - *str*
+               - ``str``
                - The source packages that are already fixed
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket where the packages would have been installed from
 
         - ``uaclient.api.u.pro.security.fix import PackageCannotBeInstalledData``
@@ -2095,19 +2095,19 @@ executing any of those steps.
                - Type
                - Description
              * - ``binary_package``
-               - *str*
+               - ``str``
                - The binary package that cannot be installed
              * - ``binary_package_version``
-               - *str*
+               - ``str``
                - The version of the binary package that cannot be installed
              * - ``source_package``
-               - *str*
+               - ``str``
                - The source package associated with the binary package
              * - ``related_source_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of source packages that comes from the same pocket as the affected package
              * - ``pocket``
-               - *str*
+               - ``str``
                - The pocket where the affected package should be installed from
 
         - ``uaclient.api.u.pro.security.fix import SecurityIssueNotFixedData``
@@ -2119,10 +2119,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``source_packages``
-               - *List[str]*
+               - ``List[str]``
                - A list of source packages that cannot be fixed at the moment
              * - ``status``
-               - *str*
+               - ``str``
                - The status of the USN regarding those packages
 
       - Raised exceptions:
@@ -2212,7 +2212,7 @@ This endpoint lists Livepatch patches for the currently-running kernel.
                - Type
                - Description
              * - ``fixed_cves``
-               - *list(LivepatchCVEObject)*
+               - ``list(LivepatchCVEObject)``
                - List of Livepatch patches for the given system
 
         - ``uaclient.api.u.pro.security.status.livepatch_cves.v1.LivepatchCVEObject``
@@ -2224,10 +2224,10 @@ This endpoint lists Livepatch patches for the currently-running kernel.
                - Type
                - Description
              * - ``name``
-               - *str*
+               - ``str``
                - Name (ID) of the CVE
              * - ``patched``
-               - *bool*
+               - ``bool``
                - Livepatch has patched the CVE
 
       - Raised exceptions:
@@ -2301,7 +2301,7 @@ are:
                - Type
                - Description
              * - ``reboot_required``
-               - *str*
+               - ``str``
                - One of the descriptive strings indicating if the system should
                  be rebooted
 
@@ -2360,7 +2360,7 @@ This endpoint shows the Pro services that are enabled on the machine.
                - Type
                - Description
              * - ``enabled_services``
-               - *List[EnabledService]*
+               - ``List[EnabledService]``
                - A list of ``EnabledService`` objects
 
         - ``uaclient.api.u.pro.status.enabled_services.v1.EnabledService``
@@ -2372,15 +2372,15 @@ This endpoint shows the Pro services that are enabled on the machine.
                - Type
                - Description
              * - ``name``
-               - *str*
+               - ``str``
                - | Name of the service.
                  | Possible values are: ``cc-eal``, ``cis``, ``esm-apps``, ``esm-infra``, ``fips``, ``fips-updates``, ``livepatch``, ``realtime-kernel``, ``ros``, ``ros-updates``.
                  | When ``usg`` is enabled, this value will be ``cis``.
              * - ``variant_enabled``
-               - *bool*
+               - ``bool``
                - If a variant of the service is enabled
              * - ``variant_name``
-               - *Optional[str]*
+               - ``Optional[str]``
                - Name of the variant, if a variant is enabled
 
    .. tab-item:: CLI interaction
@@ -2426,17 +2426,17 @@ This endpoint shows if the machine is attached to a Pro subscription.
                - Type
                - Description
              * - ``is_attached``
-               - *bool*
+               - ``bool``
                - If the machine is attached to a Pro subscription
              * - ``contract_status``
-               - *str*
+               - ``str``
                - The current contract status (active, grace-period, active-soon-to-expire, expired).
                  Please refer to the explanation tab for a description of each state.
              * - ``contract_remaining_days``
-               - *int*
+               - ``int``
                - The number of days remaining for the contract to be valid
              * - ``is_attached_and_contract_valid``
-               - *bool*
+               - ``bool``
                - If the machine is attached and the contract is still valid
 
    .. tab-item:: CLI interaction
@@ -2493,7 +2493,7 @@ This endpoint returns the current APT News that gets displayed in `apt upgrade`.
                - Type
                - Description
              * - ``current_news``
-               - *Optional[str]*
+               - ``Optional[str]``
                - | The current APT News to be displayed for the system. This could be a str with up to three lines (i.e. up to two ``\n`` characters).
                  | If there is no APT News to be displayed, this will be ``None``.
       - Raised exceptions:
@@ -2552,7 +2552,7 @@ formatted as a manifest file (i.e., ``package_name\tversion``).
                - Type
                - Description
              * - ``manifest_data``
-               - *str*
+               - ``str``
                - Manifest of ``apt`` and ``snap`` packages installed on the system
 
       - Raised exceptions:
@@ -2619,25 +2619,25 @@ configured on the machine.
                - Type
                - Description
              * - ``systemd_apt_timer_enabled``
-               - *bool*
+               - ``bool``
                - Indicate if the ``apt-daily.timer`` jobs are enabled
              * - ``apt_periodic_job_enabled``
-               - *bool*
+               - ``bool``
                - Indicate if the ``APT::Periodic::Enabled`` configuration is turned off
              * - ``package_lists_refresh_frequency_days``
-               - *int*
+               - ``int``
                - The value of the ``APT::Periodic::Update-Package-Lists`` configuration
              * - ``unattended_upgrades_frequency_days``
-               - *int*
+               - ``int``
                - The value of the ``APT::Periodic::Unattended-Upgrade`` configuration
              * - ``unattended_upgrades_allowed_origins``
-               - *List[str]*
+               - ``List[str]``
                - The value of the ``Unattended-Upgrade::Allowed-Origins`` configuration
              * - ``unattended_upgrades_running``
-               - *bool*
+               - ``bool``
                - Indicate if the ``unattended-upgrade`` service is correctly configured and running
              * - ``unattended_upgrades_disabled_reason``
-               - *object*
+               - ``object``
                - Object that explains why ``unattended-upgrades`` is not running -- if the application is running, the object will be null
              * - ``unattended_upgrades_last_run``
                - ``datetime.datetime``
@@ -2652,10 +2652,10 @@ configured on the machine.
                - Type
                - Description
              * - ``msg``
-               - *str*
+               - ``str``
                - The reason why ``unattended-upgrades`` is not running on the system
              * - ``code``
-               - *str*
+               - ``str``
                - The message code associated with the message
 
       - Raised exceptions:
