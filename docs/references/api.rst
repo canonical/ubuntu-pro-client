@@ -147,24 +147,24 @@ Available endpoints
 The currently available endpoints are:
 
 - `u.pro.version.v1`_
-- `u.pro.attach.magic.initiate.v1`_
-- `u.pro.attach.magic.wait.v1`_
-- `u.pro.attach.magic.revoke.v1`_
-- `u.pro.attach.auto.should_auto_attach.v1`_
-- `u.pro.attach.auto.full_auto_attach.v1`_
 - `u.pro.attach.auto.configure_retry_service.v1`_
+- `u.pro.attach.auto.full_auto_attach.v1`_
+- `u.pro.attach.auto.should_auto_attach.v1`_
+- `u.pro.attach.magic.initiate.v1`_
+- `u.pro.attach.magic.revoke.v1`_
+- `u.pro.attach.magic.wait.v1`_
 - `u.pro.attach.token.full_token_attach.v1`_
 - `u.pro.detach.v1`_
+- `u.pro.packages.summary.v1`_
+- `u.pro.packages.updates.v1`_
 - `u.pro.security.fix.cve.execute.v1`_
-- `u.pro.security.fix.usn.execute.v1`_
 - `u.pro.security.fix.cve.plan.v1`_
+- `u.pro.security.fix.usn.execute.v1`_
 - `u.pro.security.fix.usn.plan.v1`_
 - `u.pro.security.status.livepatch_cves.v1`_
 - `u.pro.security.status.reboot_required.v1`_
-- `u.pro.packages.summary.v1`_
-- `u.pro.packages.updates.v1`_
-- `u.pro.status.is_attached.v1`_
 - `u.pro.status.enabled_services.v1`_
+- `u.pro.status.is_attached.v1`_
 - `u.apt_news.current_news.v1`_
 - `u.security.package_manifest.v1`_
 - `u.unattended_upgrades.status.v1`_
@@ -225,6 +225,191 @@ This endpoint shows the installed Pro Client version.
 
            {
               "installed_version":"<version>"
+           }
+
+u.pro.attach.auto.configure_retry_service.v1
+============================================
+
+This endpoint configures options for the retry auto-attach functionality, and
+creates files that will activate the retry auto-attach functionality if
+``ubuntu-advantage.service`` runs.
+
+Note that this does not start ``ubuntu-advantage.service``. This makes it useful
+for calling during the boot process ``Before: ubuntu-advantage.service`` so that
+when ``ubuntu-advantage.service`` starts, its ``ConditionPathExists`` check
+passes and activates the retry auto-attach function.
+
+If you call this function outside of the boot process and would like the retry
+auto-attach functionality to actually start, you'll need to call something
+like ``systemctl start ubuntu-advantage.service``.
+
+- Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Args:
+
+  - ``enable``: Optional list of services to enable after auto-attaching.
+  - ``enable_beta``: Optional list of beta services to enable after
+    auto-attaching.
+
+.. note::
+
+   If none of the lists are set, the services will be enabled based on the
+   contract definitions.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_retry_service, ConfigureRetryServiceOptions
+
+           options = ConfigureRetryServiceOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
+           result = configure_retry_service(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.attach.auto.configure_retry_service.v1.ConfigureRetryServiceResult``
+
+          No data present in the result.
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        - This endpoint currently has no CLI support. Only the Python-based
+          version is available.
+
+u.pro.attach.auto.full_auto_attach.v1
+=====================================
+
+This endpoint runs the whole auto-attach process on the system.
+
+- Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Args:
+
+  - ``enable``: Optional list of services to enable after auto-attaching.
+  - ``enable_beta``: Optional list of beta services to enable after auto-attaching.
+
+.. note::
+
+   If none of the lists are set, the services will be enabled based on the
+   contract definitions.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach, FullAutoAttachOptions
+
+           options = FullAutoAttachOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
+           result = full_auto_attach(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.attach.auto.full_auto_attach.v1.FullAutoAttachResult``
+
+          No data present in the result.
+
+      - Raised exceptions
+
+        - ``AlreadyAttachedError``: Raised if running on a machine which is
+          already attached to a Pro subscription.
+        - ``AutoAttachDisabledError``: Raised if ``disable_auto_attach: true``
+          in ``uaclient.conf``.
+        - ``ConnectivityError``: Raised if it is not possible to connect to the
+          Contracts Server.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the
+          Contracts Server interaction.
+        - ``EntitlementsNotEnabledError``: Raised if the Client fails to enable
+          any of the entitlements (whether present in any of the lists or
+          listed in the contract).
+        - ``LockHeldError``: Raised if another Client process is holding the
+          lock on the machine.
+        - ``NonAutoAttachImageError``: Raised if the cloud where the system is
+          running does not support auto-attach.
+        - ``UserFacingError``: Raised if:
+
+          - The Client is unable to determine which cloud the system is running
+            on. 
+          - The image where the Client is running does not support auto-attach.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        This endpoint currently has no CLI support. Only the Python-based
+        version is available.
+
+u.pro.attach.auto.should_auto_attach.v1
+=======================================
+
+This endpoint checks if a given system should run auto-attach on boot.
+
+- Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Args:
+
+  - This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import should_auto_attach
+
+           result = should_auto_attach()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.attach.auto.should_auto_attach.v1.ShouldAutoAttachResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``should_auto_attach``
+               - *bool*
+               - True if the system should run auto-attach on boot
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.attach.auto.should_auto_attach.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "should_auto_attach": false
            }
 
 u.pro.attach.magic.initiate.v1
@@ -302,6 +487,65 @@ confirm the operation and the Token used to proceed.
               "expires": "<yyyy-MM-dd>T<HH:mm:ss>.<TZ>",
               "expires_in": 600
            }
+
+
+u.pro.attach.magic.revoke.v1
+============================
+
+This endpoint revokes a Magic Attach Token.
+
+- Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Args:
+
+  - ``magic_token``: The Token provided by the initiate endpoint.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.attach.magic.revoke.v1 import MagicAttachRevokeOptions, revoke
+
+           options = MagicAttachWaitOptions(magic_token="<magic_token>")
+           result = revoke(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.attach.magic.wait.v1.MagicAttachRevokeResult``
+
+          No data present in the result.
+
+      - Raised exceptions:
+
+        - ``ConnectivityError``: Raised if it is not possible to connect to the
+          Contracts Server.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the
+          Contracts Server interaction.
+        - ``MagicAttachTokenAlreadyActivated``: Raised when trying to revoke a
+          Token which was already activated through the UI.
+        - ``MagicAttachTokenError``: Raised when an invalid/expired Token is
+          sent.
+        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is busy
+          or unavailable at the moment.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.attach.magic.revoke.v1 --args magic_token=<token>
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {}
 
 u.pro.attach.magic.wait.v1
 ==========================
@@ -389,250 +633,6 @@ Magic Attach.
                "contract_id": "<Contract-ID>",
                "contract_token": "<attach_token>",
            }
-
-u.pro.attach.magic.revoke.v1
-============================
-
-This endpoint revokes a Magic Attach Token.
-
-- Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
-
-  - ``magic_token``: The Token provided by the initiate endpoint.
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.attach.magic.revoke.v1 import MagicAttachRevokeOptions, revoke
-
-           options = MagicAttachWaitOptions(magic_token="<magic_token>")
-           result = revoke(options)
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.attach.magic.wait.v1.MagicAttachRevokeResult``
-
-          No data present in the result.
-
-      - Raised exceptions:
-
-        - ``ConnectivityError``: Raised if it is not possible to connect to the
-          Contracts Server.
-        - ``ContractAPIError``: Raised if there is an unexpected error in the
-          Contracts Server interaction.
-        - ``MagicAttachTokenAlreadyActivated``: Raised when trying to revoke a
-          Token which was already activated through the UI.
-        - ``MagicAttachTokenError``: Raised when an invalid/expired Token is
-          sent.
-        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is busy
-          or unavailable at the moment.
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        .. code-block:: bash
-
-           pro api u.pro.attach.magic.revoke.v1 --args magic_token=<token>
-
-      - Expected attributes in JSON structure:
-
-        .. code-block:: json
-
-           {}
-
-u.pro.attach.auto.should_auto_attach.v1
-=======================================
-
-This endpoint checks if a given system should run auto-attach on boot.
-
-- Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
-
-  - This endpoint takes no arguments.
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import should_auto_attach
-
-           result = should_auto_attach()
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.attach.auto.should_auto_attach.v1.ShouldAutoAttachResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``should_auto_attach``
-               - *bool*
-               - True if the system should run auto-attach on boot
-
-      - Raised exceptions:
-
-        - No exceptions raised by this endpoint.
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        .. code-block:: bash
-
-           pro api u.pro.attach.auto.should_auto_attach.v1
-
-      - Expected attributes in JSON structure:
-
-        .. code-block:: json
-
-           {
-               "should_auto_attach": false
-           }
-
-u.pro.attach.auto.full_auto_attach.v1
-=====================================
-
-This endpoint runs the whole auto-attach process on the system.
-
-- Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
-
-  - ``enable``: Optional list of services to enable after auto-attaching.
-  - ``enable_beta``: Optional list of beta services to enable after auto-attaching.
-
-.. note::
-
-   If none of the lists are set, the services will be enabled based on the
-   contract definitions.
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach, FullAutoAttachOptions
-
-           options = FullAutoAttachOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
-           result = full_auto_attach(options)
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.attach.auto.full_auto_attach.v1.FullAutoAttachResult``
-
-          No data present in the result.
-
-      - Raised exceptions
-
-        - ``AlreadyAttachedError``: Raised if running on a machine which is
-          already attached to a Pro subscription.
-        - ``AutoAttachDisabledError``: Raised if ``disable_auto_attach: true``
-          in ``uaclient.conf``.
-        - ``ConnectivityError``: Raised if it is not possible to connect to the
-          Contracts Server.
-        - ``ContractAPIError``: Raised if there is an unexpected error in the
-          Contracts Server interaction.
-        - ``EntitlementsNotEnabledError``: Raised if the Client fails to enable
-          any of the entitlements (whether present in any of the lists or
-          listed in the contract).
-        - ``LockHeldError``: Raised if another Client process is holding the
-          lock on the machine.
-        - ``NonAutoAttachImageError``: Raised if the cloud where the system is
-          running does not support auto-attach.
-        - ``UserFacingError``: Raised if:
-
-          - The Client is unable to determine which cloud the system is running
-            on. 
-          - The image where the Client is running does not support auto-attach.
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        This endpoint currently has no CLI support. Only the Python-based
-        version is available.
-
-u.pro.attach.auto.configure_retry_service.v1
-============================================
-
-This endpoint configures options for the retry auto-attach functionality, and
-creates files that will activate the retry auto-attach functionality if
-``ubuntu-advantage.service`` runs.
-
-Note that this does not start ``ubuntu-advantage.service``. This makes it useful
-for calling during the boot process ``Before: ubuntu-advantage.service`` so that
-when ``ubuntu-advantage.service`` starts, its ``ConditionPathExists`` check
-passes and activates the retry auto-attach function.
-
-If you call this function outside of the boot process and would like the retry
-auto-attach functionality to actually start, you'll need to call something
-like ``systemctl start ubuntu-advantage.service``.
-
-- Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
-
-  - ``enable``: Optional list of services to enable after auto-attaching.
-  - ``enable_beta``: Optional list of beta services to enable after
-    auto-attaching.
-
-.. note::
-
-   If none of the lists are set, the services will be enabled based on the
-   contract definitions.
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_retry_service, ConfigureRetryServiceOptions
-
-           options = ConfigureRetryServiceOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
-           result = configure_retry_service(options)
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.attach.auto.configure_retry_service.v1.ConfigureRetryServiceResult``
-
-          No data present in the result.
-
-      - Raised exceptions:
-
-        - No exceptions raised by this endpoint.
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        - This endpoint currently has no CLI support. Only the Python-based
-          version is available.
-
 
 u.pro.attach.token.full_token_attach.v1
 ============================================
@@ -773,6 +773,240 @@ This endpoint allow the user to detach the machine from a Pro subscription.
            {
                "disabled": ["service1", "service2"],
                "reboot_required": false
+           }
+
+u.pro.packages.summary.v1
+=========================
+
+This endpoint shows a summary of installed packages in the system, categorised
+by origin.
+
+- Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Args:
+
+  - This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.packages.summary.v1 import summary
+
+           result = summary()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.packages.summary.v1.PackageSummaryResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``summary``
+               - *PackageSummary*
+               - Summary of all installed packages
+
+        - ``uaclient.api.u.pro.packages.summary.v1.PackageSummary``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``num_installed_packages``
+               - *int*
+               - Total count of installed packages
+             * - ``num_esm_apps_packages``
+               - *int*
+               - Count of packages installed from ``esm-apps``
+             * - ``num_esm_infra_packages``
+               - *int*
+               - Count of packages installed from ``esm-infra``
+             * - ``num_main_packages``
+               - *int*
+               - Count of packages installed from ``main``
+             * - ``num_multiverse_packages``
+               - *int*
+               - Count of packages installed from ``multiverse``
+             * - ``num_restricted_packages``
+               - *int*
+               - Count of packages installed from ``restricted``
+             * - ``num_third_party_packages``
+               - *int*
+               - Count of packages installed from third party sources
+             * - ``num_universe_packages``
+               - *int*
+               - Count of packages installed from ``universe``
+             * - ``num_unknown_packages``
+               - *int*
+               - Count of packages installed from unknown sources
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.packages.summary.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "summary":{
+                   "num_installed_packages": 1,
+                   "num_esm_apps_packages": 2,
+                   "num_esm_infra_packages": 3,
+                   "num_main_packages": 4,
+                   "num_multiverse_packages": 5,
+                   "num_restricted_packages": 6,
+                   "num_third_party_packages": 7,
+                   "num_universe_packages": 8,
+                   "num_unknown_packages": 9,
+               },
+           }
+
+u.pro.packages.updates.v1
+=========================
+
+This endpoint shows available updates for packages in a system, categorised by
+where they can be obtained.
+
+- Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Args:
+
+  - This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.packages.updates.v1 import updates
+
+           result = updates()
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.packages.updates.v1.PackageUpdatesResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``summary``
+               - *UpdateSummary*
+               - Summary of all available updates
+             * - ``updates``
+               - *list(UpdateInfo)*
+               - Detailed list of all available updates
+
+        - ``uaclient.api.u.pro.packages.updates.v1.UpdateSummary``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``num_updates``
+               - *int*
+               - Total count of available updates
+             * - ``num_esm_apps_updates``
+               - *int*
+               - Count of available updates from ``esm-apps``
+             * - ``num_esm_infra_updates``
+               - *int*
+               - Count of available updates from ``esm-infra``
+             * - ``num_standard_security_updates``
+               - *int*
+               - Count of available updates from the ``-security`` pocket
+             * - ``num_standard_updates``
+               - *int*
+               - Count of available updates from the ``-updates`` pocket
+
+        - ``uaclient.api.u.pro.packages.updates.v1.UpdateInfo``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``download_size``
+               - *int*
+               - Download size for the update in bytes
+             * - ``origin``
+               - *str*
+               - Where the update is downloaded from
+             * - ``package``
+               - *str*
+               - Name of the package to be updated
+             * - ``provided_by``
+               - *str*
+               - Service which provides the update
+             * - ``status``
+               - *str*
+               - Whether this update is ready for download or not
+             * - ``version``
+               - *str*
+               - Version of the update
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.   
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.packages.updates.v1
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+               "summary":{
+                   "num_updates": 1,
+                   "num_esm_apps_updates": 2,
+                   "num_esm_infra_updates": 3,
+                   "num_standard_security_updates": 4,
+                   "num_standard_updates": 5,
+               },
+               "updates":[
+                   {
+                       "download_size": 6,
+                       "origin": "<some site>",
+                       "package": "<package name>",
+                       "provided_by": "<service name>",
+                       "status": "<update status>",
+                       "version": "<updated version>",
+                   },
+               ]
            }
 
 .. _cve-execute-api-v1:
@@ -1027,273 +1261,6 @@ This endpoint fixes the specified CVEs on the machine.
       * **reason**: The explanation of why the error happened
       * **failed_upgrade**: A list of objects that always contain the name of the package
         that was not upgraded and the pocket where the upgrade would have come from.
-
-u.pro.security.fix.usn.execute.v1
-===================================
-
-This endpoint fixes the specified USNs on the machine.
-
-- Introduced in Ubuntu Pro Client Version: ``30~``
-- Args:
-
-  - ``usns``: A list of USNs (i.e. USN-6188-1) titles
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.security.fix.usn.execute.v1 import execute, USNFixExecuteOptions
-
-           options = USNFixExecuteOptions(usns=["USN-1234-1", "USN-1235-1"])
-           result = execute(options)
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNSAPIFixExecuteResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``usns_data``
-               - *List[USNAPIFixExecuteResult]*
-               - A list of USNAPIFixExecuteResult objects
-
-        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNAPIFixExecuteResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``status``
-               - *str*
-               - The status of fixing the USNs
-             * - ``cves``
-               - *List[FixExecuteUSNResult]*
-               - A list of FixExecuteResult objects
-
-        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.FixExecuteUSNResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``target_usn``
-               - *str*
-               - The FixExecuteResult for the target USN
-             * - ``related_usns``
-               - *List[FixExecuteResult]*
-               - A list of FixExecuteResult objects for the related USNs
-
-        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``title``
-               - *str*
-               - The title of the USN
-             * - ``expected_status``
-               - *str*
-               - The status of fixing the USN
-             * - ``upgraded_packages``
-               - *List[UpgradedPackage]*
-               - A list of UpgradedPackage objects
-             * - ``error``
-               - *Optional[FixExecuteError]*
-               - A FixExecuteError object
-
-        - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``name``
-               - *str*
-               - The name of the package
-             * - ``version``
-               - *str*
-               - The version that the package was upgraded to
-             * - ``pocket``
-               - *str*
-               - The pocket which contained the package upgrade
-
-        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteError``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``error_type``
-               - *str*
-               - The type of the error
-             * - ``reason``
-               - *str*
-               - The reason why the error occurred
-             * - ``failed_upgrades``
-               - *Optional[List[FailedUpgrade]]*
-               - A list of FailedUpgrade objects
-
-        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``name``
-               - *str*
-               - The name of the package
-             * - ``pocket``
-               - *str*
-               - The pocket which contained the package upgrade
-
-      - Raised exceptions:
-
-        - No exceptions raised by this endpoint.   
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        .. code-block:: bash
-
-           pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'
-
-      - Expected attributes in JSON structure:
-
-        .. code-block:: json
-
-           {
-              "usns_data": {
-                  "status": "fixed",
-                  "usns": [
-                    {
-                        "target_usn": {
-                            "title": "CVE-1234-56789",
-                            "status": "fixed",
-                            "upgraded_packages": {
-                                "name": "pkg1",
-                                "version": "1.1",
-                                "pocket": "standard-updates"
-                            },
-                            "error": null
-                        },
-                        "related_usns": []
-                    }
-                  ]
-              }
-           }
-
-   .. tab-item:: Explanation
-      :sync: explanation
-
-      When using the USN endpoint, the expected output is as follows:
-
-      .. code-block:: json
-
-          {
-            "usns_data": {
-                "status": "fixed",
-                "usns": [
-                  {
-                      "target_usn": {
-                          "title": "CVE-1234-56789",
-                          "status": "fixed",
-                          "upgraded_packages": {
-                              "name": "pkg1",
-                              "version": "1.1",
-                              "pocket": "standard-updates"
-                          },
-                          "error": null
-                      },
-                      "related_usns": []
-                  }
-                ]
-            }
-          }
-
-      From this output, we can see that the **usns_data** object contains two attributes:
-
-      * **usns**: A list of USN objects detailing what happened during the fix operation.
-      * **status**: The status of the fix operation considering **all** USNs.
-                    This means that if one USN cannot be fixed, this field will reflect that.
-                    Note that related USNs don't interfere with this attribute, meaning
-                    that a related USN can fail to be fixed without modifying the **status**
-                    value.
-
-      Each **usn** object contains a reference for both **target_usn** and **related_usns**.
-      The target is the USN requested to be fixed by the user, while related USNs are USNs
-      that are related to the main USN and an attempt to fix them will be performed by the
-      endpoint too. To better understand that distinction, please refer to 
-      :ref:`our explanation of CVEs and USNs <expl-cve-usn>`.
-
-      With that said both **target_usn** object and any object from **related_usns**
-      follow this structure:
-
-      * **title**: The title of the USN.
-      * **description**: The USN description.
-      * **error**: Any error captured when fixing the USN will appear here. The error object
-                  will be detailed in a following section.
-      * **status**: The expected status of the USN after the fix operation. There are
-        three possible scenarios: **fixed**, **still-affected** and **not-affected**.
-        The system is considered **still-affected** if there is something that
-        prevents any required packages from being upgraded. The system
-        is considered **not-affected** if the USN doesn't affect the system at all.
-      * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
-        that was upgraded during the fix operation. The UpgradedPackage object always contain
-        the **name** of the package, the **version** it was upgraded to and the **pocket** where
-        the package upgrade came from.
-
-      **What errors can be generated?**
-
-      There some errors that can happen when executing this endpoint. For example, the system
-      might require the user to attach to a Pro subscription to install the upgrades,
-      or the user might run the command as non-root when a package upgrade is needed.
-
-      In those situations, the error JSON error object will follow this representation:
-
-      .. code-block:: json
-
-         {
-           "error_type": "error-type",
-           "reason": "reason",
-           "failed_upgrades": [
-             {
-               "name": "pkg1",
-               "pocket": "esm-infra"
-             }
-           ]
-         }
-
-      We can see that the representation has the following fields:
-
-      * **error_type**: The error type
-      * **reason**: The explanation of why the error happened
-      * **failed_upgrade**: A list of objects that always contain the name of the package
-        that was not upgraded and the pocket where the upgrade would have come from.
-
 
 u.pro.security.fix.cve.plan.v1
 ===============================
@@ -1608,6 +1575,272 @@ executing any of those steps.
                   ]
               }
            }
+
+u.pro.security.fix.usn.execute.v1
+===================================
+
+This endpoint fixes the specified USNs on the machine.
+
+- Introduced in Ubuntu Pro Client Version: ``30~``
+- Args:
+
+  - ``usns``: A list of USNs (i.e. USN-6188-1) titles
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+           from uaclient.api.u.pro.security.fix.usn.execute.v1 import execute, USNFixExecuteOptions
+
+           options = USNFixExecuteOptions(usns=["USN-1234-1", "USN-1235-1"])
+           result = execute(options)
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNSAPIFixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``usns_data``
+               - *List[USNAPIFixExecuteResult]*
+               - A list of USNAPIFixExecuteResult objects
+
+        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNAPIFixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``status``
+               - *str*
+               - The status of fixing the USNs
+             * - ``cves``
+               - *List[FixExecuteUSNResult]*
+               - A list of FixExecuteResult objects
+
+        - ``uaclient.api.u.pro.security.fix.usn.execute.v1.FixExecuteUSNResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``target_usn``
+               - *str*
+               - The FixExecuteResult for the target USN
+             * - ``related_usns``
+               - *List[FixExecuteResult]*
+               - A list of FixExecuteResult objects for the related USNs
+
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``title``
+               - *str*
+               - The title of the USN
+             * - ``expected_status``
+               - *str*
+               - The status of fixing the USN
+             * - ``upgraded_packages``
+               - *List[UpgradedPackage]*
+               - A list of UpgradedPackage objects
+             * - ``error``
+               - *Optional[FixExecuteError]*
+               - A FixExecuteError object
+
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - *str*
+               - The name of the package
+             * - ``version``
+               - *str*
+               - The version that the package was upgraded to
+             * - ``pocket``
+               - *str*
+               - The pocket which contained the package upgrade
+
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteError``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``error_type``
+               - *str*
+               - The type of the error
+             * - ``reason``
+               - *str*
+               - The reason why the error occurred
+             * - ``failed_upgrades``
+               - *Optional[List[FailedUpgrade]]*
+               - A list of FailedUpgrade objects
+
+        - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``name``
+               - *str*
+               - The name of the package
+             * - ``pocket``
+               - *str*
+               - The pocket which contained the package upgrade
+
+      - Raised exceptions:
+
+        - No exceptions raised by this endpoint.   
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: json
+
+           {
+              "usns_data": {
+                  "status": "fixed",
+                  "usns": [
+                    {
+                        "target_usn": {
+                            "title": "CVE-1234-56789",
+                            "status": "fixed",
+                            "upgraded_packages": {
+                                "name": "pkg1",
+                                "version": "1.1",
+                                "pocket": "standard-updates"
+                            },
+                            "error": null
+                        },
+                        "related_usns": []
+                    }
+                  ]
+              }
+           }
+
+   .. tab-item:: Explanation
+      :sync: explanation
+
+      When using the USN endpoint, the expected output is as follows:
+
+      .. code-block:: json
+
+          {
+            "usns_data": {
+                "status": "fixed",
+                "usns": [
+                  {
+                      "target_usn": {
+                          "title": "CVE-1234-56789",
+                          "status": "fixed",
+                          "upgraded_packages": {
+                              "name": "pkg1",
+                              "version": "1.1",
+                              "pocket": "standard-updates"
+                          },
+                          "error": null
+                      },
+                      "related_usns": []
+                  }
+                ]
+            }
+          }
+
+      From this output, we can see that the **usns_data** object contains two attributes:
+
+      * **usns**: A list of USN objects detailing what happened during the fix operation.
+      * **status**: The status of the fix operation considering **all** USNs.
+                    This means that if one USN cannot be fixed, this field will reflect that.
+                    Note that related USNs don't interfere with this attribute, meaning
+                    that a related USN can fail to be fixed without modifying the **status**
+                    value.
+
+      Each **usn** object contains a reference for both **target_usn** and **related_usns**.
+      The target is the USN requested to be fixed by the user, while related USNs are USNs
+      that are related to the main USN and an attempt to fix them will be performed by the
+      endpoint too. To better understand that distinction, please refer to 
+      :ref:`our explanation of CVEs and USNs <expl-cve-usn>`.
+
+      With that said both **target_usn** object and any object from **related_usns**
+      follow this structure:
+
+      * **title**: The title of the USN.
+      * **description**: The USN description.
+      * **error**: Any error captured when fixing the USN will appear here. The error object
+                  will be detailed in a following section.
+      * **status**: The expected status of the USN after the fix operation. There are
+        three possible scenarios: **fixed**, **still-affected** and **not-affected**.
+        The system is considered **still-affected** if there is something that
+        prevents any required packages from being upgraded. The system
+        is considered **not-affected** if the USN doesn't affect the system at all.
+      * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
+        that was upgraded during the fix operation. The UpgradedPackage object always contain
+        the **name** of the package, the **version** it was upgraded to and the **pocket** where
+        the package upgrade came from.
+
+      **What errors can be generated?**
+
+      There some errors that can happen when executing this endpoint. For example, the system
+      might require the user to attach to a Pro subscription to install the upgrades,
+      or the user might run the command as non-root when a package upgrade is needed.
+
+      In those situations, the error JSON error object will follow this representation:
+
+      .. code-block:: json
+
+         {
+           "error_type": "error-type",
+           "reason": "reason",
+           "failed_upgrades": [
+             {
+               "name": "pkg1",
+               "pocket": "esm-infra"
+             }
+           ]
+         }
+
+      We can see that the representation has the following fields:
+
+      * **error_type**: The error type
+      * **reason**: The explanation of why the error happened
+      * **failed_upgrade**: A list of objects that always contain the name of the package
+        that was not upgraded and the pocket where the upgrade would have come from.
 
 u.pro.security.fix.usn.plan.v1
 ===============================
@@ -2093,13 +2326,12 @@ are:
                "reboot_required": "yes|no|yes-kernel-livepatches-applied"
            }
 
-u.pro.packages.summary.v1
-=========================
+u.pro.status.enabled_services.v1
+================================
 
-This endpoint shows a summary of installed packages in the system, categorised
-by origin.
+This endpoint shows the Pro services that are enabled on the machine.
 
-- Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Introduced in Ubuntu Pro Client Version: ``28~``
 - Args:
 
   - This endpoint takes no arguments.
@@ -2113,13 +2345,13 @@ by origin.
 
         .. code-block:: python
 
-           from uaclient.api.u.pro.packages.summary.v1 import summary
+           from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services
 
-           result = summary()
+           result = enabled_services()
 
       - Expected return object:
 
-        - ``uaclient.api.u.pro.packages.summary.v1.PackageSummaryResult``
+        - ``uaclient.api.u.pro.status.enabled_services.v1.EnabledServicesResult``
 
           .. list-table::
              :header-rows: 1
@@ -2127,11 +2359,11 @@ by origin.
              * - Field Name
                - Type
                - Description
-             * - ``summary``
-               - *PackageSummary*
-               - Summary of all installed packages
+             * - ``enabled_services``
+               - *List[EnabledService]*
+               - A list of ``EnabledService`` objects
 
-        - ``uaclient.api.u.pro.packages.summary.v1.PackageSummary``
+        - ``uaclient.api.u.pro.status.enabled_services.v1.EnabledService``
 
           .. list-table::
              :header-rows: 1
@@ -2139,37 +2371,17 @@ by origin.
              * - Field Name
                - Type
                - Description
-             * - ``num_installed_packages``
-               - *int*
-               - Total count of installed packages
-             * - ``num_esm_apps_packages``
-               - *int*
-               - Count of packages installed from ``esm-apps``
-             * - ``num_esm_infra_packages``
-               - *int*
-               - Count of packages installed from ``esm-infra``
-             * - ``num_main_packages``
-               - *int*
-               - Count of packages installed from ``main``
-             * - ``num_multiverse_packages``
-               - *int*
-               - Count of packages installed from ``multiverse``
-             * - ``num_restricted_packages``
-               - *int*
-               - Count of packages installed from ``restricted``
-             * - ``num_third_party_packages``
-               - *int*
-               - Count of packages installed from third party sources
-             * - ``num_universe_packages``
-               - *int*
-               - Count of packages installed from ``universe``
-             * - ``num_unknown_packages``
-               - *int*
-               - Count of packages installed from unknown sources
-
-      - Raised exceptions:
-
-        - No exceptions raised by this endpoint.
+             * - ``name``
+               - *str*
+               - | Name of the service.
+                 | Possible values are: ``cc-eal``, ``cis``, ``esm-apps``, ``esm-infra``, ``fips``, ``fips-updates``, ``livepatch``, ``realtime-kernel``, ``ros``, ``ros-updates``.
+                 | When ``usg`` is enabled, this value will be ``cis``.
+             * - ``variant_enabled``
+               - *bool*
+               - If a variant of the service is enabled
+             * - ``variant_name``
+               - *Optional[str]*
+               - Name of the variant, if a variant is enabled
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2178,154 +2390,7 @@ by origin.
 
         .. code-block:: bash
 
-           pro api u.pro.packages.summary.v1
-
-      - Expected attributes in JSON structure:
-
-        .. code-block:: json
-
-           {
-               "summary":{
-                   "num_installed_packages": 1,
-                   "num_esm_apps_packages": 2,
-                   "num_esm_infra_packages": 3,
-                   "num_main_packages": 4,
-                   "num_multiverse_packages": 5,
-                   "num_restricted_packages": 6,
-                   "num_third_party_packages": 7,
-                   "num_universe_packages": 8,
-                   "num_unknown_packages": 9,
-               },
-           }
-
-u.pro.packages.updates.v1
-=========================
-
-This endpoint shows available updates for packages in a system, categorised by
-where they can be obtained.
-
-- Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
-
-  - This endpoint takes no arguments.
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.packages.updates.v1 import updates
-
-           result = updates()
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.packages.updates.v1.PackageUpdatesResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``summary``
-               - *UpdateSummary*
-               - Summary of all available updates
-             * - ``updates``
-               - *list(UpdateInfo)*
-               - Detailed list of all available updates
-
-        - ``uaclient.api.u.pro.packages.updates.v1.UpdateSummary``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``num_updates``
-               - *int*
-               - Total count of available updates
-             * - ``num_esm_apps_updates``
-               - *int*
-               - Count of available updates from ``esm-apps``
-             * - ``num_esm_infra_updates``
-               - *int*
-               - Count of available updates from ``esm-infra``
-             * - ``num_standard_security_updates``
-               - *int*
-               - Count of available updates from the ``-security`` pocket
-             * - ``num_standard_updates``
-               - *int*
-               - Count of available updates from the ``-updates`` pocket
-
-        - ``uaclient.api.u.pro.packages.updates.v1.UpdateInfo``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``download_size``
-               - *int*
-               - Download size for the update in bytes
-             * - ``origin``
-               - *str*
-               - Where the update is downloaded from
-             * - ``package``
-               - *str*
-               - Name of the package to be updated
-             * - ``provided_by``
-               - *str*
-               - Service which provides the update
-             * - ``status``
-               - *str*
-               - Whether this update is ready for download or not
-             * - ``version``
-               - *str*
-               - Version of the update
-
-      - Raised exceptions:
-
-        - No exceptions raised by this endpoint.   
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        .. code-block:: bash
-
-           pro api u.pro.packages.updates.v1
-
-      - Expected attributes in JSON structure:
-
-        .. code-block:: json
-
-           {
-               "summary":{
-                   "num_updates": 1,
-                   "num_esm_apps_updates": 2,
-                   "num_esm_infra_updates": 3,
-                   "num_standard_security_updates": 4,
-                   "num_standard_updates": 5,
-               },
-               "updates":[
-                   {
-                       "download_size": 6,
-                       "origin": "<some site>",
-                       "package": "<package name>",
-                       "provided_by": "<service name>",
-                       "status": "<update status>",
-                       "version": "<updated version>",
-                   },
-               ]
-           }
+           pro api u.pro.status.enabled_services.v1
 
 u.pro.status.is_attached.v1
 ===========================
@@ -2393,72 +2458,6 @@ This endpoint shows if the machine is attached to a Pro subscription.
         but there are still some days where the contract will be valid.
       * **active-soon-to-expire**: The contract is almost expired, but still valid.
       * **expired**: The contract is expired and no longer valid.
-
-u.pro.status.enabled_services.v1
-================================
-
-This endpoint shows the Pro services that are enabled on the machine.
-
-- Introduced in Ubuntu Pro Client Version: ``28~``
-- Args:
-
-  - This endpoint takes no arguments.
-
-.. tab-set::
-
-   .. tab-item:: Python API interaction
-      :sync: python
-
-      - Calling from Python code:
-
-        .. code-block:: python
-
-           from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services
-
-           result = enabled_services()
-
-      - Expected return object:
-
-        - ``uaclient.api.u.pro.status.enabled_services.v1.EnabledServicesResult``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``enabled_services``
-               - *List[EnabledService]*
-               - A list of ``EnabledService`` objects
-
-        - ``uaclient.api.u.pro.status.enabled_services.v1.EnabledService``
-
-          .. list-table::
-             :header-rows: 1
-
-             * - Field Name
-               - Type
-               - Description
-             * - ``name``
-               - *str*
-               - | Name of the service.
-                 | Possible values are: ``cc-eal``, ``cis``, ``esm-apps``, ``esm-infra``, ``fips``, ``fips-updates``, ``livepatch``, ``realtime-kernel``, ``ros``, ``ros-updates``.
-                 | When ``usg`` is enabled, this value will be ``cis``.
-             * - ``variant_enabled``
-               - *bool*
-               - If a variant of the service is enabled
-             * - ``variant_name``
-               - *Optional[str]*
-               - Name of the variant, if a variant is enabled
-
-   .. tab-item:: CLI interaction
-      :sync: CLI
-
-      - Calling from the CLI:
-
-        .. code-block:: bash
-
-           pro api u.pro.status.enabled_services.v1
 
 u.apt_news.current_news.v1
 ==============================
