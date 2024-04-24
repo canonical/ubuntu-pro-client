@@ -333,8 +333,9 @@ class TestAutoAttach:
         assert unexpected_error == excinfo.value
 
 
-@mock.patch("uaclient.actions._write_command_output_to_file")
 class TestCollectLogs:
+    @mock.patch("uaclient.actions.shutil.copy")
+    @mock.patch("uaclient.actions._write_command_output_to_file")
     @mock.patch("uaclient.actions.status")
     @mock.patch("uaclient.actions.LOG.warning")
     @mock.patch("uaclient.util.get_pro_environment")
