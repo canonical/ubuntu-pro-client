@@ -21,9 +21,22 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 class EnableOptions(DataObject):
     fields = [
-        Field("service", StringDataValue),
-        Field("variant", StringDataValue, False),
-        Field("access_only", BoolDataValue, False),
+        Field("service", StringDataValue, doc="Pro service to be enabled"),
+        Field(
+            "variant",
+            StringDataValue,
+            False,
+            doc="Optional variant of the Pro service to be enabled.",
+        ),
+        Field(
+            "access_only",
+            BoolDataValue,
+            False,
+            doc=(
+                "If true and the target service supports it, only enable"
+                " access to the service (default: false)"
+            ),
+        ),
     ]
 
     def __init__(
@@ -40,10 +53,32 @@ class EnableOptions(DataObject):
 
 class EnableResult(DataObject, AdditionalInfo):
     fields = [
-        Field("enabled", data_list(StringDataValue)),
-        Field("disabled", data_list(StringDataValue)),
-        Field("reboot_required", BoolDataValue),
-        Field("messages", data_list(StringDataValue)),
+        Field(
+            "enabled",
+            data_list(StringDataValue),
+            doc="List of services that were enabled.",
+        ),
+        Field(
+            "disabled",
+            data_list(StringDataValue),
+            doc="List of services that were disabled.",
+        ),
+        Field(
+            "reboot_required",
+            BoolDataValue,
+            doc=(
+                "True if one of the services that was enabled requires a"
+                " reboot."
+            ),
+        ),
+        Field(
+            "messages",
+            data_list(StringDataValue),
+            doc=(
+                "List of information message strings about the service that"
+                " was just enabled. Possibly translated."
+            ),
+        ),
     ]
 
     def __init__(
@@ -122,6 +157,10 @@ def _enable(
     cfg: UAConfig,
     progress_object: Optional[AbstractProgress] = None,
 ) -> EnableResult:
+    """
+    Enable a Pro service. This will automatically disable incompatible services
+    and enable required services that that target service depends on.
+    """
     progress = ProgressWrapper(progress_object)
     warnings = []
 
@@ -246,3 +285,55 @@ endpoint = APIEndpoint(
     options_cls=EnableOptions,
     supports_progress=True,
 )
+
+_doc = {
+    "introduced_in": "32",
+    "example_python": """
+from uaclient.api.u.pro.services.enable.v1 import enable, EnableOptions
+result = enable(EnableOptions(service="usg"))
+""",
+    "result_cls": EnableResult,
+    "exceptions": [
+        (exceptions.NonRootUserError, "When called as non-root user"),
+        (
+            exceptions.UnattachedError,
+            (
+                "When called on a machine that is not attached to a Pro"
+                " subscription"
+            ),
+        ),
+        (
+            exceptions.NotSupported,
+            (
+                "When called for a service that doesn't support being enabled"
+                " via API (currently only Landscape)"
+            ),
+        ),
+        (
+            exceptions.EntitlementNotFoundError,
+            (
+                "When the service argument is not a valid Pro service name or"
+                " if the variant is not a valid variant of the target service"
+            ),
+        ),
+        (
+            exceptions.LockHeldError,
+            "When another Ubuntu Pro related operation is in progress",
+        ),
+        (
+            exceptions.EntitlementNotEnabledError,
+            "When the service fails to enable",
+        ),
+    ],
+    "example_cli": "pro api u.pro.services.enable.v1 --args service=usg",
+    "example_json": """
+{
+    "disabled": [],
+    "enabled": [
+        "usg"
+    ],
+    "messages": [],
+    "reboot_required": false
+}
+""",
+}
