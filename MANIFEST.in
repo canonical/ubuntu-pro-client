@@ -1,1 +1,1 @@
-include MANIFEST.in requirements.txt test-requirements.txt tox.ini
+include MANIFEST.in requirements.txt requirements.test.txt tox.ini
