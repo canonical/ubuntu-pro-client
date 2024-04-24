@@ -534,6 +534,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       One moment, checking your subscription first
       Livepatch does not support being enabled with --access-only
+      Could not enable Livepatch.
       """
 
     Examples: ubuntu release
@@ -554,9 +555,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I attempt to attach `contract_token` with sudo
     Then I will see the following on stderr:
       """
-      Enabling default service esm-apps
-      Enabling default service esm-infra
-      Enabling default service livepatch
       Failed to enable default services, check: sudo pro status
       """
     And I verify that `livepatch` is disabled
@@ -564,9 +562,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     And I will see the following on stdout:
       """
       One moment, checking your subscription first
+      Installing Livepatch
       Installing snapd
       Updating standard Ubuntu package lists
       Failed to install snapd on the system
+      Could not enable Livepatch.
       """
 
     Examples: ubuntu release

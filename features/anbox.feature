@@ -48,6 +48,7 @@ Feature: Enable anbox on Ubuntu
       """
       One moment, checking your subscription first
       Anbox Cloud is not available for Ubuntu 16.04 LTS (Xenial Xerus).
+      Could not enable Anbox Cloud.
       """
 
     Examples: ubuntu release
@@ -62,6 +63,7 @@ Feature: Enable anbox on Ubuntu
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
+      Configuring APT access to Anbox Cloud
       Updating Anbox Cloud package lists
       Anbox Cloud access enabled
       """
