@@ -1,7 +1,6 @@
 # Linting
 flake8
 pycodestyle
-pylint
 
 # Unit testing
 mock
