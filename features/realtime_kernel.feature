@@ -60,7 +60,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       .*This will change your kernel. To revert to your original kernel, you will need
       to make the change manually..*
 
-      Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time kernel package lists
+      Do you want to continue\? \[ default = Yes \]: \(Y/n\) Configuring APT access to Real-time kernel
+      Updating Real-time kernel package lists
       Updating standard Ubuntu package lists
       Installing Real-time kernel packages
       Real-time kernel enabled
@@ -358,6 +359,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then stdout matches regexp:
       """
       One moment, checking your subscription first
+      Configuring APT access to Real-time kernel
       Updating Real-time kernel package lists
       Skipping installing packages: ubuntu-realtime
       Real-time kernel access enabled
