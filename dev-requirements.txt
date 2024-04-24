@@ -1,8 +1,0 @@
-# The black, isort, reformat-gherkin and shellcheck-py versions are also in .pre-commit-config.yaml; 
-# make sure to update both together
-black==24.3.0
-isort==5.12.0
-pre-commit
-shellcheck-py==0.9.0.6
-reformat-gherkin==3.0.1
-bandit==1.7.8
