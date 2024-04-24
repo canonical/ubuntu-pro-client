@@ -21,8 +21,16 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 class DisableOptions(DataObject):
     fields = [
-        Field("service", StringDataValue),
-        Field("purge", BoolDataValue, False),
+        Field("service", StringDataValue, doc="Pro service to disable"),
+        Field(
+            "purge",
+            BoolDataValue,
+            False,
+            doc=(
+                "Also remove all packages that were installed from this"
+                " service. Only supported by some services. (default: false)"
+            ),
+        ),
     ]
 
     def __init__(self, *, service: str, purge: bool = False):
@@ -32,7 +40,11 @@ class DisableOptions(DataObject):
 
 class DisableResult(DataObject, AdditionalInfo):
     fields = [
-        Field("disabled", data_list(StringDataValue)),
+        Field(
+            "disabled",
+            data_list(StringDataValue),
+            doc="List of services disabled",
+        ),
     ]
 
     def __init__(self, *, disabled: List[str]):
@@ -54,6 +66,10 @@ def _disable(
     cfg: UAConfig,
     progress_object: Optional[AbstractProgress] = None,
 ) -> DisableResult:
+    """
+    Disable a Pro service. This will automatically disable any services that
+    depend on the target service.
+    """
     progress = ProgressWrapper(progress_object)
 
     if not util.we_are_currently_root():
@@ -128,3 +144,42 @@ endpoint = APIEndpoint(
     options_cls=DisableOptions,
     supports_progress=True,
 )
+
+_doc = {
+    "introduced_in": "32",
+    "example_python": """
+from uaclient.api.u.pro.services.disable.v1 import disable, DisableOptions
+result = disable(DisableOptions(service="usg"))
+""",
+    "result_cls": DisableResult,
+    "exceptions": [
+        (exceptions.NonRootUserError, "When called as non-root user"),
+        (
+            exceptions.UnattachedError,
+            (
+                "When called on a machine that is not attached to a Pro"
+                " subscription"
+            ),
+        ),
+        (
+            exceptions.EntitlementNotFoundError,
+            "When the service argument is not a valid Pro service name",
+        ),
+        (
+            exceptions.LockHeldError,
+            "When another Ubuntu Pro related operation is in progress",
+        ),
+        (
+            exceptions.EntitlementNotDisabledError,
+            "When the service fails to disable",
+        ),
+    ],
+    "example_cli": "pro api u.pro.services.disable.v1 --args service=usg",
+    "example_json": """
+{
+    "disabled": [
+        "usg"
+    ]
+}
+""",
+}
