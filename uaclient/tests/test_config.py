@@ -1,5 +1,3 @@
-import copy
-import json
 import os
 
 import mock
@@ -14,8 +12,6 @@ from uaclient.config import (
 )
 from uaclient.conftest import FakeNotice
 from uaclient.defaults import DEFAULT_CONFIG_FILE
-from uaclient.entitlements import valid_services
-from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import notices, user_config_file
 from uaclient.files.notices import NoticesManager
 from uaclient.util import depth_first_merge_overlay_dict
@@ -23,42 +19,6 @@ from uaclient.yaml import safe_dump
 
 KNOWN_DATA_PATHS = (("machine-id", "machine-id"),)
 M_PATH = "uaclient.entitlements."
-
-
-@pytest.fixture
-def all_resources_available(FakeConfig):
-    resources = [
-        {"name": name, "available": True}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
-    ]
-    return resources
-
-
-@pytest.fixture
-def all_resources_entitled(FakeConfig):
-    resources = [
-        {"type": name, "entitled": True}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
-    ]
-    return resources
-
-
-@pytest.fixture
-def no_resources_entitled(FakeConfig):
-    resources = [
-        {"type": name, "entitled": False}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
-    ]
-    return resources
-
-
-@pytest.fixture
-def resp_only_fips_resource_available(FakeConfig):
-    resources = [
-        {"name": name, "available": name == "fips"}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
-    ]
-    return resources
 
 
 class TestNotices:
@@ -171,95 +131,6 @@ class TestNotices:
         for label in removes:
             notices.remove(label)
         assert expected == notices.list()
-
-
-class TestEntitlements:
-    def test_entitlements_property_keyed_by_entitlement_name(
-        self, tmpdir, FakeConfig, all_resources_available
-    ):
-        """Return machine_token resourceEntitlements, keyed by name."""
-        cfg = FakeConfig()
-        token = {
-            "availableResources": all_resources_available,
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {"type": "entitlement1", "entitled": True},
-                        {"type": "entitlement2", "entitled": True},
-                    ]
-                }
-            },
-        }
-        cfg.machine_token_file.write(token)
-        expected = {
-            "entitlement1": {
-                "entitlement": {"entitled": True, "type": "entitlement1"}
-            },
-            "entitlement2": {
-                "entitlement": {"entitled": True, "type": "entitlement2"}
-            },
-        }
-        assert expected == cfg.machine_token_file.entitlements
-
-    def test_entitlements_uses_resource_token_from_machine_token(
-        self, FakeConfig, all_resources_available
-    ):
-        """Include entitlement-specific resourceTokens from machine_token"""
-        cfg = FakeConfig()
-        token = {
-            "availableResources": all_resources_available,
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {"type": "entitlement1", "entitled": True},
-                        {"type": "entitlement2", "entitled": True},
-                    ]
-                }
-            },
-            "resourceTokens": [
-                {"type": "entitlement1", "token": "ent1-token"},
-                {"type": "entitlement2", "token": "ent2-token"},
-            ],
-        }
-        cfg.machine_token_file.write(token)
-        expected = {
-            "entitlement1": {
-                "entitlement": {"entitled": True, "type": "entitlement1"},
-                "resourceToken": "ent1-token",
-            },
-            "entitlement2": {
-                "entitlement": {"entitled": True, "type": "entitlement2"},
-                "resourceToken": "ent2-token",
-            },
-        }
-        assert expected == cfg.machine_token_file.entitlements
-
-
-class TestAccounts:
-    def test_accounts_returns_none_when_no_cached_account_value(
-        self, tmpdir, FakeConfig, all_resources_available
-    ):
-        """Config.accounts property returns an empty list when no cache."""
-        cfg = FakeConfig()
-
-        assert cfg.machine_token_file.account is None
-
-    @pytest.mark.usefixtures("all_resources_available")
-    def test_accounts_extracts_account_key_from_machine_token_cache(
-        self, all_resources_available, tmpdir, FakeConfig
-    ):
-        """Use machine_token cached accountInfo when no accounts cache."""
-        cfg = FakeConfig()
-        accountInfo = {"id": "1", "name": "accountname"}
-
-        cfg.machine_token_file.write(
-            {
-                "availableResources": all_resources_available,
-                "machineTokenInfo": {"accountInfo": accountInfo},
-            },
-        )
-
-        assert accountInfo == cfg.machine_token_file.account
 
 
 CFG_BASE_CONTENT = """\
@@ -505,12 +376,12 @@ class TestProcessConfig:
             ),
         ],
     )
+    @mock.patch(
+        "uaclient.api.u.pro.status.enabled_services.v1._enabled_services"
+    )
     @mock.patch("uaclient.http.validate_proxy")
     @mock.patch("uaclient.livepatch.get_config_option_value")
     @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
-    @mock.patch(
-        "uaclient.entitlements.livepatch.LivepatchEntitlement.application_status"  # noqa: E501
-    )
     @mock.patch("uaclient.snap.get_config_option_value")
     @mock.patch("uaclient.snap.configure_snap_proxy")
     @mock.patch("uaclient.snap.is_snapd_installed")
@@ -523,10 +394,10 @@ class TestProcessConfig:
         m_snap_is_snapd_installed,
         m_snap_configure_proxy,
         m_snap_get_config_option,
-        m_livepatch_status,
         m_livepatch_configure_proxy,
         m_livepatch_get_config_option,
         m_validate_proxy,
+        m_enabled_services,
         http_proxy,
         https_proxy,
         snap_is_snapd_installed,
@@ -548,11 +419,13 @@ class TestProcessConfig:
     ):
         m_snap_is_snapd_installed.return_value = snap_is_snapd_installed
         m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]
-        m_livepatch_status.return_value = (
-            (ApplicationStatus.ENABLED, None)
-            if livepatch_enabled
-            else (None, None)
+
+        _m_livepatch = mock.MagicMock()
+        type(_m_livepatch).name = mock.PropertyMock(return_value="livepatch")
+        m_enabled_services.return_value = mock.MagicMock(
+            enabled_services=[_m_livepatch]
         )
+
         m_livepatch_get_config_option.side_effect = [
             livepatch_http_val,
             livepatch_https_val,
@@ -849,114 +722,6 @@ class TestFeatures:
             assert [
                 mock.call(warnings, cfg_features)
             ] == m_log_warning.call_args_list
-
-
-class TestMachineTokenOverlay:
-    machine_token_dict = {
-        "availableResources": [
-            {"available": False, "name": "cc-eal"},
-            {"available": True, "name": "esm-infra"},
-            {"available": False, "name": "fips"},
-        ],
-        "machineTokenInfo": {
-            "contractInfo": {
-                "resourceEntitlements": [
-                    {
-                        "type": "cc-eal",
-                        "entitled": False,
-                        "affordances": {
-                            "architectures": [
-                                "amd64",
-                                "ppc64el",
-                                "ppc64le",
-                                "s390x",
-                                "x86_64",
-                            ],
-                            "series": ["xenial"],
-                        },
-                        "directives": {
-                            "additionalPackages": ["ubuntu-commoncriteria"],
-                            "aptKey": "key",
-                            "aptURL": "https://esm.ubuntu.com/cc",
-                            "suites": ["xenial"],
-                        },
-                    },
-                    {
-                        "type": "livepatch",
-                        "entitled": True,
-                        "affordances": {
-                            "architectures": ["amd64", "x86_64"],
-                            "tier": "stable",
-                        },
-                        "directives": {
-                            "caCerts": "",
-                            "remoteServer": "https://livepatch.canonical.com",
-                        },
-                        "obligations": {"enableByDefault": True},
-                    },
-                ]
-            }
-        },
-    }
-
-    @mock.patch("uaclient.system.load_file")
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    @mock.patch("uaclient.config.os.path.exists", return_value=True)
-    def test_machine_token_update_with_overlay(
-        self, m_path, m_token_read, m_load_file, FakeConfig
-    ):
-        user_cfg = {
-            "features": {"machine_token_overlay": "machine-token-path"}
-        }
-        m_token_read.return_value = self.machine_token_dict
-
-        remote_server_overlay = "overlay"
-        json_str = json.dumps(
-            {
-                "availableResources": [
-                    {"available": False, "name": "esm-infra"},
-                    {"available": True, "name": "test-overlay"},
-                ],
-                "machineTokenInfo": {
-                    "contractInfo": {
-                        "resourceEntitlements": [
-                            {
-                                "type": "livepatch",
-                                "entitled": False,
-                                "affordances": {"architectures": ["test"]},
-                                "directives": {"remoteServer": "overlay"},
-                            }
-                        ]
-                    }
-                },
-            }
-        )
-        m_load_file.return_value = json_str
-
-        expected = copy.deepcopy(self.machine_token_dict)
-        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
-            1
-        ]["directives"]["remoteServer"] = remote_server_overlay
-        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
-            1
-        ]["affordances"]["architectures"] = ["test"]
-        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
-            1
-        ]["entitled"] = False
-        expected["availableResources"][1]["available"] = False
-        expected["availableResources"].append(
-            {"available": True, "name": "test-overlay"}
-        )
-
-        cfg = FakeConfig(cfg_overrides=user_cfg)
-        assert expected == cfg.machine_token
-
-    @mock.patch("uaclient.files.MachineTokenFile.read")
-    def test_machine_token_without_overlay(self, m_token_read, FakeConfig):
-        user_cfg = {}
-        m_token_read.return_value = self.machine_token_dict
-        cfg = FakeConfig(cfg_overrides=user_cfg)
-        assert self.machine_token_dict == cfg.machine_token
 
 
 class TestDepthFirstMergeOverlayDict:

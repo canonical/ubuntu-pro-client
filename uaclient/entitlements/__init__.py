@@ -115,19 +115,15 @@ def valid_services(
 
     if all_names:
         names = []
-        for entitlement in entitlements:
-            names.extend(
-                entitlement_factory(cfg=cfg, name=entitlement.name).valid_names
-            )
+        for entitlement_cls in entitlements:
+            names.extend(entitlement_cls(cfg=cfg).valid_names)
 
         return sorted(names)
 
     return sorted(
         [
-            entitlement_factory(
-                cfg=cfg, name=entitlement.name
-            ).presentation_name
-            for entitlement in entitlements
+            entitlement_cls(cfg=cfg).presentation_name
+            for entitlement_cls in entitlements
         ]
     )
 
@@ -179,7 +175,7 @@ def _sort_entitlements_visit(
     if ent_cls.name in visited:
         return
 
-    ent = entitlement_factory(cfg, name=ent_cls.name)
+    ent = ent_cls(cfg)
 
     if sort_order == SortOrder.REQUIRED_SERVICES:
         cls_list = [e.entitlement for e in ent.required_services]

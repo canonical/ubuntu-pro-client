@@ -61,9 +61,7 @@ class LivepatchEntitlement(UAEntitlement):
         # Use a lambda so we can mock system.is_container in tests
         from uaclient.entitlements.fips import FIPSEntitlement
 
-        fips_ent = FIPSEntitlement(
-            machine_token_file=self.machine_token_file, cfg=self.cfg
-        )
+        fips_ent = FIPSEntitlement(cfg=self.cfg)
 
         is_fips_enabled = bool(
             fips_ent.application_status()[0] == ApplicationStatus.ENABLED

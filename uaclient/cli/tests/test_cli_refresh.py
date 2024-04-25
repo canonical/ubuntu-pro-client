@@ -45,11 +45,12 @@ class TestActionRefresh:
 
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_non_root_users_are_rejected(
-        self, we_are_currently_root, FakeConfig
+        self, we_are_currently_root, FakeConfig, fake_machine_token_file
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         with pytest.raises(exceptions.NonRootUserError):
             action_refresh(mock.MagicMock(), cfg=cfg)
 
@@ -82,10 +83,16 @@ class TestActionRefresh:
     @mock.patch("time.sleep")
     @mock.patch("uaclient.system.subp")
     def test_lock_file_exists(
-        self, m_subp, m_sleep, m_check_lock_info, FakeConfig
+        self,
+        m_subp,
+        m_sleep,
+        m_check_lock_info,
+        FakeConfig,
+        fake_machine_token_file,
     ):
         """Check inability to refresh if operation holds lock file."""
-        cfg = FakeConfig().for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         m_check_lock_info.return_value = (123, "pro disable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_refresh(mock.MagicMock(), cfg=cfg)
@@ -106,13 +113,15 @@ class TestActionRefresh:
         logging_error,
         m_check_log_info,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """On failure in request_updates_contract emit an error."""
         refresh.side_effect = exceptions.ConnectivityError(
             mock.MagicMock(), "url"
         )
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
 
         with pytest.raises(exceptions.UbuntuProError) as excinfo:
             with mock.patch.object(lock, "lock_data_file"):
@@ -133,11 +142,13 @@ class TestActionRefresh:
         _m_check_lock_info,
         capsys,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """On success from request_updates_contract root user can refresh."""
         refresh.return_value = True
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         with mock.patch.object(lock, "lock_data_file"):
             ret = action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
@@ -232,10 +243,12 @@ class TestActionRefresh:
         _m_logging_error,
         _m_check_lock_info,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """On failure in process_config emit an error."""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
 
         with pytest.raises(exceptions.UbuntuProError) as excinfo:
             with mock.patch.object(lock, "lock_data_file"):
@@ -251,10 +264,12 @@ class TestActionRefresh:
         m_check_lock_info,
         capsys,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """On success from process_config root user gets success message."""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         with mock.patch.object(lock, "lock_data_file"):
             ret = action_refresh(mock.MagicMock(target="config"), cfg=cfg)
 
@@ -280,10 +295,12 @@ class TestActionRefresh:
         _m_check_lock_info,
         capsys,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """On success from process_config root user gets success message."""
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         with mock.patch.object(lock, "lock_data_file"):
             ret = action_refresh(mock.MagicMock(target=None), cfg=cfg)
 

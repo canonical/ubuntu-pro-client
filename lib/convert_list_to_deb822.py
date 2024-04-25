@@ -37,9 +37,7 @@ if __name__ == "__main__":
         ):
             continue
 
-        entitlement = entitlements.entitlement_factory(
-            cfg, entitlement_class.name
-        )
+        entitlement = entitlement_class(cfg)
 
         filename = set_filename_extension(entitlement.repo_file, "list")
         if os.path.exists(filename):

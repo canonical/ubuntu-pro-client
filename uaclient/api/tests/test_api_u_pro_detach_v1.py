@@ -45,6 +45,7 @@ class TestDetachV1:
         m_timer_stop,
         _m_lock_enter,
         mock_entitlement,
+        fake_machine_token_file,
     ):
         m_is_attached.return_value = mock.MagicMock(is_attached=True)
         m_reboot_required.return_value = mock.MagicMock(reboot_required="yes")
@@ -142,4 +143,4 @@ class TestDetachV1:
         assert 1 == m_daemon_start.call_count
         assert 1 == m_timer_stop.call_count
         assert 1 == m_delete_state_files.call_count
-        assert 1 == m_machine_token.delete.call_count
+        assert 1 == fake_machine_token_file.delete_calls

@@ -46,7 +46,7 @@ def enabled_services() -> EnabledServicesResult:
 
 
 def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
-    from uaclient.entitlements import ENTITLEMENT_CLASSES, entitlement_factory
+    from uaclient.entitlements import ENTITLEMENT_CLASSES
     from uaclient.entitlements.entitlement_status import UserFacingStatus
 
     if not _is_attached(cfg).is_attached:
@@ -55,7 +55,7 @@ def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
     enabled_services = []  # type: List[EnabledService]
     warnings = []  # type: List[ErrorWarningObject]
     for ent_cls in ENTITLEMENT_CLASSES:
-        ent = entitlement_factory(cfg, ent_cls.name)
+        ent = ent_cls(cfg)
         ent_status, details = ent.user_facing_status()
 
         if ent_status in (UserFacingStatus.ACTIVE, UserFacingStatus.WARNING):

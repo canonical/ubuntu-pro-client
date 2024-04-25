@@ -20,8 +20,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
     _is_attached,
 )
 from uaclient.config import UAConfig
-from uaclient.files import notices
-from uaclient.files.machine_token import get_machine_token_file
+from uaclient.files import machine_token, notices
 
 MOTD_CONTRACT_STATUS_FILE_NAME = "motd-contract-status"
 UPDATE_NOTIFIER_MOTD_SCRIPT = (
@@ -31,9 +30,8 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 def update_contract_expiry(cfg: UAConfig):
-    machine_token_file = get_machine_token_file(cfg)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
     orig_token = machine_token_file.machine_token
-    machine_token = orig_token.get("machineToken", "")
     contract_id = (
         orig_token.get("machineTokenInfo", {})
         .get("contractInfo", {})
@@ -76,7 +74,7 @@ def update_motd_messages(cfg: UAConfig) -> bool:
 
     expiry_status = is_attached_info.contract_status
     remaining_days = is_attached_info.contract_remaining_days
-    machine_token_file = get_machine_token_file(cfg)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
 
     if expiry_status in (
         ContractExpiryStatus.ACTIVE_EXPIRED_SOON.value,
@@ -129,14 +127,18 @@ def update_motd_messages(cfg: UAConfig) -> bool:
         service = "n/a"
         pkg_num = 0
 
-        enabled_services = _enabled_services(cfg).enabled_services
+        enabled_services_names = {
+            s.name for s in _enabled_services(cfg).enabled_services
+        }
         if system.is_current_series_active_esm():
-            if any(ent.name == "esm-infra" for ent in enabled_services):
+            if "esm-infra" in enabled_services_names:
+                service = "esm-infra"
                 pkg_num = api_u_pro_packages_updates_v1(
                     cfg
                 ).summary.num_esm_infra_updates
         elif system.is_current_series_lts():
-            if any(ent.name == "esm-apps" for ent in enabled_services):
+            if "esm-apps" in enabled_services_names:
+                service = "esm-apps"
                 pkg_num = api_u_pro_packages_updates_v1(
                     cfg
                 ).summary.num_esm_apps_updates

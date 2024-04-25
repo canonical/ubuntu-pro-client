@@ -7,7 +7,6 @@ import re
 import shutil
 from typing import List, Optional  # noqa: F401
 
-import uaclient.files.machine_token as machine_token
 from uaclient import (
     api,
     clouds,
@@ -29,6 +28,7 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
+from uaclient.files import machine_token
 from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
@@ -311,11 +311,9 @@ def _get_state_files(cfg: config.UAConfig):
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
-            entitlements.entitlement_factory(
-                cfg, name=entitlement.name
-            ).repo_file
-            for entitlement in entitlements.ENTITLEMENT_CLASSES
-            if issubclass(entitlement, entitlements.repo.RepoEntitlement)
+            entitlement_cls(cfg).repo_file
+            for entitlement_cls in entitlements.ENTITLEMENT_CLASSES
+            if issubclass(entitlement_cls, entitlements.repo.RepoEntitlement)
         ),
     ]
 

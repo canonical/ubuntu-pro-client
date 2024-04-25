@@ -130,7 +130,7 @@ ros-updates      no        {dash}            All Updates for the Robot Operating
 {notices}{features}
 Enable services with: pro enable <service>
 
-                Account: test_account
+                Account: test
            Subscription: test_contract
             Valid until: formatteddate
 Technical support level: n/a
@@ -146,7 +146,7 @@ livepatch        no        {dash}            Canonical Livepatch service
 For a list of all Ubuntu Pro services, run 'pro status --all'
 Enable services with: pro enable <service>
 
-                Account: test_account
+                Account: test
            Subscription: test_contract
             Valid until: formatteddate
 Technical support level: n/a
@@ -414,10 +414,10 @@ class TestActionStatus:
         notice_status,
         use_all,
         capsys,
-        FakeConfig,
+        fake_machine_token_file,
     ):
         """Check that root and non-root will emit attached status"""
-        cfg = FakeConfig.for_attached_machine()
+        fake_machine_token_file.attached = True
         mock_notice = NoticesManager()
         for notice in notices:
             mock_notice.add(notice[0], notice[1])
@@ -427,7 +427,7 @@ class TestActionStatus:
             return_value=features,
         ):
             assert 0 == action_status(
-                mock.MagicMock(all=use_all, simulate_with_token=None), cfg=cfg
+                mock.MagicMock(all=use_all, simulate_with_token=None), cfg=None
             )
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
@@ -704,10 +704,11 @@ class TestActionStatus:
         event_logger_mode,
         capsys,
         FakeConfig,
+        fake_machine_token_file,
         event,
     ):
         """Check that unattached status json output is emitted to console"""
-        cfg = FakeConfig.for_attached_machine()
+        fake_machine_token_file.attached = True
 
         args = mock.MagicMock(
             format=format_type, all=use_all, simulate_with_token=None
@@ -720,7 +721,7 @@ class TestActionStatus:
                 with mock.patch(
                     "uaclient.status._get_blocked_by_services", return_value=[]
                 ):
-                    assert 0 == action_status(args, cfg=cfg)
+                    assert 0 == action_status(args, cfg=FakeConfig())
 
         expected_environment = []
         if environ:
@@ -778,7 +779,7 @@ class TestActionStatus:
             },
             "account": {
                 "id": "acct-1",
-                "name": "test_account",
+                "name": "test",
                 "created_at": account_created_at,
                 "external_account_ids": [{"IDs": ["id1"], "origin": "AWS"}],
             },
@@ -1019,17 +1020,18 @@ class TestActionStatus:
         expected_dash,
         use_all,
         FakeConfig,
+        fake_machine_token_file,
     ):
         # This test can't use capsys because it doesn't emulate sys.stdout
         # encoding accurately in older versions of pytest
         underlying_stdout = io.BytesIO()
         fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
-        cfg = FakeConfig.for_attached_machine()
+        fake_machine_token_file.attached = True
 
         with mock.patch("sys.stdout", fake_stdout):
             action_status(
                 mock.MagicMock(all=use_all, simulate_with_token=None),
-                cfg=cfg,
+                cfg=FakeConfig(),
             )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout

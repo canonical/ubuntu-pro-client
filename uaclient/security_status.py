@@ -19,7 +19,7 @@ from uaclient.apt import (
     get_esm_apt_pkg_cache,
 )
 from uaclient.config import UAConfig
-from uaclient.entitlements import entitlement_factory
+from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
     ApplicationStatus,
@@ -209,8 +209,8 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
     }  # type: Dict[str, Any]
 
     if is_attached:
-        infra_entitlement = entitlement_factory(cfg, name="esm-infra")
-        apps_entitlement = entitlement_factory(cfg, name="esm-apps")
+        infra_entitlement = ESMInfraEntitlement(cfg)
+        apps_entitlement = ESMAppsEntitlement(cfg)
 
         if apps_entitlement.contract_status() == ContractStatus.ENTITLED:
             ua_info["entitled_services"].append("esm-apps")
@@ -473,8 +473,8 @@ def _print_apt_update_call():
 
 
 def security_status(cfg: UAConfig):
-    esm_infra_ent = entitlement_factory(cfg, name="esm-infra")
-    esm_apps_ent = entitlement_factory(cfg, name="esm-apps")
+    esm_infra_ent = ESMInfraEntitlement(cfg)
+    esm_apps_ent = ESMAppsEntitlement(cfg)
 
     esm_infra_status = esm_infra_ent.application_status()[0]
     esm_infra_applicability = esm_infra_ent.applicability_status()[0]
@@ -607,8 +607,8 @@ def list_esm_infra_packages(cfg):
     series = get_release_info().series
     is_lts = is_current_series_lts()
 
-    esm_infra_ent = entitlement_factory(cfg, name="esm-infra")
-    esm_apps_ent = entitlement_factory(cfg, name="esm-apps")
+    esm_infra_ent = ESMInfraEntitlement(cfg)
+    esm_apps_ent = ESMAppsEntitlement(cfg)
 
     esm_infra_status = esm_infra_ent.application_status()[0]
     esm_infra_applicability = esm_apps_ent.applicability_status()[0]
@@ -697,7 +697,7 @@ def list_esm_apps_packages(cfg):
 
     is_lts = is_current_series_lts()
 
-    esm_apps_ent = entitlement_factory(cfg, name="esm-apps")
+    esm_apps_ent = ESMAppsEntitlement(cfg)
     esm_apps_status = esm_apps_ent.application_status()[0]
     esm_apps_applicability = esm_apps_ent.applicability_status()[0]
 

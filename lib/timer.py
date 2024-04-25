@@ -9,7 +9,7 @@ from typing import Callable, Optional
 from uaclient import http, log
 from uaclient.config import UAConfig
 from uaclient.exceptions import InvalidFileFormatError
-from uaclient.files.machine_token import get_machine_token_file
+from uaclient.files import machine_token
 from uaclient.files.state_files import (
     AllTimerJobsState,
     TimerJobState,
@@ -95,7 +95,7 @@ class MeteringTimedJob(TimedJob):
         again. Since the user can also configure the timer interval for this
         job, we will select the greater value between those two choices.
         """
-        machine_token_file = get_machine_token_file(cfg)
+        machine_token_file = machine_token.get_machine_token_file(cfg)
         run_interval_seconds = super().run_interval_seconds(cfg)
 
         if run_interval_seconds == 0:
