@@ -241,7 +241,16 @@ def enable_entitlement_by_name(
         access_only=access_only,
         extra_args=extra_args,
     )
-    return entitlement.enable(api.ProgressWrapper())
+
+    if not silent:
+        event.info(messages.ENABLING_TMPL.format(title=entitlement.title))
+
+    ent_ret, reason = entitlement.enable(api.ProgressWrapper())
+
+    if ent_ret and not silent:
+        event.info(messages.ENABLED_TMPL.format(title=entitlement.title))
+
+    return ent_ret, reason
 
 
 def status(

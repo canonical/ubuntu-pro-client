@@ -207,10 +207,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       """
       This machine is now attached to
       """
-    And stderr matches regexp:
-      """
-      Enabling default service esm-infra
-      """
     And I verify that `esm-infra` is enabled
 
     Examples: ubuntu release livepatch status

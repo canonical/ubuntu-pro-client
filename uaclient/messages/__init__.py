@@ -316,6 +316,7 @@ DETACH_SUCCESS = t.gettext("This machine is now detached.")
 REFRESH_CONTRACT_ENABLE = t.gettext(
     "One moment, checking your subscription first"
 )
+ENABLING_TMPL = t.gettext("Enabling {title}")
 ENABLED_TMPL = t.gettext("{title} enabled")
 ACCESS_ENABLED_TMPL = t.gettext("{title} access enabled")
 ENABLE_FAILED = t.gettext("Could not enable {title}.")

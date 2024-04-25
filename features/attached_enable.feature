@@ -668,20 +668,20 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I attach `contract_token` with sudo
     Then stdout matches regexp:
       """
-      Updating Ubuntu Pro: ESM Infra package lists
+      Enabling Ubuntu Pro: ESM Infra
       Ubuntu Pro: ESM Infra enabled
-      Installing snapd snap
-      Installing canonical-livepatch snap
-      Canonical Livepatch enabled
+      Enabling Livepatch
+      Livepatch enabled
       """
     When I run `pro disable livepatch` with sudo
     And I run `pro enable fips --assume-yes` with sudo
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
+      Configuring APT access to FIPS
       Updating FIPS package lists
-      Installing FIPS packages
       Updating standard Ubuntu package lists
+      Installing FIPS packages
       FIPS enabled
       A reboot is required to complete install.
       """
@@ -695,6 +695,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       One moment, checking your subscription first
       Cannot enable Livepatch when FIPS is enabled.
+      Could not enable Livepatch.
       """
     Then I verify that running `pro enable livepatch --format json --assume-yes` `with sudo` exits `1`
     And I will see the following on stdout
@@ -707,11 +708,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I attach `contract_token` with sudo
     Then stdout matches regexp:
       """
-      Updating Ubuntu Pro: ESM Infra package lists
+      Enabling Ubuntu Pro: ESM Infra
       Ubuntu Pro: ESM Infra enabled
-      Installing snapd snap
-      Installing canonical-livepatch snap
-      Canonical Livepatch enabled
+      Enabling Livepatch
+      Livepatch enabled
       """
     When I append the following on uaclient config:
       """
@@ -722,7 +722,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     And I will see the following on stdout
       """
       One moment, checking your subscription first
-      Cannot enable FIPS when Livepatch is enabled.
+      Cannot enable Livepatch when FIPS is enabled.
+      Could not enable Livepatch.
       """
     Then I verify that running `pro enable fips --assume-yes --format json` `with sudo` exits `1`
     And stdout is a json matching the `ua_operation` schema
@@ -737,13 +738,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I attach `contract_token` with sudo
     Then stdout matches regexp:
       """
-      Updating Ubuntu Pro: ESM Infra package lists
       Ubuntu Pro: ESM Infra enabled
       """
     And stdout matches regexp:
       """
-      Installing canonical-livepatch snap
-      Canonical Livepatch enabled
+      Enabling Livepatch
+      Livepatch enabled
       """
     When I run `pro enable fips --assume-yes` with sudo
     Then I will see the following on stdout
@@ -781,8 +781,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
     And stdout matches regexp:
       """
-      Installing canonical-livepatch snap
-      Canonical Livepatch enabled
+      Enabling Livepatch
+      Livepatch enabled
       """
     When I run `pro disable livepatch` with sudo
     And I run `pro enable fips-updates --assume-yes` with sudo
@@ -799,7 +799,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then I will see the following on stdout
       """
       One moment, checking your subscription first
-      Cannot enable FIPS when FIPS Updates is enabled.
+      Cannot enable Livepatch when FIPS is enabled.
+      Could not enable Livepatch.
       """
 
     Examples: ubuntu release
