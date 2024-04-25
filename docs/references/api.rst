@@ -164,6 +164,8 @@ The currently available endpoints are:
 - `u.pro.security.status.livepatch_cves.v1`_
 - `u.pro.security.status.reboot_required.v1`_
 - `u.pro.services.dependencies.v1`_
+- `u.pro.services.disable.v1`_
+- `u.pro.services.enable.v1`_
 - `u.pro.status.enabled_services.v1`_
 - `u.pro.status.is_attached.v1`_
 - `u.apt_news.current_news.v1`_
@@ -2460,6 +2462,171 @@ dependencies between services.
               ]
             }
 
+u.pro.services.disable.v1
+=========================
+
+Disable a Pro service. This will automatically disable any services that
+depend on the target service.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+- Args:
+
+  .. list-table::
+    :header-rows: 1
+
+    * - Field Name
+      - Type
+      - Description
+    * - ``service``
+      - ``str``
+      - Pro service to disable
+    * - ``purge``
+      - ``Optional[bool]``
+      - Also remove all packages that were installed from this service. Only supported by some services. (default: false)
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+            from uaclient.api.u.pro.services.disable.v1 import disable, DisableOptions
+            result = disable(DisableOptions(service="usg"))
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.services.disable.v1.DisableResult``
+
+          .. list-table::
+            :header-rows: 1
+
+            * - Field Name
+              - Type
+              - Description
+            * - ``disabled``
+              - ``List[str]``
+              - List of services disabled
+
+      - Raised exceptions:
+
+        - ``NonRootUserError``: When called as non-root user
+        - ``UnattachedError``: When called on a machine that is not attached to a Pro subscription
+        - ``EntitlementNotFoundError``: When the service argument is not a valid Pro service name
+        - ``LockHeldError``: When another Ubuntu Pro related operation is in progress
+        - ``EntitlementNotDisabledError``: When the service fails to disable
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.services.disable.v1 --args service=usg
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+            {
+                "disabled": [
+                    "usg"
+                ]
+            }
+
+u.pro.services.enable.v1
+========================
+
+Enable a Pro service. This will automatically disable incompatible services
+and enable required services that that target service depends on.
+
+- Introduced in Ubuntu Pro Client Version: ``32~``
+- Args:
+
+  .. list-table::
+    :header-rows: 1
+
+    * - Field Name
+      - Type
+      - Description
+    * - ``service``
+      - ``str``
+      - Pro service to be enabled
+    * - ``variant``
+      - ``Optional[str]``
+      - Optional variant of the Pro service to be enabled.
+    * - ``access_only``
+      - ``Optional[bool]``
+      - If true and the target service supports it, only enable access to the service (default: false)
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      - Calling from Python code:
+
+        .. code-block:: python
+
+            from uaclient.api.u.pro.services.enable.v1 import enable, EnableOptions
+            result = enable(EnableOptions(service="usg"))
+
+      - Expected return object:
+
+        - ``uaclient.api.u.pro.services.enable.v1.EnableResult``
+
+          .. list-table::
+            :header-rows: 1
+
+            * - Field Name
+              - Type
+              - Description
+            * - ``enabled``
+              - ``List[str]``
+              - List of services that were enabled.
+            * - ``disabled``
+              - ``List[str]``
+              - List of services that were disabled
+            * - ``reboot_required``
+              - ``bool``
+              - True if one of the services that was enabled requires a reboot
+            * - ``messages``
+              - ``List[str]``
+              - List of information message strings about the service that was just enabled. Possibly translated.
+
+      - Raised exceptions:
+
+        - ``NonRootUserError``: When called as non-root user
+        - ``UnattachedError``: When called on a machine that is not attached to a Pro subscription
+        - ``NotSupported``: When called for a service that doesn't support being enabled via API (currently only landscape)
+        - ``EntitlementNotFoundError``: When the service argument is not a valid Pro service name or if the variant is not a valid variant of the target service
+        - ``LockHeldError``: When another Ubuntu Pro related operation is in progress
+        - ``EntitlementNotEnabledError``: When the service fails to enable
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      - Calling from the CLI:
+
+        .. code-block:: bash
+
+           pro api u.pro.services.enable.v1 --args service=usg
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+            {
+                "disabled": [],
+                "enabled": [
+                    "usg"
+                ],
+                "messages": [],
+                "reboot_required": false
+            }
 
 u.pro.status.enabled_services.v1
 ================================
