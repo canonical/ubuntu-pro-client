@@ -83,7 +83,7 @@ def machine_access(
 
 
 @pytest.fixture
-def entitlement_factory(tmpdir, FakeConfig, get_fake_machine_token_file):
+def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
     """
     A pytest fixture that returns a function that instantiates an entitlement
 
@@ -123,23 +123,20 @@ def entitlement_factory(tmpdir, FakeConfig, get_fake_machine_token_file):
             if cfg_features is not None:
                 cfg_arg["features"] = cfg_features
             cfg = FakeConfig(cfg_overrides=cfg_arg)
-            machine_token_file = get_fake_machine_token_file
-            machine_token_file.attached = True
-            machine_token_file.token = (
-                machine_token(
-                    cls.name,
-                    affordances=affordances,
-                    directives=directives,
-                    overrides=overrides,
-                    obligations=obligations,
-                    entitled=entitled,
-                    suites=suites,
-                    additional_packages=additional_packages,
-                ),
+            fake_machine_token_file.attached = True
+            fake_machine_token_file.token = machine_token(
+                cls.name,
+                affordances=affordances,
+                directives=directives,
+                overrides=overrides,
+                obligations=obligations,
+                entitled=entitled,
+                suites=suites,
+                additional_packages=additional_packages,
             )
 
         args = {
-            "allow_beta": allow_beta,
+            "allow_beta": allow_beta or cfg.features.get("allow_beta"),
             "called_name": called_name,
             "access_only": access_only,
             "purge": purge,
@@ -150,7 +147,7 @@ def entitlement_factory(tmpdir, FakeConfig, get_fake_machine_token_file):
         if extra_args:
             args = {**args, **extra_args}
 
-        return cls(machine_token_file, cfg, **args)
+        return cls(cfg, **args)
 
     return factory_func
 

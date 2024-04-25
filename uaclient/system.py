@@ -274,14 +274,16 @@ def get_machine_id(cfg) -> str:
     We first check for the machine-id in machine-token.json before
     looking at the system file.
     """
+    from uaclient.files import machine_token
     from uaclient.files.state_files import machine_id_file
 
-    if cfg.machine_token:
-        cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
-            "machineId"
-        )
-        if cfg_machine_id:
-            return cfg_machine_id
+    machine_token_file = machine_token.get_machine_token_file()
+    if machine_token_file.machine_token:
+        machine_id = machine_token_file.machine_token.get(
+            "machineTokenInfo", {}
+        ).get("machineId")
+        if machine_id:
+            return machine_id
 
     fallback_machine_id = machine_id_file.read()
 

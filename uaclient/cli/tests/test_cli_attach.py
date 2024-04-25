@@ -142,29 +142,26 @@ def test_non_root_users_are_rejected(
 
 
 class TestActionAttach:
-    def test_already_attached(self, capsys, FakeConfig, event):
+    def test_already_attached(self, capsys, fake_machine_token_file, event):
         """Check that an already-attached machine emits message and exits 0"""
-        account_name = "test_account"
-        cfg = FakeConfig.for_attached_machine(
-            account_name=account_name,
-        )
+        fake_machine_token_file.attached = True
 
         with pytest.raises(AlreadyAttachedError):
-            action_attach(mock.MagicMock(), cfg=cfg)
+            action_attach(mock.MagicMock(), cfg=None)
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_attach)(mock.MagicMock(), cfg)
+                main_error_handler(action_attach)(mock.MagicMock(), None)
 
-        msg = messages.E_ALREADY_ATTACHED.format(account_name=account_name)
+        msg = messages.E_ALREADY_ATTACHED.format(account_name="test")
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "additional_info": {"account_name": "test_account"},
+                    "additional_info": {"account_name": "test"},
                     "message": msg.msg,
                     "message_code": msg.name,
                     "service": None,
@@ -236,9 +233,15 @@ class TestActionAttach:
     @mock.patch("uaclient.actions.status", return_value=("", 0))
     @mock.patch(M_PATH + "daemon")
     def test_post_cli_attach(
-        self, m_daemon, m_status, m_format_tabular, capsys, FakeConfig
+        self,
+        m_daemon,
+        m_status,
+        m_format_tabular,
+        capsys,
+        fake_machine_token_file,
     ):
-        cfg = FakeConfig.for_attached_machine()
+        cfg = mock.MagicMock()
+        fake_machine_token_file.attached = True
         _post_cli_attach(cfg)
 
         assert [mock.call()] == m_daemon.stop.call_args_list
@@ -257,6 +260,7 @@ class TestActionAttach:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
+    @mock.patch("uaclient.files.state_files.machine_id_file.read")
     @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.system.should_reboot", return_value=False)
@@ -273,10 +277,10 @@ class TestActionAttach:
         _m_should_reboot,
         _m_attachment_data_file_write,
         _m_machine_id_file_write,
+        _m_machine_id_file_read,
         m_update_activity_token,
         _m_check_ent_apt_directives,
         _m_check_lock_info,
-        FakeConfig,
         event,
     ):
         """A mock-heavy test for the happy path with the contract token arg"""
@@ -284,10 +288,9 @@ class TestActionAttach:
         # post-conditions
         token = "contract-token"
         args = mock.MagicMock(token=token, attach_config=None)
-        cfg = FakeConfig()
+        cfg = mock.MagicMock()
 
         def fake_contract_attach(contract_token, attachment_dt):
-            cfg.machine_token_file.write(BASIC_MACHINE_TOKEN)
             return BASIC_MACHINE_TOKEN
 
         contract_machine_attach.side_effect = fake_contract_attach

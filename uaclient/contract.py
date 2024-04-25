@@ -4,6 +4,7 @@ import socket
 from collections import namedtuple
 from typing import Any, Dict, List, Optional, Tuple
 
+import uaclient.files.machine_token as mtf
 from uaclient import (
     clouds,
     event_logger,
@@ -19,7 +20,6 @@ from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
-from uaclient.files.machine_token import get_machine_token_file
 from uaclient.files.state_files import attachment_data_file, machine_id_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
@@ -71,7 +71,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         cfg: Optional[UAConfig] = None,
     ) -> None:
         super().__init__(cfg=cfg)
-        self.machine_token_file = get_machine_token_file()
+        self.machine_token_file = mtf.get_machine_token_file()
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def add_contract_machine(
@@ -676,7 +676,7 @@ def refresh(cfg: UAConfig):
         contract deltas
     :raise ConnectivityError: On failure during a connection
     """
-    machine_token_file = get_machine_token_file(cfg)
+    machine_token_file = mtf.get_machine_token_file(cfg)
     orig_entitlements = machine_token_file.entitlements()
     orig_token = machine_token_file.machine_token
     machine_token = orig_token["machineToken"]

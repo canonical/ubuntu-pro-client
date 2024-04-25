@@ -143,18 +143,22 @@ class TestEntitlementNames:
         )
         assert expected == entitlement.valid_names
 
-    def test_presentation_name(self, entitlement_factory):
+    @pytest.mark.parametrize(
+        "affordances,expected_value",
+        (
+            ({}, "testconcreteentitlement"),
+            ({"presentedAs": "something_else"}, "something_else"),
+        ),
+    )
+    def test_presentation_name(
+        self, affordances, expected_value, entitlement_factory
+    ):
         entitlement = entitlement_factory(
             ConcreteTestEntitlement,
             entitled=True,
+            affordances=affordances,
         )
-        assert "testconcreteentitlement" == entitlement.presentation_name
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
-            entitled=True,
-            affordances={"presentedAs": "something_else"},
-        )
-        assert "something_else" == entitlement.presentation_name
+        assert expected_value == entitlement.presentation_name
 
 
 class TestEntitlementCanEnable:

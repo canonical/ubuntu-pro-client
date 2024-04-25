@@ -25,6 +25,7 @@ class TestValidServices:
         m_cls_1 = mock.MagicMock()
         m_inst_1 = mock.MagicMock()
         m_cls_1.is_beta = False
+        type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
         m_inst_1.presentation_name = "ent1"
         m_inst_1.valid_names = ["ent1", "othername"]
         m_cls_1.return_value = m_inst_1
@@ -32,6 +33,7 @@ class TestValidServices:
         m_cls_2 = mock.MagicMock()
         m_inst_2 = mock.MagicMock()
         m_cls_2.is_beta = is_beta
+        type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
         m_inst_2.presentation_name = "ent2"
         m_inst_2.valid_names = ["ent2"]
         m_cls_2.return_value = m_inst_2
@@ -97,16 +99,19 @@ class TestSortEntitlements:
     def test_disable_order(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
+        m_obj_1.valid_names = ["ent1"]
         type(m_obj_1).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
 
         m_cls_2 = mock.MagicMock()
         m_obj_2 = m_cls_2.return_value
+        m_obj_2.valid_names = ["ent2"]
         type(m_obj_2).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
+        m_obj_3.valid_names = ["ent3"]
         type(m_obj_3).dependent_services = mock.PropertyMock(
             return_value=(m_cls_1, m_cls_2)
         )
@@ -114,16 +119,19 @@ class TestSortEntitlements:
 
         m_cls_5 = mock.MagicMock()
         m_obj_5 = m_cls_5.return_value
+        m_obj_5.valid_names = ["ent5"]
         type(m_obj_5).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
         m_obj_6 = m_cls_6.return_value
+        m_obj_6.valid_names = ["ent6"]
         type(m_obj_6).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
 
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
+        m_obj_4.valid_names = ["ent4"]
         type(m_obj_4).dependent_services = mock.PropertyMock(
             return_value=(m_cls_5, m_cls_6)
         )
@@ -153,11 +161,13 @@ class TestSortEntitlements:
     def test_enable_order(self, FakeConfig):
         m_cls_2 = mock.MagicMock()
         m_obj_2 = m_cls_2.return_value
+        m_obj_2.valid_names = ["ent2"]
         type(m_obj_2).required_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
+        m_obj_1.valid_names = ["ent1"]
         type(m_obj_1).required_services = mock.PropertyMock(
             return_value=(mock.MagicMock(entitlement=m_cls_2),)
         )
@@ -165,6 +175,7 @@ class TestSortEntitlements:
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
+        m_obj_3.valid_names = ["ent3"]
         type(m_obj_3).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_1),
@@ -175,16 +186,19 @@ class TestSortEntitlements:
 
         m_cls_5 = mock.MagicMock()
         m_obj_5 = m_cls_5.return_value
+        m_obj_5.valid_names = ["ent5"]
         type(m_obj_5).required_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
         m_obj_6 = m_cls_6.return_value
+        m_obj_6.valid_names = ["ent6"]
         type(m_obj_6).required_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
 
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
+        m_obj_4.valid_names = ["ent4"]
         type(m_obj_4).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_5),
@@ -217,11 +231,13 @@ class TestSortEntitlements:
     def test_order_entitlements_for_enabling(self, FakeConfig):
         m_cls_2 = mock.MagicMock()
         m_obj_2 = m_cls_2.return_value
+        m_obj_2.valid_names = ["ent2"]
         type(m_obj_2).required_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
+        m_obj_1.valid_names = ["ent1"]
         type(m_obj_1).required_services = mock.PropertyMock(
             return_value=(mock.MagicMock(entitlement=m_cls_2),)
         )
@@ -229,6 +245,7 @@ class TestSortEntitlements:
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
+        m_obj_3.valid_names = ["ent3"]
         type(m_obj_3).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_1),
@@ -239,16 +256,19 @@ class TestSortEntitlements:
 
         m_cls_5 = mock.MagicMock()
         m_obj_5 = m_cls_5.return_value
+        m_obj_5.valid_names = ["ent5"]
         type(m_obj_5).required_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
         m_obj_6 = m_cls_6.return_value
+        m_obj_6.valid_names = ["ent6"]
         type(m_obj_6).required_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
 
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
+        m_obj_4.valid_names = ["ent4"]
         type(m_obj_4).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_5),

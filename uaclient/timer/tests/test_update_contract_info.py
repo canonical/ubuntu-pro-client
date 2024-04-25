@@ -28,14 +28,11 @@ class TestUpdateContractInfo:
         contract_changed,
         is_attached,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_contract_changed.return_value = contract_changed
-        if is_attached:
-            cfg = FakeConfig().for_attached_machine()
-        else:
-            cfg = FakeConfig()
-
-        update_contract_info(cfg=cfg)
+        fake_machine_token_file.attached = is_attached
+        update_contract_info(cfg=FakeConfig())
 
         if is_attached:
             if contract_changed:
@@ -73,15 +70,16 @@ class TestUpdateContractInfo:
         contract_changed,
         caplog_text,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_contract_changed.side_effect = (contract_changed,)
         m_notices.add.side_effect = Exception("Error checking contract info")
         m_notices.remove.side_effect = Exception(
             "Error checking contract info"
         )
-        cfg = FakeConfig().for_attached_machine()
+        fake_machine_token_file.attached = True
 
-        assert False is update_contract_info(cfg=cfg)
+        assert False is update_contract_info(cfg=FakeConfig())
         assert (
             "Failed to check for change in machine contract."
             " Reason: Error checking contract info\n"

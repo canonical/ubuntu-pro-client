@@ -64,8 +64,7 @@ from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanEnableFailure,
 )
-from uaclient.files import notices, state_files
-from uaclient.files.machine_token import get_machine_token_file
+from uaclient.files import machine_token, notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
@@ -843,7 +842,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
             ent, cfg, json_output=json_output, update_status=False
         )
 
-    machine_token_file = get_machine_token_file(cfg)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
     machine_token_file.delete()
     state_files.delete_state_files()
     update_motd_messages(cfg)
@@ -852,7 +851,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
 
 
 def _post_cli_attach(cfg: config.UAConfig) -> None:
-    machine_token_file = get_machine_token_file(cfg)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
     contract_name = machine_token_file.contract_name
 
     if contract_name:

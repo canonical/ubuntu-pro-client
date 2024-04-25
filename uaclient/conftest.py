@@ -193,6 +193,7 @@ class FakeMachineToken(MachineTokenFile):
         self._contract_expiry_datetime = None
         self._entitlements = None
         self.write_calls = 0
+        self.delete_calls = 0
 
     @property
     def machine_token(self):
@@ -204,11 +205,11 @@ class FakeMachineToken(MachineTokenFile):
         return self.attached
 
     def read(self):
-        if not self.attached:
-            return None
-
         if self.token:
             return self.token
+
+        if not self.attached:
+            return None
 
         return {
             "availableResources": [],
@@ -266,10 +267,11 @@ class FakeMachineToken(MachineTokenFile):
         }
 
     def write(self, private_content):
+        self.token = private_content
         self.write_calls += 1
 
     def delete(self):
-        return None
+        self.delete_calls += 1
 
 
 @pytest.fixture

@@ -1095,6 +1095,7 @@ class TestSetupAptConfig:
         enable_by_default,
         entitlement_factory,
         caplog_text,
+        fake_machine_token_file,
     ):
         """request_machine_access routes when contract lacks resourceToken."""
         entitlement = entitlement_factory(
@@ -1102,10 +1103,9 @@ class TestSetupAptConfig:
             affordances={"series": ["xenial"]},
             obligations={"enableByDefault": enable_by_default},
         )
-        machine_token = entitlement.cfg.machine_token_file.machine_token
+        machine_token = fake_machine_token_file.machine_token
         # Drop resourceTokens values from base machine-token.
         machine_token["resourceTokens"] = []
-        entitlement.cfg.machine_token_file.write(machine_token)
         entitlement.setup_apt_config(mock.MagicMock())
         expected_msg = (
             "No resourceToken present in contract for service Repo Test"

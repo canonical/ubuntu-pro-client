@@ -81,6 +81,7 @@ class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
+    @mock.patch("uaclient.cli.disable._enabled_services")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.cli.contract.UAContractClient.update_activity_token",
@@ -95,6 +96,7 @@ class TestDisable:
         m_entitlement_factory,
         m_update_activity_token,
         _m_check_lock_info,
+        m_enabled_services,
         disable_return,
         return_code,
         assume_yes,
@@ -103,6 +105,7 @@ class TestDisable:
         capsys,
         event,
         FakeConfig,
+        fake_machine_token_file,
     ):
         entitlements_obj = []
         ent_dict = {}
@@ -129,12 +132,17 @@ class TestDisable:
             )
             ent_dict[entitlement_name] = m_entitlement
 
+        m_enabled_services.return_value = mock.MagicMock(
+            enabled_services=ent_dict.values()
+        )
+
         def factory_side_effect(cfg, name, **kwargs):
-            return ent_dict.get(name)
+            return ent_dict.get(name, mock.MagicMock())
 
         m_entitlement_factory.side_effect = factory_side_effect
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         args_mock = mock.Mock()
         args_mock.service = service
         args_mock.assume_yes = assume_yes
@@ -153,7 +161,7 @@ class TestDisable:
         assert len(entitlements_obj) == m_status.call_count
         assert 1 == m_update_activity_token.call_count
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
         args_mock.assume_yes = True
         args_mock.format = "json"
         with mock.patch.object(
@@ -190,6 +198,7 @@ class TestDisable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.cli.disable._enabled_services")
     @mock.patch("uaclient.contract.UAContractClient.update_activity_token")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.entitlements.entitlement_factory")
@@ -202,10 +211,12 @@ class TestDisable:
         m_entitlement_factory,
         _m_check_lock_info,
         _m_update_activity_token,
+        m_enabled_services,
         assume_yes,
         tmpdir,
         event,
         FakeConfig,
+        fake_machine_token_file,
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
         num_calls = 2
@@ -246,12 +257,16 @@ class TestDisable:
                 return m_ent2_obj
             if name == "ent3":
                 return m_ent3_obj
-            return None
+            return mock.MagicMock()
 
         m_entitlement_factory.side_effect = factory_side_effect
         m_valid_services.return_value = ["ent2", "ent3"]
+        m_enabled_services.return_value = mock.MagicMock(
+            enabled_service=[m_ent1_obj, m_ent2_obj, m_ent3_obj]
+        )
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
@@ -278,7 +293,6 @@ class TestDisable:
         assert 0 == m_ent1_obj.call_count
         assert num_calls == m_status.call_count
 
-        cfg = FakeConfig.for_attached_machine()
         args_mock.assume_yes = True
         args_mock.format = "json"
         with mock.patch.object(lock, "lock_data_file"):
@@ -336,13 +350,15 @@ class TestDisable:
         root,
         expected_error_template,
         FakeConfig,
+        fake_machine_token_file,
         event,
         all_service_msg,
     ):
         """Check invalid service name results in custom error message."""
         m_we_are_currently_root.return_value = root
+        fake_machine_token_file.attached = True
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
         args = mock.MagicMock()
         args.purge = False
         args.service = ["esm-infra"]
@@ -397,12 +413,14 @@ class TestDisable:
         _m_update_activity_token,
         service,
         FakeConfig,
+        fake_machine_token_file,
         event,
         all_service_msg,
     ):
         expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         args = mock.MagicMock()
         args.purge = False
         expected_error = expected_error_tmpl.format(
@@ -528,10 +546,12 @@ class TestDisable:
         m_sleep,
         m_check_lock_info,
         FakeConfig,
+        fake_machine_token_file,
         event,
     ):
         """Check inability to disable if operation in progress holds lock."""
-        cfg = FakeConfig().for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         args = mock.MagicMock()
         expected_error = messages.E_LOCK_HELD_ERROR.format(
             lock_request="pro disable", lock_holder="pro enable", pid="123"

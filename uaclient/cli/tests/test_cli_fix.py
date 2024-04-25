@@ -1163,11 +1163,11 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_output,
         expected_fix_status,
         expected_unfixed_pkgs,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
         def fake_attach(cfg, token, allow_enable):
-            cfg.for_attached_machine()
+            fake_machine_token_file.attached = True
             return 0
 
         m_attach_with_token.side_effect = fake_attach
@@ -1179,7 +1179,7 @@ A fix is available in Ubuntu standard updates.\n"""
             assert (
                 expected_fix_status,
                 expected_unfixed_pkgs,
-            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=FakeConfig())
+            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1288,11 +1288,11 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_fix_status,
         expected_unfixed_pkgs,
         service_status,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
         def fake_attach(cfg, token, allow_enable):
-            cfg.for_attached_machine()
+            fake_machine_token_file.attached = True
             return 0
 
         m_attach_with_token.side_effect = fake_attach
@@ -1321,9 +1321,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 assert (
                     expected_fix_status,
                     expected_unfixed_pkgs,
-                ) == execute_fix_plan(
-                    fix_plan, dry_run=False, cfg=FakeConfig()
-                )
+                ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1466,10 +1464,10 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_output,
         expected_fix_status,
         expected_unfixed_pkgs,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
-        cfg = FakeConfig().for_attached_machine
+        fake_machine_token_file.attached = True
         m_enable_ent.return_value = (True, None)
         m_prompt.return_value = prompt_value
 
@@ -1498,7 +1496,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 assert (
                     expected_fix_status,
                     expected_unfixed_pkgs,
-                ) == execute_fix_plan(fix_plan, dry_run=False, cfg=cfg)
+                ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1657,10 +1655,10 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_output,
         expected_fix_status,
         expected_unfixed_pkgs,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
-        cfg = FakeConfig().for_attached_machine()
+        fake_machine_token_file.attached = True
         m_handle_required_service.return_value = True
         m_check_subscription_expired.return_value = True
         m_prompt.return_value = prompt_value
@@ -1673,7 +1671,7 @@ A fix is available in Ubuntu standard updates.\n"""
             assert (
                 expected_fix_status,
                 expected_unfixed_pkgs,
-            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=cfg)
+            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out

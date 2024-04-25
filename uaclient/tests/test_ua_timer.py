@@ -207,12 +207,16 @@ class TestMeteringTimedJob:
         activity_ping_interval_value,
         config_value,
         expected_value,
+        fake_machine_token_file,
     ):
         m_run_interval_seconds.return_value = config_value
         m_cfg = mock.MagicMock()
-        type(m_cfg.machine_token_file).activity_ping_interval = (
-            mock.PropertyMock(return_value=activity_ping_interval_value)
-        )
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = {
+            "activityInfo": {
+                "activityPingInterval": activity_ping_interval_value
+            }
+        }
 
         metering_job = MeteringTimedJob(
             job_func=mock.MagicMock(),

@@ -6,7 +6,6 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-import uaclient.files.machine_token as machine_token
 from uaclient import (
     event_logger,
     exceptions,
@@ -27,7 +26,12 @@ from uaclient.entitlements.entitlement_status import (
     UserFacingConfigStatus,
     UserFacingStatus,
 )
-from uaclient.files import notices, state_files, user_config_file
+from uaclient.files import (
+    machine_token,
+    notices,
+    state_files,
+    user_config_file,
+)
 from uaclient.files.notices import Notice
 from uaclient.messages import TxtColor
 

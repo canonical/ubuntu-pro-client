@@ -279,9 +279,7 @@ class TestFullAutoAttachV1:
                 [],
                 pytest.raises(exceptions.AlreadyAttachedError),
                 False,
-                messages.E_ALREADY_ATTACHED.format(
-                    account_name="test_account"
-                ).msg,
+                messages.E_ALREADY_ATTACHED.format(account_name="test").msg,
                 None,
             ),
             # disable_auto_attach: true
@@ -401,11 +399,10 @@ class TestFullAutoAttachV1:
         expected_ret,
         mode,
         FakeConfig,
+        fake_machine_token_file,
     ):
-        if is_attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
+        fake_machine_token_file.attached = is_attached
+        cfg = FakeConfig()
         m_is_config_value_true.return_value = is_disabled
         m_enable_services_by_name.side_effect = (
             enable_services_by_name_side_effect

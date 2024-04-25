@@ -5,7 +5,6 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-import uaclient.files.machine_token as machine_token
 from uaclient import (
     api,
     apt,
@@ -30,6 +29,7 @@ from uaclient.entitlements.entitlement_status import (
     ContractStatus,
     UserFacingStatus,
 )
+from uaclient.files import machine_token
 from uaclient.files.state_files import status_cache_file
 from uaclient.types import MessagingOperationsDict, StaticAffordance
 

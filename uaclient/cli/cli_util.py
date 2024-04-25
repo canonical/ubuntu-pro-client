@@ -3,6 +3,7 @@ from typing import Optional
 
 from uaclient import api, entitlements, exceptions, lock, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.files import machine_token
 
 
 class CLIEnableDisableProgress(api.AbstractProgress):
@@ -114,8 +115,9 @@ def assert_not_attached(f):
     @wraps(f)
     def new_f(args, cfg, **kwargs):
         if _is_attached(cfg).is_attached:
+            machine_token_file = machine_token.get_machine_token_file()
             raise exceptions.AlreadyAttachedError(
-                account_name=cfg.machine_token_file.account.get("name", "")
+                account_name=machine_token_file.account.get("name", "")
             )
         return f(args, cfg=cfg, **kwargs)
 
