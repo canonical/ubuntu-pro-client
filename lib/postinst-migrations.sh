@@ -42,6 +42,8 @@
 #   fi
 #
 
+set -e
+
 PREVIOUS_PKG_VER=$1
 
 if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "32~"; then
