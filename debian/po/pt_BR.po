@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-25 15:27-0300\n"
+"POT-Creation-Date: 2024-04-26 14:29-0300\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -491,7 +491,7 @@ msgid "The following package(s) will be reinstalled from the archive:"
 msgstr "O(s) pacote(s) à seguir serão reinstalados:"
 
 #: ../../uaclient/messages/__init__.py:163
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "*Your Ubuntu Pro subscription has EXPIRED*\n"
 "{{pkg_num}} additional security update requires Ubuntu Pro with "
@@ -826,9 +826,9 @@ msgid "Removing apt preferences file: {filename}"
 msgstr "Removendo arquivo de preferência do apt: {filename}"
 
 #: ../../uaclient/messages/__init__.py:363
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Uninstalling all packages installed from {title}"
-msgstr "Desinstalando {packages}"
+msgstr "Desinstalando todos os pacotes instalados por {title}"
 
 #: ../../uaclient/messages/__init__.py:368
 msgid "(The --purge flag is still experimental - use with caution)"
