@@ -11,6 +11,7 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
     ServiceWithDependencies,
     ServiceWithReason,
 )
+from uaclient.api.u.pro.status.enabled_services.v1 import EnabledService
 from uaclient.cli import main, main_error_handler
 from uaclient.cli.enable import action_enable, prompt_for_dependency_handling
 from uaclient.entitlements.entitlement_status import (
@@ -1148,9 +1149,10 @@ class TestPromptForDependencyHandling:
         [
             "service",
             "all_dependencies",
-            "enabled_service_names",
+            "enabled_services",
             "called_name",
             "service_title",
+            "variant",
             "cfg_block_disable_on_enable",
             "prompt_side_effects",
             "expected_prompts",
@@ -1168,6 +1170,7 @@ class TestPromptForDependencyHandling:
                 [],
                 "one",
                 "One",
+                "",
                 False,
                 [],
                 [],
@@ -1190,6 +1193,7 @@ class TestPromptForDependencyHandling:
                 [],
                 "one",
                 "One",
+                "",
                 False,
                 [],
                 [],
@@ -1209,9 +1213,10 @@ class TestPromptForDependencyHandling:
                         depends_on=[],
                     )
                 ],
-                ["two"],
+                [EnabledService(name="two")],
                 "one",
                 "One",
+                "",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1231,9 +1236,10 @@ class TestPromptForDependencyHandling:
                         depends_on=[],
                     )
                 ],
-                ["two"],
+                [EnabledService(name="two")],
                 "one",
                 "One",
+                "",
                 True,
                 [],
                 [],
@@ -1253,9 +1259,10 @@ class TestPromptForDependencyHandling:
                         depends_on=[],
                     )
                 ],
-                ["two"],
+                [EnabledService(name="two")],
                 "one",
                 "One",
+                "",
                 False,
                 [False],
                 [mock.call(msg=mock.ANY)],
@@ -1278,9 +1285,10 @@ class TestPromptForDependencyHandling:
                         depends_on=[],
                     )
                 ],
-                ["three"],
+                [EnabledService(name="three")],
                 "one",
                 "One",
+                "",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1300,9 +1308,10 @@ class TestPromptForDependencyHandling:
                         ],
                     )
                 ],
-                ["two"],
+                [EnabledService(name="two")],
                 "one",
                 "One",
+                "",
                 False,
                 [],
                 [],
@@ -1325,6 +1334,7 @@ class TestPromptForDependencyHandling:
                 [],
                 "one",
                 "One",
+                "",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -1347,6 +1357,7 @@ class TestPromptForDependencyHandling:
                 [],
                 "one",
                 "One",
+                "",
                 False,
                 [False],
                 [mock.call(msg=mock.ANY)],
@@ -1369,13 +1380,31 @@ class TestPromptForDependencyHandling:
                         ],
                     )
                 ],
-                ["two"],
+                [EnabledService(name="two")],
                 "one",
                 "One",
+                "",
                 False,
                 [True],
                 [mock.call(msg=mock.ANY)],
                 does_not_raise(),
+            ),
+            # a variant is enabled, second variant is being enabled
+            (
+                "two",
+                [],
+                [
+                    EnabledService(
+                        name="two", variant_enabled=True, variant_name="one"
+                    )
+                ],
+                "two",
+                "Two",
+                "two",
+                False,
+                [False],
+                [mock.call(msg=mock.ANY)],
+                pytest.raises(exceptions.IncompatibleServiceStopsEnable),
             ),
             # lots of stuff
             (
@@ -1407,9 +1436,14 @@ class TestPromptForDependencyHandling:
                         ],
                     )
                 ],
-                ["two", "four", "six"],
+                [
+                    EnabledService(name="two"),
+                    EnabledService(name="four"),
+                    EnabledService(name="six"),
+                ],
                 "one",
                 "One",
+                "",
                 False,
                 [True, True, True, True],
                 [
@@ -1432,9 +1466,10 @@ class TestPromptForDependencyHandling:
         m_entitlement_get_title,
         service,
         all_dependencies,
-        enabled_service_names,
+        enabled_services,
         called_name,
         service_title,
+        variant,
         cfg_block_disable_on_enable,
         prompt_side_effects,
         expected_prompts,
@@ -1442,7 +1477,7 @@ class TestPromptForDependencyHandling:
         FakeConfig,
     ):
         m_entitlement_get_title.side_effect = (
-            lambda cfg, name, variant="": name.title()
+            lambda cfg, name, variant=variant: name.title()
         )
         m_is_config_value_true.return_value = cfg_block_disable_on_enable
         m_prompt_for_confirmation.side_effect = prompt_side_effects
@@ -1452,8 +1487,9 @@ class TestPromptForDependencyHandling:
                 FakeConfig(),
                 service,
                 all_dependencies,
-                enabled_service_names,
+                enabled_services,
                 called_name,
+                variant,
                 service_title,
             )
 
