@@ -952,6 +952,36 @@ Feature: APT Messages
       # two
       #
       """
+    # Still displayed if one package selector fails
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "packages": [
+                  ["<package>", "==", "<installed_version>"],
+                  ["linux", "<", "1"]
+              ]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
     # Testing multiple selectors together
     When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
       """

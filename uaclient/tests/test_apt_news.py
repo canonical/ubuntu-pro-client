@@ -20,7 +20,7 @@ class TestAptNews:
             "cloud_type",
             "attached",
             "architecture",
-            "package_version",
+            "package_version_side_effect",
             "expected",
         ],
         [
@@ -131,7 +131,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 True,
                 None,
-                "1.0.0",
+                ["1.0.0"],
                 True,
             ),
             (
@@ -142,7 +142,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 True,
                 None,
-                None,
+                [None],
                 False,
             ),
             (
@@ -153,7 +153,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                "1.0.0",
+                ["1.0.0"],
                 False,
             ),
             (
@@ -164,7 +164,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                "1.0.1",
+                ["1.0.1"],
                 False,
             ),
             (
@@ -175,7 +175,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                "1.0.1",
+                ["1.0.1"],
                 True,
             ),
             (
@@ -186,7 +186,7 @@ class TestAptNews:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 False,
                 None,
-                "0.0.1",
+                ["0.0.1"],
                 True,
             ),
             (
@@ -201,7 +201,7 @@ class TestAptNews:
                 ("aws", None),
                 False,
                 "arm4",
-                "0.0.7",
+                ["0.0.7"],
                 False,
             ),
             (
@@ -216,7 +216,26 @@ class TestAptNews:
                 ("gce", None),
                 False,
                 "amd64",
-                "1.0.1",
+                ["1.0.1"],
+                True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
+                    codenames=["bionic"],
+                    pro=False,
+                    clouds=["gce"],
+                    architectures=["amd64"],
+                    packages=[
+                        ["does-not-match", "<", "4~"],
+                        ["matches", ">", "1.0.0"],
+                        ["not-installed", "<", "1"],
+                    ],
+                ),
+                "bionic",
+                ("gce", None),
+                False,
+                "amd64",
+                ["4", "1.0.1", None],
                 True,
             ),
         ],
@@ -236,7 +255,7 @@ class TestAptNews:
         cloud_type,
         attached,
         architecture,
-        package_version,
+        package_version_side_effect,
         expected,
         FakeConfig,
     ):
@@ -247,7 +266,7 @@ class TestAptNews:
         m_get_platform_info.return_value = mock.MagicMock(series=series)
         m_get_cloud_type.return_value = cloud_type
         m_get_dpkg_arch.return_value = architecture
-        m_get_pkg_version.return_value = package_version
+        m_get_pkg_version.side_effect = package_version_side_effect
         assert expected == apt_news.do_selectors_apply(cfg, selectors)
 
     @pytest.mark.parametrize(

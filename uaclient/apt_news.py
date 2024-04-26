@@ -77,6 +77,30 @@ class AptNewsMessage(DataObject):
         self.lines = lines
 
 
+def _does_package_selector_apply(package_selector):
+    try:
+        package_name, version_operator, package_version = package_selector
+    except ValueError:
+        LOG.warning("Invalid package selector: %r", package_selector)
+        return False
+    installed_package_version = get_pkg_version(package_name)
+    if installed_package_version is None:
+        return False
+    version_comparison = version_compare(
+        installed_package_version, package_version
+    )
+    return any(
+        [
+            (
+                version_comparison == 0
+                and version_operator in ["==", "<=", ">="]
+            ),
+            (version_comparison < 0 and version_operator in ["<", "<="]),
+            (version_comparison > 0 and version_operator in [">", ">="]),
+        ]
+    )
+
+
 def do_selectors_apply(
     cfg: UAConfig, selectors: Optional[AptNewsMessageSelectors]
 ) -> bool:
@@ -103,35 +127,13 @@ def do_selectors_apply(
             return False
 
     if selectors.packages is not None:
-        for package in selectors.packages:
-            try:
-                package_name, version_operator, package_version = package
-            except ValueError:
-                LOG.warning("Invalid package selector: %r", package)
-                return False
-            installed_package_version = get_pkg_version(package_name)
-            if installed_package_version is None:
-                return False
-            version_comparison = version_compare(
-                installed_package_version, package_version
-            )
-            if not any(
-                [
-                    (
-                        version_comparison == 0
-                        and version_operator in ["==", "<=", ">="]
-                    ),
-                    (
-                        version_comparison < 0
-                        and version_operator in ["<", "<="]
-                    ),
-                    (
-                        version_comparison > 0
-                        and version_operator in [">", ">="]
-                    ),
-                ]
-            ):
-                return False
+        if not any(
+            [
+                _does_package_selector_apply(package_selector)
+                for package_selector in selectors.packages
+            ]
+        ):
+            return False
 
     return True
 
