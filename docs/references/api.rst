@@ -2601,7 +2601,7 @@ and enable required services that that target service depends on.
 
         - ``NonRootUserError``: When called as non-root user
         - ``UnattachedError``: When called on a machine that is not attached to a Pro subscription
-        - ``NotSupported``: When called for a service that doesn't support being enabled via API (currently only landscape)
+        - ``NotSupported``: When called for a service that doesn't support being enabled via API (currently only Landscape)
         - ``EntitlementNotFoundError``: When the service argument is not a valid Pro service name or if the variant is not a valid variant of the target service
         - ``LockHeldError``: When another Ubuntu Pro related operation is in progress
         - ``EntitlementNotEnabledError``: When the service fails to enable
