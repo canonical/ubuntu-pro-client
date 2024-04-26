@@ -17,7 +17,10 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
     ServiceWithDependencies,
     _dependencies,
 )
-from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
+from uaclient.api.u.pro.status.enabled_services.v1 import (
+    EnabledService,
+    _enabled_services,
+)
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util, constants
 from uaclient.entitlements.entitlement_status import (
@@ -32,12 +35,14 @@ def prompt_for_dependency_handling(
     cfg: config.UAConfig,
     service: str,
     all_dependencies: List[ServiceWithDependencies],
-    enabled_service_names: List[str],
+    enabled_services: List[EnabledService],
     called_name: str,
+    variant: str,
     service_title: str,
 ):
     incompatible_services = []
     required_services = []
+    enabled_service_names = [s.name for s in enabled_services]
 
     dependencies = next(
         (s for s in all_dependencies if s.name == service), None
@@ -84,6 +89,37 @@ def prompt_for_dependency_handling(
             raise exceptions.RequiredServiceStopsEnable(
                 service_being_enabled=service_title,
                 required_service=required_service_title,
+            )
+
+    variant_enabled = next(
+        (
+            s
+            for s in enabled_services
+            if s.name == service
+            and s.variant_enabled
+            and s.variant_name != variant
+        ),
+        None,
+    )
+    if variant_enabled is not None and variant is not None:
+        to_be_enabled_title = entitlements.get_title(cfg, service, variant)
+        enabled_variant_title = entitlements.get_title(
+            cfg, service, variant_enabled.variant_name
+        )
+        cfg_block_disable_on_enable = util.is_config_value_true(
+            config=cfg.cfg,
+            path_to_value="features.block_disable_on_enable",
+        )
+        user_msg = messages.INCOMPATIBLE_SERVICE.format(
+            service_being_enabled=to_be_enabled_title,
+            incompatible_service=enabled_variant_title,
+        )
+        if cfg_block_disable_on_enable or not util.prompt_for_confirmation(
+            msg=user_msg
+        ):
+            raise exceptions.IncompatibleServiceStopsEnable(
+                service_being_enabled=to_be_enabled_title,
+                incompatible_service=enabled_variant_title,
             )
 
 
@@ -192,9 +228,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
         entitlements_found,
         entitlements_not_found,
     ) = entitlements.get_valid_entitlement_names(names, cfg)
-    enabled_service_names = [
-        s.name for s in _enabled_services(cfg).enabled_services
-    ]
+    enabled_services = _enabled_services(cfg).enabled_services
     all_dependencies = _dependencies(cfg).services
 
     ret = True
@@ -209,6 +243,8 @@ def action_enable(args, *, cfg, **kwargs) -> int:
             access_only=access_only,
             extra_args=kwargs.get("extra_args"),
         )
+        LOG.debug("Enabling entitlement %s", ent_name)
+        LOG.debug("Variant: %s", variant)
         real_name = ent.name
         ent_title = ent.title
 
@@ -220,8 +256,9 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                     cfg,
                     real_name,
                     all_dependencies,
-                    enabled_service_names,
-                    called_name=ent_name,
+                    enabled_services,
+                    called_name=real_name,
+                    variant=variant,
                     service_title=ent_title,
                 )
             except exceptions.UbuntuProError as e:

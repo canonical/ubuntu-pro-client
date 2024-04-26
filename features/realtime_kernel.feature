@@ -220,7 +220,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       .*This will change your kernel. To revert to your original kernel, you will need
       to make the change manually..*
 
-      Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating Real-time NVIDIA Tegra Kernel package lists
+      Do you want to continue\? \[ default = Yes \]: \(Y/n\) Configuring APT access to Real-time NVIDIA Tegra Kernel
+      Updating Real-time NVIDIA Tegra Kernel package lists
       Updating standard Ubuntu package lists
       Installing Real-time NVIDIA Tegra Kernel packages
       Real-time NVIDIA Tegra Kernel enabled
@@ -323,9 +324,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       └ rpi            yes +disabled  +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I verify that running `pro enable realtime-kernel --variant nonexistent` `with sudo` exits `1`
-    Then I will see the following on stdout:
+    Then I will see the following on stderr:
       """
-      One moment, checking your subscription first
       could not find entitlement named "nonexistent"
       """
     When I run `pro detach --assume-yes` with sudo
