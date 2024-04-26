@@ -333,9 +333,9 @@ This endpoint runs the whole auto-attach process on the system.
         - ``AutoAttachDisabledError``: Raised if ``disable_auto_attach: true``
           in ``uaclient.conf``.
         - ``ConnectivityError``: Raised if it is not possible to connect to the
-          Contracts Server.
+          contracts service.
         - ``ContractAPIError``: Raised if there is an unexpected error in the
-          Contracts Server interaction.
+          contracts service interaction.
         - ``EntitlementsNotEnabledError``: Raised if the Client fails to enable
           any of the entitlements (whether present in any of the lists or
           listed in the contract).
@@ -454,7 +454,7 @@ confirm the operation and the Token used to proceed.
                - Code the user will see in the UI when confirming the Magic Attach
              * - ``token``
                - ``str``
-               - Magic Token used by the tooling to continue the operation
+               - Magic Token that can be used in either `u.pro.attach.magic.revoke.v1`_ or `u.pro.attach.magic.wait.v1`_
              * - ``expires``
                - ``str``
                - Timestamp of the Magic Attach process expiration
@@ -465,9 +465,9 @@ confirm the operation and the Token used to proceed.
       - Raised exceptions:
 
         - ``ConnectivityError``: Raised if it is not possible to connect to the
-          Contracts Server.
+          contracts service.
         - ``ContractAPIError``: Raised if there is an unexpected error in the
-          Contracts Server interaction.
+          contracts service interaction.
         - ``MagicAttachUnavailable``: Raised if the Magic Attach service is
           busy or unavailable at the moment.
 
@@ -525,9 +525,9 @@ This endpoint revokes a Magic Attach Token.
       - Raised exceptions:
 
         - ``ConnectivityError``: Raised if it is not possible to connect to the
-          Contracts Server.
+          contracts service.
         - ``ContractAPIError``: Raised if there is an unexpected error in the
-          Contracts Server interaction.
+          contracts service interaction.
         - ``MagicAttachTokenAlreadyActivated``: Raised when trying to revoke a
           Token which was already activated through the UI.
         - ``MagicAttachTokenError``: Raised when an invalid/expired Token is
@@ -553,7 +553,7 @@ This endpoint revokes a Magic Attach Token.
 u.pro.attach.magic.wait.v1
 ==========================
 
-This endpoint polls the Contract Server waiting for the user to confirm the
+This endpoint polls the contracts service waiting for the user to confirm the
 Magic Attach.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
@@ -590,7 +590,7 @@ Magic Attach.
                - Code the user will see in the UI when confirming the Magic Attach
              * - ``token``
                - ``str``
-               - Magic Token used by the tooling to continue the operation
+               - The same Magic Token that was sent as an argument
              * - ``expires``
                - ``str``
                - Timestamp of the Magic Attach process expiration
@@ -607,9 +607,9 @@ Magic Attach.
       - Raised exceptions:
 
         - ``ConnectivityError``: Raised if it is not possible to connect to the
-          Contracts Server.
+          contracts service.
         - ``ContractAPIError``: Raised if there is an unexpected error in the
-          Contracts Server interaction.
+          contracts service interaction.
         - ``MagicAttachTokenError``: Raised when an invalid/expired Token is
           sent.
         - ``MagicAttachUnavailable``: Raised if the Magic Attach service is
@@ -2452,7 +2452,7 @@ dependencies between services.
                       "name": "two",
                       "reason": {
                         "code": "one-and-two",
-                        "title": "Services One and Two don't go together."
+                        "title": "Services One and Two are not compatible."
                       }
                     },
                     ...
@@ -2589,10 +2589,10 @@ and enable required services that that target service depends on.
               - List of services that were enabled.
             * - ``disabled``
               - ``List[str]``
-              - List of services that were disabled
+              - List of services that were disabled.
             * - ``reboot_required``
               - ``bool``
-              - True if one of the services that was enabled requires a reboot
+              - True if one of the services that was enabled requires a reboot.
             * - ``messages``
               - ``List[str]``
               - List of information message strings about the service that was just enabled. Possibly translated.
