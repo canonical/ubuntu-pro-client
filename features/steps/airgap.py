@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Any, Dict  # noqa: F401
 
 import yaml
@@ -27,20 +28,15 @@ def download_service_credentials(context, machine_name):
 def extract_service_credentials(context, service, machine_name):
     if getattr(context, "service_mirror_cfg", None) is None:
         context.service_mirror_cfg = {}
-
-    cmd = "sh -c 'echo \"{}\" | grep -A1 {} | grep -v {}'".format(
-        context.service_credentials, service, service
+    credentials_pattern = r"{}:\s+(.+)".format(service)
+    credentials_match = re.search(
+        credentials_pattern, context.service_credentials
     )
-    when_i_run_command(
-        context,
-        cmd,
-        "as non-root",
-        machine_name=machine_name,
-    )
-
-    context.service_mirror_cfg[service.replace("-", "_")] = {
-        "credentials": context.process.stdout
-    }
+    if credentials_match:
+        extracted_credentials = credentials_match.group(1)
+        context.service_mirror_cfg[service.replace("-", "_")] = {
+            "credentials": extracted_credentials
+        }
 
 
 @when(
