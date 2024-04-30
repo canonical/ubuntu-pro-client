@@ -1053,6 +1053,21 @@ for the machine regarding reboot:
 """
 )
 
+CLI_SYSTEM_CERTIFIED = t.gettext("is this machine Ubuntu certified")
+CLI_SYSTEM_CERTIFIED_DESC = t.gettext(
+    """\
+Report the current certification status for the machine.
+
+This command will output one of the three following states
+for the machine regarding certification:
+
+* Yes: This machine is Ubuntu certified
+* No: This machine is not Ubuntu certified
+* Partially: Some pieces of hardware on this machine have been
+  certified for Ubuntu, but not the whole system.
+"""
+)
+
 CLI_STATUS_DESC = t.gettext(
     """\
 Report current status of Ubuntu Pro services on system.

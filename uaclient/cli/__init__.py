@@ -49,6 +49,12 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import AptProxyScope, setup_apt_proxy
+from uaclient.cli.certification import (
+    SERIES_NOT_SUPPORTED,
+    check_for_data_collection_consent,
+    check_for_hwlib_package,
+    get_certification_status,
+)
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.fix import set_fix_parser
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
@@ -67,6 +73,7 @@ from uaclient.entitlements.entitlement_status import (
 from uaclient.files import notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.log import JsonArrayFormatter
+from uaclient.system import get_release_info
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
 
@@ -658,6 +665,12 @@ def system_parser(parser):
     parser_reboot_required.set_defaults(action=action_system_reboot_required)
     reboot_required_parser(parser_reboot_required)
 
+    parser_certified = subparsers.add_parser(
+        "certified", help=messages.CLI_SYSTEM_CERTIFIED
+    )
+    parser_certified.set_defaults(action=action_system_certified)
+    certified_parser(parser_certified)
+
     return parser
 
 
@@ -666,9 +679,18 @@ def reboot_required_parser(parser):
     parser.usage = USAGE_TMPL.format(
         name=NAME, command="system reboot-required"
     )
-    parser.pro = "reboot-required"
+    parser.prog = "reboot-required"
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.description = messages.CLI_SYSTEM_REBOOT_REQUIRED_DESC
+    return parser
+
+
+def certified_parser(parser):
+    # This formatter_class ensures that our formatting below isn't lost
+    parser.usage = USAGE_TMPL.format(name=NAME, command="system certified")
+    parser.prog = "certified"
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.description = messages.CLI_SYSTEM_CERTIFIED_DESC
     return parser
 
 
@@ -1509,6 +1531,25 @@ def action_system(args, *, cfg, **kwargs):
 def action_system_reboot_required(args, *, cfg: config.UAConfig, **kwargs):
     result = _reboot_required(cfg)
     event.info(result.reboot_required)
+    return 0
+
+
+def action_system_certified(args, *, cfg: config.UAConfig, **kwargs):
+    series = get_release_info().series
+    if series in SERIES_NOT_SUPPORTED:
+        print(
+            "Sorry, this feature is only available on "
+            "Ubuntu 22.04 (Jammy Jellyfish) or later."
+        )
+        return 2
+
+    if not check_for_hwlib_package():
+        return 1
+
+    if not check_for_data_collection_consent():
+        return 1
+
+    print(get_certification_status())
     return 0
 
 
