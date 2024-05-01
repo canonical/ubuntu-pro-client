@@ -60,7 +60,7 @@ What if ``esm-infra-legacy`` is not entitled?
 If ``ua status`` shows that you are not entitled to the service, you
 will first need to buy access to the service, as mentioned at the top of this page.
 
-Once you have purchased a support subscription, run the following command
+Once you have purchased the Legacy Support add-on, run the following command
 on your machine to refresh the contract definitions:
 
 .. code-block:: bash
