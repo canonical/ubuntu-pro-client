@@ -146,6 +146,8 @@ class TestActionCollectLogs:
                     "-u",
                     "esm-cache.service",
                     "-u",
+                    "ua-activity-ping-on-boot.service",
+                    "-u",
                     "ua-timer.service",
                     "-u",
                     "ua-auto-attach.service",
@@ -159,6 +161,10 @@ class TestActionCollectLogs:
             mock.call(["systemctl", "status", "apt-news.service"], rcs=[0, 3]),
             mock.call(
                 ["systemctl", "status", "esm-cache.service"], rcs=[0, 3]
+            ),
+            mock.call(
+                ["systemctl", "status", "ua-activity-ping-on-boot.service"],
+                rcs=[0, 3],  # noqa
             ),
             mock.call(["systemctl", "status", "ua-timer.service"], rcs=[0, 3]),
             mock.call(["systemctl", "status", "ua-timer.timer"], rcs=[0, 3]),
