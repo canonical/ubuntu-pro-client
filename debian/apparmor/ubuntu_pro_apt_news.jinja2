@@ -17,6 +17,8 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   capability setgid,
   capability setuid,
   capability dac_read_search,
+  # GH: 3079
+  capability dac_override,
 
   /etc/apt/** r,
   /etc/default/apport r,
