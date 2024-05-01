@@ -90,6 +90,7 @@ If you disable ``esm-infra``, this will (due to internal dependencies) also disa
 ``esm-infra-legacy``. Although updates will **only** be applied via ``esm-infra-legacy``,
 we recommend keeping both services enabled. This is not true in reverse: if you want
 to disable ``esm-infra-legacy``, doing so will not disable ``esm-infra``.
+
 ``do-release-upgrade`` fails if packages are installed from ``esm-infra``
 -------------------------------------------------------------------------
 
