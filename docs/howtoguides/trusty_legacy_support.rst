@@ -109,7 +109,7 @@ once you have upgraded to Xenial, since Trusty lacks the correct mechanisms to r
 the Pro services automatically after a ``do-release-upgrade``.
 
 Note that this is only the case when upgrading from Trusty to Xenial. The Ubuntu Pro
-Client is fully supported from Xenial onwards, where these issues have already been fixed.
+Client is fully supported from Xenial onward, where these issues have already been fixed.
 
 
 Why 14.04 (Trusty) no longer receives new Ubuntu Pro Client features
