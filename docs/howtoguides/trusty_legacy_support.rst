@@ -106,8 +106,8 @@ There are some known caveats for the Trusty version of `ubuntu-advantage-tools`:
   the Pro services automatically after do-release-upgrade.
   
 It is import to say that these problems won't happen on Xenial or later.
-The Ubuntu Pro Client is still fully supported on those later releases and
-these issues have already been fixed for them.
+The Ubuntu Pro Client is fully supported from Xenial onwards, where
+these issues have already been fixed.
 
 
 Why 14.04 (Trusty) no longer receives new Ubuntu Pro Client features
