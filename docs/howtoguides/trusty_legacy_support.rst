@@ -1,3 +1,5 @@
+.. _enable_trusty:
+
 How to enable esm-infra-legacy on Trusty
 *****************************************
 
