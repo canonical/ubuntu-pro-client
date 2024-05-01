@@ -116,9 +116,9 @@ Why 14.04 (Trusty) no longer receives new Ubuntu Pro Client features
 ---------------------------------------------------------------------
 
 For a further reduced risk of regressions on 14.04 (Trusty) the Pro client package is almost frozen.
-Hence it is not receiving regular upstream backports like newer Ubuntu LTS releases do. Beyond
+Hence it is not receiving regular new features like newer Ubuntu LTS releases do. Beyond
 version 19.7 there won't be updates except any critical CVE maintenance or features explicitly
-targeted for Trusty like ``esm-infra-support`` in 2024.
+targeted for Trusty (like ``esm-infra-legacy`` in 2024).
 
 Version 19.7 has full-featured support of the applicable Ubuntu Pro
 service offerings ``esm-infra``, ``esm-infra-legacy`` and ``livepatch``.
