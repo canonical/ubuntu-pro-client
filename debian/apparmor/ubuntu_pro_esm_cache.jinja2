@@ -88,6 +88,11 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     include <abstractions/nameservice>
 
     capability sys_ptrace,
+
+    # GH: #3079
+    capability dac_read_search,
+    capability dac_override,
+
     ptrace read,
 
     # in bionic, it's /bin/ps, so let's match both
@@ -99,6 +104,10 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     @{PROC}/@{pid}/** r,
     @{PROC}/uptime r,
     @{PROC}/sys/kernel/** r,
+    # GH: #3079
+    @{PROC}/tty/drivers r,
+    /sys/devices/system/node/ r,
+    /sys/devices/system/node/** r,
   }
 
   profile cloud_id flags=(attach_disconnected) {
