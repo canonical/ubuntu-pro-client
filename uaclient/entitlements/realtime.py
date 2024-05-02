@@ -151,7 +151,7 @@ class NvidiaTegraRealtime(RealtimeVariant):
 
 
 class RaspberryPiRealtime(RealtimeVariant):
-    variant_name = "rpi"
+    variant_name = "raspi"
     title = messages.REALTIME_RASPI_TITLE
     description = messages.REALTIME_RASPI_DESCRIPTION
     is_variant = True
