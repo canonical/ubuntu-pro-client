@@ -8,6 +8,7 @@ import sys
 import tarfile
 from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
+import paramiko
 import pycloudlib  # type: ignore  # noqa: F401
 import yaml
 from behave.model import Feature, Scenario
@@ -522,7 +523,13 @@ def _get_relevant_apparmor_logs(context):
             syslog_dest = os.path.join(
                 UA_TMP_DIR, "{}-syslog".format(sut.instance.name)
             )
-            sut.instance.pull_file("/var/log/syslog", syslog_dest)
+            try:
+                sut.instance.pull_file("/var/log/syslog", syslog_dest)
+            except paramiko.ssh_exception.SSHException:
+                logging.warning(
+                    "Unable to pull syslog. Skipping apparmor log check."
+                )
+                return None
             with open(syslog_dest, "r") as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
             apparmor_denied = [
