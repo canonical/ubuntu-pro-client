@@ -206,7 +206,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                     additionalPackages:
                       - nvidia-prime
                 - selector:
-                    variant: rpi
+                    variant: raspi
                   directives:
                     additionalPackages:
                       - raspi-config
@@ -245,7 +245,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
       ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
       ├ nvidia-tegra   yes +enabled   +RT kernel optimized for NVIDIA Tegra platform
-      └ rpi            yes +disabled  +24.04 Real-time kernel optimised for Raspberry Pi
+      └ raspi          yes +disabled  +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I verify that running `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `N` exits `1`
     Then stdout matches regexp:
@@ -257,7 +257,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       Cannot enable Real-time Intel IOTG Kernel when Real-time NVIDIA Tegra Kernel is enabled.
       """
-    When I run `pro enable realtime-kernel --variant rpi --assume-yes` with sudo
+    When I run `pro enable realtime-kernel --variant raspi --assume-yes` with sudo
     When I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
@@ -265,7 +265,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
       ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
       ├ nvidia-tegra   yes +disabled  +RT kernel optimized for NVIDIA Tegra platform
-      └ rpi            yes +enabled   +24.04 Real-time kernel optimised for Raspberry Pi
+      └ raspi          yes +enabled   +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I run `pro help realtime-kernel` as non-root
     Then I will see the following on stdout:
@@ -292,7 +292,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
         * generic: Generic version of the RT kernel (default)
         * intel-iotg: RT kernel optimized for Intel IOTG platform
         * nvidia-tegra: RT kernel optimized for NVIDIA Tegra platform
-        * rpi: 24.04 Real-time kernel optimised for Raspberry Pi
+        * raspi: 24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I run `pro disable realtime-kernel` `with sudo` and stdin `y`
     Then stdout matches regexp:
@@ -321,7 +321,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       ├ generic        yes +disabled  +Generic version of the RT kernel \(default\)
       ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
       ├ nvidia-tegra   yes +disabled  +RT kernel optimized for NVIDIA Tegra platform
-      └ rpi            yes +disabled  +24.04 Real-time kernel optimised for Raspberry Pi
+      └ raspi          yes +disabled  +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I verify that running `pro enable realtime-kernel --variant nonexistent` `with sudo` exits `1`
     Then I will see the following on stderr:
