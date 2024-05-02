@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-08 11:58-0700\n"
+"POT-Creation-Date: 2024-05-02 14:49-0400\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -3568,6 +3568,11 @@ msgstr ""
 #, fuzzy
 msgid "The operation is not supported"
 msgstr "A atualização ainda não está instalada"
+
+#: ../../uaclient/messages/__init__.py:2655
+#, python-brace-format
+msgid "Invalid URL: {url}"
+msgstr ""
 
 #~ msgid "Detach this machine from Ubuntu Pro services."
 #~ msgstr "Desvincule esta máquina de uma assinatura Ubuntu Pro"
