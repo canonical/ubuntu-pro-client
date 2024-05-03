@@ -79,6 +79,7 @@ Feature: APT Messages
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-infra on upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I apt update
     When I apt upgrade
     When I apt autoremove
     When I run `pro config set apt_news=false` with sudo
