@@ -204,6 +204,9 @@ Feature: APT Messages
     When I apt autoremove
     When I apt install `jq`
     When I run `pro detach --assume-yes` with sudo
+    # We are doing this because ESM pin might prevent some packages to be upgraded (i.e.
+    # distro-info-data)
+    When I apt upgrade
     Given a `focal` `<machine_type>` machine named `apt-news-server`
     When I apt install `nginx` on the `apt-news-server` machine
     When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
@@ -687,6 +690,9 @@ Feature: APT Messages
     When I apt autoremove
     When I apt install `jq`
     When I run `pro detach --assume-yes` with sudo
+    # We are doing this because ESM pin might prevent some packages to be upgraded (i.e.
+    # distro-info-data)
+    When I apt upgrade
     Given a `mantic` `<machine_type>` machine named `apt-news-server`
     When I apt install `nginx` on the `apt-news-server` machine
     When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
