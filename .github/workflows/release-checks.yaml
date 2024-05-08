@@ -4,19 +4,33 @@ name: Release Checks
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
     branches:
-      - release
+      - review-*
 
 jobs:
-  release-changelog-bug-refs:
+  release-checklist:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Install dependencies
-        run: cd ./.github/actions/release-changelog-bug-refs && npm install
-      - name: Check for bug references
-        uses: ./.github/actions/release-changelog-bug-refs
-        id: release-changelog-bug-refs
+        run: cd ./.github/actions/release-checklist && npm install
+      - name: Release checklist
+        uses: ./.github/actions/release-checklist
+        id: release-checklist
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+  translation-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Translation templates updated
+        run: |
+          ./tools/update-pos.sh
+          [ $(git diff --ignore-matching-lines="POT-Creation-Date" | wc -c) = "0" ]
