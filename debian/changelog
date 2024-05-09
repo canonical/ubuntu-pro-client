@@ -1,7 +1,7 @@
 ubuntu-advantage-tools (32) noble; urgency=medium
 
   * d/postinst: ensure migrations happen in correct package postinst (GH: #2982)
-  * d/apparmor:introduce new ubuntu_pro_esm_cache apparmor policy
+  * d/apparmor: introduce new ubuntu_pro_esm_cache apparmor policy
   * New upstream release 32 (LP: #2060732)
     - api:
       + u.pro.attach.token.full_token_attach.v1: add support for attach
@@ -15,8 +15,8 @@ ubuntu-advantage-tools (32) noble; urgency=medium
         if needed
     - apt_news: add architectures and packages selectors filters for apt news
     - cli:
-      - improved cli/log message for unexpected errors (GH: #2600)
-      - properly handle setting empty config values (GH: #2925)
+      + improved cli/log message for unexpected errors (GH: #2600)
+      + properly handle setting empty config values (GH: #2925)
     - cloud-init: support ubuntu_pro user-data
     - collect-logs: update default output file to pro_logs.tar.gz (LP: #2033313)
     - config: create public and private config (GH: #2809)
@@ -25,13 +25,13 @@ ubuntu-advantage-tools (32) noble; urgency=medium
     - fips: warn/confirm with user if enabling fips downgrades the kernel
     - fix: warn users if ESM cache cannot be updated (GH: #2841)
     - logging:
-      - use journald logging for all systemd services
-      - add redundancy to secret redaction
+      + use journald logging for all systemd services
+      + add redundancy to secret redaction
     - messaging:
-      - add consistent messaging for end of contract state
-      - make explicit that unattached enable/disable is a noop (GH: #2487)
-      - make explicit that disabling a disabled service is a noop
-      - make explicit that enabling an enabled service is a noop
+      + add consistent messaging for end of contract state
+      + make explicit that unattached enable/disable is a noop (GH: #2487)
+      + make explicit that disabling a disabled service is a noop
+      + make explicit that enabling an enabled service is a noop
     - notices: filter unreadable notices when listing notices (GH: #2898)
 
  -- Lucas Moura <lucas.moura@canonical.com>  Tue, 09 Apr 2024 17:33:36 -0300
