@@ -532,6 +532,8 @@ Feature: Ua fix command behaviour
 
       Choose: \[E\]nable esm-infra \[C\]ancel
       > .*\{ pro enable esm-infra \}.*
+      Enabling Ubuntu Pro: ESM Infra
+      Ubuntu Pro: ESM Infra enabled
       .*\{ apt update && apt install --only-upgrade -y gzip \}.*
 
       .*✔.* USN-5378-4 is resolved.
