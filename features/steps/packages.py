@@ -16,6 +16,17 @@ def when_i_autoremove(context):
     )
 
 
+@when("I remove support for `{pocket}` in APT")
+def when_i_remove_support_for_pocket(context, pocket):
+    when_i_run_command(
+        context,
+        "sed -i '/{}/d' /etc/apt/sources.list".format(pocket),
+        "with sudo",
+    )
+
+    when_i_apt_update(context)
+
+
 @when("I apt dist-upgrade")
 def when_i_dist_update(context):
     when_i_run_command(
