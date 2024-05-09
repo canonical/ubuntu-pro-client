@@ -79,6 +79,7 @@ Feature: APT Messages
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-infra on upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I remove support for `backports` in APT
     When I apt update
     When I apt upgrade
     When I apt autoremove
@@ -200,6 +201,7 @@ Feature: APT Messages
   Scenario Outline: APT News
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
+    When I remove support for `backports` in APT
     When I apt upgrade including phased updates
     When I apt autoremove
     When I apt install `jq`
@@ -685,6 +687,7 @@ Feature: APT Messages
   @uses.config.contract_token
   Scenario Outline: APT news selectors
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I remove support for `backports` in APT
     When I attach `contract_token` with sudo
     When I apt upgrade including phased updates
     When I apt autoremove
