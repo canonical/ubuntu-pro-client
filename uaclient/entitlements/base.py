@@ -54,9 +54,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
-    # Whether that entitlement is in beta stage
-    is_beta = False
-
     # Whether the entitlement supports the --access-only flag
     supports_access_only = False
 
@@ -257,7 +254,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 continue
             variant = variant_cls(
                 cfg=self.cfg,
-                allow_beta=self.allow_beta,
                 called_name=self._called_name,
                 access_only=self.access_only,
             )
@@ -275,7 +271,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def __init__(
         self,
         cfg: Optional[config.UAConfig] = None,
-        allow_beta: bool = False,
         called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
@@ -289,7 +284,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             cfg = config.UAConfig()
         self.cfg = cfg
         self.machine_token_file = machine_token.get_machine_token_file()
-        self.allow_beta = allow_beta
         self.access_only = access_only
         self.purge = purge
         if extra_args is not None:
@@ -299,14 +293,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         self._called_name = called_name
         self._valid_service = None  # type: Optional[bool]
         self._is_sources_list_updated = False
-
-    @property
-    def valid_service(self):
-        """Check if the service is marked as valid (non-beta)"""
-        if self._valid_service is None:
-            self._valid_service = not self.is_beta or self.allow_beta
-
-        return self._valid_service
 
     def _base_entitlement_cfg(self):
         return copy.deepcopy(
@@ -405,9 +391,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     message=messages.ALREADY_ENABLED.format(title=self.title),
                 ),
             )
-
-        if not self.valid_service:
-            return (False, CanEnableFailure(CanEnableFailureReason.IS_BETA))
 
         applicability_status, details = self.applicability_status()
         if applicability_status == ApplicabilityStatus.INAPPLICABLE:
@@ -804,7 +787,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         for required_service in self.blocking_required_services():
             ent = required_service.entitlement(
                 cfg=self.cfg,
-                allow_beta=True,
             )
             progress.emit(
                 "info",
@@ -1312,9 +1294,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         enable_by_default = self._should_enable_by_default(
             delta_obligations, resourceToken
         )
-
-        if enable_by_default:
-            self.allow_beta = True
 
         can_enable, _ = self.can_enable()
         if can_enable and enable_by_default:

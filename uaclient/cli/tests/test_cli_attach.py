@@ -504,9 +504,7 @@ class TestActionAttach:
             mock.call(mock.ANY, token="faketoken", allow_enable=False)
         ] == m_attach_with_token.call_args_list
         if auto_enable:
-            assert [
-                mock.call(cfg, "cis", allow_beta=True)
-            ] == m_enable.call_args_list
+            assert [mock.call(cfg, "cis")] == m_enable.call_args_list
         else:
             assert [] == m_enable.call_args_list
         assert 1 == m_update_activity_token.call_count

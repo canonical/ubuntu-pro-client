@@ -101,7 +101,6 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
         obligations: Dict[str, Any] = None,
         overrides: List[Dict[str, Any]] = None,
         entitled: bool = True,
-        allow_beta: bool = False,
         called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
@@ -135,7 +134,6 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
             )
 
         args = {
-            "allow_beta": allow_beta or cfg.features.get("allow_beta"),
             "called_name": called_name,
             "access_only": access_only,
             "purge": purge,

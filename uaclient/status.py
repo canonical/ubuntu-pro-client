@@ -328,42 +328,6 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
     return response
 
 
-def _handle_beta_resources(cfg, show_all, response) -> Dict[str, Any]:
-    """Remove beta services from response dict if needed"""
-    config_allow_beta = util.is_config_value_true(
-        config=cfg.cfg, path_to_value="features.allow_beta"
-    )
-    show_all |= config_allow_beta
-    if show_all:
-        return response
-
-    new_response = copy.deepcopy(response)
-
-    released_resources = []
-    for resource in new_response.get("services", {}):
-        resource_name = resource["name"]
-        try:
-            ent = entitlement_factory(cfg=cfg, name=resource_name)
-        except exceptions.EntitlementNotFoundError:
-            """
-            Here we cannot know the status of a service,
-            since it is not listed as a valid entitlement.
-            Therefore, we keep this service in the list, since
-            we cannot validate if it is a beta service or not.
-            """
-            released_resources.append(resource)
-            continue
-
-        enabled_status = UserFacingStatus.ACTIVE.value
-        if not ent.is_beta or resource.get("status", "") == enabled_status:
-            released_resources.append(resource)
-
-    if released_resources:
-        new_response["services"] = released_resources
-
-    return new_response
-
-
 def _get_config_status(cfg) -> Dict[str, Any]:
     """Return a dict with execution_status, execution_details and notices.
 
@@ -425,8 +389,6 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
 
     if util.we_are_currently_root():
         state_files.status_cache_file.write(response)
-
-    response = _handle_beta_resources(cfg, show_all, response)
 
     if not show_all:
         available_services = [
@@ -567,7 +529,6 @@ def simulate_status(
             response["contract"]["tech_support_level"] = supportLevel
 
     response.update(_get_config_status(cfg))
-    response = _handle_beta_resources(cfg, show_all, response)
 
     if not show_all:
         available_services = [
@@ -870,9 +831,6 @@ def help(cfg, name):
 
         response_dict["entitled"] = service_status["entitled"]
         response_dict["status"] = status_msg
-
-        if status_msg == "enabled" and help_ent.is_beta:
-            response_dict["beta"] = True
 
     else:
         if help_resource["available"]:

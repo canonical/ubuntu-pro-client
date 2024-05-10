@@ -18,7 +18,6 @@ from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
 from uaclient.exceptions import EntitlementNotFoundError
-from uaclient.util import is_config_value_true
 
 ENTITLEMENT_CLASSES = [
     AnboxEntitlement,
@@ -41,7 +40,6 @@ def entitlement_factory(
     cfg: UAConfig,
     name: str,
     variant: str = "",
-    allow_beta: bool = False,
     purge: bool = False,
     access_only: bool = False,
     extra_args: Optional[List[str]] = None,
@@ -53,7 +51,6 @@ def entitlement_factory(
     :param cfg: UAConfig instance
     :param name: The name of the entitlement to return
     :param  variant: The variant name to be used
-    :param allow_beta: If True, allow beta services to be used
     :param purge: If purge operation is enabled
     :param access_only: If entitlement should be set with access only
     :param extra_args: Extra parameters to create the entitlement
@@ -61,12 +58,10 @@ def entitlement_factory(
     :raise EntitlementNotFoundError: If not_found_okay is False and no
         entitlement with the given name is found, then raises this error.
     """
-    allow_beta = allow_beta or cfg.features.get("allow_beta")
 
     for entitlement in ENTITLEMENT_CLASSES:
         ent = entitlement(
             cfg=cfg,
-            allow_beta=allow_beta,
             access_only=access_only,
             called_name=name,
             purge=purge,
@@ -78,7 +73,6 @@ def entitlement_factory(
             elif variant in ent.variants:
                 return ent.variants[variant](
                     cfg=cfg,
-                    allow_beta=allow_beta,
                     called_name=name,
                     purge=purge,
                     extra_args=extra_args,
@@ -88,27 +82,14 @@ def entitlement_factory(
     raise EntitlementNotFoundError(entitlement_name=name)
 
 
-def valid_services(
-    cfg: UAConfig, allow_beta: bool = False, all_names: bool = False
-) -> List[str]:
-    """Return a list of valid (non-beta) services.
+def valid_services(cfg: UAConfig, all_names: bool = False) -> List[str]:
+    """Return a list of valid services.
 
     :param cfg: UAConfig instance
-    :param allow_beta: if we should allow beta services to be marked as valid
     :param all_names: if we should return all the names for a service instead
         of just the presentation_name
     """
-    allow_beta_cfg = is_config_value_true(cfg.cfg, "features.allow_beta")
-    allow_beta |= allow_beta_cfg
-
     entitlements = ENTITLEMENT_CLASSES
-    if not allow_beta:
-        entitlements = [
-            entitlement
-            for entitlement in entitlements
-            if not entitlement.is_beta
-        ]
-
     if all_names:
         names = []
         for entitlement_cls in entitlements:
@@ -217,9 +198,7 @@ def get_valid_entitlement_names(names: List[str], cfg: UAConfig):
     entitlements_found = []
 
     for ent_name in names:
-        if ent_name in valid_services(
-            cfg=cfg, allow_beta=True, all_names=True
-        ):
+        if ent_name in valid_services(cfg=cfg, all_names=True):
             entitlements_found.append(ent_name)
 
     entitlements_not_found = sorted(set(names) - set(entitlements_found))
@@ -228,13 +207,13 @@ def get_valid_entitlement_names(names: List[str], cfg: UAConfig):
 
 
 def create_enable_entitlements_not_found_error(
-    entitlements_not_found, cfg: UAConfig, *, allow_beta: bool
+    entitlements_not_found, cfg: UAConfig
 ) -> exceptions.UbuntuProError:
     """
     Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
     based on the attempted services and valid services.
     """
-    valid_services_names = valid_services(cfg=cfg, allow_beta=allow_beta)
+    valid_services_names = valid_services(cfg=cfg)
     valid_names = ", ".join(valid_services_names)
     service_msg = "\n".join(
         textwrap.wrap(

@@ -116,15 +116,7 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     def print_help(self, file=None, show_all=False):
         if self.base_desc:
-            (
-                non_beta_services_desc,
-                beta_services_desc,
-            ) = UAArgumentParser._get_service_descriptions()
-            service_descriptions = sorted(non_beta_services_desc)
-            if show_all:
-                service_descriptions = sorted(
-                    service_descriptions + beta_services_desc
-                )
+            service_descriptions = UAArgumentParser._get_service_descriptions()
             self.description = "\n".join(
                 [self.base_desc] + service_descriptions
             )
@@ -134,12 +126,11 @@ class UAArgumentParser(argparse.ArgumentParser):
         super().print_help(file=file)
 
     @staticmethod
-    def _get_service_descriptions() -> Tuple[List[str], List[str]]:
+    def _get_service_descriptions() -> List[str]:
         cfg = config.UAConfig()
 
         service_info_tmpl = " - {name}: {description}{url}"
-        non_beta_services_desc = []
-        beta_services_desc = []
+        service_descriptions = []
 
         resources = contract.get_available_resources(config.UAConfig())
         for resource in resources:
@@ -166,12 +157,9 @@ class UAArgumentParser(argparse.ArgumentParser):
                 break_long_words=False,
                 break_on_hyphens=False,
             )
-            if ent.is_beta:
-                beta_services_desc.append(service_info)
-            else:
-                non_beta_services_desc.append(service_info)
+            service_descriptions.append(service_info)
 
-        return (non_beta_services_desc, beta_services_desc)
+        return service_descriptions
 
 
 def auto_attach_parser(parser):
@@ -965,9 +953,7 @@ def action_attach(args, *, cfg, **kwargs):
                 enable_services_override, cfg
             )
             for name in found:
-                ent_ret, reason = actions.enable_entitlement_by_name(
-                    cfg, name, allow_beta=True
-                )
+                ent_ret, reason = actions.enable_entitlement_by_name(cfg, name)
                 if not ent_ret:
                     ret = 1
                     if (
@@ -986,7 +972,7 @@ def action_attach(args, *, cfg, **kwargs):
 
             if not_found:
                 error = create_enable_entitlements_not_found_error(
-                    not_found, cfg=cfg, allow_beta=True
+                    not_found, cfg=cfg
                 )
                 event.info(error.msg, file_type=sys.stderr)
                 event.error(error_msg=error.msg, error_code=error.msg_code)

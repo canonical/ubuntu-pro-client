@@ -25,9 +25,7 @@ def all_service_msg(FakeConfig):
     ALL_SERVICE_MSG = "\n".join(
         textwrap.wrap(
             "Try "
-            + ", ".join(
-                entitlements.valid_services(cfg=FakeConfig(), allow_beta=True)
-            )
+            + ", ".join(entitlements.valid_services(cfg=FakeConfig()))
             + ".",
             width=80,
             break_long_words=False,

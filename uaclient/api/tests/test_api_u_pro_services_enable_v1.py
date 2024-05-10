@@ -226,7 +226,6 @@ class TestEnable:
                     cfg=cfg,
                     name=options.service,
                     variant=options.variant or "",
-                    allow_beta=True,
                     access_only=options.access_only,
                 )
             ]

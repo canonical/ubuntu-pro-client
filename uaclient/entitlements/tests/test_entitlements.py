@@ -9,22 +9,13 @@ from uaclient.entitlements.entitlement_status import ApplicabilityStatus
 
 class TestValidServices:
     @pytest.mark.parametrize("show_all_names", ((True), (False)))
-    @pytest.mark.parametrize("allow_beta", ((True), (False)))
-    @pytest.mark.parametrize("is_beta", ((True), (False)))
-    @mock.patch("uaclient.entitlements.is_config_value_true")
     def test_valid_services(
         self,
-        m_is_config_value,
         show_all_names,
-        allow_beta,
-        is_beta,
         FakeConfig,
     ):
-        m_is_config_value.return_value = allow_beta
-
         m_cls_1 = mock.MagicMock()
         m_inst_1 = mock.MagicMock()
-        m_cls_1.is_beta = False
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
         m_inst_1.presentation_name = "ent1"
         m_inst_1.valid_names = ["ent1", "othername"]
@@ -32,7 +23,6 @@ class TestValidServices:
 
         m_cls_2 = mock.MagicMock()
         m_inst_2 = mock.MagicMock()
-        m_cls_2.is_beta = is_beta
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
         m_inst_2.presentation_name = "ent2"
         m_inst_2.valid_names = ["ent2"]
@@ -41,9 +31,7 @@ class TestValidServices:
         ents = {m_cls_1, m_cls_2}
 
         with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
-            expected_services = ["ent1"]
-            if allow_beta or not is_beta:
-                expected_services.append("ent2")
+            expected_services = ["ent1", "ent2"]
             if show_all_names:
                 expected_services.append("othername")
 

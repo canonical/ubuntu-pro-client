@@ -9,7 +9,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       This command must be run as root (try using sudo).
       """
-    Then I verify that running `pro enable realtime-kernel --beta` `with sudo` exits `1`
+    Then I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
@@ -29,7 +29,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       This command must be run as root (try using sudo).
       """
-    Then I verify that running `pro enable realtime-kernel --beta` `with sudo` exits `1`
+    Then I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first

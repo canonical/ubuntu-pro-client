@@ -191,9 +191,7 @@ def action_disable(args, *, cfg, **kwargs):
     if entitlements_not_found:
         ret = False
         valid_names = (
-            "Try "
-            + ", ".join(entitlements.valid_services(cfg=cfg, allow_beta=True))
-            + "."
+            "Try " + ", ".join(entitlements.valid_services(cfg=cfg)) + "."
         )
         service_msg = "\n".join(
             textwrap.wrap(
