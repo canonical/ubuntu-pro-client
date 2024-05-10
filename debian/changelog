@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (32) noble; urgency=medium
+ubuntu-advantage-tools (32) oracular; urgency=medium
 
   * d/postinst: ensure migrations happen in correct package postinst (GH: #2982)
   * d/apparmor: introduce new ubuntu_pro_esm_cache apparmor policy
