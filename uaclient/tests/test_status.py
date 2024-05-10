@@ -41,7 +41,7 @@ M_PATH = "uaclient.entitlements."
 def all_resources_available(FakeConfig):
     resources = [
         {"name": name, "available": True}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+        for name in valid_services(cfg=FakeConfig())
     ]
     return resources
 
@@ -295,23 +295,6 @@ def ros_desc(FakeConfig):
 @mock.patch("uaclient.files.notices.NoticesManager.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 class TestStatus:
-    def check_beta(self, cls, show_all, uacfg=None, status=""):
-        if not show_all:
-            if status == "enabled":
-                return False
-
-            if uacfg:
-                allow_beta = uacfg.cfg.get("features", {}).get(
-                    "allow_beta", False
-                )
-
-                if allow_beta:
-                    return False
-
-            return cls.is_beta
-
-        return False
-
     @pytest.mark.parametrize("show_all", (True, False))
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.get_available_resources")
@@ -367,9 +350,6 @@ class TestStatus:
             assert expected == status.status(cfg=cfg, show_all=show_all)
 
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"allow_beta": True}))
-    )
-    @pytest.mark.parametrize(
         "avail_res,entitled_res,uf_entitled,uf_status",
         (
             (  # Empty lists means UNENTITLED and UNAVAILABLE
@@ -416,7 +396,6 @@ class TestStatus:
         entitled_res,
         uf_entitled,
         uf_status,
-        features_override,
         FakeConfig,
         fake_machine_token_file,
     ):
@@ -493,8 +472,6 @@ class TestStatus:
             m_get_avail_resources.return_value = available_resource_response
 
         cfg = FakeConfig()
-        if features_override:
-            cfg.override_features(features_override)
 
         fake_machine_token_file.attached = True
         fake_machine_token_file.token = token
@@ -634,9 +611,6 @@ class TestStatus:
     @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
     @pytest.mark.parametrize("show_all", (True, False))
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"allow_beta": False}))
-    )
-    @pytest.mark.parametrize(
         "entitlements",
         (
             [],
@@ -687,7 +661,6 @@ class TestStatus:
         m_on_supported_kernel,
         all_resources_available,
         entitlements,
-        features_override,
         show_all,
         variants_in_contract,
         FakeConfig,
@@ -743,8 +716,6 @@ class TestStatus:
         fake_machine_token_file.token = token
 
         mock_notice = NoticesManager()
-        if features_override:
-            cfg.override_features(features_override)
         if not entitlements:
             support_level = UserFacingStatus.INAPPLICABLE.value
         else:
@@ -842,11 +813,6 @@ class TestStatus:
             elif show_all:
                 expected_status = UserFacingStatus.INAPPLICABLE.value
             else:
-                continue
-
-            if not show_all and self.check_beta(
-                cls, show_all, cfg, expected_status
-            ):
                 continue
 
             expected["services"].append(

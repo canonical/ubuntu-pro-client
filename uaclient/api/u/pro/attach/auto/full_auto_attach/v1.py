@@ -38,14 +38,12 @@ class FullAutoAttachResult(DataObject, AdditionalInfo):
 
 
 def _enable_services_by_name(
-    cfg: UAConfig, services: List[str], allow_beta: bool
+    cfg: UAConfig, services: List[str]
 ) -> List[Tuple[str, messages.NamedMessage]]:
     failed_services = []
     for name in order_entitlements_for_enabling(cfg, services):
         try:
-            ent_ret, reason = actions.enable_entitlement_by_name(
-                cfg, name, allow_beta=allow_beta
-            )
+            ent_ret, reason = actions.enable_entitlement_by_name(cfg, name)
         except exceptions.UbuntuProError as e:
             failed_services.append(
                 (name, messages.NamedMessage(e.msg_code or "unknown", e.msg))
@@ -117,13 +115,9 @@ def _full_auto_attach_in_lock(
 
     failed = []
     if options.enable is not None:
-        failed += _enable_services_by_name(
-            cfg, options.enable, allow_beta=False
-        )
+        failed += _enable_services_by_name(cfg, options.enable)
     if options.enable_beta is not None:
-        failed += _enable_services_by_name(
-            cfg, options.enable_beta, allow_beta=True
-        )
+        failed += _enable_services_by_name(cfg, options.enable_beta)
 
     contract_client = contract.UAContractClient(cfg)
     contract_client.update_activity_token()

@@ -44,7 +44,6 @@ _EnableOneServiceResult = NamedTuple(
 
 def _enable_landscape(
     cfg: config.UAConfig,
-    allow_beta: bool,
     access_only: bool,
     extra_args,
     progress_object: Optional[api.AbstractProgress] = None,
@@ -58,7 +57,6 @@ def _enable_landscape(
     progress = api.ProgressWrapper(progress_object)
     landscape = entitlements.LandscapeEntitlement(
         cfg,
-        allow_beta=allow_beta,
         called_name="landscape",
         access_only=access_only,
         extra_args=extra_args,
@@ -179,7 +177,6 @@ def _enable_one_service(
     cfg: config.UAConfig,
     ent_name: str,
     variant: str,
-    allow_beta: bool,
     access_only: bool,
     assume_yes: bool,
     json_output: bool,
@@ -194,7 +191,6 @@ def _enable_one_service(
         cfg,
         ent_name,
         variant=variant,
-        allow_beta=allow_beta,
         access_only=access_only,
         extra_args=extra_args,
     )
@@ -262,7 +258,6 @@ def _enable_one_service(
         if real_name == "landscape":
             enable_result = _enable_landscape(
                 cfg,
-                allow_beta,
                 access_only,
                 extra_args=extra_args,
                 progress_object=progress,
@@ -427,7 +422,6 @@ def action_enable(args, *, cfg, **kwargs) -> int:
             cfg,
             ent_name,
             variant,
-            args.beta,
             access_only,
             assume_yes,
             json_output,
@@ -449,7 +443,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
         ret = False
         failed_services += entitlements_not_found
         err = entitlements.create_enable_entitlements_not_found_error(
-            entitlements_not_found, cfg=cfg, allow_beta=args.beta
+            entitlements_not_found, cfg=cfg
         )
         interactive_only_print(err.msg)
         errors.append(

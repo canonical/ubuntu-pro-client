@@ -12,7 +12,7 @@ from uaclient.files.machine_token import MachineTokenFile
 def all_resources_available(FakeConfig):
     resources = [
         {"name": name, "available": True}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+        for name in valid_services(cfg=FakeConfig())
     ]
     return resources
 
@@ -21,7 +21,7 @@ def all_resources_available(FakeConfig):
 def all_resources_entitled(FakeConfig):
     resources = [
         {"type": name, "entitled": True}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+        for name in valid_services(cfg=FakeConfig())
     ]
     return resources
 
@@ -30,7 +30,7 @@ def all_resources_entitled(FakeConfig):
 def no_resources_entitled(FakeConfig):
     resources = [
         {"type": name, "entitled": False}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+        for name in valid_services(cfg=FakeConfig())
     ]
     return resources
 
@@ -39,7 +39,7 @@ def no_resources_entitled(FakeConfig):
 def resp_only_fips_resource_available(FakeConfig):
     resources = [
         {"name": name, "available": name == "fips"}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+        for name in valid_services(cfg=FakeConfig())
     ]
     return resources
 

@@ -136,7 +136,6 @@ Enable services with: pro enable <service>
 Technical support level: n/a
 """  # noqa: E501
 
-# Omit beta services from status
 ATTACHED_STATUS = """\
 SERVICE          ENTITLED  STATUS       DESCRIPTION
 esm-apps         no        {dash}            Expanded Security Maintenance for Applications

@@ -279,7 +279,6 @@ class TestActionEnable:
                     variant="",
                     access_only=False,
                     assume_yes=True,
-                    beta=False,
                 ),
                 {},
                 None,
@@ -304,7 +303,6 @@ class TestActionEnable:
                         "three",
                         "",
                         False,
-                        False,
                         True,
                         True,
                         None,
@@ -316,7 +314,6 @@ class TestActionEnable:
                         "two",
                         "",
                         False,
-                        False,
                         True,
                         True,
                         None,
@@ -327,7 +324,6 @@ class TestActionEnable:
                         mock.ANY,
                         "one",
                         "",
-                        False,
                         False,
                         True,
                         True,
@@ -363,7 +359,6 @@ class TestActionEnable:
                     variant="",
                     access_only=False,
                     assume_yes=True,
-                    beta=False,
                 ),
                 {},
                 None,
@@ -381,7 +376,6 @@ class TestActionEnable:
                         mock.ANY,
                         "two",
                         "",
-                        False,
                         False,
                         True,
                         True,
@@ -429,7 +423,6 @@ class TestActionEnable:
                     variant="",
                     access_only=False,
                     assume_yes=True,
-                    beta=False,
                 ),
                 {},
                 None,
@@ -453,7 +446,6 @@ class TestActionEnable:
                         "two",
                         "",
                         False,
-                        False,
                         True,
                         True,
                         None,
@@ -464,7 +456,6 @@ class TestActionEnable:
                         mock.ANY,
                         "one",
                         "",
-                        False,
                         False,
                         True,
                         True,
@@ -581,7 +572,6 @@ class TestActionEnable:
                 {
                     "ent_name": "one",
                     "variant": "",
-                    "allow_beta": False,
                     "access_only": False,
                     "assume_yes": False,
                     "json_output": False,
@@ -614,7 +604,6 @@ class TestActionEnable:
                 {
                     "ent_name": "one",
                     "variant": "",
-                    "allow_beta": False,
                     "access_only": False,
                     "assume_yes": False,
                     "json_output": False,
@@ -647,7 +636,6 @@ class TestActionEnable:
                 {
                     "ent_name": "landscape",
                     "variant": "",
-                    "allow_beta": mock.sentinel.allow_beta,
                     "access_only": mock.sentinel.access_only,
                     "assume_yes": mock.sentinel.assume_yes,
                     "json_output": False,
@@ -667,7 +655,6 @@ class TestActionEnable:
                 [
                     mock.call(
                         mock.ANY,
-                        mock.sentinel.allow_beta,
                         mock.sentinel.access_only,
                         extra_args=mock.sentinel.extra_args,
                         progress_object=mock.sentinel.cli_progress,
@@ -684,7 +671,6 @@ class TestActionEnable:
                 {
                     "ent_name": "one",
                     "variant": mock.sentinel.variant,
-                    "allow_beta": mock.sentinel.allow_beta,
                     "access_only": mock.sentinel.access_only,
                     "assume_yes": mock.sentinel.assume_yes,
                     "json_output": False,
@@ -723,7 +709,6 @@ class TestActionEnable:
                 {
                     "ent_name": "one",
                     "variant": mock.sentinel.variant,
-                    "allow_beta": mock.sentinel.allow_beta,
                     "access_only": mock.sentinel.access_only,
                     "assume_yes": mock.sentinel.assume_yes,
                     "json_output": True,
@@ -855,7 +840,6 @@ class TestActionEnable:
         with expected_raises:
             assert expected_result == _enable_landscape(
                 FakeConfig,
-                mock.sentinel.allow_beta,
                 mock.sentinel.access_only,
                 mock.sentinel.extra_args,
                 None,
@@ -863,7 +847,6 @@ class TestActionEnable:
         assert [
             mock.call(
                 mock.ANY,
-                allow_beta=mock.sentinel.allow_beta,
                 called_name="landscape",
                 access_only=mock.sentinel.access_only,
                 extra_args=mock.sentinel.extra_args,

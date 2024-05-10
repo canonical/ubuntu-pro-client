@@ -281,7 +281,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       This command must be run as root (try using sudo).
       """
-    And I verify that running `pro enable esm-apps --beta` `with sudo` exits `1`
+    And I verify that running `pro enable esm-apps` `with sudo` exits `1`
     And I will see the following on stdout:
       """
       One moment, checking your subscription first

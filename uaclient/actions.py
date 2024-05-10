@@ -83,7 +83,6 @@ def _enable_default_services(
             ent_ret, reason = enable_entitlement_by_name(
                 cfg=cfg,
                 name=enable_by_default_service.name,
-                allow_beta=True,
                 variant=enable_by_default_service.variant,
                 silent=silent,
             )
@@ -218,7 +217,6 @@ def enable_entitlement_by_name(
     cfg: config.UAConfig,
     name: str,
     *,
-    allow_beta: bool = False,
     access_only: bool = False,
     variant: str = "",
     silent: bool = False,
@@ -234,7 +232,6 @@ def enable_entitlement_by_name(
         cfg=cfg,
         name=name,
         variant=variant,
-        allow_beta=allow_beta,
         access_only=access_only,
         extra_args=extra_args,
     )
