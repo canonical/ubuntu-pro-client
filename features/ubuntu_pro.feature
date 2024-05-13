@@ -46,16 +46,16 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                         | cis_or_usg |
-      | xenial  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
-      | xenial  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
-      | xenial  | gcp.pro      | n/a      | disabled | disabled | warning     | Current kernel is not supported | cis        |
-      | bionic  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
-      | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
-      | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service     | cis        |
-      | focal   | aws.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
-      | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
-      | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service     | usg        |
+      | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                                    | cis_or_usg |
+      | xenial  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
+      | xenial  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
+      | xenial  | gcp.pro      | n/a      | disabled | disabled | warning     | Current kernel is not covered by livepatch | cis        |
+      | bionic  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
+      | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
+      | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
+      | focal   | aws.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service                | usg        |
+      | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service                | usg        |
+      | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service                | usg        |
 
   Scenario Outline: Attached refresh in an Ubuntu pro cloud machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
