@@ -27,6 +27,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   /etc/apt/** r,
   /etc/machine-id r,
   /etc/ubuntu-advantage/uaclient.conf r,
+  # GH: #3109
+  # Allow reading the os-release file (possibly a symlink to /usr/lib).
+  /{etc/,usr/lib/}os-release r,
 
   /run/ubuntu-advantage/ rw,
   /run/ubuntu-advantage/** rw,
