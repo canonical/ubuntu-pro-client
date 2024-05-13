@@ -13,11 +13,11 @@ Feature: Livepatch
     When I run `pro status` with sudo
     Then stdout matches regexp:
       """
-      livepatch +yes +Current kernel is not supported
+      livepatch +yes +Current kernel is not covered by livepatch
       """
     Then stdout contains substring:
       """
-      Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+      Kernels covered by livepatch are listed here: https://ubuntu.com/security/livepatch/docs/kernels
       """
     Then I verify that files exist matching `/run/ubuntu-advantage/livepatch-kernel-support-cache.json`
     When I apt install `linux-generic`
@@ -31,7 +31,7 @@ Feature: Livepatch
       """
     Then stdout does not contain substring:
       """
-      Supported livepatch kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+      Kernels covered by livepatch are listed here: https://ubuntu.com/security/livepatch/docs/kernels
       """
 
     Examples: ubuntu release
@@ -45,27 +45,27 @@ Feature: Livepatch
     When I run `pro status` with sudo
     Then stdout matches regexp:
       """
-      livepatch +yes +warning +Current kernel is not supported
+      livepatch +yes +warning +Current kernel is not covered by livepatch
       """
     Then stdout matches regexp:
       """
       NOTICES
-      The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
-      Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
-      Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning.
+      The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not covered by livepatch.
+      Covered kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+      Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning.
       """
     When I run `pro disable livepatch` with sudo
     When I run `pro status` with sudo
     Then stdout matches regexp:
       """
-      livepatch +yes +disabled +Current kernel is not supported
+      livepatch +yes +disabled +Current kernel is not covered by livepatch
       """
     Then stdout does not match regexp:
       """
       NOTICES
-      The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not supported by livepatch.
-      Supported kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
-      Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning.
+      The current kernel \(5.4.0-(\d+)-kvm, x86_64\) is not covered by livepatch.
+      Covered kernels are listed here: https://ubuntu.com/security/livepatch/docs/kernels
+      Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning.
       """
     When I apt install `linux-generic`
     When I apt remove `linux-image*-kvm`
@@ -105,7 +105,7 @@ Feature: Livepatch
       """
       NOTICES
       The running kernel has reached the end of its active livepatch window.
-      Please upgrade the kernel with apt and reboot for continued livepatch support.
+      Please upgrade the kernel with apt and reboot for continued livepatch coverage.
       """
     When I apt install `linux-headers-generic linux-image-generic`
     When I reboot the machine
@@ -119,7 +119,7 @@ Feature: Livepatch
       """
       NOTICES
       The running kernel has reached the end of its active livepatch window.
-      Please upgrade the kernel with apt and reboot for continued livepatch support.
+      Please upgrade the kernel with apt and reboot for continued livepatch coverage.
       """
 
     Examples: ubuntu release
@@ -131,7 +131,7 @@ Feature: Livepatch
     When I run `pro status --all` with sudo
     Then stdout matches regexp:
       """
-      livepatch +no +Current kernel is not supported
+      livepatch +no +Current kernel is not covered by livepatch
       """
     When I attach `contract_token` with sudo
     When I run `pro status --all` with sudo
