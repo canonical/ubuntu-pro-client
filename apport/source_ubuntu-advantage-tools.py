@@ -3,8 +3,9 @@ import tempfile
 
 from apport.hookutils import attach_file_if_exists
 from uaclient import defaults
-from uaclient.actions import collect_logs, APPARMOR_PROFILES
+from uaclient.actions import APPARMOR_PROFILES, collect_logs
 from uaclient.config import UAConfig
+from uaclient.files.state_files import timer_jobs_state_file
 
 
 def add_info(report, ui=None):
@@ -26,7 +27,7 @@ def add_info(report, ui=None):
             *apparmor_files,
             os.path.basename(cfg.cfg_path),
             os.path.basename(cfg.log_file),
-            os.path.basename(cfg.data_path("jobs-status")),
+            os.path.basename(timer_jobs_state_file.path),
             os.path.basename(defaults.CONFIG_DEFAULTS["log_file"]),
         }
         for f in auto_include_log_files:
