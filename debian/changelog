@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (32.1) oracular; urgency=medium
+
+  * d/apparmor: allow access for /etc/os-release on all supported
+    profiles (LP: #2065573)
+  * apport: get path for timer job status from the correct place (LP: #2065616)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 14 May 2024 11:22:35 +0200
+
 ubuntu-advantage-tools (32) oracular; urgency=medium
 
   * d/postinst: ensure migrations happen in correct package postinst (GH: #2982)
