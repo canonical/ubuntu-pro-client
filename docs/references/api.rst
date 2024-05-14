@@ -1330,6 +1330,9 @@ executing any of those steps.
              * - ``title``
                - ``str``
                - The title of the CVE
+             * - ``current_status``
+               - ``str``
+               - The current status of the CVE
              * - ``expected_status``
                - ``str``
                - The expected status of fixing the CVE
@@ -1559,6 +1562,7 @@ executing any of those steps.
                   "cves": [
                     {
                         "title": "CVE-1234-56789",
+                        "current_status": "still-affected",
                         "expected_status": "fixed",
                         "plan": [
                             {
@@ -1925,6 +1929,9 @@ executing any of those steps.
              * - ``title``
                - ``str``
                - The title of the USN
+             * - ``current_status``
+               - ``str``
+               - The current status of the USN
              * - ``expected_status``
                - ``str``
                - The expected status of fixing the USN
@@ -2153,6 +2160,7 @@ executing any of those steps.
                         "related_usns_plan": [],
                         "target_usn_plan": {
                             "title": "USN-1234-5",
+                            "current_status": "still-affected",
                             "expected_status": "fixed",
                             "plan": [
                                 {
