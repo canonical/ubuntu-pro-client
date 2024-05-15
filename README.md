@@ -6,7 +6,7 @@
   Ubuntu Pro Client
 </h1>
 
-###### Clean and Consistent CLI for your Ubuntu Pro Systems
+###### Convenient and Consistent Interface for your Ubuntu Pro Systems
 [![Latest Upstream Version](https://img.shields.io/github/v/tag/canonical/ubuntu-pro-client.svg?label=Latest%20Upstream%20Version&logo=github&logoColor=white&color=33ce57)](https://github.com/canonical/ubuntu-pro-client/tags)
 [![CI](https://github.com/canonical/ubuntu-pro-client/actions/workflows/ci-base.yaml/badge.svg?branch=main)](https://github.com/canonical/ubuntu-pro-client/actions)
 [![Documentation Status](https://readthedocs.com/projects/canonical-ubuntu-pro-client/badge/?version=latest)](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/?badge=latest)
@@ -15,7 +15,6 @@
 [![Released Bionic Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/bionic?label=Bionic&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/bionic/+source/ubuntu-advantage-tools)
 [![Released Focal Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/focal?label=Focal&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/focal/+source/ubuntu-advantage-tools)
 [![Released Jammy Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/jammy?label=Jammy&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/jammy/+source/ubuntu-advantage-tools)
-[![Released Lunar Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/lunar?label=Lunar&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/lunar/+source/ubuntu-advantage-tools)
 [![Released Mantic Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/mantic?label=Mantic&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/mantic/+source/ubuntu-advantage-tools)
 [![Released Noble Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/noble?label=Noble&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/mantic/+source/ubuntu-advantage-tools)
 
