@@ -117,13 +117,12 @@ Feature: FIPS enablement in cloud based machines
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I run `pro enable <fips-service> --assume-yes` with sudo
-    Then stdout contains substring:
+    Then stdout matches regexp:
       """
-      Updating <fips-name> package lists
-      Installing <fips-name> packages
       Updating standard Ubuntu package lists
+      Installing <fips-name> packages
       <fips-name> enabled
-      A reboot is required to complete install
+      A reboot is required to complete install.
       """
     And I verify that `<fips-service>` is enabled
     And I ensure apt update runs without errors
@@ -197,9 +196,11 @@ Feature: FIPS enablement in cloud based machines
     Then stdout contains substring:
       """
       Could not determine cloud, defaulting to generic FIPS package.
-      Updating FIPS package lists
-      Installing FIPS packages
+      """
+    And stdout contains substring:
+      """
       Updating standard Ubuntu package lists
+      Installing FIPS packages
       FIPS enabled
       A reboot is required to complete install.
       """
@@ -240,12 +241,14 @@ Feature: FIPS enablement in cloud based machines
       """
     When I attach `contract_token` with sudo
     And I run `pro enable fips --assume-yes` with sudo
-    Then stdout matches regexp:
+    Then stdout contains substring:
       """
       Could not determine cloud, defaulting to generic FIPS package.
-      Updating FIPS package lists
-      Installing FIPS packages
+      """
+    Then stdout contains substring:
+      """
       Updating standard Ubuntu package lists
+      Installing FIPS packages
       FIPS enabled
       A reboot is required to complete install.
       """
