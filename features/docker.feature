@@ -140,7 +140,7 @@ Feature: Build docker images with pro services
 
           && apt-get install -f \
 
-          && pro --debug api u.pro.attach.auto.full_auto_attach.v1 --data "{\"cloud_override\": \"$PRO_CLOUD_OVERRIDE\", \"enable\": <enable_services>}" \
+          && pro --debug api u.pro.attach.auto.full_auto_attach.v1 --data "{\"cloud_override\": \"$PRO_CLOUD_OVERRIDE\", \"enable\": [\"<enable_service>\"]}" \
 
           && apt-get install -y <test_package_name> \
 
@@ -159,7 +159,7 @@ Feature: Build docker images with pro services
       """
 
     Examples: ubuntu release
-      | release | machine_type | cloud_override | container_release | enable_services     | test_package_name | test_package_version | extra_build_args |
-      | jammy   | aws.pro      | aws            | xenial            | [ \\"esm-infra\\" ] | curl              | esm                  | --network=host   |
-      | jammy   | azure.pro    | azure          | bionic            | [ \\"fips\\" ]      | openssl           | fips                 |                  |
-      | jammy   | gcp.pro      | gce            | focal             | [ \\"esm-apps\\" ]  | hello             | esm                  |                  |
+      | release | machine_type | cloud_override | container_release | enable_service | test_package_name | test_package_version | extra_build_args |
+      | jammy   | aws.pro      | aws            | xenial            | esm-infra      | curl              | esm                  | --network=host   |
+      | jammy   | azure.pro    | azure          | bionic            | fips           | openssl           | fips                 |                  |
+      | jammy   | gcp.pro      | gce            | focal             | esm-apps       | hello             | esm                  |                  |
