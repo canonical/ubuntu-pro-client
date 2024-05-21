@@ -111,7 +111,7 @@ def systemd_memory_usage_less_than(context, release, mb_limit):
     if release != curr_release:
         logging.debug("Skipping for {}".format(curr_release))
         return
-    match = re.search(r"Memory: (.*)M", context.process.stdout.strip())
+    match = re.search(r"Memory: ([0-9.]*)M", context.process.stdout.strip())
     if match is None:
         raise AssertionError(
             "Memory usage not present in current process stdout"

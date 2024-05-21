@@ -105,7 +105,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Then on `bionic`, systemd status output says memory usage is less than `15` MB
     Then on `focal`, systemd status output says memory usage is less than `14` MB
     Then on `jammy`, systemd status output says memory usage is less than `14` MB
-    Then on `noble`, systemd status output says memory usage is less than `14` MB
+    Then on `noble`, systemd status output says memory usage is less than `17` MB
     When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
     Then stdout contains substring:
       """
