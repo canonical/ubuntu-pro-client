@@ -584,8 +584,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I attach `contract_token` with sudo
     Then stdout matches regexp:
       """
-      Installing canonical-livepatch snap
-      Canonical Livepatch enabled
+      Enabling Livepatch
+      Livepatch enabled
       """
     And I verify that `livepatch` status is `<livepatch_status>`
     When I run `canonical-livepatch status` with sudo
@@ -604,8 +604,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     When I attach `contract_token` with sudo
     Then stdout matches regexp:
       """
-      Installing canonical-livepatch snap
-      Canonical Livepatch enabled
+      Enabling Livepatch
+      Livepatch enabled
       """
     And I verify that `livepatch` status is warning
     When I run `pro api u.pro.security.status.reboot_required.v1` with sudo
