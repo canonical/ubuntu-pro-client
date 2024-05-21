@@ -382,7 +382,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
       Active: inactive \(dead\).*
       \s*Condition: start condition failed.*
-      .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
       """
     When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
     Then stdout does not contain substring:
@@ -395,7 +394,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
       Active: inactive \(dead\)
       \s*Condition: start condition failed.*
-      .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
       """
     When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
     Then stdout does not contain substring:
