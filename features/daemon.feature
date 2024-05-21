@@ -424,23 +424,15 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
       daemon starting
       """
-    Then stdout contains substring:
-      """
-      cloud-config.service is activating. waiting to check again
-      """
     Then stdout does not contain substring:
       """
-      cloud-config.service is not activating. continuing
+      daemon ending
       """
     When I wait `20` seconds
     When I run `journalctl -b -o cat -u ubuntu-advantage.service` with sudo
     Then stdout contains substring:
       """
-      cloud-config.service is not activating. continuing
-      """
-    Then stdout contains substring:
-      """
-      checking for condition files
+      daemon ending
       """
 
     Examples: version
