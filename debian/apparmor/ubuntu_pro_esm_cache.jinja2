@@ -96,7 +96,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     capability dac_read_search,
     capability dac_override,
 
-    ptrace read,
+    # GH: #3119
+    ptrace (read,trace),
 
     # in bionic, it's /bin/ps, so let's match both
     /{,usr/}bin/ps mrix,
@@ -278,9 +279,12 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     /run/systemd/** r,
 
     @{PROC}/cmdline r,
-    @{PROC}/1/cmdline r,
+    # GH: #3119
+    @{PROC}/1/* r,
     @{PROC}/@{pid}/stat r,
     @{PROC}/sys/kernel/osrelease r,
+    # GH: 3119
+    /sys/firmware/efi/efivars/** r,
   }
 
   profile ubuntu_pro_esm_cache_systemd_detect_virt flags=(attach_disconnected) {
@@ -297,6 +301,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     /run/systemd/** r,
 
     /sys/devices/virtual/** r,
+    # GH: #3119
+    /sys/firmware/efi/efivars/** r,
     @{PROC}/@{pid}/status r,
     @{PROC}/@{pid}/stat r,
     @{PROC}/1/environ r,
