@@ -22,8 +22,8 @@ Feature: FIPS enablement in lxd VMs
     And stdout contains substring:
       """
       Updating <fips-name> package lists
-      Installing <fips-name> packages
       Updating standard Ubuntu package lists
+      Installing <fips-name> packages
       <fips-name> enabled
       A reboot is required to complete install.
       """
@@ -135,8 +135,8 @@ Feature: FIPS enablement in lxd VMs
     And stdout contains substring:
       """
       Updating <fips-name> package lists
-      Installing <fips-name> packages
       Updating standard Ubuntu package lists
+      Installing <fips-name> packages
       <fips-name> enabled
       A reboot is required to complete install.
       """
@@ -237,9 +237,10 @@ Feature: FIPS enablement in lxd VMs
     When I run `pro enable fips-updates --assume-yes` with sudo
     Then stdout contains substring:
       """
+      Configuring APT access to FIPS Updates
       Updating FIPS Updates package lists
-      Installing FIPS Updates packages
       Updating standard Ubuntu package lists
+      Installing FIPS Updates packages
       FIPS Updates enabled
       A reboot is required to complete install.
       """
@@ -389,8 +390,8 @@ Feature: FIPS enablement in lxd VMs
     Then stdout contains substring:
       """
       Updating FIPS package lists
-      Installing FIPS packages
       Updating standard Ubuntu package lists
+      Installing FIPS packages
       FIPS enabled
       A reboot is required to complete install.
       """
@@ -408,8 +409,8 @@ Feature: FIPS enablement in lxd VMs
       One moment, checking your subscription first
       Disabling incompatible service: FIPS
       Updating FIPS Updates package lists
-      Installing FIPS Updates packages
       Updating standard Ubuntu package lists
+      Installing FIPS Updates packages
       FIPS Updates enabled
       A reboot is required to complete install.
       """

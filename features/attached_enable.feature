@@ -750,9 +750,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       One moment, checking your subscription first
       Disabling incompatible service: Livepatch
+      Executing `/snap/bin/canonical-livepatch disable`
+      Configuring APT access to FIPS
       Updating FIPS package lists
-      Installing FIPS packages
       Updating standard Ubuntu package lists
+      Installing FIPS packages
       FIPS enabled
       A reboot is required to complete install.
       """
@@ -789,9 +791,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
+      Configuring APT access to FIPS Updates
       Updating FIPS Updates package lists
-      Installing FIPS Updates packages
       Updating standard Ubuntu package lists
+      Installing FIPS Updates packages
       FIPS Updates enabled
       A reboot is required to complete install.
       """
