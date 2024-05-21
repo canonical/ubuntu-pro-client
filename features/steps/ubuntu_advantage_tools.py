@@ -259,7 +259,7 @@ def when_i_install_pro(context, machine_name=SUT):
         )
 
 
-APT_POLICY_IS = "the apt-cache policy of ubuntu-advantage-tools is"
+APT_POLICY_IS = "the apt-cache policy of ubuntu-pro-client is"
 
 
 @then(APT_POLICY_IS)
@@ -267,11 +267,11 @@ def then_i_apt_cache_policy_is(context):
     pass
 
 
-@when("I check the apt-cache policy of ubuntu-advantage-tools")
+@when("I check the apt-cache policy of ubuntu-pro-client")
 def when_i_check_apt_cache_policy(context):
     when_i_run_command(context, "apt-get update", "with sudo")
     when_i_run_command(
-        context, "apt-cache policy ubuntu-advantage-tools", "with sudo"
+        context, "apt-cache policy ubuntu-pro-client", "with sudo"
     )
     for step in context.scenario.steps:
         if step.name == APT_POLICY_IS:

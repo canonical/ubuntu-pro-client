@@ -3,7 +3,7 @@ Feature: Pro is expected version
   @uses.config.check_version
   Scenario Outline: Check pro version
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
+    When I run `dpkg-query --showformat='${Version}' --show ubuntu-pro-client` with sudo
     Then I will see the following on stdout
       """
       $behave_var{version}
@@ -14,10 +14,10 @@ Feature: Pro is expected version
       $behave_var{version}
       """
     # The following doesn't actually assert anything. It merely ensures that the output of
-    # apt-cache policy ubuntu-advantage-tools on the test machine is included in our test output.
+    # apt-cache policy ubuntu-pro-client on the test machine is included in our test output.
     # This is useful to manually verify the package is installed from the correct source e.g. -proposed.
-    When I check the apt-cache policy of ubuntu-advantage-tools
-    Then the apt-cache policy of ubuntu-advantage-tools is
+    When I check the apt-cache policy of ubuntu-pro-client
+    Then the apt-cache policy of ubuntu-pro-client is
       """
       THIS GETS REPLACED AT RUNTIME VIA A HACK IN steps/ubuntu_advantage_tools.py
       """
@@ -94,7 +94,7 @@ Feature: Pro is expected version
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
+    When I run `dpkg-query --showformat='${Version}' --show ubuntu-pro-client` with sudo
     Then I will see the following on stdout
       """
       $behave_var{version}
@@ -105,10 +105,10 @@ Feature: Pro is expected version
       $behave_var{version}
       """
     # The following doesn't actually assert anything. It merely ensures that the output of
-    # apt-cache policy ubuntu-advantage-tools on the test machine is included in our test output.
+    # apt-cache policy ubuntu-pro-client on the test machine is included in our test output.
     # This is useful to manually verify the package is installed from the correct source e.g. -proposed.
-    When I check the apt-cache policy of ubuntu-advantage-tools
-    Then the apt-cache policy of ubuntu-advantage-tools is
+    When I check the apt-cache policy of ubuntu-pro-client
+    Then the apt-cache policy of ubuntu-pro-client is
       """
       THIS GETS REPLACED AT RUNTIME VIA A HACK IN steps/ubuntu_advantage_tools.py
       """
