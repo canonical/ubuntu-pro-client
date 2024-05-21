@@ -722,8 +722,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     And I will see the following on stdout
       """
       One moment, checking your subscription first
-      Cannot enable Livepatch when FIPS is enabled.
-      Could not enable Livepatch.
+      Cannot enable FIPS when Livepatch is enabled.
+      Could not enable FIPS.
       """
     Then I verify that running `pro enable fips --assume-yes --format json` `with sudo` exits `1`
     And stdout is a json matching the `ua_operation` schema
@@ -799,8 +799,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then I will see the following on stdout
       """
       One moment, checking your subscription first
-      Cannot enable Livepatch when FIPS is enabled.
-      Could not enable Livepatch.
+      Cannot enable FIPS when Livepatch is enabled.
+      Could not enable FIPS.
       """
 
     Examples: ubuntu release
