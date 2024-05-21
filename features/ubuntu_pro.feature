@@ -77,7 +77,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
     And stdout matches regexp:
       """
       Active: inactive \(dead\).*
-      \s*Condition: start condition failed.*
+      \s*Condition: start condition (failed|unmet).*
       .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
       """
     When I verify that running `pro auto-attach` `with sudo` exits `2`
