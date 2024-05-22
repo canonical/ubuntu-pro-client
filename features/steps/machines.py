@@ -164,6 +164,22 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
         context.add_cleanup(cleanup_snapshot)
 
 
+def _update_distro_info_data(context, machine_name=SUT):
+    # There is a problem on Xenial where distro-info-data was incorrectly
+    # saying that Xenial was only supported until 2024. The fix was
+    # SRUed to Xenial, but now we need to guarantee that we run our tests
+    # on the latest version of that package. Additionally, we don't see
+    # a problem of always upgrading that package for every release.
+    when_i_run_command(
+        context,
+        "apt install distro-info-data -y",
+        "with sudo",
+        machine_name=machine_name,
+    )
+    # And this will kick of the ESM cache setup
+    when_i_apt_update(context, machine_name=machine_name)
+
+
 @given(
     "a `{series}` `{machine_type}` machine with ubuntu-advantage-tools installed"  # noqa: E501
 )
@@ -200,6 +216,7 @@ def given_a_sut_machine(context, series, machine_type):
                 machine_name=builder_name,
                 cleanup=False,
             )
+            _update_distro_info_data(context, machine_name=builder_name)
             when_i_install_uat(context, machine_name=builder_name)
             when_i_take_a_snapshot(
                 context,
@@ -215,24 +232,12 @@ def given_a_sut_machine(context, series, machine_type):
         )
     else:
         given_a_machine(context, series, machine_type=machine_type)
+        _update_distro_info_data(context)
         when_i_install_uat(context)
 
     logging.info(
         "--- instance ip: {}".format(context.machines[SUT].instance.ip)
     )
-
-    # There is a problem on Xenial where distro-info-data was incorrectly
-    # saying that Xenial was only supported until 2024. The fix was
-    # SRUed to Xenial, but now we need to guarantee that we run our tests
-    # on the latest version of that package. Additionally, we don't see
-    # a problem of always upgrading that package for every release.
-    when_i_run_command(
-        context,
-        "apt install distro-info-data -y",
-        "with sudo",
-    )
-    # And this will kick of the ESM cache setup
-    when_i_apt_update(context)
 
 
 @given(
