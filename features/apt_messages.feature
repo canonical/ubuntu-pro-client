@@ -666,6 +666,7 @@ Feature: APT Messages
     When I apt install `ansible`
     # Update after installing to make sure messages are there
     When I apt update
+    When I wait `30` seconds
     When I apt upgrade on a dry run
     Then stdout contains substring:
       """
