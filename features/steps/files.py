@@ -69,6 +69,12 @@ def when_i_create_file_with_content(
         )
     when_i_run_command(
         context,
+        "mkdir -p {}".format(os.path.dirname(file_path)),
+        "with sudo",
+        machine_name=machine_name,
+    )
+    when_i_run_command(
+        context,
         "cp /tmp/behave_tmpfile {}".format(file_path),
         "with sudo",
         machine_name=machine_name,
