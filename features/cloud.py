@@ -533,7 +533,7 @@ class Azure(Cloud):
         )
         inst = self.api.launch(
             image_id=image_name,
-            instance_type="Standard_A2_v2",
+            instance_type="Standard_B2s",
             user_data=user_data,
             inbound_ports=inbound_ports,
         )
