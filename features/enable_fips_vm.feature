@@ -408,6 +408,9 @@ Feature: FIPS enablement in lxd VMs
       """
       One moment, checking your subscription first
       Disabling incompatible service: FIPS
+      Removing APT access to FIPS
+      Updating package lists
+      Configuring APT access to FIPS Updates
       Updating FIPS Updates package lists
       Updating standard Ubuntu package lists
       Installing FIPS Updates packages
