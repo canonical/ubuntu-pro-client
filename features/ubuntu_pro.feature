@@ -174,21 +174,83 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | aws.pro      |
       | xenial  | azure.pro    |
       | xenial  | gcp.pro      |
-      | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |
-      | focal   | aws.pro      |
       | focal   | azure.pro    |
       | focal   | gcp.pro      |
-      | jammy   | aws.pro      |
       | jammy   | azure.pro    |
       | jammy   | gcp.pro      |
-      | noble   | aws.pro      |
       | noble   | azure.pro    |
       | noble   | gcp.pro      |
+
+  Scenario Outline: Auto-attach service works on Pro Machine on aws.pro
+    Given a `<release>` aws.pro machine with ubuntu-advantage-tools installed
+    When I run `systemctl start ua-auto-attach.service` with sudo
+    And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+      """
+      contract_url: 'https://contracts.canonical.com'
+      data_dir: /var/lib/ubuntu-advantage
+      log_level: debug
+      log_file: /var/log/ubuntu-advantage.log
+      """
+    And I reboot the machine
+    And I run `pro status --wait` with sudo
+    And I run `pro security-status --format json` with sudo
+    Then stdout matches regexp:
+      """
+      "attached": true
+      """
+    When I run `journalctl --no-pager -b -u ua-auto-attach.service` with sudo
+    Then stdout matches regexp:
+      """
+      Auto-attaching: product code found on AWS
+      """
+    Then stdout does not match regexp:
+      """
+      Skipping auto-attach. Reason: No billingProduct nor marketplaceProductCode on AWS."
+      """
+
+    Examples: ubuntu release
+      | release |
+      | xenial  |
+      | bionic  |
+      | focal   |
+      | jammy   |
+      | noble   |
+
+  Scenario Outline: Auto-attach service works on Pro Machine on aws.generic
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I install ubuntu-pro-auto-attach
+    When I reboot the machine
+    And I run `pro status --wait` with sudo
+    Then stdout matches regexp:
+      """
+      This machine is not attached to an Ubuntu Pro subscription.
+      """
+    When I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `3`
+    Then stdout matches regexp:
+      """
+      \s*Main PID: \d+ \(code=exited, status=0/SUCCESS\)
+      """
+    When I run `journalctl --no-pager -b -u ua-auto-attach.service` with sudo
+    Then stdout does not match regexp:
+      """
+      Auto-attaching: product code found on AWS
+      """
+    Then stdout matches regexp:
+      """
+      Skipping auto-attach. Reason: No billingProduct nor marketplaceProductCode on AWS."
+      """
+
+    Examples: ubuntu release
+      | release | machine_type   |
+      | xenial  | aws.generic    |
+      | bionic  | aws.generic    |
+      | focal   | aws.generic    |
+      | jammy   | aws.generic    |
+      | noble   | aws.generic    |
 
   Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:

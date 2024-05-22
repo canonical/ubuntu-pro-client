@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 
@@ -356,3 +357,154 @@ class TestUAAutoAttachAWSInstance:
         instance = UAAutoAttachAWSInstance()
         with pytest.raises(exceptions.InPlaceUpgradeNotSupportedError):
             instance.is_pro_license_present(wait_for_change=False)
+
+    def test__get_ii_doc_ok(self):
+        instance = UAAutoAttachAWSInstance()
+        instance._ip_address = "169.254.169.254"
+        headers = {"X-aws-ec2-metadata-token": "token"}
+        instance._request_imds_v2_token_headers = mock.MagicMock(
+            return_value=headers
+        )
+
+        ii_doc = {
+            "accountId": "937157663530",
+            "architecture": "x86_64",
+            "availabilityZone": "eu-south-2b",
+            "billingProducts": ["bp-66a5400f"],
+            "devpayProductCodes": None,
+            "marketplaceProductCodes": None,
+            "imageId": "ami-0691695a958575df9",
+            "instanceId": "i-09d1747b6cf64cdb9",
+            "instanceType": "t3.micro",
+            "kernelId": None,
+            "pendingTime": "2024-08-26T09:27:51Z",
+            "privateIp": "192.168.2.157",
+            "ramdiskId": None,
+            "region": "eu-south-2",
+            "version": "2017-09-30",
+        }
+        instance._get_imds_url_response = mock.MagicMock(
+            return_value=json.dumps(ii_doc)
+        )
+
+        assert ii_doc == instance._get_ii_doc()
+
+        assert [
+            mock.call(
+                "http://169.254.169.254/latest/dynamic/instance-identity"
+                "/document",
+                headers=headers,
+            ),
+        ] == instance._get_imds_url_response.call_args_list
+
+    def test__get_ii_doc_json_error(self):
+        """test behavior when json.load fails"""
+        instance = UAAutoAttachAWSInstance()
+        instance._ip_address = "169.254.169.254"
+        headers = {"X-aws-ec2-metadata-token": "token"}
+        instance._request_imds_v2_token_headers = mock.MagicMock(
+            return_value=headers
+        )
+        instance._get_imds_url_response = mock.MagicMock(
+            return_value="{invalidjson"
+        )
+        assert {} == instance._get_ii_doc()
+        assert [
+            mock.call(
+                "http://169.254.169.254/latest/dynamic/instance-identity"
+                "/document",
+                headers=headers,
+            ),
+        ] == instance._get_imds_url_response.call_args_list
+
+    @pytest.mark.parametrize(
+        "ii_doc, is_likely_pro",
+        [
+            (
+                {
+                    "accountId": "937157663530",
+                    "architecture": "x86_64",
+                    "availabilityZone": "eu-south-2b",
+                    "billingProducts": ["bp-66a5400f"],
+                    "devpayProductCodes": None,
+                    "marketplaceProductCodes": None,
+                    "imageId": "ami-0691695a958575df9",
+                    "instanceId": "i-09d1747b6cf64cdb9",
+                    "instanceType": "t3.micro",
+                    "kernelId": None,
+                    "pendingTime": "2024-08-26T09:27:51Z",
+                    "privateIp": "192.168.2.157",
+                    "ramdiskId": None,
+                    "region": "eu-south-2",
+                    "version": "2017-09-30",
+                },
+                True,
+            ),
+            (
+                {
+                    "accountId": "937157663530",
+                    "architecture": "x86_64",
+                    "availabilityZone": "eu-south-2b",
+                    "billingProducts": ["bp-66a5400f"],
+                    "devpayProductCodes": None,
+                    "marketplaceProductCodes": ["mp-66a5400f"],
+                    "imageId": "ami-0691695a958575df9",
+                    "instanceId": "i-09d1747b6cf64cdb9",
+                    "instanceType": "t3.micro",
+                    "kernelId": None,
+                    "pendingTime": "2024-08-26T09:27:51Z",
+                    "privateIp": "192.168.2.157",
+                    "ramdiskId": None,
+                    "region": "eu-south-2",
+                    "version": "2017-09-30",
+                },
+                True,
+            ),
+            (
+                {
+                    "accountId": "937157663530",
+                    "architecture": "x86_64",
+                    "availabilityZone": "eu-south-2b",
+                    "billingProducts": None,
+                    "devpayProductCodes": None,
+                    "marketplaceProductCodes": ["mp-66a5400f"],
+                    "imageId": "ami-0691695a958575df9",
+                    "instanceId": "i-09d1747b6cf64cdb9",
+                    "instanceType": "t3.micro",
+                    "kernelId": None,
+                    "pendingTime": "2024-08-26T09:27:51Z",
+                    "privateIp": "192.168.2.157",
+                    "ramdiskId": None,
+                    "region": "eu-south-2",
+                    "version": "2017-09-30",
+                },
+                True,
+            ),
+            (
+                {
+                    "billingProducts": None,
+                    "marketplaceProductCodes": ["mp-66a5400f"],
+                },
+                True,
+            ),
+            (
+                {
+                    "billingProducts": None,
+                    "marketplaceProductCodes": None,
+                },
+                False,
+            ),
+            (
+                {
+                    "billingProducts": [],
+                    "marketplaceProductCodes": [],
+                },
+                False,
+            ),
+            ({}, False),
+        ],
+    )
+    def test_is_likely_pro(self, ii_doc, is_likely_pro):
+        instance = UAAutoAttachAWSInstance()
+        instance._get_ii_doc = mock.MagicMock(return_value=ii_doc)
+        assert is_likely_pro == instance.is_likely_pro

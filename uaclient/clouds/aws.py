@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any, Dict
 
@@ -10,6 +11,7 @@ IMDS_IPV6_ADDRESS = "[fd00:ec2::254]"
 IMDS_IP_ADDRESS = (IMDS_IPV4_ADDRESS, IMDS_IPV6_ADDRESS)
 IMDS_V2_TOKEN_URL = "http://{}/latest/api/token"
 IMDS_URL = "http://{}/latest/dynamic/instance-identity/pkcs7"
+_IMDS_IID_URL = "http://{}/latest/dynamic/instance-identity/document"
 
 SYS_HYPERVISOR_PRODUCT_UUID = "/sys/hypervisor/uuid"
 DMI_PRODUCT_SERIAL = "/sys/class/dmi/id/product_serial"
@@ -26,11 +28,8 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     _api_token = None
     _ip_address = None
 
-    def _get_imds_url_response(self):
-        headers = self._request_imds_v2_token_headers()
-        response = http.readurl(
-            IMDS_URL.format(self._ip_address), headers=headers, timeout=1
-        )
+    def _get_imds_url_response(self, url: str, headers):
+        response = http.readurl(url, headers=headers, timeout=1)
         if response.code == 200:
             return response.body
         else:
@@ -43,9 +42,48 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     @property  # type: ignore
     @util.retry(exceptions.CloudMetadataError, retry_sleeps=[0.5, 1, 1])
     def identity_doc(self) -> Dict[str, Any]:
-        imds_url_response = self._get_imds_url_response()
+        headers = self._request_imds_v2_token_headers()
+        url = IMDS_URL.format(self._ip_address)
+        imds_url_response = self._get_imds_url_response(url, headers=headers)
         secret_manager.secrets.add_secret(imds_url_response)
         return {"pkcs7": imds_url_response}
+
+    @util.retry(exceptions.CloudMetadataError, retry_sleeps=[0.5, 1, 1])
+    def _get_ii_doc(self) -> Dict:
+        """
+        Get the instance identity doc associated with the current instance.
+
+        See
+        https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/retrieve-iid.html
+        for more context.
+
+        @return: Dict containing the instance identity document.
+        """
+        headers = self._request_imds_v2_token_headers()
+        url = _IMDS_IID_URL.format(self._ip_address)
+        try:
+            ii_doc = json.loads(
+                self._get_imds_url_response(url, headers=headers)
+            )
+        except json.JSONDecodeError as e:
+            LOG.debug("Error decoding instance identity document: %s", e)
+            return {}
+        return ii_doc
+
+    @property  # type: ignore
+    def is_likely_pro(self) -> bool:
+        """
+        Determines if the instance is likely Ubuntu Pro.
+
+        Criteria: if any billing-product or marketplace-product-code is
+        present, then is likely a Pro instance.
+
+        @return: Boolean indicating if the instance is likely pro or not.
+        """
+        ii_doc = self._get_ii_doc()
+        billing_products = ii_doc.get("billingProducts", None)
+        marketplace_product_codes = ii_doc.get("marketplaceProductCodes", None)
+        return bool(billing_products) or bool(marketplace_product_codes)
 
     def _request_imds_v2_token_headers(self):
         for address in IMDS_IP_ADDRESS:
