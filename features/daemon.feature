@@ -137,7 +137,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Then stdout matches regexp:
       """
       Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
+      \s*Condition: start condition (failed|unmet).*
       .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
       """
     # verify detach starts it and it starts again after reboot
