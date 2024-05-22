@@ -81,7 +81,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       inactive
       """
     # verify it stays on when configured to do so
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       { "poll_for_pro_license": true }
       """
@@ -231,7 +231,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       inactive
       """
     # verify it stays on when configured to do so
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       { "poll_for_pro_license": true }
       """
