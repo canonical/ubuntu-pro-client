@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from lib.auto_attach import check_cloudinit_userdata_for_ua_info, main
-from uaclient import messages
+from uaclient import exceptions, messages
 from uaclient.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
@@ -107,43 +107,72 @@ class TestMain:
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize(
-        "api_side_effect, log_msg",
+        "api_side_effect, log_msg, cloud_instance_factory_side_effect",
         [
             (
                 AlreadyAttachedError(account_name="test_account"),
                 "This machine is already attached to 'test_account'",
+                None,
             ),
             (
                 AutoAttachDisabledError,
                 "Skipping auto-attach. Config disable_auto_attach is set.\n",
+                None,
+            ),
+            (
+                None,
+                "Error loading the cloud: Unable to determine cloud"
+                " platform.\n",
+                exceptions.CloudFactoryNoCloudError,
+            ),
+            (
+                None,
+                "Error loading the cloud: Auto-attach image support is not"
+                " available on this image\n",
+                exceptions.CloudFactoryNonViableCloudError,
+            ),
+            (
+                None,
+                "Error loading the cloud: Auto-attach image support is not"
+                " available on cloud-test\n",
+                exceptions.NonAutoAttachImageError(cloud_type="cloud-test"),
             ),
         ],
     )
+    @mock.patch("lib.auto_attach.cloud_instance_factory")
     @mock.patch("lib.auto_attach.check_cloudinit_userdata_for_ua_info")
     @mock.patch("lib.auto_attach.full_auto_attach")
     def test_main_handles_errors(
         self,
         m_api_full_auto_attach,
         m_check_cloudinit,
+        m_cloud_instance_factory,
         m_write_file,
         m_ensure_file_absent,
         api_side_effect,
         log_msg,
+        cloud_instance_factory_side_effect,
         caplog_text,
         fake_machine_token_file,
     ):
         fake_machine_token_file.attached = True
         m_check_cloudinit.return_value = False
-        m_api_full_auto_attach.side_effect = api_side_effect
+        if api_side_effect is not None:
+            m_api_full_auto_attach.side_effect = api_side_effect
+        if cloud_instance_factory_side_effect is not None:
+            m_cloud_instance_factory.side_effect = (
+                cloud_instance_factory_side_effect
+            )
 
         main(cfg=None)
 
-        assert (
-            mock.call(
-                AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
+        if cloud_instance_factory_side_effect is None:
+            assert (
+                mock.call(
+                    AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
+                )
+                in m_write_file.call_args_list
             )
-            in m_write_file.call_args_list
-        )
         assert m_api_full_auto_attach.call_count == 1
         assert log_msg in caplog_text()
         assert (
