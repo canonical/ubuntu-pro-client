@@ -329,8 +329,8 @@ Feature: FIPS enablement in lxd VMs
     Then stdout contains substring:
       """
       Updating <fips-name> package lists
-      Installing <fips-name> packages
       Updating standard Ubuntu package lists
+      Installing <fips-name> packages
       <fips-name> enabled
       A reboot is required to complete install.
       """
