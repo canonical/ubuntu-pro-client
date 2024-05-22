@@ -103,7 +103,7 @@ Feature: Proxy configuration
     And I run `pro config unset ua_apt_https_proxy` with sudo
     And I run `pro refresh config` with sudo
     Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "ua_apt_http_proxy": "invalidurl",
@@ -205,7 +205,7 @@ Feature: Proxy configuration
       Setting Livepatch proxy
       Successfully processed your pro configuration.
       """
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "http_proxy": "",
@@ -220,7 +220,7 @@ Feature: Proxy configuration
 
       Successfully processed your pro configuration.
       """
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "http_proxy": "invalidurl",
@@ -233,7 +233,7 @@ Feature: Proxy configuration
       """
       \"invalidurl\" is not a valid url. Not setting as proxy.
       """
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "https_proxy": "https://localhost:12345"
@@ -419,7 +419,7 @@ Feature: Proxy configuration
       dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
       """
     And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "http_proxy": "http://$behave_var{machine-ip proxy}:3128",
@@ -436,7 +436,7 @@ Feature: Proxy configuration
       """
     And the machine is attached
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "ua_apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
@@ -491,7 +491,7 @@ Feature: Proxy configuration
     And I run `pro config unset ua_apt_https_proxy` with sudo
     And I run `pro refresh config` with sudo
     Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "ua_apt_http_proxy": "invalidurl",
@@ -508,7 +508,7 @@ Feature: Proxy configuration
       """
       \"http://host:port\" is not a valid url. Not setting as proxy
       """
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "ua_apt_https_proxy": "https://localhost:12345"
@@ -560,7 +560,7 @@ Feature: Proxy configuration
       dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
       """
     And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
@@ -575,7 +575,7 @@ Feature: Proxy configuration
       .*CONNECT contracts.canonical.com.*
       """
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
@@ -602,7 +602,7 @@ Feature: Proxy configuration
       """
       .*GET.*security.ubuntu.com.*
       """
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "ua_apt_https_proxy": "http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128"
@@ -731,7 +731,7 @@ Feature: Proxy configuration
     And I run `pro config unset global_apt_https_proxy` with sudo
     And I run `pro refresh config` with sudo
     Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "global_apt_http_proxy": "invalidurl",
@@ -955,7 +955,7 @@ Feature: Proxy configuration
       """
     When I run `pro config unset ua_apt_http_proxy` with sudo
     And I run `pro config unset ua_apt_https_proxy` with sudo
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128"
@@ -980,7 +980,7 @@ Feature: Proxy configuration
     And I run `pro config unset global_apt_https_proxy` with sudo
     And I run `pro config unset ua_apt_http_proxy` with sudo
     And I run `pro config unset ua_apt_https_proxy` with sudo
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "global_apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
@@ -1114,7 +1114,7 @@ Feature: Proxy configuration
     And I run `pro config unset apt_https_proxy` with sudo
     And I run `pro refresh config` with sudo
     Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I create the file `/var/lib/ubuntu-advantage/user-config.json` with the following:
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {
         "apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
