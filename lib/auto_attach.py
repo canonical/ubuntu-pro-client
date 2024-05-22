@@ -13,7 +13,7 @@ their side.
 import logging
 import sys
 
-from uaclient import http, log, messages, system
+from uaclient import exceptions, http, log, messages, system
 from uaclient.api.exceptions import (
     AlreadyAttachedError,
     AutoAttachDisabledError,
@@ -23,6 +23,8 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
+from uaclient.clouds.aws import UAAutoAttachAWSInstance
+from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
 from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE, retry_auto_attach
 from uaclient.files import state_files
@@ -69,6 +71,21 @@ def main(cfg: UAConfig):
             "to setup and configure auto-attach"
         )
         return
+
+    try:
+        cloud = cloud_instance_factory()
+    except exceptions.CloudFactoryError as e:
+        LOG.debug("Error loading the cloud: %s", e)
+    else:
+        if isinstance(cloud, UAAutoAttachAWSInstance):
+            if not cloud.is_likely_pro:
+                LOG.info(
+                    "Skipping auto-attach. Reason: No billingProduct nor"
+                    " marketplaceProductCode on AWS."
+                )
+                return
+            else:
+                LOG.info("Auto-attaching: product code found on AWS.")
 
     system.write_file(
         AUTO_ATTACH_STATUS_MOTD_FILE, messages.AUTO_ATTACH_RUNNING
