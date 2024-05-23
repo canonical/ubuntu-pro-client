@@ -205,7 +205,7 @@ def given_a_sut_machine(context, series, machine_type):
             )
             sys.exit(1)
 
-    builder_name = BUILDER_NAME_PREFIX + machine_type
+    builder_name = BUILDER_NAME_PREFIX + machine_type + "-" + series
 
     if context.pro_config.snapshot_strategy:
         if builder_name not in context.snapshots:
