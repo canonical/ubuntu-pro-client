@@ -626,6 +626,8 @@ Feature: Proxy configuration
   @slow
   Scenario Outline: Attach command when proxy is configured globally
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    # needed for route command and for https-in-https
+    When I apt install `net-tools python3-pycurl`
     Given a `focal` `lxd-container` machine named `proxy`
     When I apt install `squid` on the `proxy` machine
     And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
@@ -655,11 +657,9 @@ Feature: Proxy configuration
       """
       .*HEAD http://api.snapcraft.io.*
       """
-    # We need this for the route command
-    When I apt install `net-tools`
     # We will guarantee that the machine will only use the proxy when
     # running the pro commands
-    And I run `route del default` with sudo
+    When I run `route del default` with sudo
     And I attach `contract_token` with sudo and options `--no-auto-enable`
     And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
     Then stdout matches regexp:
@@ -748,7 +748,6 @@ Feature: Proxy configuration
       """
       \"http://host:port\" is not a valid url. Not setting as proxy
       """
-    When I apt install `python3-pycurl`
     And I verify that running `pro config set global_apt_https_proxy=https://localhost:12345` `with sudo` exits `1`
     Then stderr matches regexp:
       """
