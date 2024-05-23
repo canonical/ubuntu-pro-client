@@ -195,14 +195,14 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       # This user_data should not do anything, just guarantee that the ua-auto-attach service
       # does nothing
       """
-      ubuntu_advantage:
+      <cloud_init_key>:
         features:
           disable_auto_attach: true
       """
     When I run `cloud-init query userdata` with sudo
     Then stdout matches regexp:
       """
-      ubuntu_advantage:
+      <cloud_init_key>:
         features:
           disable_auto_attach: true
       """
@@ -240,22 +240,23 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
-      | bionic  | aws.pro      |
-      | bionic  | azure.pro    |
-      | bionic  | gcp.pro      |
-      | focal   | aws.pro      |
-      | focal   | azure.pro    |
-      | focal   | gcp.pro      |
-      | jammy   | aws.pro      |
-      | jammy   | azure.pro    |
-      | jammy   | gcp.pro      |
-      | noble   | aws.pro      |
-      | noble   | azure.pro    |
-      | noble   | gcp.pro      |
+      | release | machine_type | cloud_init_key   |
+      | xenial  | aws.pro      | ubuntu_advantage |
+      | xenial  | azure.pro    | ubuntu_advantage |
+      | xenial  | gcp.pro      | ubuntu_advantage |
+      | bionic  | aws.pro      | ubuntu_advantage |
+      | bionic  | azure.pro    | ubuntu_advantage |
+      | bionic  | gcp.pro      | ubuntu_advantage |
+      # Keep ubuntu_advantage for focal/jammy to make sure it still works there
+      | focal   | aws.pro      | ubuntu_advantage |
+      | focal   | azure.pro    | ubuntu_advantage |
+      | focal   | gcp.pro      | ubuntu_advantage |
+      | jammy   | aws.pro      | ubuntu_advantage |
+      | jammy   | azure.pro    | ubuntu_advantage |
+      | jammy   | gcp.pro      | ubuntu_advantage |
+      | noble   | aws.pro      | ubuntu_pro       |
+      | noble   | azure.pro    | ubuntu_pro       |
+      | noble   | gcp.pro      | ubuntu_pro       |
 
   Scenario Outline: Unregistered Pro machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

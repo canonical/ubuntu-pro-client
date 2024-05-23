@@ -412,6 +412,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
   @skip_local_environment @skip_prebuilt_environment @uses.config.contract_token
   Scenario Outline: daemon should wait for cloud-config.service to finish
+    # TODO: <caveat> when adding a 'noble' entry here, make sure the key is ubuntu_pro instead.
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
       """
       ubuntu_advantage: {}
