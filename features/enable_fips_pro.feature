@@ -14,13 +14,15 @@ Feature: FIPS enablement in PRO cloud based machines
     When I run `pro enable <fips-service> --assume-yes` with sudo
     Then stdout matches regexp:
       """
+      One moment, checking your subscription first
+      Configuring APT access to <fips-name>
       Updating <fips-name> package lists
-      Installing <fips-name> packages
       This will downgrade the kernel from .+ to .+\.
       Warning: Downgrading the kernel may cause hardware failures.  Please ensure the
                hardware is compatible with the new kernel version before proceeding.
 
       Updating standard Ubuntu package lists(\n.*)?
+      Installing <fips-name> packages
       <fips-name> enabled
       A reboot is required to complete install
       """
