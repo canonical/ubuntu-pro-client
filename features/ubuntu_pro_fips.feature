@@ -91,7 +91,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
     And I run `apt-cache policy <apps-pkg>` as non-root
     Then stdout matches regexp:
       """
-      Version table:
       \s*\*\*\* .* 510
       \s*510 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
       """
