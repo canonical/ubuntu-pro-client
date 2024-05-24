@@ -83,13 +83,13 @@ Feature: Enable anbox on Ubuntu
     Then I verify that `anbox-cloud` is disabled
     And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
     When I run `pro enable anbox-cloud --assume-yes` with sudo
-    Then I will see the following on stdout:
+    Then stdout contains substring:
       """
-      One moment, checking your subscription first
       Installing required snaps
       Installing required snap: amc
       Installing required snap: anbox-cloud-appliance
       Installing required snap: lxd
+      Configuring APT access to Anbox Cloud
       Updating Anbox Cloud package lists
       Anbox Cloud enabled
       To finish setting up the Anbox Cloud Appliance, run:
