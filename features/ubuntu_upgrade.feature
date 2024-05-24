@@ -63,9 +63,11 @@ Feature: Upgrade between releases when uaclient is attached
     And I run `pro enable <fips-service> --assume-yes` with sudo
     Then stdout contains substring:
       """
+      One moment, checking your subscription first
+      Configuring APT access to <fips-name>
       Updating <fips-name> package lists
-      Installing <fips-name> packages
       Updating standard Ubuntu package lists
+      Installing <fips-name> packages
       <fips-name> enabled
       A reboot is required to complete install.
       """
