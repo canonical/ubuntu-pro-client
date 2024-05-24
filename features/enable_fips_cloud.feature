@@ -281,15 +281,15 @@ Feature: FIPS enablement in cloud based machines
   Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    And I verify that running `pro enable fips-updates --assume-yes` `with sudo` exits `1`
+    And I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
     Then stdout matches regexp:
       """
-      FIPS Updates is not available for Ubuntu 22.04 LTS \(Jammy Jellyfish\)
+      FIPS is not available for Ubuntu 22.04 LTS \(Jammy Jellyfish\)
       """
     When I run `pro status --all` with sudo
     Then stdout matches regexp:
       """
-      fips-updates +yes +n/a
+      fips +yes +n/a
       """
 
     Examples: ubuntu release

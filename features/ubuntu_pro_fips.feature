@@ -225,9 +225,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
       """
       One moment, checking your subscription first
       Disabling incompatible service: FIPS
+      Removing APT access to FIPS
+      Updating package lists
+      Configuring APT access to FIPS Updates
       Updating FIPS Updates package lists
-      Installing FIPS Updates packages
       Updating standard Ubuntu package lists
+      Installing FIPS Updates packages
       FIPS Updates enabled
       A reboot is required to complete install.
       """
