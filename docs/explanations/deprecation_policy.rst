@@ -27,11 +27,8 @@ feature is invoked on a release where it has been removed, the Pro Client will
 return an error code and message describing what to do instead of using the
 removed feature.
 
-This “per-release removal” will be implemented with simple checks in the
-python, e.g. “if is_before(current_release, “24.10”): feature else: error”.
-
 Features will only be per-release-removed once a better replacement is
-available on all supported Ubuntu releases via SRU. The soonest allowed
+available on all supported Ubuntu releases via [Stable Release Update (SRU)](https://wiki.ubuntu.com/StableReleaseUpdates). The soonest allowed
 per-release-removal is the next new interim release after the replacement is
 SRU'd to all Ubuntu releases. Note that this is the soonest allowed. Adding
 additional releases that still support the feature can make it easier for
