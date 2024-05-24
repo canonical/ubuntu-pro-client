@@ -28,13 +28,14 @@ return an error code and message describing what to do instead of using the
 removed feature.
 
 Features will only be per-release-removed once a better replacement is
-available on all supported Ubuntu releases via [Stable Release Update (SRU)](https://wiki.ubuntu.com/StableReleaseUpdates). The soonest allowed
-per-release-removal is the next new interim release after the replacement is
-SRU'd to all Ubuntu releases. Note that this is the soonest allowed. Adding
-additional releases that still support the feature can make it easier for
-people and tools relying on the feature to support many releases and give them
-time to transition to the replacement feature. If the maintenance cost of a
-particular old feature is low, we will consider keeping it around longer.
+available on all supported Ubuntu releases via `Stable Release Update`_ (SRU).
+The soonest allowed per-release-removal is the next new interim release after
+the replacement is SRU'd to all Ubuntu releases. Note that this is the soonest
+allowed. Adding additional releases that still support the feature can make it
+easier for people and tools relying on the feature to support many releases
+and give them time to transition to the replacement feature. If the
+maintenance cost of a particular old feature is low, we will consider keeping
+it around longer.
 
 Deprecation warnings on releases that keep the feature
 ======================================================
@@ -63,3 +64,7 @@ Documentation
 For features that are removed per-release, we will add notices to the related
 documentation noting which Ubuntu releases they are supported on, and also
 directing the reader to the replacement.
+
+.. LINKS
+
+.. _Stable Release Update: https://wiki.ubuntu.com/StableReleaseUpdates
