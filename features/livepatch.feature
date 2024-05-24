@@ -197,7 +197,8 @@ Feature: Livepatch
                 requiredSnaps:
                   - name: core22
       """
-    When I attach `contract_token` with sudo
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
+    And I run `pro enable livepatch` with sudo
     Then stdout contains substring:
       """
       Installing snapd snap
