@@ -802,7 +802,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then I will see the following on stdout
       """
       One moment, checking your subscription first
-      Cannot enable FIPS when Livepatch is enabled.
+      Cannot enable FIPS when FIPS Updates is enabled.
       Could not enable FIPS.
       """
 
