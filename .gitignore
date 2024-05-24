@@ -53,3 +53,5 @@ docs/build/
 
 # compiled translations
 debian/po/usr
+# translations tarball for launchpad upload
+debian/po/launchpad_upload.tar.gz
