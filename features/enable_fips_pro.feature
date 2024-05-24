@@ -14,7 +14,6 @@ Feature: FIPS enablement in PRO cloud based machines
     When I run `pro enable <fips-service> --assume-yes` with sudo
     Then stdout matches regexp:
       """
-      One moment, checking your subscription first
       Configuring APT access to <fips-name>
       Updating <fips-name> package lists
       This will downgrade the kernel from .+ to .+\.
