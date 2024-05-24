@@ -273,9 +273,10 @@ Feature: FIPS enablement in lxd VMs
     When I run `pro enable <fips-service> --assume-yes` with sudo
     Then stdout contains substring:
       """
+      Configuring APT access to <fips-name>
       Updating <fips-name> package lists
-      Installing <fips-name> packages
       Updating standard Ubuntu package lists
+      Installing <fips-name> packages
       <fips-name> enabled
       A reboot is required to complete install.
       """
