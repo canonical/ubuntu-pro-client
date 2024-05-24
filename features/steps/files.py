@@ -67,12 +67,14 @@ def when_i_create_file_with_content(
         context.machines[machine_name].instance.push_file(
             tmpf_path, "/tmp/behave_tmpfile"
         )
-    when_i_run_command(
-        context,
-        "mkdir -p {}".format(os.path.dirname(file_path)),
-        "with sudo",
-        machine_name=machine_name,
-    )
+    dirname = os.path.dirname(file_path)
+    if dirname:
+        when_i_run_command(
+            context,
+            "mkdir -p {}".format(dirname),
+            "with sudo",
+            machine_name=machine_name,
+        )
     when_i_run_command(
         context,
         "cp /tmp/behave_tmpfile {}".format(file_path),
