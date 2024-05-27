@@ -181,7 +181,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
       Active: inactive \(dead\)
       """
-    When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
+    When I run `dpkg-reconfigure <pkg_name>` with sudo
     Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
     Then stdout matches regexp:
       """
@@ -196,12 +196,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type |
-      | xenial  | gcp.generic  |
-      | bionic  | gcp.generic  |
-      | focal   | gcp.generic  |
-      | jammy   | gcp.generic  |
-      | noble   | gcp.generic  |
+      | release | machine_type | pkg_name               |
+      | xenial  | gcp.generic  | ubuntu-advantage-tools |
+      | bionic  | gcp.generic  | ubuntu-advantage-tools |
+      | focal   | gcp.generic  | ubuntu-advantage-tools |
+      | jammy   | gcp.generic  | ubuntu-advantage-tools |
+      | noble   | gcp.generic  | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: daemon should run when appropriate on azure generic lts
