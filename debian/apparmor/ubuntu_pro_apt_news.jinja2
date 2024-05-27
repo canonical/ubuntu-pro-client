@@ -28,10 +28,10 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /{etc/,usr/lib/}os-release r,
 
   /usr/bin/python3.{1,}[0-9] mrix,
-{% if ubuntu_codename in ["focal"] %}
   # "import uuid" in focal triggers an uname call
-  /usr/bin/uname mrix,
-{% endif %}
+  # And also see LP: #2067319
+  /{,usr/}bin/uname mrix,
+
   /usr/lib/apt/methods/http mrix,
   /usr/lib/apt/methods/https mrix,
   /usr/lib/ubuntu-advantage/apt_news.py r,
