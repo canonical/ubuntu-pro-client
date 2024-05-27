@@ -3,16 +3,16 @@ Feature: Pro Install and Uninstall related tests
   Scenario Outline: Do not fail on postinst when cloud-id returns error
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I delete the file `/run/cloud-init/instance-data.json`
-    Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
+    Then I verify that running `dpkg-reconfigure <pkg_name>` `with sudo` exits `0`
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release | machine_type  | pkg_name               |
+      | xenial  | lxd-container | ubuntu-advantage-tools |
+      | bionic  | lxd-container | ubuntu-advantage-tools |
+      | focal   | lxd-container | ubuntu-advantage-tools |
+      | jammy   | lxd-container | ubuntu-advantage-tools |
+      | mantic  | lxd-container | ubuntu-advantage-tools |
+      | noble   | lxd-container | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: Purge package after attaching it to a machine
@@ -55,7 +55,7 @@ Feature: Pro Install and Uninstall related tests
       """
       No module named 'uaclient'
       """
-    Then I verify that running `bash -c ". env/bin/activate && dpkg-reconfigure ubuntu-advantage-tools"` `with sudo` exits `0`
+    Then I verify that running `bash -c ". env/bin/activate && dpkg-reconfigure <pkg_name>"` `with sudo` exits `0`
     # Works with python built/installed from source
     When I run `wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz` with sudo
     When I run `tar -xvf Python-3.10.0.tgz` with sudo
@@ -73,15 +73,15 @@ Feature: Pro Install and Uninstall related tests
       """
       No module named 'uaclient'
       """
-    Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
+    Then I verify that running `dpkg-reconfigure <pkg_name>` `with sudo` exits `0`
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release | machine_type  | pkg_name               |
+      | xenial  | lxd-container | ubuntu-advantage-tools |
+      | bionic  | lxd-container | ubuntu-advantage-tools |
+      | focal   | lxd-container | ubuntu-advantage-tools |
+      | jammy   | lxd-container | ubuntu-advantage-tools |
+      | noble   | lxd-container | ubuntu-pro-client      |
 
   @skip_local_environment @skip_prebuilt_environment
   Scenario Outline: Package ubuntu-advantage-tools now install
