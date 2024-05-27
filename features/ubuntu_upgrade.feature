@@ -52,7 +52,8 @@ Feature: Upgrade between releases when uaclient is attached
       | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
       | jammy   | lxd-container | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
       | mantic  | lxd-container | noble        | normal |                 | esm-infra | disabled        | esm-apps | disabled        | true           |
-      | jammy   | lxd-container | noble        | normal |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
+      # No path from Jammy to Noble until .1 is there
+      # | jammy   | lxd-container | noble        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
 
   @slow @upgrade
   Scenario Outline: Attached FIPS upgrade across LTS releases
