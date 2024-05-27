@@ -415,6 +415,13 @@ Feature: Fix execute API endpoints
                     "status": "fixed",
                     "title": "USN-6736-1",
                     "upgraded_packages": []
+                  },
+                  {
+                    "description": "klibc vulnerabilities",
+                    "errors": null,
+                    "status": "not-affected",
+                    "title": "USN-6736-2",
+                    "upgraded_packages": []
                   }
                 ],
                 "target_usn": {
@@ -479,6 +486,13 @@ Feature: Fix execute API endpoints
                     "errors": null,
                     "status": "fixed",
                     "title": "USN-6736-1",
+                    "upgraded_packages": []
+                  },
+                  {
+                    "description": "klibc vulnerabilities",
+                    "errors": null,
+                    "status": "not-affected",
+                    "title": "USN-6736-2",
                     "upgraded_packages": []
                   }
                 ],
