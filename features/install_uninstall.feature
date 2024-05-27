@@ -128,4 +128,4 @@ Feature: Pro Install and Uninstall related tests
       | focal   | lxd-container | ubuntu_advantage |
       | jammy   | lxd-container | ubuntu_advantage |
       | mantic  | lxd-container | ubuntu_advantage |
-      | noble   | lxd-container | ubuntu_advantage |
+      | noble   | lxd-container | ubuntu_pro       |
