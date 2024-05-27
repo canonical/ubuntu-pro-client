@@ -535,7 +535,9 @@ Feature: Command behaviour when unattached
     Then I will see the following on stderr
       """
       """
-    When I run shell command `pro security-status | cat` as non-root
+    # populate esm-cache
+    When I apt update
+    And I run shell command `pro security-status | cat` as non-root
     Then I will see the following on stderr
       """
       WARNING: this output is intended to be human readable, and subject to change.
