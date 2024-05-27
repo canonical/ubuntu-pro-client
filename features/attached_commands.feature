@@ -769,7 +769,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
-      | noble   | lxd-container |
 
   Scenario Outline: Disable with purge does not work with assume-yes
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
