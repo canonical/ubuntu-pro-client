@@ -113,6 +113,7 @@ Feature: Ua fix command behaviour
       - USN-5570-1
       - USN-5570-2
       - USN-6736-1
+      - USN-6736-2
 
       Fixing related USNs:
       - USN-5570-1
@@ -136,11 +137,17 @@ Feature: Ua fix command behaviour
 
       .*✔.* USN-6736-1 is resolved.
 
+      - USN-6736-2
+      No affected source packages are installed.
+
+      .*✔.* USN-6736-2 does not affect your system.
+
       Summary:
       .*✔.* USN-5573-1 \[requested\] is resolved.
       .*✔.* USN-5570-1 \[related\] does not affect your system.
       .*✔.* USN-5570-2 \[related\] is resolved.
       .*✔.* USN-6736-1 \[related\] is resolved.
+      .*✔.* USN-6736-2 \[related\] does not affect your system.
       """
     When I run `pro fix USN-5573-1` with sudo
     Then stdout matches regexp:
@@ -161,6 +168,7 @@ Feature: Ua fix command behaviour
       - USN-5570-1
       - USN-5570-2
       - USN-6736-1
+      - USN-6736-2
 
       Fixing related USNs:
       - USN-5570-1
@@ -184,11 +192,17 @@ Feature: Ua fix command behaviour
 
       .*✔.* USN-6736-1 is resolved.
 
+      - USN-6736-2
+      No affected source packages are installed.
+
+      .*✔.* USN-6736-2 does not affect your system.
+
       Summary:
       .*✔.* USN-5573-1 \[requested\] is resolved.
       .*✔.* USN-5570-1 \[related\] does not affect your system.
       .*✔.* USN-5570-2 \[related\] is resolved.
       .*✔.* USN-6736-1 \[related\] is resolved.
+      .*✔.* USN-6736-2 \[related\] does not affect your system.
       """
     When I run `pro fix USN-5573-1 --no-related` with sudo
     Then stdout matches regexp:

@@ -468,6 +468,32 @@ Feature: Fix plan API endpoints
                     ],
                     "title": "USN-6736-1",
                     "warnings": []
+                  },
+                  {
+                    "additional_data": {
+                      "associated_cves": [
+                        "CVE-2016-9841",
+                        "CVE-2022-37434",
+                        "CVE-2016-9840",
+                        "CVE-2018-25032"
+                      ],
+                      "associated_launchpad_bugs": []
+                    },
+                    "affected_packages": [],
+                    "description": "klibc vulnerabilities",
+                    "error": null,
+                    "expected_status": "not-affected",
+                    "plan": [
+                      {
+                        "data": {
+                          "status": "system-not-affected"
+                        },
+                        "operation": "no-op",
+                        "order": 1
+                      }
+                    ],
+                    "title": "USN-6736-2",
+                    "warnings": []
                   }
                 ],
                 "target_usn_plan": {
@@ -641,6 +667,32 @@ Feature: Fix plan API endpoints
                       }
                     ],
                     "title": "USN-6736-1",
+                    "warnings": []
+                  },
+                  {
+                    "additional_data": {
+                      "associated_cves": [
+                        "CVE-2016-9841",
+                        "CVE-2022-37434",
+                        "CVE-2016-9840",
+                        "CVE-2018-25032"
+                      ],
+                      "associated_launchpad_bugs": []
+                    },
+                    "affected_packages": [],
+                    "description": "klibc vulnerabilities",
+                    "error": null,
+                    "expected_status": "not-affected",
+                    "plan": [
+                      {
+                        "data": {
+                          "status": "system-not-affected"
+                        },
+                        "operation": "no-op",
+                        "order": 1
+                      }
+                    ],
+                    "title": "USN-6736-2",
                     "warnings": []
                   }
                 ],
