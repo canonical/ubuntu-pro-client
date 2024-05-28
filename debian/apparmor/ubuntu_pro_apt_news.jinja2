@@ -25,16 +25,16 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /etc/ubuntu-advantage/* r,
   # GH: #3109
   # Allow reading the os-release file (possibly a symlink to /usr/lib).
-  /{etc/,usr/lib/}os-release r,
+  /{etc/,usr/lib/,lib/}os-release r,
 
-  /usr/bin/python3.{1,}[0-9] mrix,
+  /{,usr/}bin/python3.{1,}[0-9] mrix,
   # "import uuid" in focal triggers an uname call
   # And also see LP: #2067319
   /{,usr/}bin/uname mrix,
 
-  /usr/lib/apt/methods/http mrix,
-  /usr/lib/apt/methods/https mrix,
-  /usr/lib/ubuntu-advantage/apt_news.py r,
+  /{,usr/}lib/apt/methods/http mrix,
+  /{,usr/}lib/apt/methods/https mrix,
+  /{,usr/}lib/ubuntu-advantage/apt_news.py r,
   /usr/share/dpkg/* r,
   /var/log/ubuntu-advantage.log rw,
   /var/lib/ubuntu-advantage/** r,

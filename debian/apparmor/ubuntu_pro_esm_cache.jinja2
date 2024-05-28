@@ -29,7 +29,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   /etc/ubuntu-advantage/uaclient.conf r,
   # GH: #3109
   # Allow reading the os-release file (possibly a symlink to /usr/lib).
-  /{etc/,usr/lib/}os-release r,
+  /{etc/,usr/lib/,lib/}os-release r,
 
   /run/ubuntu-advantage/ rw,
   /run/ubuntu-advantage/** rw,
@@ -37,25 +37,25 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   /run/systemd/container/ r,
   /run/systemd/container/** r,
 
-  /usr/bin/apt mrix,
-  /usr/bin/apt-cache mrix,
-  /usr/bin/ischroot mrix,
-  /usr/bin/python3.{1,}[0-9] mrix,
+  /{,usr/}bin/apt mrix,
+  /{,usr/}bin/apt-cache mrix,
+  /{,usr/}bin/ischroot mrix,
+  /{,usr/}bin/python3.{1,}[0-9] mrix,
   # LP: #2067319
   /{,usr/}bin/uname mrix,
 
-  /usr/bin/cloud-id Cx -> cloud_id,
+  /{,usr/}bin/cloud-id Cx -> cloud_id,
   # LP: #2067319
   /{,usr/}bin/ps Cx -> ps,
-  /usr/bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
-  /usr/bin/dpkg Cx -> dpkg,
-  /usr/bin/ubuntu-distro-info Cx -> ubuntu_distro_info,
-  /usr/lib/apt/methods/gpgv Cx -> apt_methods_gpgv,
-  /usr/lib/apt/methods/http Cx -> apt_methods,
-  /usr/lib/apt/methods/https Cx -> apt_methods,
-  /usr/lib/apt/methods/store Cx -> apt_methods,
+  /{,usr/}bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
+  /{,usr/}bin/dpkg Cx -> dpkg,
+  /{,usr/}bin/ubuntu-distro-info Cx -> ubuntu_distro_info,
+  /{,usr/}lib/apt/methods/gpgv Cx -> apt_methods_gpgv,
+  /{,usr/}lib/apt/methods/http Cx -> apt_methods,
+  /{,usr/}lib/apt/methods/https Cx -> apt_methods,
+  /{,usr/}lib/apt/methods/store Cx -> apt_methods,
   # when there is no status.json cached, esm-cache.service will invoke "snap status"
-  /usr/bin/snap PUx,
+  /{,usr/}bin/snap PUx,
 
   /usr/share/dpkg/** r,
   /usr/share/keyrings/* r,
@@ -135,9 +135,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     /run/cloud-init/** r,
 
-    /usr/bin/ r,
-    /usr/bin/cloud-id r,
-    /usr/bin/python3.{1,}[0-9] mrix,
+    /{,usr/}bin/ r,
+    /{,usr/}bin/cloud-id r,
+    /{,usr/}bin/python3.{1,}[0-9] mrix,
     # LP: #2067319
     /{,usr/}bin/uname mrix,
 
@@ -147,7 +147,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     # https://gitlab.com/apparmor/apparmor/-/issues/346
     # LP: #2067319
     /{,usr/}bin/systemctl Px -> ubuntu_pro_esm_cache_systemctl,
-    /usr/bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
+    /{,usr/}bin/systemd-detect-virt Px -> ubuntu_pro_esm_cache_systemd_detect_virt,
 
     /var/lib/cloud/** r,
 
@@ -176,14 +176,14 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     /etc/dpkg/** r,
 
-    /usr/bin/dpkg mr,
+    /{,usr/}bin/dpkg mr,
 
   }
 
   profile ubuntu_distro_info flags=(attach_disconnected) {
     include <abstractions/base>
 
-    /usr/bin/ubuntu-distro-info mr,
+    /{,usr/}bin/ubuntu-distro-info mr,
 
     /usr/share/distro-info/** r,
 
@@ -206,10 +206,10 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     / r,
     /etc/dpkg/** r,
 
-    /usr/lib/apt/methods/gpgv mr,
-    /usr/lib/apt/methods/http mr,
-    /usr/lib/apt/methods/https mr,
-    /usr/lib/apt/methods/store mr,
+    /{,usr/}lib/apt/methods/gpgv mr,
+    /{,usr/}lib/apt/methods/http mr,
+    /{,usr/}lib/apt/methods/https mr,
+    /{,usr/}lib/apt/methods/store mr,
 
     /usr/share/dpkg/** r,
 
@@ -238,7 +238,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     # tail, cut, sed, etc
     /{,usr/}bin/* mrix,
 
-    /usr/lib/apt/methods/gpgv mr,
+    /{,usr/}lib/apt/methods/gpgv mr,
 
     /usr/share/dpkg/** r,
     /usr/share/keyrings/* r,
@@ -300,7 +300,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 {% if ubuntu_codename in ["xenial"] %}
     ptrace trace peer=unconfined,
 {% endif %}
-    /usr/bin/systemd-detect-virt mr,
+    /{,usr/}bin/systemd-detect-virt mr,
 
     /run/systemd/** r,
 
