@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (32.3) oracular; urgency=medium
+
+  * d/apparmor: adjust the profiles to account for usr-merge consequences
+    (LP: #2067319)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 28 May 2024 14:43:12 -0300
+
 ubuntu-advantage-tools (32.2) oracular; urgency=medium
 
   * d/apparmor: adjust rules for violations found during testing (LP: #2066929)
