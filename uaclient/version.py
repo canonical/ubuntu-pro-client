@@ -15,7 +15,7 @@ from uaclient.defaults import CANDIDATE_CACHE_PATH, UAC_RUN_PATH
 from uaclient.exceptions import ProcessExecutionError
 from uaclient.system import subp
 
-__VERSION__ = "32.2"
+__VERSION__ = "32.3"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 
 
