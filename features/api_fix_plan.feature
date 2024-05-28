@@ -744,7 +744,8 @@ Feature: Fix plan API endpoints
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
+    When I apt update
+    And I run `pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-15180"]}'` as non-root
     Then stdout is a json matching the `api_response` schema
     And the json API response data matches the `cve_fix_plan` schema
     And API data field output matches regexp:
