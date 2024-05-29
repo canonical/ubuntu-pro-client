@@ -112,7 +112,6 @@ Fixing CVEs and USNs
 
    Is my system affected by this specific CVE? <howtoguides/how_to_know_if_system_affected_by_cve>
    How do I resolve a single CVE or USN? <howtoguides/how_to_resolve_given_cve>
-   How do I know if my system is affected by a list of CVEs? <howtoguides/how_to_know_if_system_affected_by_a_list_of_cves>
    Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
 
    

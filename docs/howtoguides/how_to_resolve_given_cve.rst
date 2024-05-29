@@ -3,7 +3,7 @@
 How to resolve a specific CVE or USN
 ************************************
 
-In this guide, we will introduce the ``pro fix`` command and go into more details about the different scenarios you may encounter when using ``pro fix`` to resolve CVEs/USNs.
+In this guide, we will introduce the ``pro fix`` command and show how you can use it to resolve CVEs/USNs.
 
 .. note::
 
@@ -28,18 +28,10 @@ Every ``pro fix`` output has a similar output structure. It:
 .. # The basic case is shared between Howto and Tutorial
 .. include:: ../includes/pro-fix-simple-case.txt
 
-
-Success
-=======
-
-Congratulations! You have successfully learned to resolve a CVE/USN on your system.
 There might be other cases which you might encounter when using ``pro fix`` to resolve a CVE/USN. You can learn more about these cases in the guide detailing :ref:`Common scenarios encountered when using pro fix to solve a CVE/USN <pro-fix-howto>`.
 
 Additional resources
 --------------------
-
-We have successfully encountered and resolved the main scenarios that you might
-find when you run ``pro fix`` .
 
 This is not the only scenario where you might want to use ``pro fix`` . To find out about the other situations where it can be useful, as well as which options can be used to give you greater control over the command, you can refer to the following guides: 
 
