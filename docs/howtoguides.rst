@@ -110,4 +110,5 @@ Fixing multiple CVEs
 .. toctree::
    :maxdepth: 1
 
+   How to know if a system is affected by a list of CVEs? <howtoguides/how_to_know_if_system_affected_by_a_list_of_cves>
    Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
