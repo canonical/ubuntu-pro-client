@@ -916,28 +916,33 @@ class TestRemoveRepoFromAptAuthFile:
         assert after_content == auth_file.read("rb")
 
 
-class TestGetInstalledPackages:
-    @mock.patch("uaclient.apt.system.subp", return_value=("", ""))
-    def test_correct_command_called(self, m_subp):
-        get_installed_packages_names()
-
-        expected_call = mock.call(["apt", "list", "--installed"])
-        assert [expected_call] == m_subp.call_args_list
-
-    @mock.patch(
-        "uaclient.apt.system.subp", return_value=("Listing... Done\n", "")
-    )
-    def test_empty_output_means_empty_list(self, m_subp):
-        assert [] == get_installed_packages_names()
-
+class TestGetInstalledPackagesNames:
     @pytest.mark.parametrize(
-        "apt_list_return",
-        (APT_LIST_RETURN_STRING, APT_LIST_RETURN_STRING[:-1]),
+        [
+            "cache_packages",
+            "expected_result",
+        ],
+        [
+            (
+                [
+                    mock_package("one", mock_version("1", [])),
+                    mock_package("two"),  # not installed
+                    mock_package("three", mock_version("1", [])),
+                    mock_package("four", mock_version("1", [])),
+                ],
+                ["one", "three", "four"],
+            )
+        ],
     )
-    @mock.patch("uaclient.apt.system.subp")
-    def test_lines_are_split(self, m_subp, apt_list_return):
-        m_subp.return_value = apt_list_return, ""
-        assert ["a", "b"] == get_installed_packages_names()
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    def test_get_installed_packages_names(
+        self,
+        m_apt_cache,
+        cache_packages,
+        expected_result,
+    ):
+        m_apt_cache.return_value.packages = cache_packages
+        assert expected_result == get_installed_packages_names()
 
 
 class TestRunAptCommand:
