@@ -760,16 +760,19 @@ def is_installed(pkg: str) -> bool:
 
 
 def get_installed_packages() -> List[InstalledAptPackage]:
-    out, _ = system.subp(["apt", "list", "--installed"])
-    package_list = out.splitlines()[1:]
-    return [
-        InstalledAptPackage(
-            name=entry.split("/")[0],
-            version=entry.split(" ")[1],
-            arch=entry.split(" ")[2],
-        )
-        for entry in package_list
-    ]
+    installed = []
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
+        for package in cache.packages:
+            installed_version = package.current_ver
+            if installed_version:
+                installed.append(
+                    InstalledAptPackage(
+                        name=package.name,
+                        version=installed_version.ver_str,
+                        arch=installed_version.arch,
+                    )
+                )
+    return installed
 
 
 def get_installed_packages_names() -> List[str]:
