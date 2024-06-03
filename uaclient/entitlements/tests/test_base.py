@@ -1401,6 +1401,10 @@ class TestHandleRequiredPackages:
             ),
         ],
     )
+    @mock.patch(
+        "uaclient.apt.get_system_sources_file",
+        return_value="/etc/apt/sources.list",
+    )
     @mock.patch("uaclient.apt.update_sources_list")
     @mock.patch("uaclient.apt.run_apt_install_command")
     @mock.patch("uaclient.apt.run_apt_update_command")
@@ -1409,6 +1413,7 @@ class TestHandleRequiredPackages:
         m_apt_update,
         m_apt_install,
         m_update_sources_list,
+        m_get_system_sources_file,
         required_packages_directive,
         expected_apt_update_calls,
         expected_apt_install_calls,
