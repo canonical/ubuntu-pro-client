@@ -1347,6 +1347,13 @@ Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
 version.
 """
 )
+FIPS_PACKAGES_UPGRADE_FAILURE = (
+    t.gettext(
+        "Failure occurred while upgrading packages to {service} versions."
+    )
+    + "\n"
+    + FIPS_RUN_APT_UPGRADE
+)
 
 FIPS_UPDATES_TITLE = t.gettext("FIPS Updates")
 FIPS_UPDATES_DESCRIPTION = t.gettext(

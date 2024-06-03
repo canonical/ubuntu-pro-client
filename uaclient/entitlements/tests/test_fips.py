@@ -22,17 +22,35 @@ from uaclient.entitlements.fips import (
     UBUNTU_FIPS_METAPACKAGE_DEPENDS_BIONIC,
     UBUNTU_FIPS_METAPACKAGE_DEPENDS_FOCAL,
     UBUNTU_FIPS_METAPACKAGE_DEPENDS_XENIAL,
+    FIPSCommonEntitlement,
     FIPSEntitlement,
     FIPSPreviewEntitlement,
     FIPSUpdatesEntitlement,
 )
 from uaclient.files.notices import Notice, NoticesManager
-from uaclient.testing import fakes
+from uaclient.testing import helpers
 
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
 FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
+
+
+class ConcreteFIPSCommonEntitlement(FIPSCommonEntitlement):
+    title = "TEST COMMON FIPS ENTITLEMENT"
+    description = "TEST COMMON FIPS ENTITLEMENT"
+
+    @property
+    def conditional_packages(self):
+        return self._conditional_packages
+
+    @conditional_packages.setter
+    def conditional_packages(self, value):
+        self._conditional_packages = value
+
+    @conditional_packages.deleter
+    def conditional_packages(self):
+        pass
 
 
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
@@ -233,7 +251,12 @@ class TestFIPSEntitlementDefaults:
         }
 
         if entitlement.name in expected_msging:
-            assert expected_msging[entitlement.name] == entitlement.messaging
+            with mock.patch.object(
+                entitlement, "auto_upgrade_all_on_enable", return_value=False
+            ):
+                assert (
+                    expected_msging[entitlement.name] == entitlement.messaging
+                )
         else:
             assert False, "Unknown entitlement {}".format(entitlement.name)
 
@@ -826,77 +849,318 @@ class TestFIPSEntitlementApplicationStatus:
 
 
 class TestFipsEntitlementInstallPackages:
-    @mock.patch(M_PATH + "apt.run_apt_command")
-    def test_install_packages_fail_if_metapackage_not_installed(
-        self, m_run_apt, entitlement
-    ):
-        m_run_apt.side_effect = fakes.FakeUbuntuProError()
-        with mock.patch.object(entitlement, "remove_apt_config"):
-            with pytest.raises(exceptions.UbuntuProError):
-                entitlement.install_packages(mock.MagicMock())
-
-    @mock.patch(M_PATH + "apt.get_installed_packages_names")
-    @mock.patch(M_PATH + "apt.run_apt_install_command")
-    def test_install_packages_dont_fail_if_conditional_pkgs_not_installed(
+    @pytest.mark.parametrize(
+        [
+            "mandatory_packages",
+            "auto_upgrade_all_on_enable",
+            "check_for_reboot_result",
+            "expected_super_install_packages_calls",
+            "expected_install_all_available_upgrades_calls",
+            "expected_hardcoded_install_conditional_packages_calls",
+            "expected_notices_add_calls",
+        ],
+        [
+            # no mandatory packages, hardcoded upgrades, no reboot
+            (
+                [],
+                False,
+                False,
+                [],
+                [],
+                [mock.call(mock.ANY)],
+                [],
+            ),
+            # mandatory packages, hardcoded upgrades, no reboot
+            (
+                ["ubuntu-fips"],
+                False,
+                False,
+                [mock.call(mock.ANY, package_list=["ubuntu-fips"])],
+                [],
+                [mock.call(mock.ANY)],
+                [],
+            ),
+            # mandatory packages, auto upgrades, no reboot
+            (
+                ["ubuntu-fips"],
+                True,
+                False,
+                [mock.call(mock.ANY, package_list=["ubuntu-fips"])],
+                [mock.call(mock.ANY)],
+                [],
+                [],
+            ),
+            # mandatory packages, auto upgrades, reboot
+            (
+                ["ubuntu-fips"],
+                True,
+                True,
+                [mock.call(mock.ANY, package_list=["ubuntu-fips"])],
+                [mock.call(mock.ANY)],
+                [],
+                [mock.call(mock.ANY)],
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "notices.add")
+    @mock.patch(M_PATH + "FIPSCommonEntitlement._check_for_reboot")
+    @mock.patch(
+        M_PATH + "FIPSCommonEntitlement.hardcoded_install_conditional_packages"
+    )
+    @mock.patch(
+        M_PATH + "FIPSCommonEntitlement.install_all_available_fips_upgrades"
+    )
+    @mock.patch(M_PATH + "FIPSCommonEntitlement.auto_upgrade_all_on_enable")
+    @mock.patch(M_PATH + "repo.RepoEntitlement.install_packages")
+    @mock.patch(
+        M_PATH + "FIPSCommonEntitlement.packages",
+        new_callable=mock.PropertyMock,
+    )
+    def test_install_packages(
         self,
-        m_run_apt_install,
-        m_installed_pkgs,
-        fips_entitlement_factory,
-        event,
+        m_packages,
+        m_install_packages,
+        m_auto_upgrade_all_on_enable,
+        m_install_all_available_fips_upgrades,
+        m_hardcoded_install_conditional_packages,
+        m_check_for_reboot,
+        m_notices_add,
+        mandatory_packages,
+        auto_upgrade_all_on_enable,
+        check_for_reboot_result,
+        expected_super_install_packages_calls,
+        expected_install_all_available_upgrades_calls,
+        expected_hardcoded_install_conditional_packages_calls,
+        expected_notices_add_calls,
+        FakeConfig,
     ):
-        conditional_pkgs = ["b", "c"]
-        m_installed_pkgs.return_value = conditional_pkgs
-        packages = ["a"]
-        entitlement = fips_entitlement_factory(additional_packages=packages)
+        m_packages.return_value = mandatory_packages
+        m_auto_upgrade_all_on_enable.return_value = auto_upgrade_all_on_enable
+        m_check_for_reboot.return_value = check_for_reboot_result
 
-        m_run_apt_install.side_effect = [
-            True,
-            fakes.FakeUbuntuProError(),
-            fakes.FakeUbuntuProError(),
-        ]
+        ConcreteFIPSCommonEntitlement(FakeConfig()).install_packages(
+            mock.MagicMock()
+        )
 
-        progress_mock = mock.MagicMock()
-        with mock.patch.object(
-            type(entitlement), "conditional_packages", conditional_pkgs
-        ):
-            entitlement.install_packages(progress_mock)
+        assert (
+            expected_super_install_packages_calls
+            == m_install_packages.call_args_list
+        )
+        assert (
+            expected_install_all_available_upgrades_calls
+            == m_install_all_available_fips_upgrades.call_args_list
+        )
+        assert (
+            expected_hardcoded_install_conditional_packages_calls
+            == m_hardcoded_install_conditional_packages.call_args_list
+        )
+        assert expected_notices_add_calls == m_notices_add.call_args_list
 
-        install_cmds = []
-        all_pkgs = packages + conditional_pkgs
-        for pkg in all_pkgs:
-            install_cmds.append(
-                mock.call(
-                    packages=[pkg],
-                    apt_options=[
-                        "--allow-downgrades",
-                        '-o Dpkg::Options::="--force-confdef"',
-                        '-o Dpkg::Options::="--force-confold"',
-                    ],
-                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
-                )
-            )
-
-        assert [
-            mock.call("message_operation", mock.ANY),
-            mock.call("info", "Updating standard Ubuntu package lists"),
-            mock.call(
-                "info",
-                messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
-                    service=entitlement.title, pkg="b"
-                ),
+    @pytest.mark.parametrize(
+        [
+            "to_upgrade",
+            "get_pkg_candidate_version_side_effect",
+            "expected_run_apt_install_command_calls",
+        ],
+        [
+            # no packages to upgrade
+            (
+                [],
+                None,
+                [],
             ),
-            mock.call(
-                "info",
-                messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
-                    service=entitlement.title, pkg="c"
-                ),
+            # some packages to upgrade, no -hmacs
+            (
+                [
+                    helpers.mock_with_name_attr(name="one"),
+                    helpers.mock_with_name_attr(name="two"),
+                    helpers.mock_with_name_attr(name="three"),
+                ],
+                [None, None, None],
+                [
+                    mock.call(
+                        packages=["one", "three", "two"],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    )
+                ],
             ),
-        ] == progress_mock.emit.call_args_list
-        assert [
-            mock.call("Installing {} packages".format(entitlement.title)),
-        ] == progress_mock.progress.call_args_list
+            # some packages to upgrade, some -hmacs
+            (
+                [
+                    helpers.mock_with_name_attr(name="one"),
+                    helpers.mock_with_name_attr(name="two"),
+                    helpers.mock_with_name_attr(name="three"),
+                ],
+                ["one-hmac", None, "three-hmac"],
+                [
+                    mock.call(
+                        packages=[
+                            "one",
+                            "one-hmac",
+                            "three",
+                            "three-hmac",
+                            "two",
+                        ],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    )
+                ],
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "apt.run_apt_install_command")
+    @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
+    @mock.patch(
+        M_PATH
+        + "apt.get_installed_packages_with_uninstalled_candidate_in_origin"
+    )
+    def test_install_all_available_fips_upgrades(
+        self,
+        m_get_upgrades,
+        m_get_pkg_candidate_version,
+        m_run_apt_install_command,
+        to_upgrade,
+        get_pkg_candidate_version_side_effect,
+        expected_run_apt_install_command_calls,
+        FakeConfig,
+    ):
+        m_get_upgrades.return_value = to_upgrade
+        m_get_pkg_candidate_version.side_effect = (
+            get_pkg_candidate_version_side_effect
+        )
+        ConcreteFIPSCommonEntitlement(
+            FakeConfig()
+        ).install_all_available_fips_upgrades(mock.MagicMock())
+        assert (
+            expected_run_apt_install_command_calls
+            == m_run_apt_install_command.call_args_list
+        )
 
-        assert install_cmds == m_run_apt_install.call_args_list
+    @pytest.mark.parametrize(
+        [
+            "feature_flag",
+            "series",
+            "expected_result",
+        ],
+        [
+            (
+                False,
+                "xenial",
+                False,
+            ),
+            (
+                False,
+                "bionic",
+                False,
+            ),
+            (
+                False,
+                "focal",
+                False,
+            ),
+            (
+                False,
+                "jammy",
+                False,
+            ),
+            (
+                False,
+                "noble",
+                True,
+            ),
+            (
+                True,
+                "xenial",
+                True,
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "system.get_release_info")
+    @mock.patch(M_PATH + "util.is_config_value_true")
+    def test_auto_upgrade_all_on_enable(
+        self,
+        m_is_config_value_true,
+        m_get_release_info,
+        feature_flag,
+        series,
+        expected_result,
+        FakeConfig,
+    ):
+        m_is_config_value_true.return_value = feature_flag
+        m_get_release_info.return_value = mock.MagicMock(series=series)
+        assert (
+            expected_result
+            == ConcreteFIPSCommonEntitlement(
+                FakeConfig()
+            ).auto_upgrade_all_on_enable()
+        )
+
+    @pytest.mark.parametrize(
+        [
+            "installed_packages_names",
+            "conditional_packages",
+            "expected_run_apt_install_command_calls",
+        ],
+        [
+            (
+                ["one", "two", "three"],
+                [],
+                [],
+            ),
+            (
+                ["one", "two", "three"],
+                ["one"],
+                [
+                    mock.call(
+                        packages=["one"],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    ),
+                ],
+            ),
+            (
+                ["one", "two", "three"],
+                ["one", "one-hmac", "three"],
+                [
+                    mock.call(
+                        packages=["one"],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    ),
+                    mock.call(
+                        packages=["one-hmac"],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    ),
+                    mock.call(
+                        packages=["three"],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    ),
+                ],
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "apt.run_apt_install_command")
+    @mock.patch(M_PATH + "apt.get_installed_packages_names")
+    def test_hardcoded_install_conditional_packages(
+        self,
+        m_get_installed_packages_names,
+        m_run_apt_install_command,
+        installed_packages_names,
+        conditional_packages,
+        expected_run_apt_install_command_calls,
+        FakeConfig,
+    ):
+        m_get_installed_packages_names.return_value = installed_packages_names
+        ent = ConcreteFIPSCommonEntitlement(FakeConfig())
+        ent.conditional_packages = conditional_packages
+        ent.hardcoded_install_conditional_packages(mock.MagicMock())
+        assert (
+            expected_run_apt_install_command_calls
+            == m_run_apt_install_command.call_args_list
+        )
 
 
 class TestFipsSetupAPTConfig:

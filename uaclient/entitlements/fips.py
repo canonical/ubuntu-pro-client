@@ -211,34 +211,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             )
         return True
 
-    def install_packages(
-        self,
-        progress: api.ProgressWrapper,
-        package_list: Optional[List[str]] = None,
-        cleanup_on_failure: bool = True,
-    ) -> None:
-        """Install contract recommended packages for the entitlement.
-
-        :param package_list: Optional package list to use instead of
-            self.packages.
-        :param cleanup_on_failure: Cleanup apt files if apt install fails.
-        """
-        # We need to guarantee that the metapackage is installed.
-        # While the other packages should still be installed, if they
-        # fail, we should not block the enable operation.
-        mandatory_packages = self.packages
-        if mandatory_packages:
-            super().install_packages(
-                progress,
-                package_list=mandatory_packages,
-            )
-        else:
-            # then this won't get printed by install_packages, so do it here
-            # instead
-            progress.progress(
-                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
-            )
-
+    def hardcoded_install_conditional_packages(
+        self, progress: api.ProgressWrapper
+    ):
         # Any conditional packages should still be installed, but if
         # they fail to install we should not block the enable operation.
         desired_packages = []  # type: List[str]
@@ -270,6 +245,91 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                         service=self.title, pkg=pkg
                     ),
                 )
+
+    def auto_upgrade_all_on_enable(self) -> bool:
+        install_all_updates_override = util.is_config_value_true(
+            config=self.cfg.cfg, path_to_value="features.fips_auto_upgrade_all"
+        )
+        # noble onward automatically uses new auto-upgrade logic
+        hardcoded_release = system.get_release_info().series in {
+            "xenial",
+            "bionic",
+            "focal",
+            "jammy",
+        }
+        return install_all_updates_override or not hardcoded_release
+
+    def install_all_available_fips_upgrades(
+        self, progress: api.ProgressWrapper
+    ):
+        to_upgrade = [
+            package.name
+            for package in apt.get_installed_packages_with_uninstalled_candidate_in_origin(  # noqa: E501
+                self.origin
+            )
+        ]
+
+        hmac_packages = []
+        for package_name in to_upgrade:
+            hmac_package = package_name + "-hmac"
+            if apt.get_pkg_candidate_version(hmac_package):
+                hmac_packages.append(hmac_package)
+
+        to_upgrade.extend(hmac_packages)
+        to_upgrade.sort()
+        if len(to_upgrade) > 0:
+            try:
+                progress.emit(
+                    "info",
+                    messages.INSTALLING_PACKAGES.format(
+                        packages=" ".join(to_upgrade)
+                    ),
+                )
+                apt.run_apt_install_command(
+                    packages=to_upgrade,
+                    override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
+                    apt_options=[
+                        "--allow-downgrades",
+                        '-o Dpkg::Options::="--force-confdef"',
+                        '-o Dpkg::Options::="--force-confold"',
+                    ],
+                )
+            except exceptions.UbuntuProError:
+                progress.emit("info", messages.FIPS_PACKAGES_UPGRADE_FAILURE)
+
+    def install_packages(
+        self,
+        progress: api.ProgressWrapper,
+        package_list: Optional[List[str]] = None,
+        cleanup_on_failure: bool = True,
+    ) -> None:
+        """Install contract recommended packages for the entitlement.
+
+        :param package_list: Optional package list to use instead of
+            self.packages.
+        :param cleanup_on_failure: Cleanup apt files if apt install fails.
+        """
+        # We need to guarantee that the metapackage is installed.
+        # While the other packages should still be installed, if they
+        # fail, we should not block the enable operation.
+        mandatory_packages = self.packages
+        if mandatory_packages:
+            super().install_packages(
+                progress,
+                package_list=mandatory_packages,
+            )
+        else:
+            # then this won't get printed by install_packages, so do it here
+            # instead
+            progress.progress(
+                messages.INSTALLING_SERVICE_PACKAGES.format(title=self.title)
+            )
+
+        if self.auto_upgrade_all_on_enable():
+            self.install_all_available_fips_upgrades(progress)
+        else:
+            self.hardcoded_install_conditional_packages(progress)
+
         if self._check_for_reboot():
             notices.add(
                 Notice.FIPS_SYSTEM_REBOOT_REQUIRED,
@@ -523,7 +583,8 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                     title=self.title
                 )
             )
-            post_enable = [messages.FIPS_RUN_APT_UPGRADE]
+            if not self.auto_upgrade_all_on_enable():
+                post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
             pre_enable_prompt = self.pre_enable_msg
 
@@ -604,7 +665,8 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                     title=self.title
                 )
             )
-            post_enable = [messages.FIPS_RUN_APT_UPGRADE]
+            if not self.auto_upgrade_all_on_enable():
+                post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
             pre_enable_prompt = messages.PROMPT_FIPS_UPDATES_PRE_ENABLE
 

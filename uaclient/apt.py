@@ -465,6 +465,29 @@ def get_installed_packages_by_origin(origin: str) -> List[apt_pkg.Package]:
     return list(result)
 
 
+def get_installed_packages_with_uninstalled_candidate_in_origin(
+    origin: Optional[str],
+) -> List[apt_pkg.Package]:
+    if origin is None:
+        return []
+
+    # Avoiding duplicate entries, which may happen due to version being in
+    # multiple pockets or supporting multiple architectures.
+    result = set()
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
+        dep_cache = apt_pkg.DepCache(cache)
+        for package in cache.packages:
+            installed_version = package.current_ver
+            if installed_version:
+                candidate = dep_cache.get_candidate_ver(package)
+                if candidate and candidate != installed_version:
+                    for file, _ in candidate.file_list:
+                        if file.origin == origin:
+                            result.add(package)
+
+    return list(result)
+
+
 def get_remote_versions_for_package(
     package: apt_pkg.Package, exclude_origin: Optional[str] = None
 ) -> List[apt_pkg.Version]:
