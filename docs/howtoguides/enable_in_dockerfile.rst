@@ -17,13 +17,13 @@ check the version you are running with the following command:
 
 .. code-block:: bash
 
-    $ pro version
+    pro version
 
 If you're on a version lower than 27.7, you can update it by running: 
 
 .. code-block:: bash
 
-    $ sudo apt update && sudo apt upgrade -y
+    sudo apt update && sudo apt install ubuntu-advantage-tools
 
 Create an Ubuntu Pro Attach Config file
 =======================================

@@ -1,53 +1,58 @@
 .. _get_token_and_attach:
 
-How to get an Ubuntu Pro token and attach to a subscription
-***********************************************************
+How to attach a machine to your Ubuntu Pro subscription
+*******************************************************
 
-Get an Ubuntu Pro token
-=======================
-
-Retrieve your Ubuntu Pro token from the `Ubuntu Pro portal <Pro_>`_. Log in
-with your "Single Sign On" credentials, the same credentials you use for
-https://login.ubuntu.com.
-
-After you have logged in you can go to the
-`Ubuntu Pro Dashboard <Pro_dashboard_>`_ associated with your user account. It
-will show you all subscriptions currently available to you and for each
-associated token.
-
-Note that even without buying anything you can always obtain a free personal
-token that way, which provides you with access to several of the Ubuntu Pro
-services.
-
-Attach to a subscription
-========================
-
-Once you have obtained your token, run the following command to attach your
-machine to a subscription:
+To attach your machine to a subscription, run the following command in your
+terminal:
 
 .. code-block:: bash
 
-    $ sudo pro attach YOUR_TOKEN
+    $ sudo pro attach
 
-You should see output like this, which indicates that you have successfully
-associated this machine with your account:
+You should see output like this, giving you a link and a code:
 
-.. code-block:: text
+.. code-block:: bash
 
+    ubuntu@test:~$ sudo pro attach
+    Initiating attach operation...
+
+    Please sign in to your Ubuntu Pro account at this link:
+    https://ubuntu.com/pro/attach
+    And provide the following code: H31JIV
+
+Open the link without closing your terminal window. 
+
+In the field that asks you to enter your code, copy and paste the code shown
+in the terminal. Then, choose which subscription you want to attach to. 
+By default, the Free Personal Token will be selected.
+
+If you have a paid subscription and want to attach to a different token, you
+may want to log in first so that your additional tokens will appear. 
+
+Once you have pasted your code and chosen the subscription you want to attach
+your machine to, click on the "Submit" button.
+
+The attach process will then continue in the terminal window, and you should
+eventually be presented with the following message:
+
+.. code-block:: bash 
+
+    Attaching the machine...
+    Enabling default service esm-apps
+    Updating Ubuntu Pro: ESM Apps package lists
+    Ubuntu Pro: ESM Apps enabled
     Enabling default service esm-infra
-    Updating package lists
-    ESM Infra enabled
-    This machine is now attached to 'Ubuntu Pro'
+    Updating Ubuntu Pro: ESM Infra package lists
+    Ubuntu Pro: ESM Infra enabled
+    Enabling default service livepatch
+    Installing snapd snap
+    Installing canonical-livepatch snap
+    Canonical Livepatch enabled
+    This machine is now attached to 'Ubuntu Pro - free personal subscription'
 
-    SERVICE       ENTITLED  STATUS    DESCRIPTION
-    esm-apps      yes       enabled   Expanded Security Maintenance for Applications
-    esm-infra     yes       enabled   Expanded Security Maintenance for Infrastructure
-    livepatch     yes       enabled   Canonical Livepatch service
-
-    NOTICES
-    Operation in progress: pro attach
-
-    Enable services with: pro enable <service>
+When the machine has successfully been attached, you will also see a summary of
+which services are enabled and information about your subscription.
 
 Once the Ubuntu Pro Client is attached to your Ubuntu Pro account, you can use
 it to activate various services, including: access to ESM packages, Livepatch,
@@ -78,7 +83,12 @@ the ``--no-auto-enable`` flag to ``attach`` in the following way:
 
 .. code-block:: bash
 
-    $ sudo pro attach YOUR_TOKEN --no-auto-enable
+    $ sudo pro attach --no-auto-enable
+
+.. note::
+   
+   If you want to control which services are enabled during attach, you can
+   :ref:`attach with a configuration file <attach-with-config>` instead.
 
 .. LINKS
 

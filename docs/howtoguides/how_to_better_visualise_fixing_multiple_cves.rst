@@ -4,7 +4,7 @@ How to better visualise the result when fixing multiple CVEs
 *************************************************************
 
 To fix multiple CVEs, you need to use the `u.pro.security.fix.cve.execute.v1` endpoint,
-as the CLI `pro fix` command doesn't support multiple CVEs. However, as can be seen :ref:`in the endpoint documentation <cve-execute-api-v1>`,
+as the CLI `pro fix` command doesn't support multiple CVEs. However, as can be seen :ref:`in the endpoint documentation<cve-execute-api-v1>`,
 this command will output a JSON blob containing the results of the fix operation for each CVE.
 
 This doesn't allow for a quick visualisation of the fix status of each requested CVE.

@@ -2270,7 +2270,7 @@ This endpoint informs if the system should be rebooted or not. Possible outputs
 are:
 
 #. ``yes``: The system should be rebooted.
-#. ``no``: There is no need to reboot the system.
+#. ``no``: There is no known need to reboot the system.
 #. ``yes-kernel-livepatches-applied``: There are Livepatch patches applied to 
    the current kernel, but a reboot is required for an update to take place.
    This reboot can wait until the next maintenance window.
