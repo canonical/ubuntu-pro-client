@@ -83,3 +83,12 @@ APPARMOR_PROFILES = [
     "/etc/apparmor.d/ubuntu_pro_apt_news",
     "/etc/apparmor.d/ubuntu_pro_esm_cache",
 ]
+
+CODENAME_TO_RELEASE = {
+    "xenial": "16.04",
+    "bionic": "18.04",
+    "focal": "20.04",
+    "jammy": "22.04",
+    "mantic": "23.10",
+    "noble": "24.04",
+}

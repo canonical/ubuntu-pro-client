@@ -302,6 +302,10 @@ And provide the following code: {bold}{{user_code}}{end_bold}"""
 )
 CLI_MAGIC_ATTACH_PROCESSING = t.gettext("Attaching the machine...")
 
+LIMITED_TO_RELEASE = t.gettext(
+    "Limited to release: Ubuntu {release_codename} {release}"
+)
+
 # DETACH
 DETACH_WILL_DISABLE = P(
     lambda n: t.ngettext(
@@ -1587,6 +1591,14 @@ ANBOX_FAIL_TO_ENABLE_ON_CONTAINER = NamedMessage(
     """\
 It is only possible to enable Anbox Cloud on a container using
 the --access-only flag.""",
+)
+
+ATTACH_FAILURE_RESTRICTED_RELEASE = FormattedNamedMessage(
+    "attach-failure-restricted-release",
+    t.gettext(
+        "Attach failed. Attaching to this contract \
+is only allowed on the Ubuntu {release_codename} {release} release."
+    ),
 )
 
 UNEXPECTED_ERROR = FormattedNamedMessage(
