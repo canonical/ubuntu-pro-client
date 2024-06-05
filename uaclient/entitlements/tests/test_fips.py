@@ -985,28 +985,6 @@ class TestFipsEntitlementInstallPackages:
                     )
                 ],
             ),
-            # some packages to upgrade, some -hmacs
-            (
-                [
-                    helpers.mock_with_name_attr(name="one"),
-                    helpers.mock_with_name_attr(name="two"),
-                    helpers.mock_with_name_attr(name="three"),
-                ],
-                ["one-hmac", None, "three-hmac"],
-                [
-                    mock.call(
-                        packages=[
-                            "one",
-                            "one-hmac",
-                            "three",
-                            "three-hmac",
-                            "two",
-                        ],
-                        override_env_vars=mock.ANY,
-                        apt_options=mock.ANY,
-                    )
-                ],
-            ),
         ],
     )
     @mock.patch(M_PATH + "apt.run_apt_install_command")

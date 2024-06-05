@@ -249,13 +249,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             )
         ]
 
-        hmac_packages = []
-        for package_name in to_upgrade:
-            hmac_package = package_name + "-hmac"
-            if apt.get_pkg_candidate_version(hmac_package):
-                hmac_packages.append(hmac_package)
-
-        to_upgrade.extend(hmac_packages)
         to_upgrade.sort()
         if len(to_upgrade) > 0:
             try:
