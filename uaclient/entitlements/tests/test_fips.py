@@ -1062,7 +1062,7 @@ class TestFipsEntitlementInstallPackages:
             (
                 False,
                 "jammy",
-                False,
+                True,
             ),
             (
                 False,
