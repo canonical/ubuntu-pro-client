@@ -19,7 +19,7 @@ You will then see the following output:
 .. code-block:: text
 
     CVE-2020-25686: Dnsmasq vulnerabilities
-    https://ubuntu.com/security/CVE-2020-25686
+     - https://ubuntu.com/security/CVE-2020-25686
 
     1 affected package is installed: dnsmasq
     (1/1) dnsmasq:
@@ -48,7 +48,7 @@ run the ``pro fix`` command again, and we should now see the following:
 .. code-block:: text
 
     CVE-2020-25686: Dnsmasq vulnerabilities
-    https://ubuntu.com/security/CVE-2020-25686
+     - https://ubuntu.com/security/CVE-2020-25686
 
     1 affected package is installed: dnsmasq
     (1/1) dnsmasq:

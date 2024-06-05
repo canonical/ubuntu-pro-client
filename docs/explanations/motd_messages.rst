@@ -218,9 +218,23 @@ Source: MOTD about available updates
    ``/var/lib/update-notifier/updates-available`` exists and if it does,
    inserts the message into the full MOTD.
 
-If you want to disable any message of ``update-notifier`` (not just related to
-Ubuntu Pro and ESM) about potentially available updates, remove
-``/etc/update-motd.d/90-updates-available``.
+If you want to remove the messages about Ubuntu Pro and ESM from the MOTD
+output, but still want to keep the messages about the regular and security
+updates, create a file named ``/var/lib/update-notifier/hide-esm-in-motd``.
+There is no need for any content in the file - its existence is enough to
+tell update-notifier, and the Pro Client, to suppress the messages.
+
+Keep in mind that the change in the MOTD message may take some time - if you
+want to remove the ESM related messages immediately, create the file and run
+the script which generates the messages using ``--force``:
+
+.. code-block:: bash
+
+    $ sudo /usr/lib/update-notifier/update-motd-updates-available --force
+
+If you want to disable all messages from update-notifier (not just related to
+Ubuntu Pro and ESM) about potentially available updates, just remove the
+``/etc/update-motd.d/90-updates-available`` file.
 
 Source: MOTD about important subscription conditions
 ====================================================
