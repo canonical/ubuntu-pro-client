@@ -110,6 +110,12 @@ class Notice(NoticeFileDetails, Enum):
         is_permanent=True,
         message=messages.AUTO_ATTACH_RETRY_TOTAL_FAILURE_NOTICE,
     )
+    LIMITED_TO_RELEASE = NoticeFileDetails(
+        label="limited_to_release",
+        order_id="80",
+        is_permanent=True,
+        message=messages.LIMITED_TO_RELEASE,
+    )
 
 
 class NoticesManager:

@@ -398,6 +398,10 @@ class AttachFailureUnknownError(EntitlementsNotEnabledError):
     _msg = messages.E_ATTACH_FAILURE_UNEXPECTED
 
 
+class AttachFailureRestrictedRelease(UbuntuProError):
+    _formatted_msg = messages.ATTACH_FAILURE_RESTRICTED_RELEASE
+
+
 class RepoNoAptKey(UbuntuProError):
     _formatted_msg = messages.E_REPO_NO_APT_KEY
 

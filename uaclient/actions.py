@@ -25,10 +25,11 @@ from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.defaults import (
     APPARMOR_PROFILES,
     CLOUD_BUILD_INFO,
+    CODENAME_TO_RELEASE,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
-from uaclient.files import machine_token
+from uaclient.files import machine_token, notices
 from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
@@ -160,6 +161,28 @@ def attach_with_token(
     )
 
     machine_token_file.write(new_machine_token)
+
+    current_series = system.get_release_info().series
+    only_series = (
+        machine_token_file.entitlements()
+        .get("support", {})
+        .get("entitlement")
+        .get("affordances", {})
+        .get("onlySeries", None)
+    )
+    if only_series:
+        allowed_release = CODENAME_TO_RELEASE.get(only_series, "")
+        if only_series != current_series:
+            machine_token_file.delete()
+            raise exceptions.AttachFailureRestrictedRelease(
+                release_codename=only_series,
+                release=allowed_release,
+            )
+        notices.add(
+            notices.Notice.LIMITED_TO_RELEASE,
+            release_codename=only_series,
+            release=allowed_release,
+        )
 
     try:
         check_entitlement_apt_directives_are_unique(cfg)
