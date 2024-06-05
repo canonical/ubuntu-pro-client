@@ -258,6 +258,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                         packages=" ".join(to_upgrade)
                     ),
                 )
+                self.unhold_packages(to_upgrade)
                 apt.run_apt_install_command(
                     packages=to_upgrade,
                     override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
@@ -460,14 +461,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return False
 
-    def setup_apt_config(self, progress: api.ProgressWrapper) -> None:
-        """Setup apt config based on the resourceToken and directives.
-
-        FIPS-specifically handle apt-mark unhold
-
-        :raise UbuntuProError: on failure to setup any aspect of this apt
-           configuration
-        """
+    def unhold_packages(self, package_names):
         cmd = ["apt-mark", "showholds"]
         holds = apt.run_apt_command(
             cmd,
@@ -475,7 +469,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         )
         unholds = []
         for hold in holds.splitlines():
-            if hold in self.fips_pro_package_holds:
+            if hold in package_names:
                 unholds.append(hold)
         if unholds:
             unhold_cmd = ["apt-mark", "unhold"] + unholds
@@ -485,6 +479,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     command=" ".join(unhold_cmd)
                 ),
             )
+
+    def setup_apt_config(self, progress: api.ProgressWrapper) -> None:
+        """Setup apt config based on the resourceToken and directives.
+
+        FIPS-specifically handle apt-mark unhold
+
+        :raise UbuntuProError: on failure to setup any aspect of this apt
+           configuration
+        """
+        self.unhold_packages(self.fips_pro_package_holds)
         super().setup_apt_config(progress)
 
 

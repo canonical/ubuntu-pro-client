@@ -960,6 +960,7 @@ class TestFipsEntitlementInstallPackages:
         [
             "to_upgrade",
             "get_pkg_candidate_version_side_effect",
+            "expected_unhold_calls",
             "expected_run_apt_install_command_calls",
         ],
         [
@@ -967,6 +968,7 @@ class TestFipsEntitlementInstallPackages:
             (
                 [],
                 None,
+                [],
                 [],
             ),
             # some packages to upgrade, no -hmacs
@@ -979,6 +981,11 @@ class TestFipsEntitlementInstallPackages:
                 [None, None, None],
                 [
                     mock.call(
+                        ["one", "three", "two"],
+                    )
+                ],
+                [
+                    mock.call(
                         packages=["one", "three", "two"],
                         override_env_vars=mock.ANY,
                         apt_options=mock.ANY,
@@ -988,6 +995,7 @@ class TestFipsEntitlementInstallPackages:
         ],
     )
     @mock.patch(M_PATH + "apt.run_apt_install_command")
+    @mock.patch(M_PATH + "FIPSCommonEntitlement.unhold_packages")
     @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
     @mock.patch(
         M_PATH
@@ -997,9 +1005,11 @@ class TestFipsEntitlementInstallPackages:
         self,
         m_get_upgrades,
         m_get_pkg_candidate_version,
+        m_unhold_packages,
         m_run_apt_install_command,
         to_upgrade,
         get_pkg_candidate_version_side_effect,
+        expected_unhold_calls,
         expected_run_apt_install_command_calls,
         FakeConfig,
     ):
@@ -1010,6 +1020,7 @@ class TestFipsEntitlementInstallPackages:
         ConcreteFIPSCommonEntitlement(
             FakeConfig()
         ).install_all_available_fips_upgrades(mock.MagicMock())
+        assert expected_unhold_calls == m_unhold_packages.call_args_list
         assert (
             expected_run_apt_install_command_calls
             == m_run_apt_install_command.call_args_list
