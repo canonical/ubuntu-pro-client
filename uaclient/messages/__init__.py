@@ -341,6 +341,11 @@ ENABLE_REBOOT_REQUIRED_TMPL = t.gettext(
 A reboot is required to complete {operation}."""
 )
 CONFIGURING_APT_ACCESS = t.gettext("Configuring APT access to {service}")
+AUTO_SELECTING_VARIANT = t.gettext(
+    """\
+No variant specified. To specify a variant, use the variant option.
+Auto-selecting {variant} variant. Proceed? (y/N) """
+)
 
 # DISABLE
 REMOVING_APT_CONFIGURATION = t.gettext("Removing APT access to {title}")
