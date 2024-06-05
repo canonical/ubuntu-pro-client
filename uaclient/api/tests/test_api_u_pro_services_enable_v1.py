@@ -1,10 +1,12 @@
 import mock
 import pytest
 
+from uaclient import entitlements
 from uaclient.api import exceptions
 from uaclient.api.u.pro.services.enable.v1 import (
     EnableOptions,
     EnableResult,
+    _auto_select_variant,
     _enable,
 )
 from uaclient.testing.helpers import does_not_raise
@@ -174,6 +176,7 @@ class TestEnable:
     @mock.patch(M_PATH + "status.status")
     @mock.patch(M_PATH + "lock.clear_lock_file_if_present")
     @mock.patch(M_PATH + "lock.RetryLock")
+    @mock.patch(M_PATH + "_auto_select_variant", return_value=None)
     @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "_enabled_services_names")
     @mock.patch(M_PATH + "_is_attached")
@@ -184,6 +187,7 @@ class TestEnable:
         m_is_attached,
         m_enabled_services_names,
         m_entitlement_factory,
+        m_auto_select_variant,
         m_spin_lock,
         m_clear_lock_file_if_present,
         m_status,
@@ -230,3 +234,205 @@ class TestEnable:
                 )
             ]
             assert m_ent.enable.call_args_list == [mock.call(mock.ANY)]
+
+    @pytest.mark.parametrize(
+        [
+            "original_is_variant",
+            "original_variants",
+            "auto_select_variant_return_value",
+            "expected_original_enable_calls",
+            "expected_variant_enable_calls",
+        ],
+        [
+            # not a variant and no variants
+            (
+                False,
+                {},
+                None,
+                [mock.call(mock.ANY)],
+                [],
+            ),
+            # is already a variant and therefore no variants
+            (
+                True,
+                {},
+                None,
+                [mock.call(mock.ANY)],
+                [],
+            ),
+            # variants but nothing returned for some reason
+            (
+                False,
+                {"variant": mock.MagicMock()},
+                None,
+                [mock.call(mock.ANY)],
+                [],
+            ),
+            # variant returned
+            (
+                False,
+                {"variant": mock.MagicMock()},
+                mock.MagicMock(),
+                [],
+                [mock.call(mock.ANY)],
+            ),
+        ],
+    )
+    @mock.patch(M_PATH + "status.status")
+    @mock.patch(M_PATH + "lock.clear_lock_file_if_present")
+    @mock.patch(M_PATH + "lock.RetryLock")
+    @mock.patch(
+        M_PATH + "_auto_select_variant",
+    )
+    @mock.patch(M_PATH + "entitlements.entitlement_factory")
+    @mock.patch(M_PATH + "_enabled_services_names")
+    @mock.patch(M_PATH + "_is_attached")
+    @mock.patch(M_PATH + "util.we_are_currently_root")
+    def test_enable_auto_selects_variant(
+        self,
+        m_we_are_currently_root,
+        m_is_attached,
+        m_enabled_services_names,
+        m_entitlement_factory,
+        m_auto_select_variant,
+        m_spin_lock,
+        m_clear_lock_file_if_present,
+        m_status,
+        original_is_variant,
+        original_variants,
+        auto_select_variant_return_value,
+        expected_original_enable_calls,
+        expected_variant_enable_calls,
+        FakeConfig,
+    ):
+        m_ent = m_entitlement_factory.return_value
+        m_ent.enable.return_value = (True, None)
+        m_ent.is_variant = original_is_variant
+        m_ent.variants = original_variants
+        if auto_select_variant_return_value is not None:
+            auto_select_variant_return_value.enable.return_value = (True, None)
+            m_auto_select_variant.return_value = (
+                auto_select_variant_return_value
+            )
+        else:
+            m_auto_select_variant.return_value = m_ent
+
+        _enable(
+            mock.MagicMock(), FakeConfig(), progress_object=mock.MagicMock()
+        )
+
+        assert expected_original_enable_calls == m_ent.enable.call_args_list
+        if auto_select_variant_return_value is not None:
+            assert (
+                expected_variant_enable_calls
+                == auto_select_variant_return_value.enable.call_args_list
+            )
+
+
+class TestAutoSelectVariant:
+    @pytest.mark.parametrize(
+        [
+            "variant_applicability_statuses",
+            "variant_auto_selects",
+            "default_variant",
+            "expected_result",
+        ],
+        [
+            # no variants
+            (
+                [],
+                [],
+                None,
+                "original",
+            ),
+            # one variant, not applicable
+            (
+                [entitlements.ApplicabilityStatus.INAPPLICABLE],
+                [False],
+                None,
+                "original",
+            ),
+            # one variant, applicable, but not autoselected
+            (
+                [entitlements.ApplicabilityStatus.APPLICABLE],
+                [False],
+                None,
+                "original",
+            ),
+            # one variant, applicable, but not autoselected, with default
+            (
+                [entitlements.ApplicabilityStatus.APPLICABLE],
+                [False],
+                mock.MagicMock(),
+                "default",
+            ),
+            # two variants, applicable, one autoselected, with default
+            (
+                [
+                    entitlements.ApplicabilityStatus.APPLICABLE,
+                    entitlements.ApplicabilityStatus.APPLICABLE,
+                ],
+                [False, True],
+                mock.MagicMock(),
+                1,
+            ),
+            # three variants, applicable, one autoselected, with default
+            (
+                [
+                    entitlements.ApplicabilityStatus.INAPPLICABLE,
+                    entitlements.ApplicabilityStatus.APPLICABLE,
+                    entitlements.ApplicabilityStatus.APPLICABLE,
+                ],
+                [False, False, True],
+                mock.MagicMock(),
+                2,
+            ),
+            # three variants, applicable, two autoselected, takes first one
+            (
+                [
+                    entitlements.ApplicabilityStatus.INAPPLICABLE,
+                    entitlements.ApplicabilityStatus.APPLICABLE,
+                    entitlements.ApplicabilityStatus.APPLICABLE,
+                ],
+                [False, True, True],
+                mock.MagicMock(),
+                1,
+            ),
+        ],
+    )
+    def test_auto_select_variant(
+        self,
+        variant_applicability_statuses,
+        variant_auto_selects,
+        default_variant,
+        expected_result,
+        FakeConfig,
+    ):
+        original = mock.MagicMock(name="original")
+        original.default_variant = default_variant
+        variants = []
+        for i in range(len(variant_auto_selects)):
+            v = mock.MagicMock(name="variant" + str(i))
+            v.return_value.applicability_status.return_value = (
+                variant_applicability_statuses[i],
+                None,
+            )
+            v.return_value.variant_auto_select.return_value = (
+                variant_auto_selects[i]
+            )
+            variants.append(v)
+
+        if expected_result == "original":
+            expected = original
+        elif expected_result == "default":
+            expected = default_variant.return_value
+        else:
+            expected = variants[expected_result].return_value
+
+        assert expected == _auto_select_variant(
+            FakeConfig(),
+            mock.MagicMock(),
+            original,
+            variants,
+            False,
+        )

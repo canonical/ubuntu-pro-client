@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import apt, event_logger, messages, system, util
@@ -10,6 +11,7 @@ from uaclient.types import (  # noqa: F401
 )
 
 event = event_logger.get_event_logger()
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class RealtimeKernelEntitlement(repo.RepoEntitlement):
@@ -40,6 +42,10 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
             RaspberryPiRealtime.variant_name: RaspberryPiRealtime,
             IntelIotgRealtime.variant_name: IntelIotgRealtime,
         }
+
+    @property
+    def default_variant(self):
+        return GenericRealtime
 
     @property
     def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
@@ -154,6 +160,15 @@ class RaspberryPiRealtime(RealtimeVariant):
     description = messages.REALTIME_RASPI_DESCRIPTION
     is_variant = True
     check_packages_are_installed = True
+
+    def variant_auto_select(self) -> bool:
+        proc_file_path = "/proc/device-tree/model"
+        try:
+            model = system.load_file(proc_file_path).strip().lower()
+            return "raspberry pi 4" in model or "raspberry pi 5" in model
+        except Exception as e:
+            LOG.info("Error while detecting if raspberry pi: %r", e)
+            return False
 
 
 class IntelIotgRealtime(RealtimeVariant):

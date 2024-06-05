@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Iterable, List, Optional, Type
 
 from uaclient import entitlements, lock, messages, status, util
 from uaclient.api import AbstractProgress, ProgressWrapper, exceptions
@@ -60,6 +60,46 @@ class EnableResult(DataObject, AdditionalInfo):
         self.messages = messages
 
 
+def _auto_select_variant(
+    cfg: UAConfig,
+    progress: ProgressWrapper,
+    entitlement: entitlements.UAEntitlement,
+    available_variants: Iterable[Type[entitlements.UAEntitlement]],
+    access_only: bool,
+) -> entitlements.UAEntitlement:
+    variant = None
+    for v_cls in available_variants:
+        v = v_cls(cfg=cfg, access_only=access_only)
+        if (
+            v.applicability_status()[0]
+            == entitlements.ApplicabilityStatus.APPLICABLE
+            and v.variant_auto_select()
+        ):
+            variant = v
+            break
+    if variant is None and entitlement.default_variant is not None:
+        variant = entitlement.default_variant(cfg=cfg, access_only=access_only)
+    if variant is not None:
+        progress.emit(
+            "message_operation",
+            [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": messages.AUTO_SELECTING_VARIANT.format(
+                            variant=messages.TxtColor.BOLD
+                            + variant.variant_name
+                            + messages.TxtColor.ENDC
+                        ),
+                    },
+                )
+            ],
+        )
+        return variant
+    else:
+        return entitlement
+
+
 def _enabled_services_names(cfg: UAConfig) -> List[str]:
     return [s.name for s in _enabled_services(cfg).enabled_services]
 
@@ -102,6 +142,16 @@ def _enable(
         variant=options.variant or "",
         access_only=options.access_only,
     )
+
+    available_variants = entitlement.variants
+    if not entitlement.is_variant and available_variants:
+        entitlement = _auto_select_variant(
+            cfg=cfg,
+            progress=progress,
+            entitlement=entitlement,
+            available_variants=available_variants.values(),
+            access_only=options.access_only,
+        )
 
     progress.total_steps = entitlement.calculate_total_enable_steps()
 

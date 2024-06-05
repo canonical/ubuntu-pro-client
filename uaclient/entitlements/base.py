@@ -262,6 +262,27 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return variant
         return None
 
+    def variant_auto_select(self) -> bool:
+        """
+        Only implemented on variant classes.
+        Returns True if this variant should be auto-selected.
+        """
+        return False
+
+    @property
+    def default_variant(self):
+        """
+        Cannot actually set the return type because
+        https://github.com/python/typing/issues/266
+        affects xenial.
+
+        :rtype: Optional[Type["UAEntitlement"]]
+        """
+        variants = list(self.variants.values())
+        if variants:
+            return variants[0]
+        return None
+
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
