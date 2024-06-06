@@ -21,7 +21,7 @@ import yaml
 
 from uaclient.system import get_dpkg_arch
 
-SUT = "system-under-test"
+SUT = "sut"  # system under test
 BUILDER_NAME_PREFIX = "builder-"
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
