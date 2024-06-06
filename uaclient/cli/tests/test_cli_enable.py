@@ -621,6 +621,7 @@ class TestActionEnable:
                         [],
                         [],
                         called_name="one",
+                        variant="",
                         service_title=mock.sentinel.ent_title,
                     )
                 ],
