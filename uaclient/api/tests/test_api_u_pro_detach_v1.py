@@ -45,28 +45,29 @@ class TestDetachV1:
         m_timer_stop,
         _m_lock_enter,
         mock_entitlement,
+        fake_machine_token_file,
     ):
         m_is_attached.return_value = mock.MagicMock(is_attached=True)
         m_reboot_required.return_value = mock.MagicMock(reboot_required="yes")
 
-        m_ent1_cls, _ = mock_entitlement(
+        _, m_ent1_obj = mock_entitlement(
             name="ent1",
             disable=(True, None),
             can_disable=(True, None),
         )
 
-        m_ent2_cls, _ = mock_entitlement(
+        _, m_ent2_obj = mock_entitlement(
             name="ent2",
             disable=(True, None),
             can_disable=(True, None),
         )
 
-        m_ent3_cls, _ = mock_entitlement(
+        _, m_ent3_obj = mock_entitlement(
             name="ent3",
             can_disable=(False, None),
         )
 
-        m_ent4_cls, _ = mock_entitlement(
+        _, m_ent4_obj = mock_entitlement(
             name="ent4",
             can_disable=(True, None),
             disable=(
@@ -80,7 +81,7 @@ class TestDetachV1:
             ),
         )
 
-        m_ent5_cls, _ = mock_entitlement(
+        _, m_ent5_obj = mock_entitlement(
             name="ent5",
             can_disable=(True, None),
             disable=(
@@ -91,15 +92,15 @@ class TestDetachV1:
 
         def ent_factory_side_effect(cfg, name):
             if name == "ent1":
-                return m_ent1_cls
+                return m_ent1_obj
             elif name == "ent2":
-                return m_ent2_cls
+                return m_ent2_obj
             elif name == "ent3":
-                return m_ent3_cls
+                return m_ent3_obj
             elif name == "ent4":
-                return m_ent4_cls
+                return m_ent4_obj
             else:
-                return m_ent5_cls
+                return m_ent5_obj
 
         with mock.patch.object(
             entitlements,
@@ -142,4 +143,4 @@ class TestDetachV1:
         assert 1 == m_daemon_start.call_count
         assert 1 == m_timer_stop.call_count
         assert 1 == m_delete_state_files.call_count
-        assert 1 == m_machine_token.delete.call_count
+        assert 1 == fake_machine_token_file.delete_calls

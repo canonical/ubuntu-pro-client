@@ -4,6 +4,7 @@ import socket
 from collections import namedtuple
 from typing import Any, Dict, List, Optional, Tuple
 
+import uaclient.files.machine_token as mtf
 from uaclient import (
     clouds,
     event_logger,
@@ -64,6 +65,13 @@ EnableByDefaultService = namedtuple(
 
 class UAContractClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = "contract_url"
+
+    def __init__(
+        self,
+        cfg: Optional[UAConfig] = None,
+    ) -> None:
+        super().__init__(cfg=cfg)
+        self.machine_token_file = mtf.get_machine_token_file()
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def add_contract_machine(
@@ -219,8 +227,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         This will report to the contracts backend all the current
         enabled services in the system.
         """
-        contract_id = self.cfg.machine_token_file.contract_id
-        machine_token = self.cfg.machine_token.get("machineToken")
+        contract_id = self.machine_token_file.contract_id
+        machine_token = self.machine_token_file.machine_token.get(
+            "machineToken"
+        )
         machine_id = system.get_machine_id(self.cfg)
 
         request_data = self._get_activity_info()
@@ -241,7 +251,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         # a full `activityInfo` object which belongs at the root of
         # `machine-token.json`
         if response.json_dict:
-            machine_token = self.cfg.machine_token
+            machine_token = self.machine_token_file.machine_token
             # The activity information received as a response here
             # will not provide the information inside an activityInfo
             # structure. However, this structure will be reflected when
@@ -249,7 +259,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             # Because of that, we will store the response directly on
             # the activityInfo key
             machine_token["activityInfo"] = response.json_dict
-            self.cfg.machine_token_file.write(machine_token)
+            self.machine_token_file.write(machine_token)
 
     def get_magic_attach_token_info(self, magic_token: str) -> Dict[str, Any]:
         """Request magic attach token info.
@@ -425,9 +435,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             enabled_services = _enabled_services(self.cfg).enabled_services
             attachment_data = attachment_data_file.read()
             activity_info = {
-                "activityID": self.cfg.machine_token_file.activity_id
+                "activityID": self.machine_token_file.activity_id
                 or system.get_machine_id(self.cfg),
-                "activityToken": self.cfg.machine_token_file.activity_token,
+                "activityToken": self.machine_token_file.activity_token,
                 "resources": [service.name for service in enabled_services],
                 "resourceVariants": {
                     service.name: service.variant_name
@@ -612,14 +622,17 @@ def process_entitlement_delta(
             .get("use_selector", "")
         )
         try:
-            ent_cls = entitlement_factory(cfg=cfg, name=name, variant=variant)
+            entitlement = entitlement_factory(
+                cfg=cfg,
+                name=name,
+                variant=variant,
+            )
         except exceptions.EntitlementNotFoundError as exc:
             LOG.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
             raise exc
 
-        entitlement = ent_cls(cfg=cfg, assume_yes=allow_enable)
         ret = entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
@@ -655,26 +668,25 @@ def _raise_attach_forbidden_message(
     raise exceptions.AttachExpiredToken()
 
 
-def refresh(cfg):
+def refresh(cfg: UAConfig):
     """Request contract refresh from ua-contracts service.
-
-    :param cfg: Instance of UAConfig for this machine.
 
     :raise UbuntuProError: on failure to update contract or error processing
         contract deltas
     :raise ConnectivityError: On failure during a connection
     """
-    orig_entitlements = cfg.machine_token_file.entitlements
-    orig_token = cfg.machine_token
+    machine_token_file = mtf.get_machine_token_file(cfg)
+    orig_entitlements = machine_token_file.entitlements()
+    orig_token = machine_token_file.machine_token
     machine_token = orig_token["machineToken"]
     contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
 
-    contract_client = UAContractClient(cfg)
+    contract_client = UAContractClient(cfg=cfg)
     resp = contract_client.update_contract_machine(
         machine_token=machine_token, contract_id=contract_id
     )
 
-    cfg.machine_token_file.write(resp)
+    machine_token_file.write(resp)
     system.get_machine_id.cache_clear()
     machine_id = resp.get("machineTokenInfo", {}).get(
         "machineId", system.get_machine_id(cfg)
@@ -684,7 +696,7 @@ def refresh(cfg):
     process_entitlements_delta(
         cfg,
         orig_entitlements,
-        cfg.machine_token_file.entitlements,
+        machine_token_file.entitlements(),
         allow_enable=False,
     )
 
@@ -702,9 +714,12 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
     return client.get_contract_using_token(token)
 
 
-def is_contract_changed(cfg: UAConfig) -> bool:
-    orig_token = cfg.machine_token
-    orig_entitlements = cfg.machine_token_file.entitlements
+def is_contract_changed(
+    cfg: UAConfig,
+) -> bool:
+    contract_client = UAContractClient(cfg)
+    orig_token = contract_client.machine_token_file.machine_token
+    orig_entitlements = contract_client.machine_token_file.entitlements()
     machine_token = orig_token.get("machineToken", "")
     contract_id = (
         orig_token.get("machineTokenInfo", {})
@@ -714,7 +729,6 @@ def is_contract_changed(cfg: UAConfig) -> bool:
     if not contract_id:
         return False
 
-    contract_client = UAContractClient(cfg)
     resp = contract_client.get_contract_machine(machine_token, contract_id)
     resp_expiry = (
         resp.get("machineTokenInfo", {})
@@ -724,12 +738,17 @@ def is_contract_changed(cfg: UAConfig) -> bool:
     new_expiry = (
         resp_expiry
         if resp_expiry
-        else cfg.machine_token_file.contract_expiry_datetime
+        else contract_client.machine_token_file.contract_expiry_datetime
     )
-    if cfg.machine_token_file.contract_expiry_datetime != new_expiry:
+    if (
+        contract_client.machine_token_file.contract_expiry_datetime
+        != new_expiry
+    ):
         return True
-    curr_entitlements = cfg.machine_token_file.get_entitlements_from_token(
-        resp
+    curr_entitlements = (
+        contract_client.machine_token_file.get_entitlements_from_token(  # noqa
+            resp
+        )
     )
     for name, new_entitlement in sorted(curr_entitlements.items()):
         deltas = util.get_dict_deltas(
@@ -841,13 +860,10 @@ def get_enabled_by_default_services(
         variant = ent_value.get("obligations", {}).get("use_selector", "")
 
         try:
-            ent_cls = entitlement_factory(
-                cfg=cfg, name=ent_name, variant=variant
-            )
+            ent = entitlement_factory(cfg=cfg, name=ent_name, variant=variant)
         except exceptions.EntitlementNotFoundError:
             continue
 
-        ent = ent_cls(cfg)
         obligations = ent_value.get("entitlement", {}).get("obligations", {})
         resourceToken = ent_value.get("resourceToken")
 

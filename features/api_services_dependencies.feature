@@ -133,7 +133,7 @@ Feature: u.pro.services.dependencies
                   "name": "realtime-kernel",
                   "reason": {
                     "code": "realtime-livepatch-incompatible",
-                    "title": "Livepatch is not currently supported for the Real-time kernel."
+                    "title": "Livepatch does not currently cover the Real-time kernel."
                   }
                 }
               ],
@@ -160,7 +160,7 @@ Feature: u.pro.services.dependencies
                   "name": "livepatch",
                   "reason": {
                     "code": "realtime-livepatch-incompatible",
-                    "title": "Livepatch is not currently supported for the Real-time kernel."
+                    "title": "Livepatch does not currently cover the Real-time kernel."
                   }
                 }
               ],
@@ -317,7 +317,7 @@ Feature: u.pro.services.dependencies
         - name: realtime-kernel
           reason:
             code: realtime-livepatch-incompatible
-            title: Livepatch is not currently supported for the Real-time kernel.
+            title: Livepatch does not currently cover the Real-time kernel.
         name: livepatch
       - depends_on: []
         incompatible_with:
@@ -334,7 +334,7 @@ Feature: u.pro.services.dependencies
         - name: livepatch
           reason:
             code: realtime-livepatch-incompatible
-            title: Livepatch is not currently supported for the Real-time kernel.
+            title: Livepatch does not currently cover the Real-time kernel.
         name: realtime-kernel
       - depends_on:
         - name: esm-infra

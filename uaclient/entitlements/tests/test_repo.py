@@ -1095,6 +1095,7 @@ class TestSetupAptConfig:
         enable_by_default,
         entitlement_factory,
         caplog_text,
+        fake_machine_token_file,
     ):
         """request_machine_access routes when contract lacks resourceToken."""
         entitlement = entitlement_factory(
@@ -1102,10 +1103,9 @@ class TestSetupAptConfig:
             affordances={"series": ["xenial"]},
             obligations={"enableByDefault": enable_by_default},
         )
-        machine_token = entitlement.cfg.machine_token_file.machine_token
+        machine_token = fake_machine_token_file.machine_token
         # Drop resourceTokens values from base machine-token.
         machine_token["resourceTokens"] = []
-        entitlement.cfg.machine_token_file.write(machine_token)
         entitlement.setup_apt_config(mock.MagicMock())
         expected_msg = (
             "No resourceToken present in contract for service Repo Test"
@@ -1309,34 +1309,3 @@ class TestApplicationStatus:
             expected_explanation = "Repo Test Class is not configured"
         assert expected_status == application_status
         assert expected_explanation == explanation.msg
-
-
-def success_call():
-    print("success")
-    return True
-
-
-def fail_call(a=None):
-    print("fail %s" % a)
-    return False
-
-
-class TestHandleMessageOperations:
-    @pytest.mark.parametrize(
-        "msg_ops, retval, output",
-        (
-            ([], True, ""),
-            (["msg1", "msg2"], True, "msg1\nmsg2\n"),
-            (
-                [(success_call, {}), "msg1", (fail_call, {"a": 1}), "msg2"],
-                False,
-                "success\nmsg1\nfail 1\n",
-            ),
-        ),
-    )
-    def test_handle_message_operations_for_strings_and_callables(
-        self, msg_ops, retval, output, capsys
-    ):
-        assert retval is util.handle_message_operations(msg_ops, print)
-        out, _err = capsys.readouterr()
-        assert output == out

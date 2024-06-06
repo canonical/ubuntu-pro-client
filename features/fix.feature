@@ -264,8 +264,9 @@ Feature: Ua fix command behaviour
       - Cannot install package libcurl3-gnutls version .*
 
       .*The machine is not attached to an Ubuntu Pro subscription.
-      To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
-      { pro attach TOKEN }.*
+      To proceed with the fix, a prompt would ask to attach
+      the machine to a subscription or use an existing token.
+      { pro attach }.*
 
       .*Ubuntu Pro service: esm-infra is not enabled.
       To proceed with the fix, a prompt would ask permission to automatically enable
@@ -294,8 +295,9 @@ Feature: Ua fix command behaviour
       A fix is available in Ubuntu Pro: ESM Infra.
 
       .*The machine is not attached to an Ubuntu Pro subscription.
-      To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
-      \{ pro attach TOKEN \}.*
+      To proceed with the fix, a prompt would ask to attach
+      the machine to a subscription or use an existing token.
+      \{ pro attach \}.*
 
       .*Ubuntu Pro service: esm-infra is not enabled.
       To proceed with the fix, a prompt would ask permission to automatically enable

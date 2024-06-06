@@ -698,7 +698,7 @@ int run()
     } else if (hook_req.method == "org.debian.apt.hooks.install.pre-prompt") {
         // ESM stats
         ESMUpdates esm_updates;
-        bool success = get_potential_esm_updates(esm_updates);
+        success = get_potential_esm_updates(esm_updates);
         if (success) {
             if (!esm_updates.infra_packages.empty()) {
                 print_esm_packages(INFRA, esm_updates.infra_packages);
@@ -718,7 +718,7 @@ int run()
         std::ifstream expired_notice("/var/lib/ubuntu-advantage/notices/5-contract_expired");
         if (expired_notice.is_open()) {
             std::vector<std::string> expired_packages;
-            bool success = collect_pro_packages_from_pre_prompt_json(hook_req.params, &expired_packages);
+            success = collect_pro_packages_from_pre_prompt_json(hook_req.params, &expired_packages);
             if (success && expired_packages.size() > 0) {
                 print_expired_pro_packages(expired_packages);
             }

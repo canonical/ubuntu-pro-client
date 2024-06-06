@@ -164,83 +164,6 @@ class TestFIPSEntitlementDefaults:
         """FIPS and FIPS with Updates repositories are pinned."""
         assert entitlement.repo_pin_priority == 1001
 
-    @pytest.mark.parametrize("assume_yes", (True, False))
-    def test_messaging_passes_assume_yes(
-        self, assume_yes, fips_entitlement_factory
-    ):
-        """FIPS and FIPS Updates pass assume_yes into messaging args"""
-        entitlement = fips_entitlement_factory(assume_yes=assume_yes)
-
-        expected_msging = {
-            "fips": {
-                "pre_enable": [
-                    (
-                        util.prompt_for_confirmation,
-                        {
-                            "assume_yes": assume_yes,
-                            "msg": messages.PROMPT_FIPS_PRE_ENABLE,
-                        },
-                    )
-                ],
-                "pre_install": [
-                    (
-                        entitlement.prompt_if_kernel_downgrade,
-                        {
-                            "assume_yes": assume_yes,
-                        },
-                    )
-                ],
-                "post_enable": None,
-                "pre_disable": [
-                    (
-                        util.prompt_for_confirmation,
-                        {
-                            "assume_yes": assume_yes,
-                            "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
-                                title="FIPS"
-                            ),
-                        },
-                    )
-                ],
-            },
-            "fips-updates": {
-                "pre_enable": [
-                    (
-                        util.prompt_for_confirmation,
-                        {
-                            "msg": messages.PROMPT_FIPS_UPDATES_PRE_ENABLE,
-                            "assume_yes": assume_yes,
-                        },
-                    )
-                ],
-                "pre_install": [
-                    (
-                        entitlement.prompt_if_kernel_downgrade,
-                        {
-                            "assume_yes": assume_yes,
-                        },
-                    )
-                ],
-                "post_enable": None,
-                "pre_disable": [
-                    (
-                        util.prompt_for_confirmation,
-                        {
-                            "assume_yes": assume_yes,
-                            "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
-                                title="FIPS Updates",
-                            ),
-                        },
-                    )
-                ],
-            },
-        }
-
-        if entitlement.name in expected_msging:
-            assert expected_msging[entitlement.name] == entitlement.messaging
-        else:
-            assert False, "Unknown entitlement {}".format(entitlement.name)
-
     @mock.patch("uaclient.system.is_container", return_value=True)
     def test_messaging_on_containers(
         self, _m_is_container, fips_entitlement_factory
@@ -254,7 +177,6 @@ class TestFIPSEntitlementDefaults:
                     (
                         util.prompt_for_confirmation,
                         {
-                            "assume_yes": False,
                             "msg": messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
                                 title="FIPS"
                             ),
@@ -264,9 +186,7 @@ class TestFIPSEntitlementDefaults:
                 "pre_install": [
                     (
                         entitlement.prompt_if_kernel_downgrade,
-                        {
-                            "assume_yes": False,
-                        },
+                        {},
                     )
                 ],
                 "post_enable": [messages.FIPS_RUN_APT_UPGRADE],
@@ -274,7 +194,6 @@ class TestFIPSEntitlementDefaults:
                     (
                         util.prompt_for_confirmation,
                         {
-                            "assume_yes": False,
                             "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
                                 title="FIPS"
                             ),
@@ -290,16 +209,13 @@ class TestFIPSEntitlementDefaults:
                             "msg": messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
                                 title="FIPS Updates"
                             ),
-                            "assume_yes": False,
                         },
                     )
                 ],
                 "pre_install": [
                     (
                         entitlement.prompt_if_kernel_downgrade,
-                        {
-                            "assume_yes": False,
-                        },
+                        {},
                     )
                 ],
                 "post_enable": [messages.FIPS_RUN_APT_UPGRADE],
@@ -307,7 +223,6 @@ class TestFIPSEntitlementDefaults:
                     (
                         util.prompt_for_confirmation,
                         {
-                            "assume_yes": False,
                             "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
                                 title="FIPS Updates"
                             ),
@@ -622,6 +537,7 @@ class TestFIPSEntitlementEnable:
 
 class TestFIPSEntitlementRemovePackages:
     @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
+    @mock.patch(M_PATH + "system.is_container", return_value=False)
     @mock.patch(
         "uaclient.system.get_release_info",
         return_value=mock.MagicMock(series="xenial"),
@@ -633,6 +549,7 @@ class TestFIPSEntitlementRemovePackages:
         m_get_installed_packages,
         m_subp,
         _m_get_release_info,
+        _m_is_container,
         installed_pkgs,
         entitlement,
     ):
@@ -655,7 +572,7 @@ class TestFIPSEntitlementRemovePackages:
         if "ubuntu-fips" in installed_pkgs:
             assert [remove_cmd] == m_subp.call_args_list
         else:
-            assert 0 == m_subp.call_count
+            assert [] == m_subp.call_args_list
 
     @mock.patch(
         "uaclient.system.get_release_info",

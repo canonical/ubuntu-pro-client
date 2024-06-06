@@ -179,7 +179,7 @@ class TestUAContractClient:
         machine_id_response,
         machine_id_param,
         activity_id,
-        FakeConfig,
+        fake_machine_token_file,
     ):
         def fake_platform_data(machine_id):
             machine_id = "machine-id" if not machine_id else machine_id
@@ -207,8 +207,8 @@ class TestUAContractClient:
             json_dict=expected_machine_token,
             json_list=[],
         )
-        cfg = FakeConfig.for_attached_machine()
-        client = UAContractClient(cfg)
+        fake_machine_token_file.attached = True
+        client = UAContractClient(None)
 
         assert expected_machine_token == client.get_contract_machine(
             machine_token="mToken",
@@ -232,7 +232,7 @@ class TestUAContractClient:
         ] == request_url.call_args_list
 
     def test_get_resource_machine_access(
-        self, get_machine_id, request_url, FakeConfig
+        self, get_machine_id, request_url, fake_machine_token_file
     ):
         """GET from resource-machine-access route to "enable" a service"""
         get_machine_id.return_value = "machineId"
@@ -243,8 +243,8 @@ class TestUAContractClient:
             json_dict={"test": "response"},
             json_list=[],
         )
-        cfg = FakeConfig.for_attached_machine()
-        client = UAContractClient(cfg)
+        fake_machine_token_file.attached = True
+        client = UAContractClient(None)
         kwargs = {"machine_token": "mToken", "resource": "cis"}
         assert {"test": "response"} == client.get_resource_machine_access(
             **kwargs
@@ -262,7 +262,7 @@ class TestUAContractClient:
         ] == request_url.call_args_list
 
     def test_get_contract_using_token(
-        self, _m_machine_id, m_request_url, FakeConfig
+        self, _m_machine_id, m_request_url, fake_machine_token_file
     ):
         m_request_url.return_value = http.HTTPResponse(
             code=200,
@@ -272,8 +272,8 @@ class TestUAContractClient:
             json_list=[],
         )
 
-        cfg = FakeConfig.for_attached_machine()
-        client = UAContractClient(cfg)
+        fake_machine_token_file.attached = True
+        client = UAContractClient(None)
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
@@ -296,7 +296,7 @@ class TestUAContractClient:
         m_get_activity_info,
         get_machine_id,
         request_url,
-        FakeConfig,
+        fake_machine_token_file,
     ):
         """POST machine activity report to the server."""
         machine_id = "machineId"
@@ -313,16 +313,12 @@ class TestUAContractClient:
             },
             json_list=[],
         )
-        cfg = FakeConfig.for_attached_machine()
-        client = UAContractClient(cfg)
-
-        with mock.patch(
-            "uaclient.config.files.MachineTokenFile.write"
-        ) as m_write_file:
-            client.update_activity_token()
+        fake_machine_token_file.attached = True
+        client = UAContractClient(None)
+        client.update_activity_token()
 
         expected_write_calls = 1
-        assert expected_write_calls == m_write_file.call_count
+        assert expected_write_calls == fake_machine_token_file.write_calls
 
         params = {
             "headers": {
@@ -897,7 +893,7 @@ class TestUAContractClient:
         machine_id,
         activity_token,
         expected,
-        FakeConfig,
+        fake_machine_token_file,
     ):
         m_get_release_info.return_value = release_info
         m_get_kernel_info.return_value = kernel_info
@@ -909,15 +905,14 @@ class TestUAContractClient:
         m_enabled_services.return_value = enabled_services
         m_attachment_data_file_read.return_value = attachment_data
         m_get_machine_id.return_value = machine_id
-        cfg = FakeConfig.for_attached_machine(
-            machine_token={
-                "activityInfo": {
-                    "activityID": activity_id,
-                    "activityToken": activity_token,
-                }
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = {
+            "activityInfo": {
+                "activityID": activity_id,
+                "activityToken": activity_token,
             }
-        )
-        client = UAContractClient(cfg)
+        }
+        client = UAContractClient(None)
         assert expected == client._get_activity_info()
 
 
@@ -1262,46 +1257,38 @@ class TestRefresh:
     @mock.patch(M_PATH + "process_entitlements_delta")
     @mock.patch("uaclient.files.state_files.machine_id_file.write")
     @mock.patch(M_PATH + "system.get_machine_id")
-    @mock.patch("uaclient.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "UAContractClient.update_contract_machine")
     @mock.patch(
-        M_PATH + "UAConfig.machine_token", new_callable=mock.PropertyMock
-    )
-    @mock.patch(
-        "uaclient.files.MachineTokenFile.entitlements",
-        new_callable=mock.PropertyMock,
+        "uaclient.files.machine_token.MachineTokenFile.entitlements",
     )
     def test_refresh(
         self,
         m_entitlements,
-        m_machine_token,
         m_update_contract_machine,
-        m_machine_token_file_write,
         m_get_machine_id,
         m_machine_id_file_write,
         m_process_entitlements_deltas,
         update_contract_machine_result,
-        FakeConfig,
+        fake_machine_token_file,
     ):
         m_entitlements.side_effect = [
             mock.sentinel.orig_entitlements,
             mock.sentinel.new_entitlements,
         ]
-        m_machine_token.return_value = {
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = {
             "machineToken": "mToken",
             "machineTokenInfo": {"contractInfo": {"id": "cId"}},
         }
         m_update_contract_machine.return_value = update_contract_machine_result
         m_get_machine_id.return_value = mock.sentinel.system_machine_id
 
-        refresh(FakeConfig())
+        refresh(None)
 
         assert [
             mock.call(machine_token="mToken", contract_id="cId")
         ] == m_update_contract_machine.call_args_list
-        assert [
-            mock.call(update_contract_machine_result)
-        ] == m_machine_token_file_write.call_args_list
+        assert 1 == fake_machine_token_file.write_calls
         assert 1 == m_machine_id_file_write.call_count
         assert [
             mock.call(
@@ -1317,7 +1304,10 @@ class TestRefresh:
 class TestContractChanged:
     @pytest.mark.parametrize("has_contract_expired", (False, True))
     def test_contract_change_with_expiry(
-        self, m_get_contract_machine, has_contract_expired, FakeConfig
+        self,
+        m_get_contract_machine,
+        has_contract_expired,
+        fake_machine_token_file,
     ):
         if has_contract_expired:
             expiry_date = util.parse_rfc3339_date("2041-05-08T19:02:26Z")
@@ -1332,12 +1322,15 @@ class TestContractChanged:
                 },
             },
         }
-        cfg = FakeConfig().for_attached_machine()
-        assert is_contract_changed(cfg) == ret_val
+        fake_machine_token_file.attached = True
+        assert is_contract_changed(None) == ret_val
 
     @pytest.mark.parametrize("has_contract_changed", (False, True))
     def test_contract_change_with_entitlements(
-        self, m_get_contract_machine, has_contract_changed, FakeConfig
+        self,
+        m_get_contract_machine,
+        has_contract_changed,
+        fake_machine_token_file,
     ):
         if has_contract_changed:
             resourceEntitlements = [{"type": "token1", "entitled": True}]
@@ -1357,8 +1350,8 @@ class TestContractChanged:
                 },
             },
         }
-        cfg = FakeConfig().for_attached_machine()
-        assert is_contract_changed(cfg) == has_contract_changed
+        fake_machine_token_file.attached = True
+        assert is_contract_changed(None) == has_contract_changed
 
 
 class TestApplyContractOverrides:

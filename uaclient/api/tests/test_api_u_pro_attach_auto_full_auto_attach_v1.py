@@ -24,44 +24,31 @@ class TestEnableServicesByName:
     @pytest.mark.parametrize(
         [
             "services",
-            "allow_beta",
             "enable_side_effect",
             "expected_enable_call_args",
             "expected_ret",
         ],
         [
-            # success one service, allow beta
+            # success one service
             (
                 ["esm-infra"],
-                True,
                 [(True, None)],
-                [
-                    mock.call(
-                        mock.ANY, "esm-infra", assume_yes=True, allow_beta=True
-                    )
-                ],
+                [mock.call(mock.ANY, "esm-infra")],
                 [],
             ),
-            # success multi service, no allow beta
+            # success multi service
             (
                 ["esm-apps", "esm-infra", "livepatch"],
-                False,
                 [(True, None), (True, None), (True, None)],
                 [
-                    mock.call(
-                        mock.ANY, "esm-apps", assume_yes=True, allow_beta=False
-                    ),
+                    mock.call(mock.ANY, "esm-apps"),
                     mock.call(
                         mock.ANY,
                         "esm-infra",
-                        assume_yes=True,
-                        allow_beta=False,
                     ),
                     mock.call(
                         mock.ANY,
                         "livepatch",
-                        assume_yes=True,
-                        allow_beta=False,
                     ),
                 ],
                 [],
@@ -69,7 +56,6 @@ class TestEnableServicesByName:
             # fail via user facing error
             (
                 ["esm-apps", "esm-infra", "livepatch"],
-                False,
                 [
                     (True, None),
                     exceptions.EntitlementNotFoundError(
@@ -78,20 +64,14 @@ class TestEnableServicesByName:
                     fakes.FakeUbuntuProError(),
                 ],
                 [
-                    mock.call(
-                        mock.ANY, "esm-apps", assume_yes=True, allow_beta=False
-                    ),
+                    mock.call(mock.ANY, "esm-apps"),
                     mock.call(
                         mock.ANY,
                         "esm-infra",
-                        assume_yes=True,
-                        allow_beta=False,
                     ),
                     mock.call(
                         mock.ANY,
                         "livepatch",
-                        assume_yes=True,
-                        allow_beta=False,
                     ),
                 ],
                 [
@@ -107,7 +87,6 @@ class TestEnableServicesByName:
             # fail via return
             (
                 ["esm-apps", "esm-infra", "livepatch"],
-                False,
                 [
                     (True, None),
                     (False, None),
@@ -120,20 +99,14 @@ class TestEnableServicesByName:
                     ),
                 ],
                 [
-                    mock.call(
-                        mock.ANY, "esm-apps", assume_yes=True, allow_beta=False
-                    ),
+                    mock.call(mock.ANY, "esm-apps"),
                     mock.call(
                         mock.ANY,
                         "esm-infra",
-                        assume_yes=True,
-                        allow_beta=False,
                     ),
                     mock.call(
                         mock.ANY,
                         "livepatch",
-                        assume_yes=True,
-                        allow_beta=False,
                     ),
                 ],
                 [
@@ -151,13 +124,12 @@ class TestEnableServicesByName:
         self,
         m_enable_entitlement_by_name,
         services,
-        allow_beta,
         enable_side_effect,
         expected_enable_call_args,
         expected_ret,
     ):
         m_enable_entitlement_by_name.side_effect = enable_side_effect
-        ret = _enable_services_by_name(mock.MagicMock(), services, allow_beta)
+        ret = _enable_services_by_name(mock.MagicMock(), services)
         assert (
             m_enable_entitlement_by_name.call_args_list
             == expected_enable_call_args
@@ -190,7 +162,7 @@ class TestFullAutoAttachV1:
     ):
         cfg = FakeConfig()
 
-        def enable_ent_side_effect(cfg, name, assume_yes, allow_beta):
+        def enable_ent_side_effect(cfg, name):
             if name != "wrong":
                 return (True, None)
 
@@ -279,9 +251,7 @@ class TestFullAutoAttachV1:
                 [],
                 pytest.raises(exceptions.AlreadyAttachedError),
                 False,
-                messages.E_ALREADY_ATTACHED.format(
-                    account_name="test_account"
-                ).msg,
+                messages.E_ALREADY_ATTACHED.format(account_name="test").msg,
                 None,
             ),
             # disable_auto_attach: true
@@ -317,7 +287,7 @@ class TestFullAutoAttachV1:
                 False,
                 [mock.call(mock.ANY, mock.ANY, allow_enable=False)],
                 [[]],
-                [mock.call(mock.ANY, ["cis"], allow_beta=False)],
+                [mock.call(mock.ANY, ["cis"])],
                 does_not_raise(),
                 True,
                 None,
@@ -330,7 +300,7 @@ class TestFullAutoAttachV1:
                 False,
                 [mock.call(mock.ANY, mock.ANY, allow_enable=False)],
                 [[]],
-                [mock.call(mock.ANY, ["cis"], allow_beta=True)],
+                [mock.call(mock.ANY, ["cis"])],
                 does_not_raise(),
                 True,
                 None,
@@ -344,8 +314,8 @@ class TestFullAutoAttachV1:
                 [mock.call(mock.ANY, mock.ANY, allow_enable=False)],
                 [[], []],
                 [
-                    mock.call(mock.ANY, ["fips"], allow_beta=False),
-                    mock.call(mock.ANY, ["cis"], allow_beta=True),
+                    mock.call(mock.ANY, ["fips"]),
+                    mock.call(mock.ANY, ["cis"]),
                 ],
                 does_not_raise(),
                 True,
@@ -363,8 +333,8 @@ class TestFullAutoAttachV1:
                     [("cis", messages.NamedMessage("three", "four"))],
                 ],
                 [
-                    mock.call(mock.ANY, ["fips"], allow_beta=False),
-                    mock.call(mock.ANY, ["cis"], allow_beta=True),
+                    mock.call(mock.ANY, ["fips"]),
+                    mock.call(mock.ANY, ["cis"]),
                 ],
                 pytest.raises(exceptions.EntitlementsNotEnabledError),
                 True,
@@ -401,11 +371,10 @@ class TestFullAutoAttachV1:
         expected_ret,
         mode,
         FakeConfig,
+        fake_machine_token_file,
     ):
-        if is_attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
+        fake_machine_token_file.attached = is_attached
+        cfg = FakeConfig()
         m_is_config_value_true.return_value = is_disabled
         m_enable_services_by_name.side_effect = (
             enable_services_by_name_side_effect

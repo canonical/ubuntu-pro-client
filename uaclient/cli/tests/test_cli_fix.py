@@ -145,6 +145,7 @@ class TestActionFix:
         cve = FixPlanResult(
             title="CVE-2020-1472",
             description="Samba vulnerability",
+            current_status="not-affected",
             expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
             affected_packages=["pkg1", "pkg2"],
             plan=[],
@@ -173,6 +174,7 @@ class TestActionFix:
                 FixPlanUSNResult(
                     target_usn_plan=FixPlanResult(
                         title="USN-4510-2",
+                        current_status="not-affected",
                         description="Samba vulnerability",
                         expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                         affected_packages=["pkg1", "pkg2"],
@@ -198,6 +200,7 @@ class TestActionFix:
                 FixPlanUSNResult(
                     target_usn_plan=FixPlanResult(
                         title="USN-4038-3",
+                        current_status="not-affected",
                         description="USN vulnerability",
                         expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                         affected_packages=["pkg1", "pkg2"],
@@ -238,6 +241,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=[],
                     plan=[
@@ -270,6 +274,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="CVE-###",
                     description="test",
+                    current_status="fixed",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=[],
                     plan=[
@@ -298,6 +303,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["slsrc"],
                     plan=[
@@ -335,6 +341,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["slsrc"],
                     plan=[
@@ -374,6 +381,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["slsrc"],
                     plan=[
@@ -438,6 +446,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["curl", "slsrc"],
                     plan=[
@@ -521,6 +530,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=[
                         "pkg1",
@@ -723,6 +733,7 @@ class TestExecuteFixPlan:
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=[
                         "longpackagename1",
@@ -786,6 +797,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_STILL_VULNERABLE.value.msg,  # noqa
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -844,6 +856,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_STILL_VULNERABLE.value.msg,  # noqa
                     affected_packages=["pkg1", "pkg2"],
                     plan=[
@@ -949,6 +962,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2", "pkg3"],
                     plan=[
@@ -1042,6 +1056,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1", "pkg2", "pkg3"],
                     plan=[
@@ -1163,11 +1178,11 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_output,
         expected_fix_status,
         expected_unfixed_pkgs,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
         def fake_attach(cfg, token, allow_enable):
-            cfg.for_attached_machine()
+            fake_machine_token_file.attached = True
             return 0
 
         m_attach_with_token.side_effect = fake_attach
@@ -1179,7 +1194,7 @@ A fix is available in Ubuntu standard updates.\n"""
             assert (
                 expected_fix_status,
                 expected_unfixed_pkgs,
-            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=FakeConfig())
+            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1202,6 +1217,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1288,17 +1304,16 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_fix_status,
         expected_unfixed_pkgs,
         service_status,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
         def fake_attach(cfg, token, allow_enable):
-            cfg.for_attached_machine()
+            fake_machine_token_file.attached = True
             return 0
 
         m_attach_with_token.side_effect = fake_attach
 
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             service_status,
             "",
@@ -1311,7 +1326,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         with mock.patch(
             "uaclient.cli.fix.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()
@@ -1322,9 +1337,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 assert (
                     expected_fix_status,
                     expected_unfixed_pkgs,
-                ) == execute_fix_plan(
-                    fix_plan, dry_run=False, cfg=FakeConfig()
-                )
+                ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1339,6 +1352,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1390,6 +1404,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1467,15 +1482,14 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_output,
         expected_fix_status,
         expected_unfixed_pkgs,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
-        cfg = FakeConfig().for_attached_machine
+        fake_machine_token_file.attached = True
         m_enable_ent.return_value = (True, None)
         m_prompt.return_value = prompt_value
 
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             UserFacingStatus.INACTIVE,
             "",
@@ -1488,7 +1502,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         with mock.patch(
             "uaclient.cli.fix.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()
@@ -1500,7 +1514,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 assert (
                     expected_fix_status,
                     expected_unfixed_pkgs,
-                ) == execute_fix_plan(fix_plan, dry_run=False, cfg=cfg)
+                ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1513,6 +1527,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1574,6 +1589,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1659,10 +1675,10 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_output,
         expected_fix_status,
         expected_unfixed_pkgs,
-        FakeConfig,
+        fake_machine_token_file,
         capsys,
     ):
-        cfg = FakeConfig().for_attached_machine()
+        fake_machine_token_file.attached = True
         m_handle_required_service.return_value = True
         m_check_subscription_expired.return_value = True
         m_prompt.return_value = prompt_value
@@ -1675,7 +1691,7 @@ A fix is available in Ubuntu standard updates.\n"""
             assert (
                 expected_fix_status,
                 expected_unfixed_pkgs,
-            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=cfg)
+            ) == execute_fix_plan(fix_plan, dry_run=False, cfg=None)
 
         out, _ = capsys.readouterr()
         assert expected_output in out
@@ -1688,6 +1704,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="not-affected",
                     expected_status=FixStatus.SYSTEM_NOT_AFFECTED.value.msg,
                     affected_packages=[],
                     plan=[
@@ -1720,6 +1737,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 FixPlanResult(
                     title="USN-###",
                     description="test",
+                    current_status="still-affected",
                     expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,
                     affected_packages=["pkg1"],
                     plan=[
@@ -1884,8 +1902,7 @@ class TestExecuteEnableStep:
             cfg=FakeConfig(),
         )
 
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             UserFacingStatus.INACTIVE,
             "",
@@ -1902,7 +1919,7 @@ class TestExecuteEnableStep:
             type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
             with mock.patch(
                 "uaclient.cli.fix.entitlement_factory",
-                return_value=m_entitlement_cls,
+                return_value=m_entitlement_obj,
             ):
                 _execute_enable_step(context, step)
 
@@ -1922,8 +1939,7 @@ class TestHandleSubscriptionForRequiredService:
         ((True), (False)),
     )
     def test_handle_subscription_when_service_enabled(self, dry_run, capsys):
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         m_entitlement_obj.user_facing_status.return_value = (
             UserFacingStatus.ACTIVE,
             "",
@@ -1936,7 +1952,7 @@ class TestHandleSubscriptionForRequiredService:
             type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
             with mock.patch(
                 "uaclient.cli.fix.entitlement_factory",
-                return_value=m_entitlement_cls,
+                return_value=m_entitlement_obj,
             ):
                 assert _handle_subscription_for_required_service(
                     service="esm-infra",
@@ -1992,6 +2008,7 @@ class TestFixUSN:
                         target_usn_plan=FixPlanResult(
                             title="USN-1235-1",
                             description="test",
+                            current_status="still-affected",
                             expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                             affected_packages=["pkg1"],
                             plan=[
@@ -2015,6 +2032,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-4561-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg2"],
                                 plan=[
@@ -2052,6 +2070,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-7891-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg3", "pkg4"],
                                 plan=[
@@ -2089,6 +2108,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-8221-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg5"],
                                 plan=[],
@@ -2252,6 +2272,7 @@ class TestFixUSN:
                         target_usn_plan=FixPlanResult(
                             title=issue_id,
                             description="test",
+                            current_status="still-affected",
                             expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                             affected_packages=["pkg1"],
                             plan=[
@@ -2275,6 +2296,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-4561-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg2"],
                                 plan=[
@@ -2312,6 +2334,7 @@ class TestFixUSN:
                             FixPlanResult(
                                 title="USN-7891-1",
                                 description="test",
+                                current_status="still-affected",
                                 expected_status=FixStatus.SYSTEM_NON_VULNERABLE.value.msg,  # noqa
                                 affected_packages=["pkg3", "pkg4"],
                                 plan=[

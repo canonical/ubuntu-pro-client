@@ -1,18 +1,18 @@
 repos:
   - repo: https://github.com/ambv/black
-    rev: 24.3.0  # Also stored in dev-requirements.txt; update both together!
+    rev: 24.3.0  # Also stored in tox.ini; update both together!
     hooks:
     - id: black
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0  # Also stored in dev-requirements.txt; update both together!
+    rev: 5.12.0  # Also stored in tox.ini; update both together!
     hooks:
     - id: isort
   - repo: https://github.com/ducminh-phan/reformat-gherkin
-    rev: v3.0.1  # Also stored in dev-requirements.txt; update both together!
+    rev: v3.0.1  # Also stored in tox.ini; update both together!
     hooks:
       - id: reformat-gherkin
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6 # Also stored in dev-requirements.txt; update both together!
+    rev: v0.9.0.6 # Also stored in tox.ini; update both together!
     hooks:
     - id: shellcheck
       args: ['--severity=warning']

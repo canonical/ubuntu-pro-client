@@ -64,7 +64,7 @@ from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanEnableFailure,
 )
-from uaclient.files import notices, state_files
+from uaclient.files import machine_token, notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
@@ -116,15 +116,7 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     def print_help(self, file=None, show_all=False):
         if self.base_desc:
-            (
-                non_beta_services_desc,
-                beta_services_desc,
-            ) = UAArgumentParser._get_service_descriptions()
-            service_descriptions = sorted(non_beta_services_desc)
-            if show_all:
-                service_descriptions = sorted(
-                    service_descriptions + beta_services_desc
-                )
+            service_descriptions = UAArgumentParser._get_service_descriptions()
             self.description = "\n".join(
                 [self.base_desc] + service_descriptions
             )
@@ -134,31 +126,30 @@ class UAArgumentParser(argparse.ArgumentParser):
         super().print_help(file=file)
 
     @staticmethod
-    def _get_service_descriptions() -> Tuple[List[str], List[str]]:
+    def _get_service_descriptions() -> List[str]:
         cfg = config.UAConfig()
 
         service_info_tmpl = " - {name}: {description}{url}"
-        non_beta_services_desc = []
-        beta_services_desc = []
+        service_descriptions = []
 
         resources = contract.get_available_resources(config.UAConfig())
         for resource in resources:
             try:
-                ent_cls = entitlements.entitlement_factory(
+                ent = entitlements.entitlement_factory(
                     cfg=cfg, name=resource["name"]
                 )
             except exceptions.EntitlementNotFoundError:
                 continue
             # Because we don't know the presentation name if unattached
             presentation_name = resource.get("presentedAs", resource["name"])
-            if ent_cls.help_doc_url:
-                url = " ({})".format(ent_cls.help_doc_url)
+            if ent.help_doc_url:
+                url = " ({})".format(ent.help_doc_url)
             else:
                 url = ""
             service_info = textwrap.fill(
                 service_info_tmpl.format(
                     name=presentation_name,
-                    description=ent_cls.description,
+                    description=ent.description,
                     url=url,
                 ),
                 width=PRINT_WRAP_WIDTH,
@@ -166,12 +157,9 @@ class UAArgumentParser(argparse.ArgumentParser):
                 break_long_words=False,
                 break_on_hyphens=False,
             )
-            if ent_cls.is_beta:
-                beta_services_desc.append(service_info)
-            else:
-                non_beta_services_desc.append(service_info)
+            service_descriptions.append(service_info)
 
-        return (non_beta_services_desc, beta_services_desc)
+        return service_descriptions
 
 
 def auto_attach_parser(parser):
@@ -529,7 +517,9 @@ def _print_help_for_subcommand(
         )
 
 
-def _perform_disable(entitlement, cfg, *, json_output, update_status=True):
+def _perform_disable(
+    entitlement, cfg, *, json_output, assume_yes, update_status=True
+):
     """Perform the disable action on a named entitlement.
 
     :param entitlement_name: the name of the entitlement to enable
@@ -547,7 +537,9 @@ def _perform_disable(entitlement, cfg, *, json_output, update_status=True):
     if json_output:
         progress = api.ProgressWrapper()
     else:
-        progress = api.ProgressWrapper(cli_util.CLIEnableDisableProgress())
+        progress = api.ProgressWrapper(
+            cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
+        )
 
     ret, reason = entitlement.disable(progress)
 
@@ -816,11 +808,13 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
     to_disable = []
     for ent_name in entitlements_disable_order(cfg):
         try:
-            ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
+            ent = entitlements.entitlement_factory(
+                cfg=cfg,
+                name=ent_name,
+            )
         except exceptions.EntitlementNotFoundError:
             continue
 
-        ent = ent_cls(cfg=cfg, assume_yes=assume_yes)
         # For detach, we should not consider that a service
         # cannot be disabled because of dependent services,
         # since we are going to disable all of them anyway
@@ -836,10 +830,15 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
         return 1
     for ent in to_disable:
         _perform_disable(
-            ent, cfg, json_output=json_output, update_status=False
+            ent,
+            cfg,
+            json_output=json_output,
+            assume_yes=assume_yes,
+            update_status=False,
         )
 
-    cfg.machine_token_file.delete()
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    machine_token_file.delete()
     state_files.delete_state_files()
     update_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)
@@ -847,14 +846,8 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
 
 
 def _post_cli_attach(cfg: config.UAConfig) -> None:
-    contract_name = None
-
-    if cfg.machine_token:
-        contract_name = (
-            cfg.machine_token.get("machineTokenInfo", {})
-            .get("contractInfo", {})
-            .get("name")
-        )
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    contract_name = machine_token_file.contract_name
 
     if contract_name:
         event.info(
@@ -960,9 +953,7 @@ def action_attach(args, *, cfg, **kwargs):
                 enable_services_override, cfg
             )
             for name in found:
-                ent_ret, reason = actions.enable_entitlement_by_name(
-                    cfg, name, assume_yes=True, allow_beta=True
-                )
+                ent_ret, reason = actions.enable_entitlement_by_name(cfg, name)
                 if not ent_ret:
                     ret = 1
                     if (
@@ -981,7 +972,7 @@ def action_attach(args, *, cfg, **kwargs):
 
             if not_found:
                 error = create_enable_entitlements_not_found_error(
-                    not_found, cfg=cfg, allow_beta=True
+                    not_found, cfg=cfg
                 )
                 event.info(error.msg, file_type=sys.stderr)
                 event.error(error_msg=error.msg, error_code=error.msg_code)
