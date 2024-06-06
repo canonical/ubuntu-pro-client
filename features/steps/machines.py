@@ -54,7 +54,7 @@ def given_a_machine(
     context.pro_config.clouds.get(cloud).manage_ssh_key()
 
     time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
-    instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(
+    instance_name = "pro-{series}-{machine_name}-{time_suffix}".format(
         series=series,
         machine_name=machine_name,
         time_suffix=time_suffix,
