@@ -379,9 +379,52 @@ Feature: FIPS enablement in lxd VMs
     And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
 
     Examples: ubuntu release
-      | release | machine_type | fips-name    | fips-service | fips-package-str | fips-apt-source                                               |
-      | focal   | lxd-vm       | FIPS Updates | fips-updates | fips             | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |
-      | jammy   | lxd-vm       | FIPS Updates | fips-updates | Fips             | https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main |
+      | release | machine_type | fips-name    | fips-service | fips-package-str | fips-apt-source                                               | installing-line |
+      | focal   | lxd-vm       | FIPS Updates | fips-updates | fips             | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |                 |
+
+  @slow
+  Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm with auto-upgrade
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I apt install `openssh-client openssh-server strongswan`
+    When I run `pro enable <fips-service> --assume-yes` with sudo
+    Then stdout contains substring:
+      """
+      Updating <fips-name> package lists
+      Updating standard Ubuntu package lists
+      Installing <fips-name> packages
+      Installing libcharon-extauth-plugins libstrongswan libstrongswan-standard-plugins openssh-client openssh-server openssh-sftp-server strongswan strongswan-charon strongswan-libcharon strongswan-starter
+      <fips-name> enabled
+      A reboot is required to complete install.
+      """
+    And I verify that `<fips-service>` is enabled
+    And I ensure apt update runs without errors
+    And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+    When I reboot the machine
+    And I run `uname -r` as non-root
+    Then stdout contains substring:
+      """
+      fips
+      """
+    When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+    Then I will see the following on stdout:
+      """
+      1
+      """
+    When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
+    Then stdout contains substring:
+      """
+      openssh-client was already not on hold.
+      openssh-server was already not on hold.
+      strongswan was already not on hold.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type | fips-name    | fips-service | fips-apt-source                                               |
+      | jammy   | lxd-vm       | FIPS Updates | fips-updates | https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main |
 
   @slow
   Scenario Outline: Attached enable fips-updates on fips enabled vm
