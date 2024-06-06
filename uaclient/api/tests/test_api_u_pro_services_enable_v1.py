@@ -205,8 +205,7 @@ class TestEnable:
             enabled_services_names_before,
             enabled_services_names_after,
         ]
-        m_ent_class = m_entitlement_factory.return_value
-        m_ent = m_ent_class.return_value
+        m_ent = m_entitlement_factory.return_value
         m_ent.enable.return_value = enable_result
         m_ent.messaging = messaging_ops
         m_ent._check_for_reboot.return_value = reboot_required
@@ -227,14 +226,6 @@ class TestEnable:
                     cfg=cfg,
                     name=options.service,
                     variant=options.variant or "",
-                )
-            ]
-            assert m_ent_class.call_args_list == [
-                mock.call(
-                    cfg,
-                    assume_yes=True,
-                    allow_beta=True,
-                    called_name=options.service,
                     access_only=options.access_only,
                 )
             ]

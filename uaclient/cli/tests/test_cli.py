@@ -129,7 +129,6 @@ class TestCLIParser:
             presentation_name="test",
             description=BIG_DESC,
             help_doc_url=BIG_URL,
-            is_beta=False,
         )
         m_get_user_log_file.return_value = tmpdir.join("user.log").strpath
         default_get_user_log_file = tmpdir.join("default.log").strpath
@@ -203,9 +202,8 @@ class TestCLIParser:
         m_all = mock.PropertyMock(return_value=True)
         type(m_args).all = m_all
 
-        m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(return_value="Test")
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         type(m_entitlement_obj).help_info = m_ent_help_info
 
         m_attached.return_value = mock.MagicMock(is_attached=False)
@@ -217,7 +215,7 @@ class TestCLIParser:
         fake_stdout = io.StringIO()
         with mock.patch(
             "uaclient.status.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with contextlib.redirect_stdout(fake_stdout):
                 action_help(m_args, cfg=None)
@@ -240,11 +238,10 @@ class TestCLIParser:
             (status.ContractStatus.UNENTITLED, "no"),
         ),
     )
-    @pytest.mark.parametrize("is_beta", (True, False))
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.status._is_attached")
     def test_help_command_when_attached(
-        self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
+        self, m_attached, m_available_resources, ent_status, ent_msg
     ):
         """Test help command for a valid service in an attached pro client."""
         m_args = mock.MagicMock()
@@ -253,13 +250,10 @@ class TestCLIParser:
         m_all = mock.PropertyMock(return_value=True)
         type(m_args).all = m_all
 
-        m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(
             return_value="Test service\nService is being tested"
         )
-        m_is_beta = mock.PropertyMock(return_value=is_beta)
-        type(m_entitlement_cls).is_beta = m_is_beta
-        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj = mock.MagicMock()
         type(m_entitlement_obj).help_info = m_ent_help_info
 
         m_entitlement_obj.contract_status.return_value = ent_status
@@ -280,16 +274,12 @@ class TestCLIParser:
         status_msg = "enabled" if ent_msg == "yes" else "—"
         ufs_call_count = 1 if ent_msg == "yes" else 0
         ent_name_call_count = 2 if ent_msg == "yes" else 1
-        is_beta_call_count = 1 if status_msg == "enabled" else 0
 
         expected_msgs = [
             "Name:\ntest",
             "Entitled:\n{}".format(ent_msg),
             "Status:\n{}".format(status_msg),
         ]
-
-        if is_beta and status_msg == "enabled":
-            expected_msgs.append("Beta:\nTrue")
 
         expected_msgs.append(
             "Help:\nTest service\nService is being tested\n\n"
@@ -300,7 +290,7 @@ class TestCLIParser:
         fake_stdout = io.StringIO()
         with mock.patch(
             "uaclient.status.entitlement_factory",
-            return_value=m_entitlement_cls,
+            return_value=m_entitlement_obj,
         ):
             with contextlib.redirect_stdout(fake_stdout):
                 action_help(m_args, cfg=None)
@@ -311,7 +301,6 @@ class TestCLIParser:
         assert 1 == m_available_resources.call_count
         assert 1 == m_attached.call_count
         assert 1 == m_ent_desc.call_count
-        assert is_beta_call_count == m_is_beta.call_count
         assert ent_name_call_count == m_ent_name.call_count
         assert 1 == m_entitlement_obj.contract_status.call_count
         assert (

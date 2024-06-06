@@ -51,6 +51,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title=issue_id,
             description=None,
+            current_status=None,
             expected_status="error",
             affected_packages=None,
             plan=[],
@@ -71,6 +72,7 @@ class TestFixPlan:
             target_usn_plan=FixPlanResult(
                 title=issue_id,
                 description=None,
+                current_status=None,
                 expected_status="error",
                 affected_packages=None,
                 plan=[],
@@ -97,6 +99,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description=None,
+            current_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             affected_packages=None,
             plan=[
@@ -149,6 +152,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="test",
+            current_status=str(FixStatus.SYSTEM_NOT_AFFECTED),
             expected_status=str(FixStatus.SYSTEM_NOT_AFFECTED),
             affected_packages=[],
             plan=[
@@ -230,6 +234,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="test",
+            current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             affected_packages=["pkg1"],
             plan=[
@@ -393,6 +398,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="descr",
+            current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             affected_packages=["pkg1", "pkg2", "pkg3"],
             plan=[
@@ -513,6 +519,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="test",
+            current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             affected_packages=["pkg1"],
             plan=[
@@ -615,6 +622,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="test",
+            current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             affected_packages=["pkg1", "pkg2"],
             plan=[
@@ -772,6 +780,7 @@ class TestFixPlan:
                 title="USN-1234-1",
                 description="test",
                 affected_packages=["pkg1"],
+                current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
                 expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
                 plan=[
                     FixPlanAptUpgradeStep(
@@ -794,6 +803,7 @@ class TestFixPlan:
                 FixPlanResult(
                     title="USN-2345-1",
                     description="test2",
+                    current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
                     expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
                     affected_packages=["pkg2"],
                     plan=[
@@ -816,6 +826,7 @@ class TestFixPlan:
                 FixPlanResult(
                     title="USN-3456-8",
                     description="test3",
+                    current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
                     expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
                     affected_packages=["pkg3"],
                     plan=[
@@ -906,6 +917,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="test",
+            current_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_NON_VULNERABLE),
             affected_packages=["pkg1"],
             plan=[
@@ -1004,6 +1016,7 @@ class TestFixPlan:
         expected_plan = FixPlanResult(
             title="CVE-1234-1235",
             description="test",
+            current_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             expected_status=str(FixStatus.SYSTEM_STILL_VULNERABLE),
             affected_packages=["pkg1"],
             plan=[

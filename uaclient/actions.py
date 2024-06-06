@@ -28,6 +28,7 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
+from uaclient.files import machine_token
 from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
@@ -82,8 +83,6 @@ def _enable_default_services(
             ent_ret, reason = enable_entitlement_by_name(
                 cfg=cfg,
                 name=enable_by_default_service.name,
-                assume_yes=True,
-                allow_beta=True,
                 variant=enable_by_default_service.variant,
                 silent=silent,
             )
@@ -153,18 +152,19 @@ def attach_with_token(
     from uaclient.timer.update_messaging import update_motd_messages
 
     secret_manager.secrets.add_secret(token)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
     new_machine_token = contract_client.add_contract_machine(
         contract_token=token, attachment_dt=attached_at
     )
 
-    cfg.machine_token_file.write(new_machine_token)
+    machine_token_file.write(new_machine_token)
 
     try:
         check_entitlement_apt_directives_are_unique(cfg)
     except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:
-        cfg.machine_token_file.delete()
+        machine_token_file.delete()
         raise e
 
     system.get_machine_id.cache_clear()
@@ -175,7 +175,7 @@ def attach_with_token(
 
     if allow_enable:
         services_to_be_enabled = contract.get_enabled_by_default_services(
-            cfg, cfg.machine_token_file.entitlements
+            cfg, machine_token_file.entitlements()
         )
         _enable_default_services(
             cfg=cfg,
@@ -217,8 +217,6 @@ def enable_entitlement_by_name(
     cfg: config.UAConfig,
     name: str,
     *,
-    assume_yes: bool = False,
-    allow_beta: bool = False,
     access_only: bool = False,
     variant: str = "",
     silent: bool = False,
@@ -230,14 +228,10 @@ def enable_entitlement_by_name(
     :raise EntitlementNotFoundError: If no entitlement with the given name is
         found, then raises this error.
     """
-    ent_cls = entitlements.entitlement_factory(
-        cfg=cfg, name=name, variant=variant
-    )
-    entitlement = ent_cls(
-        cfg,
-        assume_yes=assume_yes,
-        allow_beta=allow_beta,
-        called_name=name,
+    entitlement = entitlements.entitlement_factory(
+        cfg=cfg,
+        name=name,
+        variant=variant,
         access_only=access_only,
         extra_args=extra_args,
     )
@@ -320,9 +314,9 @@ def _get_state_files(cfg: config.UAConfig):
         timer_jobs_state_file.ua_file.path,
         CLOUD_BUILD_INFO,
         *(
-            entitlement(cfg).repo_file
-            for entitlement in entitlements.ENTITLEMENT_CLASSES
-            if issubclass(entitlement, entitlements.repo.RepoEntitlement)
+            entitlement_cls(cfg).repo_file
+            for entitlement_cls in entitlements.ENTITLEMENT_CLASSES
+            if issubclass(entitlement_cls, entitlements.repo.RepoEntitlement)
         ),
     ]
 

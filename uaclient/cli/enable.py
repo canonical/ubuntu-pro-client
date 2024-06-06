@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, NamedTuple, Optional
 
 from uaclient import (
     api,
@@ -9,6 +9,7 @@ from uaclient import (
     entitlements,
     event_logger,
     exceptions,
+    lock,
     messages,
     status,
     util,
@@ -17,18 +18,72 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
     ServiceWithDependencies,
     _dependencies,
 )
+from uaclient.api.u.pro.services.enable.v1 import (
+    EnableOptions,
+    EnableResult,
+    _enable,
+)
 from uaclient.api.u.pro.status.enabled_services.v1 import (
     EnabledService,
     _enabled_services,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util, constants
-from uaclient.entitlements.entitlement_status import (
-    CanEnableFailure,
-    CanEnableFailureReason,
-)
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
+_EnableOneServiceResult = NamedTuple(
+    "_EnableOneServiceResult",
+    [
+        ("success", bool),
+        ("needs_reboot", bool),
+        ("error", Optional[Dict[str, Any]]),
+    ],
+)
+
+
+def _enable_landscape(
+    cfg: config.UAConfig,
+    access_only: bool,
+    extra_args,
+    progress_object: Optional[api.AbstractProgress] = None,
+):
+    """
+    Landscape gets special treatment because it currently not supported by our
+    enable API. This function is a temporary workaround until we have a proper
+    API for enabling landscape, which will happen after Landscape is fully
+    integrated with the contracts backend.
+    """
+    progress = api.ProgressWrapper(progress_object)
+    landscape = entitlements.LandscapeEntitlement(
+        cfg,
+        called_name="landscape",
+        access_only=access_only,
+        extra_args=extra_args,
+    )
+    success = False
+    fail_reason = None
+
+    try:
+        with lock.RetryLock(
+            lock_holder="cli.enable._enable_landscape",
+        ):
+            success, fail_reason = landscape.enable(progress=progress)
+    except Exception as e:
+        lock.clear_lock_file_if_present()
+        raise e
+
+    if not success:
+        if fail_reason is not None and fail_reason.message is not None:
+            reason = fail_reason.message
+        else:
+            reason = messages.GENERIC_UNKNOWN_ISSUE
+        raise exceptions.EntitlementNotEnabledError(
+            service="landscape", reason=reason
+        )
+    return EnableResult(
+        enabled=["landscape"], disabled=[], reboot_required=False, messages=[]
+    )
 
 
 def prompt_for_dependency_handling(
@@ -123,7 +178,7 @@ def prompt_for_dependency_handling(
             )
 
 
-def print_json_output(
+def _print_json_output(
     json_output: bool,
     json_response: Dict[str, Any],
     processed_services: List[str],
@@ -151,10 +206,171 @@ def print_json_output(
         )
 
 
+def _enable_one_service(
+    cfg: config.UAConfig,
+    ent_name: str,
+    variant: str,
+    access_only: bool,
+    assume_yes: bool,
+    json_output: bool,
+    extra_args: Optional[List[str]],
+    enabled_services: List[EnabledService],
+    all_dependencies: List[ServiceWithDependencies],
+) -> _EnableOneServiceResult:
+    interactive_only_print = cli_util.create_interactive_only_print_function(
+        json_output
+    )
+    ent = entitlements.entitlement_factory(
+        cfg,
+        ent_name,
+        variant=variant,
+        access_only=access_only,
+        extra_args=extra_args,
+    )
+    real_name = ent.name
+    ent_title = ent.title
+
+    already_enabled = next(
+        (
+            s
+            for s in enabled_services
+            if s.name == real_name
+            and (
+                (s.variant_enabled and s.variant_name == variant)
+                or (not s.variant_enabled and not variant)
+            )
+        ),
+        None,
+    )
+    if already_enabled is not None:
+        msg = messages.ALREADY_ENABLED.format(title=ent_title)
+        interactive_only_print(msg.msg)
+        interactive_only_print(messages.ENABLE_FAILED.format(title=ent_title))
+        return _EnableOneServiceResult(
+            success=False,
+            needs_reboot=False,
+            error={
+                "type": "service",
+                "service": ent_name,
+                "message": msg.msg,
+                "message_code": msg.name,
+            },
+        )
+
+    if not assume_yes:
+        # this never happens for json output because we assert earlier that
+        # assume_yes must be True for json output
+        try:
+            prompt_for_dependency_handling(
+                cfg,
+                real_name,
+                all_dependencies,
+                enabled_services,
+                called_name=ent_name,
+                variant=variant,
+                service_title=ent_title,
+            )
+        except exceptions.UbuntuProError as e:
+            LOG.exception(e)
+            interactive_only_print(e.msg)
+            interactive_only_print(
+                messages.ENABLE_FAILED.format(title=ent_title)
+            )
+            return _EnableOneServiceResult(
+                success=False,
+                needs_reboot=False,
+                error=None,
+            )
+
+    try:
+        if json_output:
+            progress = None
+        else:
+            progress = cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
+
+        if real_name == "landscape":
+            enable_result = _enable_landscape(
+                cfg,
+                access_only,
+                extra_args=extra_args,
+                progress_object=progress,
+            )
+        else:
+            enable_result = _enable(
+                EnableOptions(
+                    service=ent_name,
+                    variant=variant,
+                    access_only=access_only,
+                ),
+                cfg,
+                progress_object=progress,
+            )
+
+        status.status(cfg=cfg)  # Update the status cache
+
+        if access_only:
+            interactive_only_print(
+                messages.ACCESS_ENABLED_TMPL.format(title=ent_title)
+            )
+        else:
+            interactive_only_print(
+                messages.ENABLED_TMPL.format(title=ent_title)
+            )
+
+        needs_reboot = enable_result.reboot_required
+        if needs_reboot:
+            interactive_only_print(
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="install"
+                )
+            )
+
+        for message in enable_result.messages:
+            interactive_only_print(message)
+
+        return _EnableOneServiceResult(
+            success=True,
+            needs_reboot=needs_reboot,
+            error=None,
+        )
+
+    except exceptions.EntitlementNotEnabledError as e:
+        reason = e.additional_info["reason"]
+        err_code = reason["code"]
+        err_msg = reason["title"]
+        err_info = reason["additional_info"]
+        interactive_only_print(err_msg)
+        interactive_only_print(messages.ENABLE_FAILED.format(title=ent_title))
+        return _EnableOneServiceResult(
+            success=False,
+            needs_reboot=False,
+            error={
+                "type": "service",
+                "service": ent_name,
+                "message": err_msg,
+                "message_code": err_code,
+                "additional_info": err_info,
+            },
+        )
+    except exceptions.UbuntuProError as e:
+        interactive_only_print(e.msg)
+        interactive_only_print(messages.ENABLE_FAILED.format(title=ent_title))
+        return _EnableOneServiceResult(
+            success=False,
+            needs_reboot=False,
+            error={
+                "type": "service",
+                "service": ent_name,
+                "message": e.msg,
+                "message_code": e.msg_code,
+                "additional_info": e.additional_info,
+            },
+        )
+
+
 @cli_util.verify_json_format_args
 @cli_util.assert_root
 @cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)
-@cli_util.assert_lock_file("pro enable")
 def action_enable(args, *, cfg, **kwargs) -> int:
     """Perform the enable action on a named entitlement.
 
@@ -162,12 +378,11 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     """
     processed_services = []  # type: List[str]
     failed_services = []  # type: List[str]
-    errors = []
+    errors = []  # type: List[Dict[str, Any]]
     warnings = []
 
     json_response = {
         "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-        "result": "success",
         "needs_reboot": False,
     }
 
@@ -182,6 +397,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
 
     variant = getattr(args, "variant", "")
     access_only = args.access_only
+    assume_yes = args.assume_yes
 
     if variant and access_only:
         raise exceptions.InvalidOptionCombination(
@@ -212,7 +428,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                 "message_code": expired_err.msg_code,
             }
         )
-        print_json_output(
+        _print_json_output(
             json_output,
             json_response,
             processed_services,
@@ -235,127 +451,32 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     for ent_name in entitlements.order_entitlements_for_enabling(
         cfg, entitlements_found
     ):
-        ent = entitlements.entitlement_factory(cfg, ent_name, variant=variant)(
+        result = _enable_one_service(
             cfg,
-            assume_yes=args.assume_yes,
-            allow_beta=args.beta,
-            called_name=ent_name,
-            access_only=access_only,
-            extra_args=kwargs.get("extra_args"),
+            ent_name,
+            variant,
+            access_only,
+            assume_yes,
+            json_output,
+            kwargs.get("extra_args"),
+            enabled_services,
+            all_dependencies,
         )
-        LOG.debug("Enabling entitlement %s", ent_name)
-        LOG.debug("Variant: %s", variant)
-        real_name = ent.name
-        ent_title = ent.title
-
-        if not args.assume_yes:
-            # this never happens for json output because we assert earlier that
-            # assume_yes must be True for json output
-            try:
-                prompt_for_dependency_handling(
-                    cfg,
-                    real_name,
-                    all_dependencies,
-                    enabled_services,
-                    called_name=real_name,
-                    variant=variant,
-                    service_title=ent_title,
-                )
-            except exceptions.UbuntuProError as e:
-                LOG.exception(e)
-                interactive_only_print(e.msg)
-                interactive_only_print(
-                    messages.ENABLE_FAILED.format(title=ent_title)
-                )
-                ret = False
-                continue
-
-        try:
-            if json_output:
-                progress = api.ProgressWrapper()
-            else:
-                progress = api.ProgressWrapper(
-                    cli_util.CLIEnableDisableProgress()
-                )
-
-            progress.total_steps = ent.calculate_total_enable_steps()
-            ent_ret, reason = ent.enable(progress)
-
-            status.status(cfg=cfg)  # Update the status cache
-
-            if (
-                not ent_ret
-                and reason is not None
-                and isinstance(reason, CanEnableFailure)
-            ):
-                if reason.message is not None:
-                    interactive_only_print(reason.message.msg)
-                    failed_services.append(ent_name)
-                    errors.append(
-                        {
-                            "type": "service",
-                            "service": ent_name,
-                            "message": reason.message.msg,
-                            "message_code": reason.message.name,
-                        }
-                    )
-                if reason.reason == CanEnableFailureReason.IS_BETA:
-                    # if we failed because ent is in beta and there was no
-                    # allow_beta flag/config, pretend it doesn't exist
-                    entitlements_not_found.append(ent_name)
-                interactive_only_print(
-                    messages.ENABLE_FAILED.format(title=ent.title)
-                )
-            elif ent_ret:
-                processed_services.append(ent_name)
-                if args.access_only:
-                    interactive_only_print(
-                        messages.ACCESS_ENABLED_TMPL.format(title=ent.title)
-                    )
-                else:
-                    interactive_only_print(
-                        messages.ENABLED_TMPL.format(title=ent.title)
-                    )
-                ent_reboot_required = ent._check_for_reboot()
-                if ent_reboot_required:
-                    json_response["needs_reboot"] = True
-                    interactive_only_print(
-                        messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                            operation="install"
-                        )
-                    )
-                progress.emit(
-                    "message_operation", ent.messaging.get("post_enable")
-                )
-            elif not ent_ret and reason is None:
-                failed_services.append(ent_name)
-                interactive_only_print(
-                    messages.ENABLE_FAILED.format(title=ent.title)
-                )
-
-            ret &= ent_ret
-        except exceptions.UbuntuProError as e:
-            failed_services.append(ent_name)
-            interactive_only_print(e.msg)
-            interactive_only_print(
-                messages.ENABLE_FAILED.format(title=ent_title)
-            )
-            errors.append(
-                {
-                    "type": "service",
-                    "service": ent_name,
-                    "message": e.msg,
-                    "message_code": e.msg_code,
-                    "additional_info": e.additional_info,
-                }
-            )
+        if result.success:
+            processed_services.append(ent_name)
+            if result.needs_reboot:
+                json_response["needs_reboot"] = True
+        else:
             ret = False
+            failed_services.append(ent_name)
+            if result.error is not None:
+                errors.append(result.error)
 
     if entitlements_not_found:
         ret = False
         failed_services += entitlements_not_found
         err = entitlements.create_enable_entitlements_not_found_error(
-            entitlements_not_found, cfg=cfg, allow_beta=args.beta
+            entitlements_not_found, cfg=cfg
         )
         interactive_only_print(err.msg)
         errors.append(
@@ -371,7 +492,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     contract_client = contract.UAContractClient(cfg)
     contract_client.update_activity_token()
 
-    print_json_output(
+    _print_json_output(
         json_output,
         json_response,
         processed_services,

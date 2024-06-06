@@ -45,16 +45,16 @@ Feature: Upgrade between releases when uaclient is attached
       """
 
     Examples: ubuntu release
-      | release | machine_type  | next_release | prompt | devel_release   | service1  | service1_status | service2 | service2_status | before_cmd     |
-      | xenial  | lxd-container | bionic       | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-      | bionic  | lxd-container | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-      | bionic  | lxd-container | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
-      | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-      | jammy   | lxd-container | mantic       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
-      | mantic  | lxd-container | noble        | normal |                 | esm-infra | disabled        | esm-apps | disabled        | true           |
-      # No path from Jammy to Noble until .1 is there
-      # | jammy   | lxd-container | noble        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
+      | release | machine_type  | next_release | prompt | devel_release | service1  | service1_status | service2 | service2_status | before_cmd     |
+      | xenial  | lxd-container | bionic       | lts    |               | esm-infra | enabled         | esm-apps | enabled         | true           |
+      | bionic  | lxd-container | focal        | lts    |               | esm-infra | enabled         | esm-apps | enabled         | true           |
+      | bionic  | lxd-container | focal        | lts    |               | usg       | enabled         | usg      | enabled         | pro enable cis |
+      | focal   | lxd-container | jammy        | lts    |               | esm-infra | enabled         | esm-apps | enabled         | true           |
+      | jammy   | lxd-container | mantic       | normal |               | esm-infra | n/a             | esm-apps | n/a             | true           |
+      | mantic  | lxd-container | noble        | normal |               | esm-infra | disabled        | esm-apps | disabled        | true           |
 
+  # No path from Jammy to Noble until .1 is there
+  # | jammy   | lxd-container | noble        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
   @slow @upgrade
   Scenario Outline: Attached FIPS upgrade across LTS releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

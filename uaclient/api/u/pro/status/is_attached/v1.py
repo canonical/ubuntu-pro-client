@@ -15,6 +15,7 @@ from uaclient.defaults import (
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
     CONTRACT_EXPIRY_PENDING_DAYS,
 )
+from uaclient.files import machine_token
 
 
 class IsAttachedResult(DataObject, AdditionalInfo):
@@ -51,6 +52,7 @@ class ContractExpiryStatus(enum.Enum):
 def _get_contract_expiry_status(
     cfg: UAConfig,
     is_machine_attached: bool,
+    remaining_days: Optional[int],
 ) -> Tuple[ContractExpiryStatus, int]:
     """Return a tuple [ContractExpiryStatus, num_days]"""
     if not is_machine_attached:
@@ -58,7 +60,6 @@ def _get_contract_expiry_status(
 
     grace_period = CONTRACT_EXPIRY_GRACE_PERIOD_DAYS
     pending_expiry = CONTRACT_EXPIRY_PENDING_DAYS
-    remaining_days = cfg.machine_token_file.contract_remaining_days
 
     # if unknown assume the worst
     if remaining_days is None:
@@ -78,10 +79,13 @@ def is_attached() -> IsAttachedResult:
 
 
 def _is_attached(cfg: UAConfig) -> IsAttachedResult:
-    is_machine_attached = bool(cfg.machine_token)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    is_machine_attached = bool(machine_token_file.machine_token)
+
     contract_status, remaining_days = _get_contract_expiry_status(
-        cfg, is_machine_attached
+        cfg, is_machine_attached, machine_token_file.contract_remaining_days
     )
+
     is_attached_and_contract_valid = True
     if (
         not is_machine_attached

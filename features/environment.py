@@ -68,7 +68,7 @@ class UAClientBehaveConfig:
     """
 
     prefix = "UACLIENT_BEHAVE_"
-    file_config_path = "./features/config/protest.yaml"
+    file_config_path = os.path.expanduser("~/.config/protest.yaml")
 
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
@@ -266,7 +266,7 @@ class UAClientBehaveConfig:
     def from_environ(cls, config) -> "UAClientBehaveConfig":
         """Gather config options from:
 
-        1. features/config/protest.yaml
+        1. ~/.config/protest.yaml
         2. os.environ with prefix UACLIENT_BEHAVE_
         3. -D command line options
 

@@ -49,6 +49,7 @@ def fix_pro_pkg_holds(cfg: config.UAConfig):
 
     LOG.info("Attempting to remove Ubuntu Pro FIPS package holds")
     fips = FIPSEntitlement(cfg)
+
     try:
         fips.setup_apt_config(
             progress=api.ProgressWrapper()

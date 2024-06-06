@@ -530,16 +530,17 @@ this service.
 SECURITY_DRY_RUN_UA_NOT_ATTACHED = t.gettext(
     """\
 {bold}The machine is not attached to an Ubuntu Pro subscription.
-To proceed with the fix, a prompt would ask for a valid Ubuntu Pro token.
-{{ pro attach TOKEN }}{end_bold}"""
+To proceed with the fix, a prompt would ask to attach
+the machine to a subscription or use an existing token.
+{{ pro attach }}{end_bold}"""
 ).format(bold=TxtColor.BOLD, end_bold=TxtColor.ENDC)
 SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION = t.gettext(
     """\
 {bold}The machine has an expired subscription.
-To proceed with the fix, a prompt would ask for a new Ubuntu Pro
-token to renew the subscription.
+To proceed with the fix, a prompt would ask to attach the machine to a
+new subscription or use a new Ubuntu Pro subscription token.
 {{ pro detach --assume-yes }}
-{{ pro attach NEW_TOKEN }}{end_bold}"""
+{{ pro attach }}{end_bold}"""
 ).format(bold=TxtColor.BOLD, end_bold=TxtColor.ENDC)
 SECURITY_DRY_RUN_WARNING = t.gettext(
     """\
@@ -1416,10 +1417,10 @@ on fips-enabled systems. You can find out more about Ubuntu Kernel Livepatch
 service at {url}"""
 ).format(url=urls.LIVEPATCH_HOME_PAGE)
 LIVEPATCH_KERNEL_NOT_SUPPORTED_DESCRIPTION = t.gettext(
-    "Current kernel is not supported"
+    "Current kernel is not covered by livepatch"
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED_UNATTACHED = t.gettext(
-    "Supported livepatch kernels are listed here: {url}"
+    "Kernels covered by livepatch are listed here: {url}"
 ).format(url=urls.LIVEPATCH_SUPPORTED_KERNELS)
 LIVEPATCH_UNABLE_TO_CONFIGURE = t.gettext(
     "Unable to configure livepatch: {error_msg}"
@@ -1429,7 +1430,7 @@ LIVEPATCH_DISABLE_REATTACH = t.gettext(
     "Disabling Livepatch prior to re-attach with new token"
 )
 LIVEPATCH_LTS_REBOOT_REQUIRED = t.gettext(
-    "Livepatch support requires a system reboot across LTS upgrade."
+    "Livepatch coverage requires a system reboot across LTS upgrade."
 )
 INSTALLING_LIVEPATCH = t.gettext("Installing Livepatch")
 SETTING_UP_LIVEPATCH = t.gettext("Setting up Livepatch")
@@ -1815,25 +1816,25 @@ LIVEPATCH_KERNEL_UPGRADE_REQUIRED = NamedMessage(
     msg=t.gettext(
         """\
 The running kernel has reached the end of its active livepatch window.
-Please upgrade the kernel with apt and reboot for continued livepatch support."""  # noqa: E501
+Please upgrade the kernel with apt and reboot for continued livepatch coverage."""  # noqa: E501
     ),
 )
 LIVEPATCH_KERNEL_EOL = FormattedNamedMessage(
     name="livepatch-kernel-eol",
     msg=t.gettext(
         """\
-The current kernel ({{version}}, {{arch}}) has reached the end of its livepatch support.
-Supported kernels are listed here: {url}
-Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning."""  # noqa: E501
+The current kernel ({{version}}, {{arch}}) has reached the end of its livepatch coverage.
+Covered kernels are listed here: {url}
+Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning."""  # noqa: E501
     ).format(url=urls.LIVEPATCH_SUPPORTED_KERNELS),
 )
 LIVEPATCH_KERNEL_NOT_SUPPORTED = FormattedNamedMessage(
     name="livepatch-kernel-not-supported",
     msg=t.gettext(
         """\
-The current kernel ({{version}}, {{arch}}) is not supported by livepatch.
-Supported kernels are listed here: {url}
-Either switch to a supported kernel or `sudo pro disable livepatch` to dismiss this warning."""  # noqa: E501
+The current kernel ({{version}}, {{arch}}) is not covered by livepatch.
+Covered kernels are listed here: {url}
+Either switch to a covered kernel or `sudo pro disable livepatch` to dismiss this warning."""  # noqa: E501
     ).format(
         url=urls.LIVEPATCH_SUPPORTED_KERNELS
     ),  # noqa: E501
@@ -1868,9 +1869,7 @@ REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
 )
 REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
     "realtime-livepatch-incompatible",
-    t.gettext(
-        "Livepatch is not currently supported for the Real-time kernel."
-    ),
+    t.gettext("Livepatch does not currently cover the Real-time kernel."),
 )
 REALTIME_VARIANT_INCOMPATIBLE = FormattedNamedMessage(
     "realtime-variant-incompatible",
@@ -2648,4 +2647,9 @@ E_NOT_SUPPORTED = NamedMessage(
 E_CONTRACT_EXPIRED = NamedMessage(
     "contract-expired",
     CONTRACT_EXPIRED,
+)
+
+E_INVALID_URL = FormattedNamedMessage(
+    "invalid-url",
+    t.gettext("Invalid URL: {url}"),
 )

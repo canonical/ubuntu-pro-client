@@ -4,7 +4,6 @@ import logging
 import os
 import shutil
 from enum import Enum
-from typing import Any, Dict
 
 import mock
 import pytest
@@ -14,6 +13,7 @@ try:
     from uaclient import event_logger
     from uaclient.config import UAConfig
     from uaclient.entitlements.entitlement_status import ApplicationStatus
+    from uaclient.files.machine_token import MachineTokenFile
     from uaclient.files.notices import NoticeFileDetails
     from uaclient.files.user_config_file import UserConfigData
 except ImportError:
@@ -172,6 +172,108 @@ def logging_sandbox():
                 yield
 
 
+@pytest.yield_fixture(scope="function", autouse=True)
+def fake_machine_token_file():
+    from unittest.mock import patch
+
+    with patch(
+        "uaclient.files.machine_token.get_machine_token_file"
+    ) as m_get_machine_token_file:
+        machine_token = FakeMachineToken(attached=False)
+        m_get_machine_token_file.return_value = machine_token
+        yield machine_token
+
+
+class FakeMachineToken(MachineTokenFile):
+    def __init__(self, attached, token=None):
+        self.attached = attached
+        self._machine_token = None
+        self.token = token
+        self.machine_token_overlay_path = None
+        self._contract_expiry_datetime = None
+        self._entitlements = None
+        self.write_calls = 0
+        self.delete_calls = 0
+
+    @property
+    def machine_token(self):
+        self._machine_token = None
+        return super().machine_token
+
+    @property
+    def is_present(self):
+        return self.attached
+
+    def read(self):
+        if self.token:
+            return self.token
+
+        if not self.attached:
+            return None
+
+        return {
+            "availableResources": [],
+            "machineToken": "not-null",
+            "machineTokenInfo": {
+                "machineId": "test_machine_id",
+                "accountInfo": {
+                    "id": "acct-1",
+                    "name": "test",
+                    "createdAt": datetime.datetime(
+                        2019,
+                        6,
+                        14,
+                        6,
+                        45,
+                        50,
+                        tzinfo=datetime.timezone.utc,
+                    ),
+                    "externalAccountIDs": [{"IDs": ["id1"], "origin": "AWS"}],
+                },
+                "contractInfo": {
+                    "id": "cid",
+                    "name": "test_contract",
+                    "createdAt": datetime.datetime(
+                        2020,
+                        5,
+                        8,
+                        19,
+                        2,
+                        26,
+                        tzinfo=datetime.timezone.utc,
+                    ),
+                    "effectiveFrom": datetime.datetime(
+                        2000,
+                        5,
+                        8,
+                        19,
+                        2,
+                        26,
+                        tzinfo=datetime.timezone.utc,
+                    ),
+                    "effectiveTo": datetime.datetime(
+                        2040,
+                        5,
+                        8,
+                        19,
+                        2,
+                        26,
+                        tzinfo=datetime.timezone.utc,
+                    ),
+                    "resourceEntitlements": [],
+                    "products": ["free"],
+                },
+            },
+        }
+
+    def write(self, private_content):
+        self.token = private_content
+        self.write_calls += 1
+
+    def delete(self):
+        self.delete_calls += 1
+
+
 @pytest.fixture
 def FakeConfig(tmpdir):
     class _FakeConfig(UAConfig):
@@ -190,84 +292,6 @@ def FakeConfig(tmpdir):
                 cfg_overrides,
                 user_config=UserConfigData(),
             )
-
-        @classmethod
-        def for_attached_machine(
-            cls,
-            account_name: str = "test_account",
-            machine_token: Dict[str, Any] = None,
-            status_cache: Dict[str, Any] = None,
-            effective_to: datetime.datetime = None,
-        ):
-            if not machine_token:
-                machine_token = {
-                    "availableResources": [],
-                    "machineToken": "not-null",
-                    "machineTokenInfo": {
-                        "machineId": "test_machine_id",
-                        "accountInfo": {
-                            "id": "acct-1",
-                            "name": account_name,
-                            "createdAt": datetime.datetime(
-                                2019,
-                                6,
-                                14,
-                                6,
-                                45,
-                                50,
-                                tzinfo=datetime.timezone.utc,
-                            ),
-                            "externalAccountIDs": [
-                                {"IDs": ["id1"], "origin": "AWS"}
-                            ],
-                        },
-                        "contractInfo": {
-                            "id": "cid",
-                            "name": "test_contract",
-                            "createdAt": datetime.datetime(
-                                2020,
-                                5,
-                                8,
-                                19,
-                                2,
-                                26,
-                                tzinfo=datetime.timezone.utc,
-                            ),
-                            "effectiveFrom": datetime.datetime(
-                                2000,
-                                5,
-                                8,
-                                19,
-                                2,
-                                26,
-                                tzinfo=datetime.timezone.utc,
-                            ),
-                            "effectiveTo": datetime.datetime(
-                                2040,
-                                5,
-                                8,
-                                19,
-                                2,
-                                26,
-                                tzinfo=datetime.timezone.utc,
-                            ),
-                            "resourceEntitlements": [],
-                            "products": ["free"],
-                        },
-                    },
-                }
-
-            if effective_to:
-                machine_token["machineTokenInfo"]["contractInfo"][
-                    "effectiveTo"
-                ] = effective_to
-
-            if not status_cache:
-                status_cache = {"attached": True}
-
-            config = cls()
-            config.machine_token_file._machine_token = machine_token
-            return config
 
         def override_features(self, features_override):
             if features_override is not None:

@@ -83,7 +83,7 @@ def machine_access(
 
 
 @pytest.fixture
-def entitlement_factory(tmpdir, FakeConfig):
+def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
     """
     A pytest fixture that returns a function that instantiates an entitlement
 
@@ -101,11 +101,9 @@ def entitlement_factory(tmpdir, FakeConfig):
         obligations: Dict[str, Any] = None,
         overrides: List[Dict[str, Any]] = None,
         entitled: bool = True,
-        allow_beta: bool = False,
         called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
-        assume_yes: Optional[bool] = None,
         suites: List[str] = None,
         additional_packages: List[str] = None,
         cfg: Optional[config.UAConfig] = None,
@@ -123,27 +121,23 @@ def entitlement_factory(tmpdir, FakeConfig):
             if cfg_features is not None:
                 cfg_arg["features"] = cfg_features
             cfg = FakeConfig(cfg_overrides=cfg_arg)
-            cfg.machine_token_file.write(
-                machine_token(
-                    cls.name,
-                    affordances=affordances,
-                    directives=directives,
-                    overrides=overrides,
-                    obligations=obligations,
-                    entitled=entitled,
-                    suites=suites,
-                    additional_packages=additional_packages,
-                ),
+            fake_machine_token_file.attached = True
+            fake_machine_token_file.token = machine_token(
+                cls.name,
+                affordances=affordances,
+                directives=directives,
+                overrides=overrides,
+                obligations=obligations,
+                entitled=entitled,
+                suites=suites,
+                additional_packages=additional_packages,
             )
 
         args = {
-            "allow_beta": allow_beta,
             "called_name": called_name,
             "access_only": access_only,
             "purge": purge,
         }
-        if assume_yes is not None:
-            args["assume_yes"] = assume_yes
 
         if extra_args:
             args = {**args, **extra_args}

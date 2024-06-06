@@ -41,7 +41,7 @@ M_PATH = "uaclient.entitlements."
 def all_resources_available(FakeConfig):
     resources = [
         {"name": name, "available": True}
-        for name in valid_services(cfg=FakeConfig(), allow_beta=True)
+        for name in valid_services(cfg=FakeConfig())
     ]
     return resources
 
@@ -295,23 +295,6 @@ def ros_desc(FakeConfig):
 @mock.patch("uaclient.files.notices.NoticesManager.remove")
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 class TestStatus:
-    def check_beta(self, cls, show_all, uacfg=None, status=""):
-        if not show_all:
-            if status == "enabled":
-                return False
-
-            if uacfg:
-                allow_beta = uacfg.cfg.get("features", {}).get(
-                    "allow_beta", False
-                )
-
-                if allow_beta:
-                    return False
-
-            return cls.is_beta
-
-        return False
-
     @pytest.mark.parametrize("show_all", (True, False))
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
     @mock.patch("uaclient.status.get_available_resources")
@@ -367,9 +350,6 @@ class TestStatus:
             assert expected == status.status(cfg=cfg, show_all=show_all)
 
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"allow_beta": True}))
-    )
-    @pytest.mark.parametrize(
         "avail_res,entitled_res,uf_entitled,uf_status",
         (
             (  # Empty lists means UNENTITLED and UNAVAILABLE
@@ -416,8 +396,8 @@ class TestStatus:
         entitled_res,
         uf_entitled,
         uf_status,
-        features_override,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """Test we get the correct status dict when attached with basic conf"""
         resource_names = [resource["name"] for resource in avail_res]
@@ -491,11 +471,10 @@ class TestStatus:
         else:
             m_get_avail_resources.return_value = available_resource_response
 
-        cfg = FakeConfig.for_attached_machine(
-            machine_token=token,
-        )
-        if features_override:
-            cfg.override_features(features_override)
+        cfg = FakeConfig()
+
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = token
 
         expected_services = [
             {
@@ -618,21 +597,19 @@ class TestStatus:
         _m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_public_config.return_value = UserConfigData()
         m_we_are_currently_root.return_value = True
-        root_cfg = FakeConfig.for_attached_machine()
-        root_status = status.status(cfg=root_cfg)
+        fake_machine_token_file.attached = True
+        cfg = FakeConfig()
+        root_status = status.status(cfg=cfg)
         m_we_are_currently_root.return_value = False
-        normal_cfg = FakeConfig.for_attached_machine()
-        normal_status = status.status(cfg=normal_cfg)
+        normal_status = status.status(cfg=cfg)
         assert normal_status == root_status
 
     @pytest.mark.parametrize("variants_in_contract", ((True), (False)))
     @pytest.mark.parametrize("show_all", (True, False))
-    @pytest.mark.parametrize(
-        "features_override", ((None), ({"allow_beta": False}))
-    )
     @pytest.mark.parametrize(
         "entitlements",
         (
@@ -684,10 +661,10 @@ class TestStatus:
         m_on_supported_kernel,
         all_resources_available,
         entitlements,
-        features_override,
         show_all,
         variants_in_contract,
         FakeConfig,
+        fake_machine_token_file,
     ):
         """When attached, return contract and service user-facing status."""
         m_repo_contract_status.return_value = ContractStatus.ENTITLED
@@ -733,13 +710,12 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = token
+
         mock_notice = NoticesManager()
-        if features_override:
-            cfg.override_features(features_override)
         if not entitlements:
             support_level = UserFacingStatus.INAPPLICABLE.value
         else:
@@ -839,11 +815,6 @@ class TestStatus:
             else:
                 continue
 
-            if not show_all and self.check_beta(
-                cls, show_all, cfg, expected_status
-            ):
-                continue
-
             expected["services"].append(
                 {
                     "name": cls.name,
@@ -896,6 +867,7 @@ class TestStatus:
         m_on_supported_kernel,
         all_resources_available,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_public_config.return_value = UserConfigData()
         m_we_are_currently_root.return_value = True
@@ -918,10 +890,9 @@ class TestStatus:
                 },
             },
         }
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = token
 
         # Test that root's status works as expected (including the cache write)
         expected_dt = datetime.datetime(
@@ -932,10 +903,7 @@ class TestStatus:
         # Test that the read from the status cache work properly for non-root
         # users
         m_we_are_currently_root.return_value = False
-        cfg = FakeConfig.for_attached_machine(
-            account_name="accountname",
-            machine_token=token,
-        )
+        cfg = FakeConfig()
         assert expected_dt == status.status(cfg=cfg)["expires"]
 
     @mock.patch(

@@ -266,8 +266,7 @@ def redact_sensitive_logs(
 
 
 def handle_message_operations(
-    msg_ops: Optional[MessagingOperations],
-    print_fn: Callable[[str], None],
+    msg_ops: Optional[MessagingOperations], assume_yes: bool
 ) -> bool:
     """Emit messages to the console for user interaction
 
@@ -283,9 +282,10 @@ def handle_message_operations(
 
     for msg_op in msg_ops:
         if isinstance(msg_op, str):
-            print_fn(msg_op)
+            print(msg_op)
         else:  # Then we are a callable and dict of args
             functor, args = msg_op
+            args["assume_yes"] = assume_yes
             if not functor(**args):
                 return False
     return True

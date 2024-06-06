@@ -138,7 +138,7 @@ Feature: Attached status
       cis             +yes      +disabled +Security compliance and audit tools
       esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      livepatch       +yes      +warning  +Current kernel is not supported
+      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
       """
     When I verify root and non-root `pro status --all` calls have the same output
     And I run `pro status --all` as non-root
@@ -154,7 +154,7 @@ Feature: Attached status
       fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
       landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +warning  +Current kernel is not supported
+      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
       """
 
     Examples: ubuntu release

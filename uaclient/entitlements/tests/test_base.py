@@ -33,8 +33,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         enable=None,
         applicability_status=None,
         application_status=(ApplicationStatus.DISABLED, ""),
-        allow_beta=False,
-        assume_yes=False,
         supports_access_only=False,
         access_only=False,
         supports_purge=False,
@@ -48,8 +46,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     ):
         super().__init__(
             cfg,
-            allow_beta=allow_beta,
-            assume_yes=assume_yes,
             access_only=access_only,
             purge=purge,
         )
@@ -143,18 +139,22 @@ class TestEntitlementNames:
         )
         assert expected == entitlement.valid_names
 
-    def test_presentation_name(self, entitlement_factory):
+    @pytest.mark.parametrize(
+        "affordances,expected_value",
+        (
+            ({}, "testconcreteentitlement"),
+            ({"presentedAs": "something_else"}, "something_else"),
+        ),
+    )
+    def test_presentation_name(
+        self, affordances, expected_value, entitlement_factory
+    ):
         entitlement = entitlement_factory(
             ConcreteTestEntitlement,
             entitled=True,
+            affordances=affordances,
         )
-        assert "testconcreteentitlement" == entitlement.presentation_name
-        entitlement = entitlement_factory(
-            ConcreteTestEntitlement,
-            entitled=True,
-            affordances={"presentedAs": "something_else"},
-        )
-        assert "something_else" == entitlement.presentation_name
+        assert expected_value == entitlement.presentation_name
 
 
 class TestEntitlementCanEnable:
@@ -283,32 +283,6 @@ class TestEntitlementCanEnable:
         else:
             assert expected_reason is None
 
-    @pytest.mark.parametrize("is_beta", (True, False))
-    @pytest.mark.parametrize("allow_beta", (True, False))
-    @pytest.mark.parametrize("allow_beta_cfg", (True, False))
-    def test_can_enable_on_beta_service(
-        self, allow_beta_cfg, allow_beta, is_beta, base_entitlement_factory
-    ):
-        entitlement = base_entitlement_factory(
-            entitled=True,
-            allow_beta=allow_beta,
-            cfg_features={"allow_beta": allow_beta_cfg},
-            extra_args={
-                "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
-                "application_status": (ApplicationStatus.DISABLED, ""),
-            },
-        )
-        entitlement.is_beta = is_beta
-        can_enable, reason = entitlement.can_enable()
-
-        if not is_beta or allow_beta or allow_beta_cfg:
-            assert can_enable
-            assert reason is None
-        else:
-            assert not can_enable
-            assert reason.reason == CanEnableFailureReason.IS_BETA
-            assert reason.message is None
-
     def test_can_enable_when_incompatible_service_found(
         self, base_entitlement_factory, mock_entitlement
     ):
@@ -364,7 +338,7 @@ class TestEntitlementCanEnable:
 
 class TestEntitlementEnable:
     @pytest.mark.parametrize(
-        "block_disable_on_enable,assume_yes",
+        "block_disable_on_enable",
         [(False, False), (False, True), (True, False), (True, True)],
     )
     @mock.patch("uaclient.util.is_config_value_true")
@@ -372,7 +346,6 @@ class TestEntitlementEnable:
         self,
         m_is_config_value_true,
         block_disable_on_enable,
-        assume_yes,
         base_entitlement_factory,
         mock_entitlement,
     ):
@@ -413,9 +386,8 @@ class TestEntitlementEnable:
         assert m_is_config_value_true.call_count == 1
         assert m_incompatible_obj.disable.call_count == expected_disable_call
 
-    @pytest.mark.parametrize("assume_yes", ((False), (True)))
     def test_enable_when_required_service_found(
-        self, assume_yes, base_entitlement_factory, mock_entitlement
+        self, base_entitlement_factory, mock_entitlement
     ):
         m_required_service_cls, m_required_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.DISABLED, ""),
@@ -455,11 +427,6 @@ class TestEntitlementEnable:
                     CanEnableFailureReason.ALREADY_ENABLED,
                     message="msg",
                 ),
-                0,
-                0,
-            ),
-            (
-                CanEnableFailure(CanEnableFailureReason.IS_BETA),
                 0,
                 0,
             ),
@@ -598,7 +565,6 @@ class TestEntitlementEnable:
             incompatible_service_cls, messages.NamedMessage("code", "msg")
         )
         entitlement = base_entitlement_factory(
-            assume_yes=True,
             extra_args={
                 "blocking_incompatible_services": [
                     incompatible_services_definition
@@ -1200,50 +1166,6 @@ class TestEntitlementProcessContractDeltas:
             ApplicationStatus.DISABLED,
             mock.ANY,
         ) == entitlement.application_status()
-
-    @pytest.mark.parametrize(
-        "orig_access,delta",
-        (
-            (
-                {
-                    "resourceToken": "test",
-                    "entitlement": {
-                        "entitled": True,
-                        "obligations": {"enableByDefault": False},
-                    },
-                },
-                {
-                    "entitlement": {
-                        "entitled": True,
-                        "obligations": {"enableByDefault": True},
-                    }
-                },
-            ),
-        ),
-    )
-    def test_process_contract_deltas_enable_beta_if_enabled_by_default_turned(
-        self, base_entitlement_factory, orig_access, delta
-    ):
-        """Disable when deltas transition from active to unentitled."""
-        entitlement = base_entitlement_factory(
-            entitled=True,
-            extra_args={
-                "applicability_status": (ApplicabilityStatus.APPLICABLE, ""),
-                "application_status": (ApplicationStatus.DISABLED, ""),
-            },
-        )
-        entitlement.is_beta = True
-        assert not entitlement.allow_beta
-        with mock.patch.object(
-            entitlement, "can_enable", return_value=(True, None)
-        ):
-            with mock.patch.object(entitlement, "enable") as m_enable:
-                entitlement.process_contract_deltas(
-                    orig_access, delta, allow_enable=True
-                )
-                assert 1 == m_enable.call_count
-
-        assert entitlement.allow_beta
 
 
 class TestEntitlementCfg:
