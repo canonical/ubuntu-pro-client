@@ -6,8 +6,8 @@ How to manage real-time kernel
 Pre-requisites
 ==============
 
-The `real-time kernel <realtime_>`_ is currently only supported on Ubuntu
-22.04 LTS (Jammy). For more information, feel free to
+The `real-time kernel <realtime_>`_ is currently supported on Ubuntu
+22.04 LTS (Jammy) and 24.04 LTS (Noble). For more information, feel free to
 `contact our real-time team`_.
 
 Enable and auto-install

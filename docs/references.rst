@@ -1,3 +1,5 @@
+.. _reference:
+
 Ubuntu Pro Client reference
 ***************************
 

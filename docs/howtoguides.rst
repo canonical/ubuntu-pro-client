@@ -19,8 +19,8 @@ How to use ``pro`` commands
 .. toctree::
    :maxdepth: 1
 
-   Get an Ubuntu Pro token and attach to a subscription <howtoguides/get_token_and_attach>
-   Attach with a configuration file <howtoguides/how_to_attach_with_config_file>
+   Attach a machine to a subscription <howtoguides/get_token_and_attach>
+   Attach via a configuration file <howtoguides/how_to_attach_with_config_file>
 
 ``pro collect-logs``
 --------------------
@@ -112,3 +112,4 @@ Fixing multiple CVEs
 
    How to know if a system is affected by a list of CVEs? <howtoguides/how_to_know_if_system_affected_by_a_list_of_cves>
    Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
+

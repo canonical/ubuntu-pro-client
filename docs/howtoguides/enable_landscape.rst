@@ -74,4 +74,4 @@ management.
 
 .. include:: ../links.txt
 
-.. _parameters supported by: https://manpages.ubuntu.com/landscape-config
+.. _parameters supported by: https://manpages.ubuntu.com/manpages/noble/en/man1/landscape-config.1.html
