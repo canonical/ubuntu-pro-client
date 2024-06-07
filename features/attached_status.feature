@@ -42,35 +42,29 @@ Feature: Attached status
   Scenario Outline: Non-root status can see in-progress operations
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    When I run shell command `sudo pro enable cis >/dev/null & pro status` as non-root
+    When I run shell command `sudo pro refresh & pro status` as non-root
     Then stdout matches regexp:
       """
       NOTICES
-      Operation in progress: pro enable
+      Operation in progress: pro refresh
       """
     When I run `pro status --wait` as non-root
-    When I run `pro disable cis --assume-yes` with sudo
-    When I run shell command `sudo pro enable cis & pro status --wait` as non-root
+    When I run shell command `sudo pro refresh & pro status --wait` as non-root
     Then stdout matches regexp:
       """
-      One moment, checking your subscription first
-      Configuring APT access to CIS Audit
-      Updating CIS Audit package lists
-      Updating standard Ubuntu package lists
-      Installing CIS Audit packages
-      CIS Audit enabled
-      Visit https://ubuntu.com/security/cis to learn how to use CIS
+      Successfully processed your pro configuration.
+      Successfully refreshed your subscription.
+      Successfully updated Ubuntu Pro related APT and MOTD messages.
       \.+
       SERVICE +ENTITLED +STATUS +DESCRIPTION
       """
     Then stdout does not match regexp:
       """
       NOTICES
-      Operation in progress: pro enable
+      Operation in progress: pro refresh
       """
-    When I run `pro disable cis --assume-yes` with sudo
     When I apt install `jq`
-    When I run shell command `sudo pro enable cis >/dev/null & pro status --format json | jq -r .execution_status` as non-root
+    When I run shell command `sudo pro refresh >/dev/null & pro status --format json | jq -r .execution_status` as non-root
     Then I will see the following on stdout:
       """
       active
