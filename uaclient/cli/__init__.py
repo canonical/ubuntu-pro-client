@@ -116,7 +116,9 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     def print_help(self, file=None, show_all=False):
         if self.base_desc:
-            service_descriptions = UAArgumentParser._get_service_descriptions()
+            service_descriptions = sorted(
+                UAArgumentParser._get_service_descriptions()
+            )
             self.description = "\n".join(
                 [self.base_desc] + service_descriptions
             )
