@@ -127,7 +127,20 @@ def _enable(
         raise exceptions.NotSupported()
 
     enabled_services_before = _enabled_services_names(cfg)
-    if options.service in enabled_services_before:
+
+    already_enabled = next(
+        (
+            s
+            for s in _enabled_services(cfg).enabled_services
+            if s.name == options.service
+            and (
+                not options.variant
+                or (s.variant_enabled and s.variant_name == options.variant)
+            )
+        ),
+        None,
+    )
+    if already_enabled:
         # nothing to do
         return EnableResult(
             enabled=[],
