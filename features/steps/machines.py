@@ -116,6 +116,14 @@ def given_a_machine(
             context, "python3-coverage", machine_name=machine_name
         )
 
+    # trigger GH: #3137
+    when_i_run_command(
+        context,
+        "touch /var/lib/dpkg/arch",
+        "with sudo",
+        machine_name=machine_name,
+    )
+
     if cleanup:
 
         def cleanup_instance():
