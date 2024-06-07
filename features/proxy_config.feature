@@ -1227,8 +1227,8 @@ Feature: Proxy configuration
       https_port 0.0.0.0:3129 cert=/home/ubuntu/$behave_var{machine-name proxy}.lxd.crt key=/home/ubuntu/$behave_var{machine-name proxy}.lxd.key
       """
     And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-    # Configure system-under-test to trust the HTTPS proxy
-    When I move `proxy` `/home/ubuntu/ca.crt` to `system-under-test` `/usr/local/share/ca-certificates/ca.crt`
+    # Configure sut to trust the HTTPS proxy
+    When I move `proxy` `/home/ubuntu/ca.crt` to `sut` `/usr/local/share/ca-certificates/ca.crt`
     And I run `update-ca-certificates` with sudo
     And I run `systemctl restart snapd.service` with sudo
     # error message to install pycurl
