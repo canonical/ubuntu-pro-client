@@ -9,7 +9,7 @@ from uaclient.api.u.pro.services.enable.v1 import (
     _auto_select_variant,
     _enable,
 )
-from uaclient.testing.helpers import does_not_raise
+from uaclient.testing.helpers import does_not_raise, mock_with_name_attr
 
 M_PATH = "uaclient.api.u.pro.services.enable.v1."
 
@@ -20,7 +20,7 @@ class TestEnable:
             "options",
             "we_are_currently_root",
             "is_attached",
-            "enabled_services_names_before",
+            "enabled_services_before",
             "enabled_services_names_after",
             "enable_result",
             "messaging_ops",
@@ -99,12 +99,60 @@ class TestEnable:
                     messages=[],
                 ),
             ),
-            # success already enabled
+            # success already enabled no variant
             (
                 EnableOptions(service="s1"),
                 True,
                 True,
-                ["s1"],
+                [
+                    mock_with_name_attr(
+                        name="s1", variant_enabled=False, variant_name=""
+                    )
+                ],
+                None,
+                None,
+                None,
+                None,
+                does_not_raise(),
+                EnableResult(
+                    enabled=[],
+                    disabled=[],
+                    reboot_required=False,
+                    messages=[],
+                ),
+            ),
+            # success already enabled no variant specified but variant enabled
+            (
+                EnableOptions(service="s1"),
+                True,
+                True,
+                [
+                    mock_with_name_attr(
+                        name="s1", variant_enabled=True, variant_name="v1"
+                    )
+                ],
+                None,
+                None,
+                None,
+                None,
+                does_not_raise(),
+                EnableResult(
+                    enabled=[],
+                    disabled=[],
+                    reboot_required=False,
+                    messages=[],
+                ),
+            ),
+            # success already enabled variant specified same variant enabled
+            (
+                EnableOptions(service="s1", variant="v1"),
+                True,
+                True,
+                [
+                    mock_with_name_attr(
+                        name="s1", variant_enabled=True, variant_name="v1"
+                    )
+                ],
                 None,
                 None,
                 None,
@@ -135,6 +183,28 @@ class TestEnable:
                     messages=[],
                 ),
             ),
+            # success with reboot required and different variant
+            (
+                EnableOptions(service="s1", variant="v1"),
+                True,
+                True,
+                [
+                    mock_with_name_attr(
+                        name="s1", variant_enabled=True, variant_name="v2"
+                    )
+                ],
+                ["s1"],
+                (True, None),
+                {},
+                True,
+                does_not_raise(),
+                EnableResult(
+                    enabled=[],
+                    disabled=[],
+                    reboot_required=True,
+                    messages=[],
+                ),
+            ),
             # success with post enable messages
             (
                 EnableOptions(service="s1"),
@@ -158,7 +228,11 @@ class TestEnable:
                 EnableOptions(service="s1"),
                 True,
                 True,
-                ["s2"],
+                [
+                    mock_with_name_attr(
+                        name="s2", variant_enabled=False, variant_name=""
+                    )
+                ],
                 ["s1", "s3"],
                 (True, None),
                 {},
@@ -179,12 +253,14 @@ class TestEnable:
     @mock.patch(M_PATH + "_auto_select_variant", return_value=None)
     @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "_enabled_services_names")
+    @mock.patch(M_PATH + "_enabled_services")
     @mock.patch(M_PATH + "_is_attached")
     @mock.patch(M_PATH + "util.we_are_currently_root")
     def test_enable(
         self,
         m_we_are_currently_root,
         m_is_attached,
+        m_enabled_services,
         m_enabled_services_names,
         m_entitlement_factory,
         m_auto_select_variant,
@@ -194,7 +270,7 @@ class TestEnable:
         options,
         is_attached,
         we_are_currently_root,
-        enabled_services_names_before,
+        enabled_services_before,
         enabled_services_names_after,
         enable_result,
         messaging_ops,
@@ -205,6 +281,14 @@ class TestEnable:
     ):
         m_we_are_currently_root.return_value = we_are_currently_root
         m_is_attached.return_value = mock.MagicMock(is_attached=is_attached)
+        m_enabled_services.return_value.enabled_services = (
+            enabled_services_before
+        )
+        enabled_services_names_before = (
+            [s.name for s in enabled_services_before]
+            if enabled_services_before
+            else enabled_services_before
+        )
         m_enabled_services_names.side_effect = [
             enabled_services_names_before,
             enabled_services_names_after,

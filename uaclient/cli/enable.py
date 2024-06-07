@@ -236,8 +236,8 @@ def _enable_one_service(
             for s in enabled_services
             if s.name == real_name
             and (
-                (s.variant_enabled and s.variant_name == variant)
-                or (not s.variant_enabled and not variant)
+                not variant
+                or (s.variant_enabled and s.variant_name == variant)
             )
         ),
         None,
