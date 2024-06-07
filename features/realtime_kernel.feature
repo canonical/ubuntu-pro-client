@@ -51,11 +51,12 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       This command must be run as root (try using sudo).
       """
-    When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
+    When I run `pro enable realtime-kernel` `with sudo` and stdin `y\ny`
     Then stdout matches regexp:
       """
       One moment, checking your subscription first
-      The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+      No variant specified. To specify a variant, use the variant option.
+      Auto-selecting .*generic.* variant. Proceed\? \(y/N\) The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
 
       .*This will change your kernel. To revert to your original kernel, you will need
       to make the change manually..*
@@ -129,14 +130,15 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
       ├ generic        yes +enabled   +Generic version of the RT kernel \(default\)
-      └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+      ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+      └ raspi          yes +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I run `pro api u.pro.status.enabled_services.v1` as non-root
     Then stdout matches regexp:
       """
       {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "generic"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
       """
-    When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\n`
+    When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\ny`
     Then stdout contains substring:
       """
       Real-time Intel IOTG Kernel cannot be enabled with Real-time kernel.
@@ -152,7 +154,8 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
       ├ generic        yes +disabled   +Generic version of the RT kernel \(default\)
-      └ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
+      ├ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
+      └ raspi          yes +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I run `pro api u.pro.status.enabled_services.v1` as non-root
     Then stdout matches regexp:
@@ -165,21 +168,23 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       intel
       """
-    When I run `pro enable realtime-kernel --variant generic` `with sudo` and stdin `y\ny\n`
+    When I run `pro enable realtime-kernel --variant generic` `with sudo` and stdin `y\ny\ny`
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
       realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
       ├ generic        yes +enabled   +Generic version of the RT kernel \(default\)
-      └ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+      ├ intel-iotg     yes +disabled  +RT kernel optimized for Intel IOTG platform
+      └ raspi          yes +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       """
-    When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\n`
+    When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\ny`
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
       realtime-kernel  yes +enabled   +Ubuntu kernel with PREEMPT_RT patches integrated
       ├ generic        yes +disabled   +Generic version of the RT kernel \(default\)
-      └ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
+      ├ intel-iotg     yes +enabled  +RT kernel optimized for Intel IOTG platform
+      └ raspi          yes +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       """
     When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
     Then stdout contains substring:
@@ -207,6 +212,11 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
                       - nvidia-prime
                 - selector:
                     variant: raspi
+                  affordances:
+                    series:
+                      - jammy
+                    architectures:
+                      - amd64
                   directives:
                     additionalPackages:
                       - raspi-config
