@@ -160,13 +160,11 @@ def attach_with_token(
         contract_token=token, attachment_dt=attached_at
     )
 
-    machine_token_file.write(new_machine_token)
-
     current_series = system.get_release_info().series
     only_series = (
         machine_token_file.entitlements()
         .get("support", {})
-        .get("entitlement")
+        .get("entitlement", {})
         .get("affordances", {})
         .get("onlySeries", None)
     )
@@ -184,6 +182,7 @@ def attach_with_token(
             release=allowed_release,
         )
 
+    machine_token_file.write(new_machine_token)
     try:
         check_entitlement_apt_directives_are_unique(cfg)
     except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:

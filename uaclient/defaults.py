@@ -89,6 +89,5 @@ CODENAME_TO_RELEASE = {
     "bionic": "18.04",
     "focal": "20.04",
     "jammy": "22.04",
-    "mantic": "23.10",
     "noble": "24.04",
 }

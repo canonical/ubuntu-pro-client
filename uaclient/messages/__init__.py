@@ -81,6 +81,11 @@ RELEASE_UPGRADE_SUCCESS = t.gettext(
     "Finished upgrade of Ubuntu Pro service configuration"
 )
 
+PRO_ONLY_ALLOWED_FOR_RELEASE = t.gettext(
+    "Detaching Ubuntu Pro. Previously attached subscription \
+was only valid for Ubuntu {release_codename} {release} release."
+)
+
 MISSING_YAML_MODULE = t.gettext(
     """\
 Couldn't import the YAML module.

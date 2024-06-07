@@ -16,12 +16,16 @@ from uaclient.files.state_files import (
     timer_jobs_state_file,
 )
 from uaclient.timer.metering import metering_enabled_resources
-from uaclient.timer.update_contract_info import update_contract_info
+from uaclient.timer.update_contract_info import (
+    update_contract_info,
+    validate_release_series,
+)
 from uaclient.timer.update_messaging import update_motd_messages
 
 LOG = logging.getLogger("ubuntupro.timer")
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
+CHECK_RELEASE_SERIES_INTERVAL = 86400  # 24 hours
 UPDATE_CONTRACT_INFO_INTERVAL = 86400  # 24 hours
 
 
@@ -120,6 +124,11 @@ update_contract_info_job = TimedJob(
     update_contract_info,
     UPDATE_CONTRACT_INFO_INTERVAL,
 )
+validate_release_series_job = TimedJob(
+    "validate_release_series",
+    validate_release_series,
+    CHECK_RELEASE_SERIES_INTERVAL,
+)
 
 
 def run_job(
@@ -168,7 +177,10 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
         # We do this for the first run of the timer job, where the file
         # doesn't exist
         jobs_status_obj = AllTimerJobsState(
-            metering=None, update_messaging=None, update_contract_info=None
+            metering=None,
+            update_messaging=None,
+            update_contract_info=None,
+            validate_release_series=None,
         )
 
     jobs_status_obj.metering = run_job(
@@ -176,6 +188,12 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     )
     jobs_status_obj.update_messaging = run_job(
         cfg, update_message_job, current_time, jobs_status_obj.update_messaging
+    )
+    jobs_status_obj.validate_release_series = run_job(
+        cfg,
+        validate_release_series_job,
+        current_time,
+        jobs_status_obj.validate_release_series,
     )
     timer_jobs_state_file.write(jobs_status_obj)
 

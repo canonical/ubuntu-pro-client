@@ -4,7 +4,10 @@ import mock
 import pytest
 
 from uaclient.files.notices import Notice
-from uaclient.timer.update_contract_info import update_contract_info
+from uaclient.timer.update_contract_info import (
+    update_contract_info,
+    validate_release_series,
+)
 
 M_PATH = "uaclient.timer.update_contract_info."
 
@@ -84,3 +87,31 @@ class TestUpdateContractInfo:
             "Failed to check for change in machine contract."
             " Reason: Error checking contract info\n"
         ) in caplog_text()
+
+
+class TestValidateReleaseSeries:
+    @pytest.mark.parametrize("allowed_series", (None, "bionic", "jammy"))
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="jammy"),
+    )
+    @mock.patch(M_PATH + "detach")
+    def test_validate_release_series(
+        self,
+        m_detach,
+        m_get_release_info,
+        allowed_series,
+        FakeConfig,
+        fake_machine_token_file,
+    ):
+        fake_machine_token_file._entitlements = {
+            "support": {
+                "entitlement": {"affordances": {"onlySeries": allowed_series}}
+            }
+        }
+        validate_release_series(cfg=FakeConfig())
+        if allowed_series:
+            if allowed_series != "jammy":
+                assert m_detach.call_count == 1
+        else:
+            assert m_detach.call_count == 0
