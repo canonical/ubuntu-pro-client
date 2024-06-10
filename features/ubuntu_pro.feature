@@ -224,7 +224,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
       "attached": false
       """
-    When I run `cat /var/log/ubuntu-advantage.log` with sudo
+    When I run `journalctl` as non-root
     Then stdout matches regexp:
       """
       cloud-init userdata has ubuntu-advantage key.
