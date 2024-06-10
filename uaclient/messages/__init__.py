@@ -1722,6 +1722,9 @@ View your subscription at: {url}"""
 SERVICE_NOT_ENTITLED = FormattedNamedMessage(
     "service-not-entitled", t.gettext("{title} is not entitled")
 )
+AUTO_SELECTED_VARIANT_WARNING = FormattedNamedMessage(
+    "auto-selected-variant", t.gettext("Auto-selected {variant_name} variant")
+)
 
 INAPPLICABLE_KERNEL_VER = FormattedNamedMessage(
     "inapplicable-kernel-version",

@@ -250,7 +250,7 @@ class TestEnable:
     @mock.patch(M_PATH + "status.status")
     @mock.patch(M_PATH + "lock.clear_lock_file_if_present")
     @mock.patch(M_PATH + "lock.RetryLock")
-    @mock.patch(M_PATH + "_auto_select_variant", return_value=None)
+    @mock.patch(M_PATH + "_auto_select_variant")
     @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "_enabled_services_names")
     @mock.patch(M_PATH + "_enabled_services")
@@ -294,6 +294,7 @@ class TestEnable:
             enabled_services_names_after,
         ]
         m_ent = m_entitlement_factory.return_value
+        m_auto_select_variant.return_value = (m_ent, None)
         m_ent.enable.return_value = enable_result
         m_ent.messaging = messaging_ops
         m_ent._check_for_reboot.return_value = reboot_required
@@ -356,7 +357,7 @@ class TestEnable:
             (
                 False,
                 {"variant": mock.MagicMock()},
-                mock.MagicMock(),
+                (mock.MagicMock(), mock.MagicMock()),
                 [],
                 [mock.call(mock.ANY)],
             ),
@@ -394,14 +395,17 @@ class TestEnable:
         m_ent.is_variant = original_is_variant
         m_ent.variants = original_variants
         if auto_select_variant_return_value is not None:
-            auto_select_variant_return_value.enable.return_value = (True, None)
+            auto_select_variant_return_value[0].enable.return_value = (
+                True,
+                None,
+            )
             m_auto_select_variant.return_value = (
                 auto_select_variant_return_value
             )
         else:
-            m_auto_select_variant.return_value = m_ent
+            m_auto_select_variant.return_value = (m_ent, None)
 
-        _enable(
+        result = _enable(
             mock.MagicMock(), FakeConfig(), progress_object=mock.MagicMock()
         )
 
@@ -409,8 +413,9 @@ class TestEnable:
         if auto_select_variant_return_value is not None:
             assert (
                 expected_variant_enable_calls
-                == auto_select_variant_return_value.enable.call_args_list
+                == auto_select_variant_return_value[0].enable.call_args_list
             )
+            assert len(result.warnings) == 1
 
 
 class TestAutoSelectVariant:
@@ -507,11 +512,11 @@ class TestAutoSelectVariant:
             variants.append(v)
 
         if expected_result == "original":
-            expected = original
+            expected = (original, None)
         elif expected_result == "default":
-            expected = default_variant.return_value
+            expected = (default_variant.return_value, mock.ANY)
         else:
-            expected = variants[expected_result].return_value
+            expected = (variants[expected_result].return_value, mock.ANY)
 
         assert expected == _auto_select_variant(
             FakeConfig(),
