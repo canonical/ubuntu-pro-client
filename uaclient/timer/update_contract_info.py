@@ -1,6 +1,6 @@
 import logging
 
-from uaclient import contract, defaults, messages, system, util
+from uaclient import contract, messages, system, util
 from uaclient.api.u.pro.detach.v1 import detach
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
@@ -32,6 +32,8 @@ def update_contract_info(cfg: UAConfig) -> bool:
 
 
 def validate_release_series(cfg: UAConfig, show_message=False):
+    if not _is_attached(cfg).is_attached:
+        return
     machine_token_file = machine_token.get_machine_token_file(cfg)
     current_series = system.get_release_info().series
     only_series = (
@@ -41,18 +43,13 @@ def validate_release_series(cfg: UAConfig, show_message=False):
         .get("affordances", {})
         .get("onlySeries", None)
     )
-    if only_series:
-        allowed_release = defaults.CODENAME_TO_RELEASE.get(only_series, "")
-        if only_series != current_series:
-            detach()
-            if show_message:
-                print(
-                    messages.PRO_ONLY_ALLOWED_FOR_RELEASE.format(
-                        only_series, allowed_release
-                    )
-                )
-            LOG.warning(
-                "Detaching Ubuntu Pro. Previously attached subscription was only valid for Ubuntu %s %s.",  # noqa E501
-                only_series,
-                allowed_release,
-            )
+    if only_series and only_series != current_series:
+        detach()
+        allowed_release = system.get_distro_info(only_series)
+        message = messages.PRO_ONLY_ALLOWED_FOR_RELEASE.format(
+            release=allowed_release.release,
+            series_codename=allowed_release.series_codename,
+        )
+        if show_message:
+            print(message)
+        LOG.warning(message)

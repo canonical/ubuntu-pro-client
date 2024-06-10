@@ -24,7 +24,7 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.files import machine_token, state_files
+from uaclient.files import machine_token, notices, state_files
 from uaclient.timer.update_messaging import update_motd_messages
 
 
@@ -97,6 +97,7 @@ def _detach_in_lock(cfg: UAConfig) -> DetachResult:
             else:
                 disabled.append(ent_name)
 
+    notices.remove(notices.Notice.LIMITED_TO_RELEASE)
     state_files.delete_state_files()
     machine_token.get_machine_token_file().delete()
     update_motd_messages(cfg)
