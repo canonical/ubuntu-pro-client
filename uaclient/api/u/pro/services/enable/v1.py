@@ -1,10 +1,10 @@
 import logging
-from typing import Iterable, List, Optional, Type
+from typing import Iterable, List, Optional, Tuple, Type
 
 from uaclient import entitlements, lock, messages, status, util
 from uaclient.api import AbstractProgress, ProgressWrapper, exceptions
 from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
+from uaclient.api.data_types import AdditionalInfo, ErrorWarningObject
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
@@ -66,7 +66,7 @@ def _auto_select_variant(
     entitlement: entitlements.UAEntitlement,
     available_variants: Iterable[Type[entitlements.UAEntitlement]],
     access_only: bool,
-) -> entitlements.UAEntitlement:
+) -> Tuple[entitlements.UAEntitlement, Optional[ErrorWarningObject]]:
     variant = None
     for v_cls in available_variants:
         v = v_cls(cfg=cfg, access_only=access_only)
@@ -95,9 +95,16 @@ def _auto_select_variant(
                 )
             ],
         )
-        return variant
+        warning = messages.AUTO_SELECTED_VARIANT_WARNING.format(
+            variant_name=variant.variant_name
+        )
+        return variant, ErrorWarningObject(
+            title=warning.msg,
+            code=warning.name,
+            meta={"variant_name": variant.variant_name},
+        )
     else:
-        return entitlement
+        return entitlement, None
 
 
 def _enabled_services_names(cfg: UAConfig) -> List[str]:
@@ -116,6 +123,7 @@ def _enable(
     progress_object: Optional[AbstractProgress] = None,
 ) -> EnableResult:
     progress = ProgressWrapper(progress_object)
+    warnings = []
 
     if not util.we_are_currently_root():
         raise exceptions.NonRootUserError()
@@ -158,13 +166,15 @@ def _enable(
 
     available_variants = entitlement.variants
     if not entitlement.is_variant and available_variants:
-        entitlement = _auto_select_variant(
+        entitlement, auto_select_warning = _auto_select_variant(
             cfg=cfg,
             progress=progress,
             entitlement=entitlement,
             available_variants=available_variants.values(),
             access_only=options.access_only,
         )
+        if auto_select_warning:
+            warnings.append(auto_select_warning)
 
     progress.total_steps = entitlement.calculate_total_enable_steps()
 
@@ -200,7 +210,7 @@ def _enable(
     status.status(cfg=cfg)  # Update the status cache
     progress.finish()
 
-    return EnableResult(
+    result = EnableResult(
         enabled=sorted(
             list(
                 set(enabled_services_after).difference(
@@ -218,6 +228,8 @@ def _enable(
         reboot_required=entitlement._check_for_reboot(),
         messages=post_enable_messages,
     )
+    result.warnings = warnings
+    return result
 
 
 endpoint = APIEndpoint(
