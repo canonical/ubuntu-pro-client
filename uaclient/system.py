@@ -44,7 +44,14 @@ RE_KERNEL_UNAME = (
 )
 
 DistroInfo = NamedTuple(
-    "DistroInfo", [("eol", datetime.date), ("eol_esm", datetime.date)]
+    "DistroInfo",
+    [
+        ("eol", datetime.date),
+        ("eol_esm", datetime.date),
+        ("series", str),
+        ("release", str),
+        ("series_codename", str),
+    ],
 )
 
 KernelInfo = NamedTuple(
@@ -71,6 +78,7 @@ ReleaseInfo = NamedTuple(
         ("pretty_version", str),
     ],
 )
+
 CpuInfo = NamedTuple(
     "CpuInfo",
     [
@@ -435,6 +443,9 @@ def get_distro_info(series: str) -> DistroInfo:
             else:
                 eol_esm = values[7] if "LTS" in values[0] else values[5]
             return DistroInfo(
+                release=values[0],
+                series_codename=values[1],
+                series=values[2],
                 eol=datetime.datetime.strptime(values[5], "%Y-%m-%d").date(),
                 eol_esm=datetime.datetime.strptime(eol_esm, "%Y-%m-%d").date(),
             )

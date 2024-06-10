@@ -25,7 +25,6 @@ from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.defaults import (
     APPARMOR_PROFILES,
     CLOUD_BUILD_INFO,
-    CODENAME_TO_RELEASE,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
 )
@@ -159,27 +158,32 @@ def attach_with_token(
     new_machine_token = contract_client.add_contract_machine(
         contract_token=token, attachment_dt=attached_at
     )
-
     current_series = system.get_release_info().series
+
+    contractInfo = new_machine_token.get("machineTokenInfo", {}).get(
+        "contractInfo", {}
+    )
+    support_resource = dict(
+        (e.get("type"), e)
+        for e in contractInfo.get("resourceEntitlements", [])
+        if e.get("type") == "support"
+    )
     only_series = (
-        machine_token_file.entitlements()
-        .get("support", {})
-        .get("entitlement", {})
+        support_resource.get("support", {})
         .get("affordances", {})
         .get("onlySeries", None)
     )
     if only_series:
-        allowed_release = CODENAME_TO_RELEASE.get(only_series, "")
+        allowed_release = system.get_distro_info(only_series)
         if only_series != current_series:
-            machine_token_file.delete()
             raise exceptions.AttachFailureRestrictedRelease(
-                release_codename=only_series,
-                release=allowed_release,
+                release=allowed_release.release,
+                series_codename=allowed_release.series_codename,
             )
         notices.add(
             notices.Notice.LIMITED_TO_RELEASE,
-            release_codename=only_series,
-            release=allowed_release,
+            release=allowed_release.release,
+            series_codename=allowed_release.series_codename,
         )
 
     machine_token_file.write(new_machine_token)
