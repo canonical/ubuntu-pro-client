@@ -283,6 +283,7 @@ Feature: Unattached status
       esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
+      realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
 
       For a list of all Ubuntu Pro services, run 'pro status --all'
 
@@ -303,7 +304,7 @@ Feature: Unattached status
       fips-updates    +no        +FIPS compliant crypto packages with stable security updates
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
-      realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
+      realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
       ros             +no        +Security Updates for the Robot Operating System
       ros-updates     +no        +All Updates for the Robot Operating System
       usg             +no        +Security compliance and audit tools
@@ -326,6 +327,7 @@ Feature: Unattached status
       esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
+      realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
 
       FEATURES
       allow_beta: True
@@ -544,6 +546,7 @@ Feature: Unattached status
       esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
       landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
       livepatch       +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
       """
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
@@ -558,7 +561,7 @@ Feature: Unattached status
       fips-updates    +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
       landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
       livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
       ros             +no        +yes       +no           +Security Updates for the Robot Operating System
       ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
       usg             +no        +yes       +no           +Security compliance and audit tools
