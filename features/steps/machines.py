@@ -116,14 +116,6 @@ def given_a_machine(
             context, "python3-coverage", machine_name=machine_name
         )
 
-    # trigger GH: #3137
-    when_i_run_command(
-        context,
-        "touch /var/lib/dpkg/arch",
-        "with sudo",
-        machine_name=machine_name,
-    )
-
     if cleanup:
 
         def cleanup_instance():
@@ -242,6 +234,13 @@ def given_a_sut_machine(context, series, machine_type):
         given_a_machine(context, series, machine_type=machine_type)
         _update_distro_info_data(context)
         when_i_install_uat(context)
+
+    # trigger GH: #3137 on all machines
+    when_i_run_command(
+        context,
+        "touch /var/lib/dpkg/arch",
+        "with sudo",
+    )
 
     logging.info(
         "--- instance ip: {}".format(context.machines[SUT].instance.ip)
