@@ -418,7 +418,8 @@ Feature: Attached status
       livepatch       +yes      +n/a      +Canonical Livepatch service
       realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
       ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
-      └ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       ros             +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
       usg             +yes      +disabled +Security compliance and audit tools
