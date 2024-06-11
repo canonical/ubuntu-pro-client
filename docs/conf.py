@@ -132,7 +132,8 @@ html_favicon = "_static/favicon.ico"
 
 
 linkcheck_ignore = [
-    "https://manpages.ubuntu.com/landscape-config"
+    "https://manpages.ubuntu.com/landscape-config",
+    "https://manpages.ubuntu.com/apt.conf"
 ]
 
 

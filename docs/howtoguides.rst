@@ -103,4 +103,10 @@ Ubuntu Pro Client for Clouds
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
 
-   
+APT integration
+===============
+
+.. toctree::
+   :maxdepth: 1
+
+    How to use custom APT configuration <howtoguides/use_custom_apt_config>
