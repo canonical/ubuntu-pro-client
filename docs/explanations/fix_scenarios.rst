@@ -22,7 +22,7 @@ Use ``pro fix``
 
 First, let's see what happens to your system when ``pro fix`` runs. We will
 choose to fix a CVE that does not affect the system -- for example if you
-do not have ``MariaDB`` installed `CVE-2020-15180`_.
+do not have ``MariaDB`` installed and want to fix `CVE-2020-15180`_.
 
 Let's first confirm that it doesn't affect the system by running this command:
 

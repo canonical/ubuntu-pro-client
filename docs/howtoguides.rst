@@ -46,15 +46,6 @@ How to use ``pro`` commands
       
    Enable... <howtoguides/enable_index>
 
-``pro fix``
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   How to know what the `fix` command would change? <howtoguides/how_to_know_what_the_fix_command_would_change>
-   Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns>
-
 ``pro refresh``
 ---------------
 
@@ -78,6 +69,14 @@ How to use ``pro`` commands
    :maxdepth: 1
 
    Check Ubuntu Pro Client version <howtoguides/check_pro_version>
+
+Fixing CVEs and USNs
+====================
+
+.. toctree::
+   :maxdepth: 2
+
+   Resolving CVEs and USNs... <howtoguides/fix_index>
 
 Corrupted lock files
 ====================
@@ -104,10 +103,4 @@ Ubuntu Pro Client for Clouds
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
 
-Fixing multiple CVEs
-====================
-
-.. toctree::
-   :maxdepth: 1
-
-   Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
+   
