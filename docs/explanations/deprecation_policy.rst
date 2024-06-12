@@ -11,7 +11,7 @@ backwards compatible-way for at least 12 years. This is particularly true for
 any integration point with machine-readable output (e.g. our API functions, any
 command with JSON-formatted output). It is also true for important features
 that, even if lacking intentional machine-usability, are likely to be used in
-automation (e.g. any form of `pro attach` or `pro enable` that doesn't require
+automation (e.g. any form of ``pro attach`` or ``pro enable`` that doesn't require
 interaction).
 
 Removing features by release
@@ -41,7 +41,7 @@ Deprecation warnings on releases that keep the feature
 ======================================================
 
 When a feature is removed in e.g. 24.10 onward, it will continue to exist in
-all prior supported releases; however, features in `pro` are often expected to
+all prior supported releases; however, features in ``pro`` are often expected to
 work consistently across all supported Ubuntu releases. Any feature we remove
 should either not apply to new Ubuntu releases, or should have a better
 alternative available that does work consistently across all supported Ubuntu
