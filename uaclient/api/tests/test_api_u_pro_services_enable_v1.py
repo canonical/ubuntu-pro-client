@@ -295,6 +295,10 @@ class TestEnable:
         ]
         m_ent = m_entitlement_factory.return_value
         m_auto_select_variant.return_value = (m_ent, None)
+        m_ent.applicability_status.return_value = (
+            entitlements.ApplicabilityStatus.APPLICABLE,
+            None,
+        )
         m_ent.enable.return_value = enable_result
         m_ent.messaging = messaging_ops
         m_ent._check_for_reboot.return_value = reboot_required
@@ -322,6 +326,7 @@ class TestEnable:
 
     @pytest.mark.parametrize(
         [
+            "original_applicability_status",
             "original_is_variant",
             "original_variants",
             "auto_select_variant_return_value",
@@ -329,16 +334,27 @@ class TestEnable:
             "expected_variant_enable_calls",
         ],
         [
-            # not a variant and no variants
+            # base entitlement not applicable
             (
+                (entitlements.ApplicabilityStatus.INAPPLICABLE, None),
+                True,
+                {"variant": mock.MagicMock()},
+                None,
+                [mock.call(mock.ANY)],
+                [],
+            ),
+            # not a variant
+            (
+                (entitlements.ApplicabilityStatus.APPLICABLE, None),
                 False,
-                {},
+                {"variant": mock.MagicMock()},
                 None,
                 [mock.call(mock.ANY)],
                 [],
             ),
             # is already a variant and therefore no variants
             (
+                (entitlements.ApplicabilityStatus.APPLICABLE, None),
                 True,
                 {},
                 None,
@@ -347,6 +363,7 @@ class TestEnable:
             ),
             # variants but nothing returned for some reason
             (
+                (entitlements.ApplicabilityStatus.APPLICABLE, None),
                 False,
                 {"variant": mock.MagicMock()},
                 None,
@@ -355,6 +372,7 @@ class TestEnable:
             ),
             # variant returned
             (
+                (entitlements.ApplicabilityStatus.APPLICABLE, None),
                 False,
                 {"variant": mock.MagicMock()},
                 (mock.MagicMock(), mock.MagicMock()),
@@ -383,6 +401,7 @@ class TestEnable:
         m_spin_lock,
         m_clear_lock_file_if_present,
         m_status,
+        original_applicability_status,
         original_is_variant,
         original_variants,
         auto_select_variant_return_value,
@@ -391,6 +410,7 @@ class TestEnable:
         FakeConfig,
     ):
         m_ent = m_entitlement_factory.return_value
+        m_ent.applicability_status.return_value = original_applicability_status
         m_ent.enable.return_value = (True, None)
         m_ent.is_variant = original_is_variant
         m_ent.variants = original_variants
