@@ -164,8 +164,15 @@ def _enable(
         access_only=options.access_only,
     )
 
+    applicability, _ = entitlement.applicability_status()
     available_variants = entitlement.variants
-    if not entitlement.is_variant and available_variants:
+    if all(
+        [
+            applicability == entitlements.ApplicabilityStatus.APPLICABLE,
+            not entitlement.is_variant,
+            available_variants,
+        ]
+    ):
         entitlement, auto_select_warning = _auto_select_variant(
             cfg=cfg,
             progress=progress,
