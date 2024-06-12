@@ -14,7 +14,17 @@ changelog_version = (
 )
 
 # remove tilde and suffix of changelog_version if present
-base_changelog_version = changelog_version.split("~")[0]
+# typical version strings:
+# GH: 32.3ubuntu1~1.gbp761c11~noble1 -> 32.3
+# backports: 32.3~22.04 -> 32.3
+# ppa test builds: 32.3~22.04~ppa1 -> 32.3
+# devel: 1:1+devel -> 1:1+devel
+#
+m = re.match(r"((\d+:\d+\+devel)|\d+(\.\d+)?)", changelog_version)
+if m:
+    base_changelog_version = m.group()
+else:
+    base_changelog_version = None
 
 if python_version != base_changelog_version:
     print(
