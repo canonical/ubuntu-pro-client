@@ -19,7 +19,7 @@ Removing features by release
 
 We maintain the LTS promise of stability for every supported LTS. Therefore,
 we cannot remove a given feature from any LTS that already has the
-feature. Instead, we will remove features starting on a devel Ubuntu release
+feature. Instead, we will remove features starting on a `devel`_ Ubuntu release
 onward. To make the transition more apparent to users and give them time to
 adjust, we will only remove features in interim devel releases. We will not
 remove a feature for the first time in an LTS devel release. When the given
@@ -30,12 +30,7 @@ removed feature.
 Features will only be per-release-removed once a better replacement is
 available on all supported Ubuntu releases via `Stable Release Update`_ (SRU).
 The soonest allowed per-release-removal is the next new interim release after
-the replacement is SRU'd to all Ubuntu releases. Note that this is the soonest
-allowed. Adding additional releases that still support the feature can make it
-easier for people and tools relying on the feature to support many releases
-and give them time to transition to the replacement feature. If the
-maintenance cost of a particular old feature is low, we will consider keeping
-it around longer.
+the replacement is SRU'd to all Ubuntu releases.
 
 Deprecation warnings on releases that keep the feature
 ======================================================
@@ -50,14 +45,6 @@ still support the feature should start showing a deprecation warning. This
 warning will tell the user that this feature will not work on future Ubuntu
 releases, and point them to the alternative.
 
-Eventual total removal
-======================
-
-Once a feature is “per-release-removed” on all currently supported releases,
-then we can actually delete the feature and connected code from the Pro Client.
-For example, if we remove a given feature in 24.10, then we will be able to
-delete the code in ~2036 when 24.04 noble legacy support ends.
-
 Documentation
 =============
 
@@ -68,3 +55,4 @@ directing the reader to the replacement.
 .. LINKS
 
 .. _Stable Release Update: https://wiki.ubuntu.com/StableReleaseUpdates
+.. _devel: https://canonical-ubuntu-packaging-guide.readthedocs-hosted.com/en/latest/reference/glossary/#term-Devel
