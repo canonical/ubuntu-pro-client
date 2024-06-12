@@ -45,6 +45,8 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
 
     @property
     def default_variant(self):
+        if self.access_only:
+            return None
         return GenericRealtime
 
     @property
