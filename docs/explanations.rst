@@ -72,4 +72,5 @@ Other Pro features explained
     explanations/using_pro_offline.rst
     explanations/what_is_the_daemon.md
     explanations/errors_explained.md
+    explanations/deprecation_policy.rst
 

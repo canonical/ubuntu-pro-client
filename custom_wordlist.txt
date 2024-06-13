@@ -26,6 +26,7 @@ CVE
 CVEAPIFixExecuteResult
 cves
 CVEs
+devel
 DISA
 Dockerfile
 dpkg
@@ -96,6 +97,7 @@ SaaS
 SecurityIssueNotFixedData
 Specialty
 SRU
+SRU'd
 SSL
 SSO
 STIG
