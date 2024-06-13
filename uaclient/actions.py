@@ -80,6 +80,10 @@ def _enable_default_services(
 
     try:
         for enable_by_default_service in services_to_be_enabled:
+            LOG.info(
+                "trying to enable default service",
+                **pro_log.extra(service=enable_by_default_service)
+            )
             ent_ret, reason = enable_entitlement_by_name(
                 cfg=cfg,
                 name=enable_by_default_service.name,
@@ -92,14 +96,17 @@ def _enable_default_services(
                 failed_services.append(enable_by_default_service.name)
             else:
                 event.service_processed(service=enable_by_default_service.name)
-    except exceptions.ConnectivityError as exc:
+    except exceptions.ConnectivityError as e:
+        LOG.error(e.msg)
         event.service_failed(enable_by_default_service.name)
         _handle_partial_attach(cfg, contract_client, attached_at)
-        raise exc
-    except exceptions.UbuntuProError:
+        raise e
+    except exceptions.UbuntuProError as e:
+        LOG.error(e.msg)
         failed_services.append(enable_by_default_service.name)
         ret = False
     except Exception as e:
+        LOG.error(str(e))
         ret = False
         failed_services.append(enable_by_default_service.name)
         unexpected_errors.append(e)
@@ -155,6 +162,7 @@ def attach_with_token(
     machine_token_file = machine_token.get_machine_token_file(cfg)
     contract_client = contract.UAContractClient(cfg)
     attached_at = datetime.datetime.now(tz=datetime.timezone.utc)
+    LOG.info("Sending attach request")
     new_machine_token = contract_client.add_contract_machine(
         contract_token=token, attachment_dt=attached_at
     )
@@ -176,6 +184,12 @@ def attach_with_token(
     if only_series:
         allowed_release = system.get_distro_info(only_series)
         if only_series != current_series:
+            LOG.error(
+                "onlySeries specified in contract doesn't match current series",
+                **pro_log.extra(
+                    only_series=only_series, current_series=current_series
+                )
+            )
             raise exceptions.AttachFailureRestrictedRelease(
                 release=allowed_release.release,
                 series_codename=allowed_release.series_codename,
@@ -190,6 +204,7 @@ def attach_with_token(
     try:
         check_entitlement_apt_directives_are_unique(cfg)
     except exceptions.EntitlementsAPTDirectivesAreNotUnique as e:
+        LOG.error("entitlement apt directives are not unique: %s", e.msg)
         machine_token_file.delete()
         raise e
 
@@ -202,6 +217,10 @@ def attach_with_token(
     if allow_enable:
         services_to_be_enabled = contract.get_enabled_by_default_services(
             cfg, machine_token_file.entitlements()
+        )
+        LOG.info(
+            "enabling default services",
+            **pro_log.extra(default_services=services_to_be_enabled)
         )
         _enable_default_services(
             cfg=cfg,
