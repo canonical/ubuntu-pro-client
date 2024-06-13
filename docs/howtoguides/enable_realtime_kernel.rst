@@ -125,7 +125,7 @@ Pro Client version 27.11:
 
 Now that Real-time Ubuntu is accessible, you can install and enable it whenever
 you wish. For example, to install the generic Real-time kernel (not suitable
- for Raspberry Pi):
+for Raspberry Pi):
 
 .. code-block:: shell
 
