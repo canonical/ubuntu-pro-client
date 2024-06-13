@@ -17,9 +17,24 @@ event = event_logger.get_event_logger()
 
 class FullAutoAttachOptions(DataObject):
     fields = [
-        Field("enable", data_list(StringDataValue), False),
-        Field("enable_beta", data_list(StringDataValue), False),
-        Field("cloud_override", StringDataValue, False),
+        Field(
+            "enable",
+            data_list(StringDataValue),
+            False,
+            doc="Optional list of services to enable after auto-attaching.",
+        ),
+        Field(
+            "enable_beta",
+            data_list(StringDataValue),
+            False,
+            doc="Optional list of beta services to enable after auto-attaching.",
+        ),
+        Field(
+            "cloud_override",
+            StringDataValue,
+            False,
+            doc="Ignore the result of ``cloud-id`` and act as if running on this cloud.",
+        ),
     ]
 
     def __init__(
