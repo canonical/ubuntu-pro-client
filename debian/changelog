@@ -1,8 +1,24 @@
-ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (33) oracular; urgency=medium
 
-  * wip 
+  * d/apparmor: adjust the esm_cache apparmor profile to allow reading of dpkg
+    data directory (LP: #2067810) (GH: #3137)
+  * New upstream release 33 (LP: #2069237)
+    - apt: use Python bindings instead of apt CLI to query for installed
+      packages (LP: #2060769) (LP: #2068744)
+    - beta: drop support for beta services
+    - contracts: add support for contracts which target a specific series
+    - fips: change enable functionality to ensure all packages with a FIPS
+      candidate are upgraded to the FIPS version (GH: #2667)
+    - fix: 
+      + add the current_status field to the plan api return object
+      + change recommended attach method to magic attach (GH: #3040)
+    - livepatch: prefer the term 'coverage' instead of 'support' in messaging
+      (GH: #3063)
+    - realtime:
+      + auto-select the raspi variant when appropriate
+      + inform the user when auto-selecting a variant
 
- -- Lucas Moura <lucas.moura@canonical.com>  Tue, 11 Jun 2024 09:55:50 -0300
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Thu, 13 Jun 2024 00:19:54 -0300
 
 ubuntu-advantage-tools (32.3) oracular; urgency=medium
 
