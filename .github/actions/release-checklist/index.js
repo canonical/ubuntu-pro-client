@@ -143,11 +143,23 @@ async function run() {
         repo: context.issue.repo,
         issue_number: context.issue.number,
     })).data;
-    const commits = (await client.rest.pulls.listCommits({
-        owner: context.issue.owner,
-        repo: context.issue.repo,
-        pull_number: context.issue.number,
-    })).data;
+    
+    let commit_page = 1;
+    let commit_per_page = 50;
+    let last_len = 0;
+    let commits = [];
+    do {
+        const commits_response = await client.rest.pulls.listCommits({
+            owner: context.issue.owner,
+            repo: context.issue.repo,
+            pull_number: context.issue.number,
+            page: commit_page,
+            per_page: commit_per_page,
+        });
+        last_len = commits_response.data.length;
+        commit_page += 1;
+        commits = commits.concat(commits_response.data)
+    } while (last_len == commit_per_page);
 
     const theComment = comments.find(c => c.body.includes(commentHeader));
     
