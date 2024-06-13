@@ -58,6 +58,7 @@ html
 https
 init
 internetless
+IOTG
 json
 latencies
 Libera
@@ -105,6 +106,7 @@ str
 subcommand
 subcommands
 TBD
+th
 telco
 TLS
 uaclient

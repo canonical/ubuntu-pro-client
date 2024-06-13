@@ -19,8 +19,8 @@ running the following command:
 
     sudo pro attach
 
-And follow the instructions in your terminal window. For a more complete
-walkthrough of the attach process, refer to our
+And follow the instructions in your terminal window. For a more complete guide
+to the attach process, refer to our
 :ref:`how to attach <get_token_and_attach>` guide.
 
 .. Make sure Pro is up to date
