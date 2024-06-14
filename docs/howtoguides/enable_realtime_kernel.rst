@@ -1,6 +1,6 @@
 .. _manage-realtime:
 
-How to manage Real-time Ubuntu
+How to enable Real-time Ubuntu
 ******************************
 
 `Real-time Ubuntu <realtime_>`_ is supported on Ubuntu 22.04 LTS (Jammy)
