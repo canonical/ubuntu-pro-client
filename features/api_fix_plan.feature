@@ -463,6 +463,7 @@ Feature: Fix plan API endpoints
                     "affected_packages": [
                       "klibc"
                     ],
+                    "current_status": "fixed",
                     "description": "klibc vulnerabilities",
                     "error": null,
                     "expected_status": "fixed",
@@ -493,6 +494,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "klibc vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -573,7 +575,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "awl"
                   ],
-                  "current_status": "not-affected",
+                  "current_status": "still-affected",
                   "description": "AWL vulnerability",
                   "error": null,
                   "expected_status": "fixed",
@@ -606,6 +608,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "zlib vulnerability",
                     "error": null,
                     "expected_status": "not-affected",
@@ -631,6 +634,7 @@ Feature: Fix plan API endpoints
                     "affected_packages": [
                       "zlib"
                     ],
+                    "current_status": "still-affected",
                     "description": "zlib vulnerability",
                     "error": null,
                     "expected_status": "fixed",
@@ -665,6 +669,7 @@ Feature: Fix plan API endpoints
                     "affected_packages": [
                       "klibc"
                     ],
+                    "current_status": "fixed",
                     "description": "klibc vulnerabilities",
                     "error": null,
                     "expected_status": "fixed",
@@ -695,6 +700,7 @@ Feature: Fix plan API endpoints
                       "associated_launchpad_bugs": []
                     },
                     "affected_packages": [],
+                    "current_status": "not-affected",
                     "description": "klibc vulnerabilities",
                     "error": null,
                     "expected_status": "not-affected",
@@ -721,6 +727,7 @@ Feature: Fix plan API endpoints
                   "affected_packages": [
                     "rsync"
                   ],
+                  "current_status": "still-affected",
                   "description": "rsync vulnerability",
                   "error": null,
                   "expected_status": "fixed",
