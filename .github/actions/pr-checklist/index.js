@@ -104,7 +104,7 @@ function createTestUpdatesSection({
 }) {
     const header = commentSectionHeader(TEST_UPDATES);
     const footer = commentSectionFooter(TEST_UPDATES);
-    const existingSection = existingBody ? getCommentSection(TEST_UPDATES, existingBody) : null;
+    const existingSection = existingBody ? getCommentSection(TEST_UPDATES, existingBody) : "";
     const unitTestCheck = existingSection.includes(`- [x] ${unitTestsUpdated}`) ? "x" : " "
     const unitTestNotCheck = existingSection.includes(`- [x] ${unitTestsNotUpdated}`) ? "x" : " "
     const integrationTestCheck = existingSection.includes(`- [x] ${integrationTestsUpdated}`) ? "x" : " "
@@ -141,7 +141,7 @@ function createDocsSection({
 }) {
     const header = commentSectionHeader(DOCS);
     const footer = commentSectionFooter(DOCS);
-    const existingSection = existingBody ? getCommentSection(DOCS, existingBody) : null;
+    const existingSection = existingBody ? getCommentSection(DOCS, existingBody) : "";
     const docsCheck = existingSection.includes(`- [x] ${docsUpdated}`) ? "x" : " "
     const docsNotCheck = existingSection.includes(`- [x] ${docsNotUpdated}`) ? "x" : " "
     
@@ -171,7 +171,7 @@ function createExtraReviewsSection({
 }) {
     const header = commentSectionHeader(EXTRA_REVIEWS);
     const footer = commentSectionFooter(EXTRA_REVIEWS);
-    const existingSection = existingBody ? getCommentSection(EXTRA_REVIEWS, existingBody) : null;
+    const existingSection = existingBody ? getCommentSection(EXTRA_REVIEWS, existingBody) : "";
     const extraReviewsCheck = existingSection.includes(`- [x] ${extraReviewsNeeded}`) ? "x" : " "
     const extraReviewsNotCheck = existingSection.includes(`- [x] ${extraReviewsNotNeeded}`) ? "x" : " "
     
