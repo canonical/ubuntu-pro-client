@@ -318,3 +318,8 @@ When reviewing the release PR, please use the following guidelines when reviewin
     * This should automatically switch any open PRs against `next-v$((version+1))` to target `main`.
 7. Change the daily PPA build recipe to use `main`.
 8. Open a PR moving any scripts added in `sru/` to a new folder in `sru/_archive` for the release.
+9. Post a release announcement on https://discourse.ubuntu.com.
+    * Post in the [Ubuntu Pro category](https://discourse.ubuntu.com/c/ubuntu-pro/116)
+    * Tag the post with `pro-client-release`
+    * Include brief descriptions of only the most interesting features
+    * Use the structure from [this previous post](https://discourse.ubuntu.com/t/ubuntu-pro-client-version-32-3-released/45517)
