@@ -86,12 +86,6 @@ class Notice(NoticeFileDetails, Enum):
         is_permanent=False,
         message=messages.LIVEPATCH_LTS_REBOOT_REQUIRED,
     )
-    CONTRACT_REFRESH_WARNING = NoticeFileDetails(
-        label="contract_refresh_warning",
-        order_id="40",
-        is_permanent=True,
-        message=messages.NOTICE_REFRESH_CONTRACT_WARNING,
-    )
     OPERATION_IN_PROGRESS = NoticeFileDetails(
         label="operation_in_progress",
         order_id="60",

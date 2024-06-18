@@ -156,7 +156,6 @@ class TestActionRefresh:
         assert messages.REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == refresh.call_args_list
         assert [
-            mock.call(Notice.CONTRACT_REFRESH_WARNING),
             mock.call(Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
 
@@ -313,7 +312,6 @@ class TestActionRefresh:
         assert [mock.call()] == m_process_config.call_args_list
         assert [mock.call(cfg)] == m_refresh.call_args_list
         assert [
-            mock.call(Notice.CONTRACT_REFRESH_WARNING),
             mock.call(Notice.OPERATION_IN_PROGRESS),
         ] == m_remove_notice.call_args_list
         assert 1 == m_update_motd.call_count
