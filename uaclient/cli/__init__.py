@@ -64,8 +64,7 @@ from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanEnableFailure,
 )
-from uaclient.files import machine_token, notices, state_files
-from uaclient.files.notices import Notice
+from uaclient.files import machine_token, state_files
 from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump, safe_load
@@ -1187,7 +1186,6 @@ def action_refresh(args, *, cfg: config.UAConfig, **kwargs):
 
     if args.target is None or args.target == "contract":
         _action_refresh_contract(args, cfg)
-        notices.remove(Notice.CONTRACT_REFRESH_WARNING)
 
     if args.target is None or args.target == "messages":
         _action_refresh_messages(args, cfg)
