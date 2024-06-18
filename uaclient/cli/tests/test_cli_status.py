@@ -331,7 +331,6 @@ Flags:
 
 
 @mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
-@mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
 @mock.patch("uaclient.system.should_reboot", return_value=False)
 @mock.patch(
     "uaclient.status.get_available_resources",
@@ -355,7 +354,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_available_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         capsys,
         FakeConfig,
@@ -405,7 +403,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         features,
         feature_status,
@@ -466,7 +463,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         use_all,
         capsys,
@@ -494,7 +490,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         use_all,
         capsys,
@@ -526,7 +521,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         capsys,
         FakeConfig,
@@ -582,7 +576,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         environ,
         format_type,
@@ -695,7 +688,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         use_all,
         environ,
@@ -830,7 +822,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         use_all,
         format_type,
@@ -982,7 +973,6 @@ class TestActionStatus:
         _m_get_contract_information,
         m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         FakeConfig,
     ):
@@ -1013,7 +1003,6 @@ class TestActionStatus:
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         encoding,
         expected_dash,
@@ -1076,7 +1065,6 @@ class TestActionStatus:
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         exception_to_throw,
         exception_type,
@@ -1138,7 +1126,6 @@ class TestActionStatus:
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
-        _m_contract_changed,
         _m_on_supported_kernel,
         format_type,
         event_logger_mode,
