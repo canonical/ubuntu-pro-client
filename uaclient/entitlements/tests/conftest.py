@@ -8,13 +8,13 @@ from uaclient import config, event_logger
 def machine_token(
     entitlement_type: str,
     *,
-    affordances: Dict[str, Any] = None,
-    directives: Dict[str, Any] = None,
-    overrides: List[Dict[str, Any]] = None,
+    affordances: Optional[Dict[str, Any]] = None,
+    directives: Optional[Dict[str, Any]] = None,
+    overrides: Optional[List[Dict[str, Any]]] = None,
     entitled: bool = True,
-    obligations: Dict[str, Any] = None,
-    suites: List[str] = None,
-    additional_packages: List[str] = None
+    obligations: Optional[Dict[str, Any]] = None,
+    suites: Optional[List[str]] = None,
+    additional_packages: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     return {
         "resourceTokens": [
@@ -46,13 +46,13 @@ def machine_token(
 def machine_access(
     entitlement_type: str,
     *,
-    affordances: Dict[str, Any] = None,
-    directives: Dict[str, Any] = None,
-    overrides: List[Dict[str, Any]] = None,
+    affordances: Optional[Dict[str, Any]] = None,
+    directives: Optional[Dict[str, Any]] = None,
+    overrides: Optional[List[Dict[str, Any]]] = None,
     entitled: bool = True,
-    obligations: Dict[str, Any] = None,
-    suites: List[str] = None,
-    additional_packages: List[str] = None
+    obligations: Optional[Dict[str, Any]] = None,
+    suites: Optional[List[str]] = None,
+    additional_packages: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     if affordances is None:
         affordances = {}
@@ -96,16 +96,16 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
     def factory_func(
         cls,
         *,
-        affordances: Dict[str, Any] = None,
-        directives: Dict[str, Any] = None,
-        obligations: Dict[str, Any] = None,
-        overrides: List[Dict[str, Any]] = None,
+        affordances: Optional[Dict[str, Any]] = None,
+        directives: Optional[Dict[str, Any]] = None,
+        obligations: Optional[Dict[str, Any]] = None,
+        overrides: Optional[List[Dict[str, Any]]] = None,
         entitled: bool = True,
         called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
-        suites: List[str] = None,
-        additional_packages: List[str] = None,
+        suites: Optional[List[str]] = None,
+        additional_packages: Optional[List[str]] = None,
         cfg: Optional[config.UAConfig] = None,
         cfg_extension: Optional[Dict[str, Any]] = None,
         cfg_features: Optional[Dict[str, Any]] = None,
