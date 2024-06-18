@@ -9,6 +9,7 @@ line_length = 79
 [tool.mypy]
 check_untyped_defs = "true"
 explicit_package_bases = "true"
+no_implicit_optional = true
 
 [[tool.mypy.overrides]]
 module = [
