@@ -109,7 +109,6 @@ class TestTimer:
         fake_file.read.return_value = mock.MagicMock(
             metering=m_job_status,
             update_messaging=None,
-            update_contract_info=None,
             validate_release_series=None,
         )
         expected_next_run = now + datetime.timedelta(seconds=43200)
@@ -139,7 +138,6 @@ class TestTimer:
         fake_file.read.return_value = mock.MagicMock(
             metering=m_job_status,
             update_messaging=None,
-            update_contract_info=None,
             validate_release_series=None,
         )
 
