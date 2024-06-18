@@ -886,9 +886,6 @@ CLI_TRY_HELP = t.gettext("Try 'pro --help' for more information.")
 CLI_HELP_EPILOG = t.gettext(
     "Use {name} {command} --help for more information about a command."
 )
-PRO_HELP_SERVICE_INFO = t.gettext(
-    "Use pro help <service> to get more details about each service"
-)
 
 CLI_HELP_VARIANTS_HEADER = t.gettext("Variants:")
 CLI_ARGS = t.gettext("Arguments")
