@@ -6,9 +6,8 @@ import logging
 import sys
 import tarfile
 import tempfile
-import textwrap
 import time
-from typing import List, Optional, Tuple  # noqa
+from typing import Optional
 
 from uaclient import (
     actions,
@@ -53,7 +52,6 @@ from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.cli import cli_api, cli_util, disable, enable, fix
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
-from uaclient.defaults import PRINT_WRAP_WIDTH
 from uaclient.entitlements import (
     create_enable_entitlements_not_found_error,
     entitlements_disable_order,
@@ -81,23 +79,6 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class UAArgumentParser(argparse.ArgumentParser):
-    def __init__(
-        self,
-        prog=None,
-        usage=None,
-        epilog=None,
-        formatter_class=argparse.HelpFormatter,
-        base_desc: Optional[str] = None,
-    ):
-        super().__init__(
-            prog=prog,
-            usage=usage,
-            epilog=epilog,
-            formatter_class=formatter_class,
-        )
-
-        self.base_desc = base_desc
-
     def error(self, message):
         self.print_usage(sys.stderr)
         # In some cases (e.g. `pro --wrong-flag`) argparse errors out asking
@@ -113,55 +94,6 @@ class UAArgumentParser(argparse.ArgumentParser):
         if message == "the following arguments are required: ":
             message = messages.CLI_TRY_HELP
         self.exit(2, message + "\n")
-
-    def print_help(self, file=None, show_all=False):
-        if self.base_desc:
-            service_descriptions = sorted(
-                UAArgumentParser._get_service_descriptions()
-            )
-            self.description = "\n".join(
-                [self.base_desc] + service_descriptions
-            )
-
-            self.description += "\n\n" + messages.PRO_HELP_SERVICE_INFO
-
-        super().print_help(file=file)
-
-    @staticmethod
-    def _get_service_descriptions() -> List[str]:
-        cfg = config.UAConfig()
-
-        service_info_tmpl = " - {name}: {description}{url}"
-        service_descriptions = []
-
-        resources = contract.get_available_resources(config.UAConfig())
-        for resource in resources:
-            try:
-                ent = entitlements.entitlement_factory(
-                    cfg=cfg, name=resource["name"]
-                )
-            except exceptions.EntitlementNotFoundError:
-                continue
-            # Because we don't know the presentation name if unattached
-            presentation_name = resource.get("presentedAs", resource["name"])
-            if ent.help_doc_url:
-                url = " ({})".format(ent.help_doc_url)
-            else:
-                url = ""
-            service_info = textwrap.fill(
-                service_info_tmpl.format(
-                    name=presentation_name,
-                    description=ent.description,
-                    url=url,
-                ),
-                width=PRINT_WRAP_WIDTH,
-                subsequent_indent="   ",
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
-            service_descriptions.append(service_info)
-
-        return service_descriptions
 
 
 def auto_attach_parser(parser):
@@ -1001,13 +933,11 @@ def action_collect_logs(args, *, cfg: config.UAConfig, **kwargs):
 
 
 def get_parser(cfg: config.UAConfig):
-    base_desc = __doc__
     parser = UAArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         usage=USAGE_TMPL.format(name=NAME, command="<command>"),
         epilog=messages.CLI_HELP_EPILOG.format(name=NAME, command="<command>"),
-        base_desc=base_desc,
     )
     parser.add_argument(
         "--debug", action="store_true", help=messages.CLI_ROOT_DEBUG
@@ -1221,10 +1151,9 @@ def configure_apt_proxy(
 
 def action_help(args, *, cfg, **kwargs):
     service = args.service
-    show_all = args.all
 
     if not service:
-        get_parser(cfg=cfg).print_help(show_all=show_all)
+        get_parser(cfg=cfg).print_help()
         return 0
 
     if not cfg:
