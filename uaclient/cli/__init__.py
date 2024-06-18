@@ -1320,9 +1320,8 @@ def main(sys_argv=None):
     parser = get_parser(cfg=cfg)
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
-        parser.print_usage()
-        print(messages.CLI_TRY_HELP)
-        sys.exit(1)
+        parser.print_help()
+        sys.exit(0)
 
     # Grab everything after a "--" if present and handle separately
     if "--" in cli_arguments:
