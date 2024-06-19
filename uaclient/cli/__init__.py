@@ -4,8 +4,6 @@ import argparse
 import json
 import logging
 import sys
-import tarfile
-import tempfile
 import time
 from typing import Optional
 
@@ -50,6 +48,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.cli import cli_api, cli_util, disable, enable, fix
+from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.entitlements import (
@@ -71,12 +70,10 @@ UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
-UA_COLLECT_LOGS_FILE = "pro_logs.tar.gz"
-
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-COMMANDS = []
+COMMANDS = [collect_logs_command]
 
 
 class UAArgumentParser(argparse.ArgumentParser):
@@ -103,19 +100,6 @@ def auto_attach_parser(parser):
     parser.description = messages.CLI_AUTO_ATTACH_DESC
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser._optionals.title = messages.CLI_FLAGS
-    return parser
-
-
-def collect_logs_parser(parser):
-    """Build or extend an arg parser for 'collect-logs' subcommand."""
-    parser.prog = "collect-logs"
-    parser.description = messages.CLI_COLLECT_LOGS_DESC
-    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
-    parser.add_argument(
-        "-o",
-        "--output",
-        help=messages.CLI_COLLECT_LOGS_OUTPUT,
-    )
     return parser
 
 
@@ -920,19 +904,6 @@ def action_attach(args, *, cfg, **kwargs):
         return ret
 
 
-def action_collect_logs(args, *, cfg: config.UAConfig, **kwargs):
-    output_file = args.output or UA_COLLECT_LOGS_FILE
-    with tempfile.TemporaryDirectory() as output_dir:
-        actions.collect_logs(cfg, output_dir)
-        try:
-            with tarfile.open(output_file, "w:gz") as results:
-                results.add(output_dir, arcname="logs/")
-        except PermissionError as e:
-            LOG.error(e)
-            return 1
-    return 0
-
-
 def get_parser(cfg: config.UAConfig):
     parser = UAArgumentParser(
         prog=NAME,
@@ -972,12 +943,6 @@ def get_parser(cfg: config.UAConfig):
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
-
-    parser_collect_logs = subparsers.add_parser(
-        "collect-logs", help=messages.CLI_ROOT_COLLECT_LOGS
-    )
-    collect_logs_parser(parser_collect_logs)
-    parser_collect_logs.set_defaults(action=action_collect_logs)
 
     parser_config = subparsers.add_parser(
         "config", help=messages.CLI_ROOT_CONFIG
