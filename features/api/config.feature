@@ -18,7 +18,8 @@ Feature: Config status api
           "metering_timer": 14400,
           "ua_apt_http_proxy": null,
           "ua_apt_https_proxy": null,
-          "update_messaging_timer": 21600
+          "update_messaging_timer": 21600,
+          "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/"
         },
         "meta": {
           "environment_vars": []
@@ -43,7 +44,8 @@ Feature: Config status api
           "metering_timer": 14400,
           "ua_apt_http_proxy": null,
           "ua_apt_https_proxy": null,
-          "update_messaging_timer": 21600
+          "update_messaging_timer": 21600,
+          "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/"
         },
         "meta": {
           "environment_vars": []
@@ -86,7 +88,8 @@ Feature: Config status api
           "metering_timer": 14400,
           "ua_apt_http_proxy": null,
           "ua_apt_https_proxy": null,
-          "update_messaging_timer": 21600
+          "update_messaging_timer": 21600,
+          "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/"
         },
         "meta": {
           "environment_vars": []
@@ -110,7 +113,8 @@ Feature: Config status api
           "metering_timer": 14400,
           "ua_apt_http_proxy": null,
           "ua_apt_https_proxy": null,
-          "update_messaging_timer": 21600
+          "update_messaging_timer": 21600,
+          "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/"
         },
         "meta": {
           "environment_vars": []

@@ -19,6 +19,7 @@ from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_LIVEPATCH_URL,
     BASE_SECURITY_URL,
+    BASE_VULNERABILITY_DATA_URL,
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
@@ -51,6 +52,7 @@ UA_CONFIGURABLE_KEYS = (
     "apt_news_url",
     "cli_color",
     "cli_suggestions",
+    "vulnerability_data_url_prefix",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -61,6 +63,7 @@ VALID_UA_CONFIG_KEYS = (
     "log_file",
     "log_level",
     "security_url",
+    "vulnerability_data_url_prefix",
     "settings_overrides",
     "ua_config",
     "livepatch_url",
@@ -162,6 +165,18 @@ class UAConfig:
     @ua_apt_http_proxy.setter
     def ua_apt_http_proxy(self, value: str):
         self.user_config.ua_apt_http_proxy = value
+        user_config_file.user_config.write(self.user_config)
+
+    @property
+    def vulnerability_data_url_prefix(self) -> str:
+        val = self.user_config.vulnerability_data_url_prefix
+        if val is None:
+            return BASE_VULNERABILITY_DATA_URL
+        return val
+
+    @vulnerability_data_url_prefix.setter
+    def vulnerability_data_url_prefix(self, value: str):
+        self.user_config.vulnerability_data_url_prefix = value
         user_config_file.user_config.write(self.user_config)
 
     @property  # type: ignore
