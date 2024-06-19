@@ -44,6 +44,9 @@ class UserConfigData(DataObject):
         Field("polling_error_retry_delay", IntDataValue, required=False),
         Field("metering_timer", IntDataValue, required=False),
         Field("update_messaging_timer", IntDataValue, required=False),
+        Field(
+            "vulnerability_data_url_prefix", StringDataValue, required=False
+        ),
     ]
 
     def __init__(
@@ -62,6 +65,7 @@ class UserConfigData(DataObject):
         polling_error_retry_delay: Optional[int] = None,
         metering_timer: Optional[int] = None,
         update_messaging_timer: Optional[int] = None,
+        vulnerability_data_url_prefix: Optional[str] = None,
     ):
         self.apt_http_proxy = apt_http_proxy
         self.apt_https_proxy = apt_https_proxy
@@ -77,6 +81,7 @@ class UserConfigData(DataObject):
         self.polling_error_retry_delay = polling_error_retry_delay
         self.metering_timer = metering_timer
         self.update_messaging_timer = update_messaging_timer
+        self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
 
 
 event = event_logger.get_event_logger()
