@@ -3,10 +3,9 @@
 How to enable Real-time Ubuntu
 ******************************
 
-`Real-time Ubuntu <realtime_>`_ is supported on Ubuntu 22.04 LTS (Jammy)
-and later releases. To find out more about the supported Ubuntu versions and
-what kernel variants are available, refer to 
-`the supported releases page <kernel_variant_>`_.
+`Real-time Ubuntu <realtime_>`_ is supported on specific Ubuntu releases. To
+ find out more about the supported Ubuntu versions and what kernel variants
+ are available, refer to `the supported releases page <rt_releases_>`_.
 
 Attach your subscription
 ========================
@@ -46,7 +45,7 @@ when you enable ``realtime-kernel`` through the Pro Client.
 If you want to access the repository but not install the package immediately,
 skip to `Install and enable manually`_.
 
-Otherwise, `select the correct kernel variant <kernel_variant_>`_ for your OS
+Otherwise, `select the correct version <rt_releases_>`_ for your OS
 and processor, and use the corresponding command below:
 
 .. tab-set::
@@ -143,5 +142,5 @@ to the `official Real-time Ubuntu`_ documentation.
 
 .. include:: ../links.txt
 
-.. _kernel_variant: https://canonical-real-time-ubuntu-documentation.readthedocs-hosted.com/en/latest/reference/releases/
+.. _rt_releases: https://canonical-real-time-ubuntu-documentation.readthedocs-hosted.com/en/latest/reference/releases/
 .. _official Real-time Ubuntu: https://canonical-real-time-ubuntu-documentation.readthedocs-hosted.com/en/latest/
