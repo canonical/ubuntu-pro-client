@@ -178,6 +178,7 @@ USER_CFG_DICT = {
     "https_proxy": None,
     "update_messaging_timer": 21600,
     "metering_timer": 14400,
+    "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/",  # noqa
 }
 
 
