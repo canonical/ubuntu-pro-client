@@ -76,6 +76,8 @@ UA_COLLECT_LOGS_FILE = "pro_logs.tar.gz"
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
+COMMANDS = []
+
 
 class UAArgumentParser(argparse.ArgumentParser):
     def error(self, message):
@@ -948,10 +950,15 @@ def get_parser(cfg: config.UAConfig):
         help=messages.CLI_ROOT_VERSION.format(name=NAME),
     )
     parser._optionals.title = messages.CLI_FLAGS
+
     subparsers = parser.add_subparsers(
         title=messages.CLI_AVAILABLE_COMMANDS, dest="command", metavar=""
     )
     subparsers.required = True
+
+    for command in COMMANDS:
+        command.register(subparsers)
+
     parser_attach = subparsers.add_parser(
         "attach", help=messages.CLI_ROOT_ATTACH
     )
