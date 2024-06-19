@@ -46,6 +46,7 @@ NOTICES_TEMPORARY_DIRECTORY = os.path.join(UAC_RUN_PATH, NOTICES_SUBDIR)
 BASE_CONTRACT_URL = "https://contracts.canonical.com"
 BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_LIVEPATCH_URL = "https://livepatch.canonical.com"
+BASE_VULNERABILITY_DATA_URL = "https://security-metadata.canonical.com/oval/"
 APT_NEWS_URL = "https://motd.ubuntu.com/aptnews.json"
 
 PRINT_WRAP_WIDTH = 80

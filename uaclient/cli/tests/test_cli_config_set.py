@@ -17,7 +17,7 @@ positional arguments:
                   apt_https_proxy, ua_apt_http_proxy, ua_apt_https_proxy,
                   global_apt_http_proxy, global_apt_https_proxy,
                   update_messaging_timer, metering_timer, apt_news,
-                  apt_news_url
+                  apt_news_url, vulnerability_data_url_prefix
 
 Flags:
   -h, --help      show this help message and exit
