@@ -46,6 +46,9 @@ class UserConfigData(DataObject):
         Field("update_messaging_timer", IntDataValue, required=False),
         Field("cli_color", BoolDataValue, required=False),
         Field("cli_suggestions", BoolDataValue, required=False),
+        Field(
+            "vulnerability_data_url_prefix", StringDataValue, required=False
+        ),
     ]
 
     def __init__(
@@ -66,6 +69,7 @@ class UserConfigData(DataObject):
         update_messaging_timer: Optional[int] = None,
         cli_color: Optional[bool] = None,
         cli_suggestions: Optional[bool] = None,
+        vulnerability_data_url_prefix: Optional[str] = None,
     ):
         self.apt_http_proxy = apt_http_proxy
         self.apt_https_proxy = apt_https_proxy
@@ -83,6 +87,7 @@ class UserConfigData(DataObject):
         self.update_messaging_timer = update_messaging_timer
         self.cli_color = cli_color
         self.cli_suggestions = cli_suggestions
+        self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
 
 
 event = event_logger.get_event_logger()

@@ -74,6 +74,12 @@ class ConfigInfo(DataObject, AdditionalInfo):
             required=False,
             doc="Show suggestions in the CLI",
         ),
+        Field(
+            "vulnerability_data_url_prefix",
+            StringDataValue,
+            required=False,
+            doc="Base url for fetching JSON vulnerability data",
+        ),
     ]
 
     def __init__(
@@ -90,7 +96,8 @@ class ConfigInfo(DataObject, AdditionalInfo):
         apt_news: Optional[bool] = None,
         apt_news_url: Optional[str] = None,
         cli_color: Optional[bool] = None,
-        cli_suggestions: Optional[bool] = None
+        cli_suggestions: Optional[bool] = None,
+        vulnerability_data_url_prefix: Optional[str] = None
     ):
         self.http_proxy = http_proxy
         self.https_proxy = https_proxy
@@ -104,6 +111,7 @@ class ConfigInfo(DataObject, AdditionalInfo):
         self.apt_news_url = apt_news_url
         self.cli_color = cli_color
         self.cli_suggestions = cli_suggestions
+        self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
 
 
 def config() -> ConfigInfo:
