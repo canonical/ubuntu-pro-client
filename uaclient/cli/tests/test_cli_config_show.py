@@ -59,6 +59,9 @@ class TestActionConfigShow:
         cfg.user_config.global_apt_https_proxy = (
             "http://global_apt_https_proxy"
         )
+        cfg.user_config.vulnerability_data_url_prefix = (
+            "https://security-metadata.canonical.com/oval/"
+        )
         args = mock.MagicMock(key=optional_key)
         show_subcommand.action(args, cfg=cfg)
         out, err = capsys.readouterr()
@@ -67,20 +70,21 @@ class TestActionConfigShow:
         else:
             assert (
                 """\
-http_proxy              http://http_proxy
-https_proxy             http://https_proxy
-apt_http_proxy          None
-apt_https_proxy         None
-ua_apt_http_proxy       None
-ua_apt_https_proxy      None
-global_apt_http_proxy   http://global_apt_http_proxy
-global_apt_https_proxy  http://global_apt_https_proxy
-update_messaging_timer  21600
-metering_timer          14400
-apt_news                True
-apt_news_url            https://motd.ubuntu.com/aptnews.json
-cli_color               True
-cli_suggestions         True
+http_proxy                     http://http_proxy
+https_proxy                    http://https_proxy
+apt_http_proxy                 None
+apt_https_proxy                None
+ua_apt_http_proxy              None
+ua_apt_https_proxy             None
+global_apt_http_proxy          http://global_apt_http_proxy
+global_apt_https_proxy         http://global_apt_https_proxy
+update_messaging_timer         21600
+metering_timer                 14400
+apt_news                       True
+apt_news_url                   https://motd.ubuntu.com/aptnews.json
+cli_color                      True
+cli_suggestions                True
+vulnerability_data_url_prefix  https://security-metadata.canonical.com/oval/
 """
                 == out
             )

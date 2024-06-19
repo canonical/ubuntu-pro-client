@@ -180,6 +180,7 @@ USER_CFG_DICT = {
     "metering_timer": 14400,
     "cli_color": True,
     "cli_suggestions": True,
+    "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/",  # noqa
 }
 
 
