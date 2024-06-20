@@ -37,5 +37,6 @@ start. They are not sequential, so you can approach them in any order you like!
 ..  toctree::
     :maxdepth: 1
 
+    tutorials/security-with-pro.rst
     tutorials/fix_intro.rst
     tutorials/create_a_fips_docker_image.rst
