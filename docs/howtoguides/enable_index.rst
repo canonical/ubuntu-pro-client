@@ -12,4 +12,4 @@ How to enable...
    FIPS <enable_fips>
    Landscape <enable_landscape>
    Livepatch <enable_livepatch>
-   Real-Time Kernel <enable_realtime_kernel>
+   Real-Time Ubuntu <enable_realtime_kernel>
