@@ -27,13 +27,19 @@ class FullAutoAttachOptions(DataObject):
             "enable_beta",
             data_list(StringDataValue),
             False,
-            doc="Optional list of beta services to enable after auto-attaching.",
+            doc=(
+                "Optional list of beta services to enable after"
+                " auto-attaching."
+            ),
         ),
         Field(
             "cloud_override",
             StringDataValue,
             False,
-            doc="Ignore the result of ``cloud-id`` and act as if running on this cloud.",
+            doc=(
+                "Ignore the result of ``cloud-id`` and act as if running on"
+                " this cloud."
+            ),
         ),
     ]
 
@@ -91,6 +97,9 @@ def _full_auto_attach(
     *,
     mode: event_logger.EventLoggerMode = event_logger.EventLoggerMode.JSON
 ) -> FullAutoAttachResult:
+    """
+    This endpoint runs the whole auto-attach process on the system.
+    """
     try:
         with lock.RetryLock(
             lock_holder="pro.api.u.pro.attach.auto.full_auto_attach.v1",
@@ -149,3 +158,73 @@ endpoint = APIEndpoint(
     fn=_full_auto_attach,
     options_cls=FullAutoAttachOptions,
 )
+
+_doc = {
+    "introduced_in": "27.11",
+    "extra_args_content": """
+.. note::
+
+    If none of the lists are set, the services will be enabled based on the
+    contract definitions.
+""",
+    "example_python": """
+from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach, FullAutoAttachOptions
+
+options = FullAutoAttachOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
+result = full_auto_attach(options)
+""",  # noqa: E501
+    "result_cls": FullAutoAttachResult,
+    "exceptions": [
+        (
+            exceptions.AlreadyAttachedError,
+            (
+                "Raised if running on a machine which is already attached to a"
+                " Pro subscription."
+            ),
+        ),
+        (
+            exceptions.AutoAttachDisabledError,
+            "Raised if ``disable_auto_attach: true`` in ``uaclient.conf``.",
+        ),
+        (
+            exceptions.ConnectivityError,
+            (
+                "Raised if it is not possible to connect to the contracts"
+                " service."
+            ),
+        ),
+        (
+            exceptions.ContractAPIError,
+            (
+                "Raised if there is an unexpected error in the contracts"
+                " service interaction."
+            ),
+        ),
+        (
+            exceptions.EntitlementsNotEnabledError,
+            (
+                "Raised if the Client fails to enable any of the entitlements"
+                " (whether present in any of the lists or listed in the"
+                " contract)."
+            ),
+        ),
+        (
+            exceptions.LockHeldError,
+            (
+                "Raised if another Client process is holding the lock on the"
+                " machine."
+            ),
+        ),
+        (
+            exceptions.NonAutoAttachImageError,
+            (
+                "Raised if the cloud where the system is running does not"
+                " support auto-attach."
+            ),
+        ),
+    ],
+    "example_cli": 'pro api u.pro.attach.auto.full_auto_attach.v1 --data {"enable": ["esm-infra", "esm-apps"]}',  # noqa: E501
+    "example_json": """
+{}
+""",
+}
