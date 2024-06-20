@@ -17,7 +17,11 @@ MAXIMUM_ATTEMPTS = 70
 
 class MagicAttachWaitOptions(DataObject):
     fields = [
-        Field("magic_token", StringDataValue),
+        Field(
+            "magic_token",
+            StringDataValue,
+            doc="The Token provided by the initiate endpoint.",
+        ),
     ]
 
     def __init__(self, magic_token: str):
@@ -26,12 +30,39 @@ class MagicAttachWaitOptions(DataObject):
 
 class MagicAttachWaitResult(DataObject, AdditionalInfo):
     fields = [
-        Field("user_code", StringDataValue),
-        Field("token", StringDataValue),
-        Field("expires", StringDataValue),
-        Field("expires_in", IntDataValue),
-        Field("contract_id", StringDataValue),
-        Field("contract_token", StringDataValue),
+        Field(
+            "user_code",
+            StringDataValue,
+            doc=(
+                "Code the user will see in the UI when confirming the Magic"
+                " Attach"
+            ),
+        ),
+        Field(
+            "token",
+            StringDataValue,
+            doc="The same Magic Token that was sent as an argument",
+        ),
+        Field(
+            "expires",
+            StringDataValue,
+            doc="Timestamp of the Magic Attach process expiration",
+        ),
+        Field(
+            "expires_in",
+            IntDataValue,
+            doc="Seconds before the Magic Attach process expires",
+        ),
+        Field(
+            "contract_id",
+            StringDataValue,
+            doc="ID of the contract the machine will be attached to",
+        ),
+        Field(
+            "contract_token",
+            StringDataValue,
+            doc="The contract Token to attach the machine",
+        ),
     ]
 
     def __init__(
@@ -60,6 +91,10 @@ def wait(
 def _wait(
     options: MagicAttachWaitOptions, cfg: UAConfig
 ) -> MagicAttachWaitResult:
+    """
+    This endpoint polls the contracts service waiting for the user to confirm
+    the Magic Attach.
+    """
     contract = UAContractClient(cfg)
 
     num_attempts = 0
@@ -117,3 +152,52 @@ endpoint = APIEndpoint(
     fn=_wait,
     options_cls=MagicAttachWaitOptions,
 )
+
+_doc = {
+    "introduced_in": "27.11",
+    "example_python": """
+from uaclient.api.u.pro.attach.magic.wait.v1 import MagicAttachWaitOptions, wait
+
+options = MagicAttachWaitOptions(magic_token="<magic_token>")
+result = wait(options)
+""",  # noqa: E501
+    "result_cls": MagicAttachWaitResult,
+    "exceptions": [
+        (
+            exceptions.ConnectivityError,
+            (
+                "Raised if it is not possible to connect to the contracts"
+                " service."
+            ),
+        ),
+        (
+            exceptions.ContractAPIError,
+            (
+                "Raised if there is an unexpected error in the contracts"
+                " service interaction."
+            ),
+        ),
+        (
+            exceptions.MagicAttachTokenError,
+            "Raised when an invalid/expired Token is sent.",
+        ),
+        (
+            exceptions.MagicAttachUnavailable,
+            (
+                "Raised if the Magic Attach service is busy or unavailable at"
+                " the moment."
+            ),
+        ),
+    ],
+    "example_cli": "pro api u.pro.attach.magic.wait.v1 --args magic_token=<magic_token>",  # noqa: E501
+    "example_json": """
+{
+    "user_code":"<UI_code>",
+    "token":"<magic_token>",
+    "expires": "<yyyy-MM-dd>T<HH:mm:ss>.<TZ>",
+    "expires_in": 500,
+    "contract_id": "<Contract-ID>",
+    "contract_token": "<attach_token>",
+}
+""",
+}
