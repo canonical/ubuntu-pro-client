@@ -118,6 +118,11 @@ jobs:
         run: |
           ln -s ubuntu-advantage-tools*.deb ubuntu-advantage-tools-${{ matrix.release }}.deb
           ln -s ubuntu-advantage-pro*.deb ubuntu-advantage-pro-${{ matrix.release }}.deb
+      - name: Set up profiling
+        uses: polarsignals/gh-actions-ps-profiling@v0.1.0
+        with:
+          polarsignals_cloud_token: ${{ secrets.POLAR_SIGNALS_PRO_CLOUD_TOKEN }}
+          labels: 'repo=${{ github.repository }};ref=${{ github.ref_name }};gh_run_id=${{ github.run_id }};release=${{ matrix.release }};platform=${{ matrix.platform }}'
       - name: Behave
         env:
           PYCLOUDLIB_CONFIG_CONTENTS: '${{ secrets.PYCLOUDLIB_CONFIG_CONTENTS }}'
