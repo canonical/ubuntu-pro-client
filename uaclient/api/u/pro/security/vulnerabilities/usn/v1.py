@@ -66,7 +66,7 @@ class USNVulnerabilityResult(DataObject):
         Field("description", StringDataValue),
         Field("published_at", DatetimeDataValue),
         Field("affected_packages", data_list(USNAffectedPackage)),
-        Field("fixable", BoolDataValue),
+        Field("fixable", StringDataValue),
         Field("related_cves", data_list(StringDataValue)),
         Field("related_launchpad_bugs", data_list(StringDataValue)),
     ]
@@ -77,10 +77,10 @@ class USNVulnerabilityResult(DataObject):
         name: str,
         description: str,
         published_at: datetime.datetime,
-        fixable: bool,
         affected_packages: List[USNAffectedPackage],
+        fixable: str,
         related_cves: List[str],
-        related_launchpad_bugs: List[str],
+        related_launchpad_bugs: List[str]
     ):
         self.name = name
         self.description = description
@@ -152,10 +152,20 @@ def _vulnerabilities(
 
     usns = []
     for usn_name, usn in sorted(usn_parser.vulnerabilities.items()):
-        if usn["fixable"] and block_fixable_usns:
+        usn_fix_status = _get_vulnerability_fix_status(
+            usn["affected_packages"]
+        )
+
+        if (
+            usn_fix_status != VulnerabilityStatus.NO_FIX_AVAILABLE
+            and block_fixable_usns
+        ):
             continue
 
-        if not usn["fixable"] and block_unfixable_usns:
+        if (
+            usn_fix_status == VulnerabilityStatus.NO_FIX_AVAILABLE
+            and block_unfixable_usns
+        ):
             continue
 
         usns.append(
@@ -165,7 +175,6 @@ def _vulnerabilities(
                 published_at=datetime.datetime.strptime(
                     usn["published_at"], "%Y-%m-%dT%H:%M:%S"
                 ),
-                fixable=usn["fixable"],
                 affected_packages=[
                     USNAffectedPackage(
                         name=pkg["name"],
@@ -175,6 +184,7 @@ def _vulnerabilities(
                     )
                     for pkg in usn["affected_packages"]
                 ],
+                fixable=usn_fix_status.value,
                 related_cves=usn["related_cves"],
                 related_launchpad_bugs=usn["related_launchpad_bugs"],
             )
