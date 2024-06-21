@@ -851,9 +851,12 @@ def _magic_attach(args, *, cfg, **kwargs):
 @cli_util.assert_root
 @cli_util.assert_lock_file("pro attach")
 def action_attach(args, *, cfg, **kwargs):
+    LOG.info("cli subcommand: attach")
     if args.token and args.attach_config:
+        LOG.error("both token and attach_config passed")
         raise exceptions.CLIAttachTokenArgXORConfig()
     elif not args.token and not args.attach_config:
+        LOG.info("no token or attach config passed -> magic attach")
         token = _magic_attach(args, cfg=cfg)
         enable_services_override = None
     elif args.token:
@@ -861,11 +864,13 @@ def action_attach(args, *, cfg, **kwargs):
         secret_manager.secrets.add_secret(token)
         enable_services_override = None
     else:
+        LOG.info("loading attach config file %s", args.attach_config)
         try:
             attach_config = AttachActionsConfigFile.from_dict(
                 safe_load(args.attach_config)
             )
         except IncorrectTypeError as e:
+            LOG.error("invalid attach config schema: %s", e.msg)
             raise exceptions.AttachInvalidConfigFileError(
                 config_name=args.attach_config.name, error=e.msg
             )
@@ -877,11 +882,16 @@ def action_attach(args, *, cfg, **kwargs):
 
     try:
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
-    except exceptions.ConnectivityError:
+    except exceptions.ConnectivityError as e:
+        LOG.error("network error: %s", e.msg)
         raise exceptions.AttachError()
     else:
         ret = 0
         if enable_services_override is not None and args.auto_enable:
+            LOG.info(
+                "enabling non-default service list %r",
+                enable_services_override,
+            )
             found, not_found = get_valid_entitlement_names(
                 enable_services_override, cfg
             )
@@ -895,6 +905,9 @@ def action_attach(args, *, cfg, **kwargs):
                         and reason.message is not None
                     ):
                         event.info(reason.message.msg)
+                        LOG.error(
+                            "failed to enable %s: %s", name, reason.message.msg
+                        )
                         event.error(
                             error_msg=reason.message.msg,
                             error_code=reason.message.name,
@@ -908,6 +921,7 @@ def action_attach(args, *, cfg, **kwargs):
                     not_found, cfg=cfg
                 )
                 event.info(error.msg, file_type=sys.stderr)
+                LOG.error("%r not found", not_found)
                 event.error(error_msg=error.msg, error_code=error.msg_code)
                 ret = 1
 
