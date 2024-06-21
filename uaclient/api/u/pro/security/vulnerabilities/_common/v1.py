@@ -1,6 +1,7 @@
 import bz2
+import enum
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
 from uaclient import apt
@@ -100,7 +101,6 @@ class VulnerabilityParser:
                     if vuln_status != "not-vulnerable":
                         if vuln_name not in self.vulnerabilities:
                             self.vulnerabilities[vuln_name] = vuln_info
-                            self.vulnerabilities[vuln_name]["fixable"] = False
                             self.vulnerabilities[vuln_name][
                                 "affected_packages"
                             ] = []
@@ -148,7 +148,6 @@ class VulnerabilityParser:
                                 "affected_packages"
                             ] = []
 
-                        self.vulnerabilities[vuln_name]["fixable"] = True
                         self.vulnerabilities[vuln_name][
                             "affected_packages"
                         ].append(
