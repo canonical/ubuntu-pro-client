@@ -71,7 +71,7 @@ class CVEVulnerabilityResult(DataObject):
         Field("published_at", DatetimeDataValue),
         Field("notes", data_list(StringDataValue), False),
         Field("affected_packages", data_list(CVEAffectedPackage)),
-        Field("fixable", BoolDataValue),
+        Field("fixable", StringDataValue),
         Field("cvss_score", FloatDataValue, False),
         Field("cvss_severity", StringDataValue, False),
     ]
@@ -82,7 +82,7 @@ class CVEVulnerabilityResult(DataObject):
         name: str,
         description: str,
         published_at: datetime.datetime,
-        fixable: bool,
+        fixable: str,
         notes: Optional[List[str]] = None,
         affected_packages: List[CVEAffectedPackage],
         cvss_score: Optional[float] = None,
@@ -156,10 +156,20 @@ def _vulnerabilities(
 
     cves = []
     for cve_name, cve in cve_parser.vulnerabilities.items():
-        if cve["fixable"] and block_fixable_cves:
+        cve_fix_status = _get_vulnerability_fix_status(
+            cve["affected_packages"]
+        )
+
+        if (
+            cve_fix_status != VulnerabilityStatus.NO_FIX_AVAILABLE
+            and block_fixable_cves
+        ):
             continue
 
-        if not cve["fixable"] and block_unfixable_cves:
+        if (
+            cve_fix_status == VulnerabilityStatus.NO_FIX_AVAILABLE
+            and block_unfixable_cves
+        ):
             continue
 
         cves.append(
@@ -170,7 +180,6 @@ def _vulnerabilities(
                     cve["published_at"], "%Y-%m-%dT%H:%M:%S"
                 ),
                 notes=cve["notes"],
-                fixable=cve["fixable"],
                 affected_packages=[
                     CVEAffectedPackage(
                         name=pkg["name"],
@@ -181,6 +190,7 @@ def _vulnerabilities(
                     )
                     for pkg in cve["affected_packages"]
                 ],
+                fixable=cve_fix_status.value,
                 cvss_score=cve["cvss_score"],
                 cvss_severity=cve["cvss_severity"],
             )
