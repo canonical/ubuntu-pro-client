@@ -461,6 +461,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return False
 
+    def _perform_disable(self, progress: api.ProgressWrapper) -> bool:
+        if super()._perform_disable(progress):
+            if self._check_for_reboot():
+                notices.add(
+                    Notice.FIPS_DISABLE_REBOOT_REQUIRED,
+                )
+            return True
+
+        return False
+
     def unhold_packages(self, package_names):
         cmd = ["apt-mark", "showholds"]
         holds = apt.run_apt_command(
