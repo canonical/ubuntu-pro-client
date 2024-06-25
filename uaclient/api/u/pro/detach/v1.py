@@ -30,8 +30,19 @@ from uaclient.timer.update_messaging import update_motd_messages
 
 class DetachResult(DataObject, AdditionalInfo):
     fields = [
-        Field("disabled", data_list(StringDataValue)),
-        Field("reboot_required", BoolDataValue),
+        Field(
+            "disabled",
+            data_list(StringDataValue),
+            doc="The services disabled during the detach operation",
+        ),
+        Field(
+            "reboot_required",
+            BoolDataValue,
+            doc=(
+                "True if the system requires a reboot after the detach"
+                " operation"
+            ),
+        ),
     ]
 
     def __init__(self, disabled: List[str], reboot_required: bool):
@@ -44,6 +55,10 @@ def detach() -> DetachResult:
 
 
 def _detach(cfg: UAConfig) -> DetachResult:
+    """
+    This endpoint allows the user to detach the machine from a Pro
+    subscription.
+    """
     if not util.we_are_currently_root():
         raise exceptions.NonRootUserError
 
@@ -121,3 +136,26 @@ endpoint = APIEndpoint(
     fn=_detach,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "32",
+    "example_python": """
+from uaclient.api.u.pro.detach.v1 import detach
+
+result = detach()
+""",  # noqa: E501
+    "result_cls": DetachResult,
+    "exceptions": [
+        (
+            exceptions.NonRootUserError,
+            ("Raised if a non-root user executes this endpoint."),
+        ),
+    ],
+    "example_cli": "pro api u.pro.detach.v1",
+    "example_json": """
+{
+    "disabled": ["service1", "service2"],
+    "reboot_required": false
+}
+""",
+}
