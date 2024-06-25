@@ -21,8 +21,20 @@ from uaclient.data_types import (
 
 class FullTokenAttachOptions(DataObject):
     fields = [
-        Field("token", StringDataValue),
-        Field("auto_enable_services", BoolDataValue, False),
+        Field(
+            "token",
+            StringDataValue,
+            doc="The token associated with a Pro subscription",
+        ),
+        Field(
+            "auto_enable_services",
+            BoolDataValue,
+            False,
+            doc=(
+                "If false, the attach operation will not enable any service"
+                " during the operation (default: true)"
+            ),
+        ),
     ]
 
     def __init__(self, token: str, auto_enable_services: bool = True):
@@ -32,8 +44,19 @@ class FullTokenAttachOptions(DataObject):
 
 class FullTokenAttachResult(DataObject, AdditionalInfo):
     fields = [
-        Field("enabled", data_list(StringDataValue)),
-        Field("reboot_required", BoolDataValue),
+        Field(
+            "enabled",
+            data_list(StringDataValue),
+            doc="The services enabled during the attach operation",
+        ),
+        Field(
+            "reboot_required",
+            BoolDataValue,
+            doc=(
+                "True if the system requires a reboot after the attach"
+                " operation"
+            ),
+        ),
     ]
 
     def __init__(
@@ -48,6 +71,10 @@ class FullTokenAttachResult(DataObject, AdditionalInfo):
 def _full_token_attach(
     options: FullTokenAttachOptions, cfg: UAConfig
 ) -> FullTokenAttachResult:
+    """
+    This endpoint allows the user to attach to a Pro subscription using a
+    token.
+    """
     if not util.we_are_currently_root():
         raise exceptions.NonRootUserError
 
@@ -125,3 +152,70 @@ endpoint = APIEndpoint(
     fn=_full_token_attach,
     options_cls=FullTokenAttachOptions,
 )
+
+_doc = {
+    "introduced_in": "32",
+    "example_python": """
+from uaclient.api.u.pro.attach.token.full_token_attach.v1 import full_token_attach, FullTokenAttachOptions
+
+options = FullTokenAttachOptions(token="TOKEN")
+result = full_token_attach(options)
+""",  # noqa: E501
+    "result_cls": FullTokenAttachResult,
+    "exceptions": [
+        (
+            exceptions.ConnectivityError,
+            (
+                "Raised if it is not possible to connect to the contracts"
+                " service."
+            ),
+        ),
+        (
+            exceptions.ContractAPIError,
+            (
+                "Raised if there is an unexpected error in the contracts"
+                " service interaction."
+            ),
+        ),
+        (
+            exceptions.LockHeldError,
+            (
+                "Raised if another Client process is holding the lock on the"
+                " machine."
+            ),
+        ),
+        (
+            exceptions.NonRootUserError,
+            ("Raised if a non-root user executes this endpoint."),
+        ),
+    ],
+    "example_cli": "pro api u.pro.attach.token.full_token_attach.v1 --data -",
+    "example_cli_extra": """
+Note that it is generally not recommended to pass secrets such as the token on
+the command line. The example uses the arguments ``--data -`` which causes
+``pro`` to read the input data from ``stdin``. Then the arguments can be
+written as JSON to ``stdin`` of the process.
+
+For example, if we define a JSON file (i.e. ``file.json``) with the same
+attributes as the options for this endpoint:
+
+.. code-block:: json
+
+    {
+        "token": "TOKEN",
+        "auto_enable_services": false
+    }
+
+Then we can call the API like this:
+
+.. code-block:: bash
+
+    cat file.json | pro api u.pro.attach.token.full_token_attach.v1 --data -
+""",
+    "example_json": """
+{
+    "enabled": ["service1", "service2"],
+    "reboot_required": false
+}
+""",
+}
