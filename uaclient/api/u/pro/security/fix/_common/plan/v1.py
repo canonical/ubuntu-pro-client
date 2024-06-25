@@ -79,8 +79,25 @@ class FixWarningType(enum.Enum):
 
 class FixPlanStep(DataObject):
     fields = [
-        Field("operation", StringDataValue),
-        Field("order", IntDataValue),
+        Field(
+            "operation",
+            StringDataValue,
+            doc=(
+                "The operation that would be performed to fix the CVE. This"
+                " can be either an attach, enable, apt-upgrade or a no-op type"
+            ),
+        ),
+        Field(
+            "order", IntDataValue, doc="The execution order of the operation"
+        ),
+        Field(
+            "data",
+            DataObject,
+            doc=(
+                "A data object that can be either an ``AptUpgradeData``,"
+                " ``AttachData``, ``EnableData``, ``NoOpData``"
+            ),
+        ),
     ]
 
     def __init__(self, *, operation: str, order: int):
@@ -90,9 +107,21 @@ class FixPlanStep(DataObject):
 
 class AptUpgradeData(DataObject):
     fields = [
-        Field("binary_packages", data_list(StringDataValue)),
-        Field("source_packages", data_list(StringDataValue)),
-        Field("pocket", StringDataValue),
+        Field(
+            "binary_packages",
+            data_list(StringDataValue),
+            doc="A list of binary packages that need to be upgraded",
+        ),
+        Field(
+            "source_packages",
+            data_list(StringDataValue),
+            doc="A list of source packages that need to be upgraded",
+        ),
+        Field(
+            "pocket",
+            StringDataValue,
+            doc="The pocket where the packages will be installed from",
+        ),
     ]
 
     def __init__(
@@ -121,9 +150,21 @@ class FixPlanAptUpgradeStep(FixPlanStep):
 
 class AttachData(DataObject):
     fields = [
-        Field("reason", StringDataValue),
-        Field("required_service", StringDataValue),
-        Field("source_packages", data_list(StringDataValue)),
+        Field(
+            "reason",
+            StringDataValue,
+            doc="The reason why an attach operation is needed",
+        ),
+        Field(
+            "required_service",
+            StringDataValue,
+            doc="The required service that requires the attach operation",
+        ),
+        Field(
+            "source_packages",
+            data_list(StringDataValue),
+            doc="The source packages that require the attach operation",
+        ),
     ]
 
     def __init__(
@@ -148,8 +189,16 @@ class FixPlanAttachStep(FixPlanStep):
 
 class EnableData(DataObject):
     fields = [
-        Field("service", StringDataValue),
-        Field("source_packages", data_list(StringDataValue)),
+        Field(
+            "service",
+            StringDataValue,
+            doc="The service that needs to be enabled",
+        ),
+        Field(
+            "source_packages",
+            data_list(StringDataValue),
+            doc="The source packages that require the service to be enabled",
+        ),
     ]
 
     def __init__(self, *, service: str, source_packages: List[str]):
@@ -171,7 +220,11 @@ class FixPlanEnableStep(FixPlanStep):
 
 class NoOpData(DataObject):
     fields = [
-        Field("status", StringDataValue),
+        Field(
+            "status",
+            StringDataValue,
+            doc="The status of the CVE when no operation can be performed",
+        ),
     ]
 
     def __init__(self, *, status: str):
@@ -192,8 +245,16 @@ class FixPlanNoOpStep(FixPlanStep):
 
 class NoOpLivepatchFixData(NoOpData):
     fields = [
-        Field("status", StringDataValue),
-        Field("patch_version", StringDataValue),
+        Field(
+            "status",
+            StringDataValue,
+            doc="The status of the CVE when no operation can be performed",
+        ),
+        Field(
+            "patch_version",
+            StringDataValue,
+            doc="Version of the patch from Livepatch that fixed the CVE",
+        ),
     ]
 
     def __init__(self, *, status: str, patch_version: str):
@@ -214,7 +275,11 @@ class FixPlanNoOpLivepatchFixStep(FixPlanNoOpStep):
 
 class NoOpAlreadyFixedData(NoOpData):
     fields = [
-        Field("status", StringDataValue),
+        Field(
+            "status",
+            StringDataValue,
+            doc="The status of the CVE when no operation can be performed",
+        ),
         Field("source_packages", data_list(StringDataValue)),
         Field("pocket", StringDataValue),
     ]
@@ -240,8 +305,17 @@ class FixPlanNoOpAlreadyFixedStep(FixPlanNoOpStep):
 
 class FixPlanWarning(DataObject):
     fields = [
-        Field("warning_type", StringDataValue),
-        Field("order", IntDataValue),
+        Field("warning_type", StringDataValue, doc="The type of warning"),
+        Field(
+            "order", IntDataValue, doc="The execution order of the operation"
+        ),
+        Field(
+            "data",
+            DataObject,
+            doc="A data object that represents either a"
+            " ``PackageCannotBeInstalledData`` or a"
+            " ``SecurityIssueNotFixedData``",
+        ),
     ]
 
     def __init__(self, *, warning_type: str, order: int):
@@ -251,8 +325,16 @@ class FixPlanWarning(DataObject):
 
 class SecurityIssueNotFixedData(DataObject):
     fields = [
-        Field("source_packages", data_list(StringDataValue)),
-        Field("status", StringDataValue),
+        Field(
+            "source_packages",
+            data_list(StringDataValue),
+            doc="A list of source packages that cannot be fixed at the moment",
+        ),
+        Field(
+            "status",
+            StringDataValue,
+            doc="The status of the CVE regarding those packages",
+        ),
     ]
 
     def __init__(self, *, source_packages: List[str], status: str):
@@ -277,11 +359,37 @@ class FixPlanWarningSecurityIssueNotFixed(FixPlanWarning):
 
 class PackageCannotBeInstalledData(DataObject):
     fields = [
-        Field("binary_package", StringDataValue),
-        Field("binary_package_version", StringDataValue),
-        Field("source_package", StringDataValue),
-        Field("related_source_packages", data_list(StringDataValue)),
-        Field("pocket", StringDataValue),
+        Field(
+            "binary_package",
+            StringDataValue,
+            doc="The binary package that cannot be installed",
+        ),
+        Field(
+            "binary_package_version",
+            StringDataValue,
+            doc="The version of the binary package that cannot be installed",
+        ),
+        Field(
+            "source_package",
+            StringDataValue,
+            doc="The source package associated with the binary package",
+        ),
+        Field(
+            "related_source_packages",
+            data_list(StringDataValue),
+            doc=(
+                "A list of source packages that come from the same pocket as"
+                " the affected package"
+            ),
+        ),
+        Field(
+            "pocket",
+            StringDataValue,
+            doc=(
+                "The pocket where the affected package should be installed"
+                " from"
+            ),
+        ),
     ]
 
     def __init__(
@@ -343,8 +451,8 @@ class FixPlanWarningFailUpdatingESMCache(FixPlanWarning):
 
 class FixPlanError(DataObject):
     fields = [
-        Field("msg", StringDataValue),
-        Field("code", StringDataValue, required=False),
+        Field("msg", StringDataValue, doc="The error message"),
+        Field("code", StringDataValue, required=False, doc="The message code"),
     ]
 
     def __init__(self, *, msg: str, code: Optional[str]):
@@ -375,15 +483,53 @@ class USNAdditionalData(AdditionalData):
 
 class FixPlanResult(DataObject):
     fields = [
-        Field("title", StringDataValue),
-        Field("description", StringDataValue, required=False),
-        Field("current_status", StringDataValue, required=False),
-        Field("expected_status", StringDataValue),
-        Field("affected_packages", data_list(StringDataValue), required=False),
-        Field("plan", data_list(FixPlanStep)),
-        Field("warnings", data_list(FixPlanWarning), required=False),
-        Field("error", FixPlanError, required=False),
-        Field("additional_data", AdditionalData, required=False),
+        Field("title", StringDataValue, doc="The title of the CVE"),
+        Field(
+            "description",
+            StringDataValue,
+            required=False,
+            doc="The description of the CVE",
+        ),
+        Field(
+            "current_status",
+            StringDataValue,
+            required=False,
+            doc="The current status of the CVE on the system",
+        ),
+        Field(
+            "expected_status",
+            StringDataValue,
+            doc="The expected status of fixing the CVE",
+        ),
+        Field(
+            "affected_packages",
+            data_list(StringDataValue),
+            required=False,
+            doc="A list of package names affected by the CVE",
+        ),
+        Field(
+            "plan",
+            data_list(FixPlanStep),
+            doc="A list of ``FixPlanStep`` objects",
+        ),
+        Field(
+            "warnings",
+            data_list(FixPlanWarning),
+            required=False,
+            doc="A list of ``FixPlanWarning`` objects",
+        ),
+        Field(
+            "error",
+            FixPlanError,
+            required=False,
+            doc="A ``FixPlanError`` object, if an error occurred.",
+        ),
+        Field(
+            "additional_data",
+            AdditionalData,
+            required=False,
+            doc="Additional data for the CVE",
+        ),
     ]
 
     def __init__(
