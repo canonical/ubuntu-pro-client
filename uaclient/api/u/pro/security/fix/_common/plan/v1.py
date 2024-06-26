@@ -83,7 +83,7 @@ class FixPlanStep(DataObject):
             "operation",
             StringDataValue,
             doc=(
-                "The operation that would be performed to fix the CVE. This"
+                "The operation that would be performed to fix the issue. This"
                 " can be either an attach, enable, apt-upgrade or a no-op type"
             ),
         ),
@@ -223,7 +223,7 @@ class NoOpData(DataObject):
         Field(
             "status",
             StringDataValue,
-            doc="The status of the CVE when no operation can be performed",
+            doc="The status of the issue when no operation can be performed",
         ),
     ]
 
@@ -278,10 +278,18 @@ class NoOpAlreadyFixedData(NoOpData):
         Field(
             "status",
             StringDataValue,
-            doc="The status of the CVE when no operation can be performed",
+            doc="The status of the issue when no operation can be performed",
         ),
-        Field("source_packages", data_list(StringDataValue)),
-        Field("pocket", StringDataValue),
+        Field(
+            "source_packages",
+            data_list(StringDataValue),
+            doc="The source packages that are already fixed",
+        ),
+        Field(
+            "pocket",
+            StringDataValue,
+            doc="The pocket where the packages would have been installed from",
+        ),
     ]
 
     def __init__(
@@ -467,8 +475,16 @@ class AdditionalData(DataObject):
 class USNAdditionalData(AdditionalData):
 
     fields = [
-        Field("associated_cves", data_list(StringDataValue)),
-        Field("associated_launchpad_bugs", data_list(StringDataValue)),
+        Field(
+            "associated_cves",
+            data_list(StringDataValue),
+            doc="The associated CVEs for the USN",
+        ),
+        Field(
+            "associated_launchpad_bugs",
+            data_list(StringDataValue),
+            doc="The associated Launchpad bugs for the USN",
+        ),
     ]
 
     def __init__(
@@ -483,29 +499,29 @@ class USNAdditionalData(AdditionalData):
 
 class FixPlanResult(DataObject):
     fields = [
-        Field("title", StringDataValue, doc="The title of the CVE"),
+        Field("title", StringDataValue, doc="The title of the issue"),
         Field(
             "description",
             StringDataValue,
             required=False,
-            doc="The description of the CVE",
+            doc="The description of the issue",
         ),
         Field(
             "current_status",
             StringDataValue,
             required=False,
-            doc="The current status of the CVE on the system",
+            doc="The current status of the issue on the system",
         ),
         Field(
             "expected_status",
             StringDataValue,
-            doc="The expected status of fixing the CVE",
+            doc="The expected status of fixing the issue",
         ),
         Field(
             "affected_packages",
             data_list(StringDataValue),
             required=False,
-            doc="A list of package names affected by the CVE",
+            doc="A list of package names affected by the issue",
         ),
         Field(
             "plan",
@@ -528,7 +544,7 @@ class FixPlanResult(DataObject):
             "additional_data",
             AdditionalData,
             required=False,
-            doc="Additional data for the CVE",
+            doc="Additional data for the issue",
         ),
     ]
 
@@ -558,8 +574,17 @@ class FixPlanResult(DataObject):
 
 class FixPlanUSNResult(DataObject):
     fields = [
-        Field("target_usn_plan", FixPlanResult),
-        Field("related_usns_plan", data_list(FixPlanResult), required=False),
+        Field(
+            "target_usn_plan",
+            FixPlanResult,
+            doc="A ``FixPlanResult`` object for the target USN",
+        ),
+        Field(
+            "related_usns_plan",
+            data_list(FixPlanResult),
+            required=False,
+            doc="A list of ``FixPlanResult`` objects for the related USNs",
+        ),
     ]
 
     def __init__(
