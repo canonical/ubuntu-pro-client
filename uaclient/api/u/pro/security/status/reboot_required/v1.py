@@ -21,8 +21,18 @@ from uaclient.system import (
 
 class RebootRequiredPkgs(DataObject):
     fields = [
-        Field("standard_packages", data_list(StringDataValue), False),
-        Field("kernel_packages", data_list(StringDataValue), False),
+        Field(
+            "standard_packages",
+            data_list(StringDataValue),
+            False,
+            doc="Non-kernel packages that require a reboot",
+        ),
+        Field(
+            "kernel_packages",
+            data_list(StringDataValue),
+            False,
+            doc="Kernel packages that require a reboot",
+        ),
     ]
 
     def __init__(
@@ -36,12 +46,38 @@ class RebootRequiredPkgs(DataObject):
 
 class RebootRequiredResult(DataObject, AdditionalInfo):
     fields = [
-        Field("reboot_required", StringDataValue),
-        Field("reboot_required_packages", RebootRequiredPkgs),
-        Field("livepatch_enabled_and_kernel_patched", BoolDataValue),
-        Field("livepatch_enabled", BoolDataValue),
-        Field("livepatch_state", StringDataValue, False),
-        Field("livepatch_support", StringDataValue, False),
+        Field(
+            "reboot_required",
+            StringDataValue,
+            doc="Either 'yes', 'no', or 'yes-kernel-livepatches-applied'",
+        ),
+        Field(
+            "reboot_required_packages",
+            RebootRequiredPkgs,
+            doc="The packages that require a reboot",
+        ),
+        Field(
+            "livepatch_enabled_and_kernel_patched",
+            BoolDataValue,
+            doc="True if livepatch is enabled and working",
+        ),
+        Field(
+            "livepatch_enabled",
+            BoolDataValue,
+            doc="True if livepatch is enabled",
+        ),
+        Field(
+            "livepatch_state",
+            StringDataValue,
+            False,
+            doc="The state of livepatch as reported by the livepatch client",
+        ),
+        Field(
+            "livepatch_support",
+            StringDataValue,
+            False,
+            doc="Whether livepatch covers the current kernel",
+        ),
     ]
 
     def __init__(
@@ -121,6 +157,16 @@ def reboot_required() -> RebootRequiredResult:
 
 
 def _reboot_required(cfg: UAConfig) -> RebootRequiredResult:
+    """
+    This endpoint informs if the system should be rebooted or not. Possible
+    outputs are:
+
+    #. ``yes``: The system should be rebooted.
+    #. ``no``: There is no known need to reboot the system.
+    #. ``yes-kernel-livepatches-applied``: There are Livepatch patches applied
+       to the current kernel, but a reboot is required for an update to take
+       place. This reboot can wait until the next maintenance window.
+    """
     reboot_status = _get_reboot_status()
     reboot_required_pkgs = get_reboot_required_pkgs()
     livepatch_status = livepatch.status()
@@ -173,3 +219,20 @@ endpoint = APIEndpoint(
     fn=_reboot_required,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.12",
+    "example_python": """
+from uaclient.api.u.pro.security.status.reboot_required.v1 import reboot_required
+
+result = reboot_required()
+""",  # noqa: E501
+    "result_cls": RebootRequiredResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.security.status.reboot_required.v1",
+    "example_json": """
+{
+    "reboot_required": "yes|no|yes-kernel-livepatches-applied"
+}
+""",
+}
