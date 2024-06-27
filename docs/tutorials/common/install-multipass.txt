@@ -1,14 +1,11 @@
 Install Multipass
 =================
 
-In this tutorial, we will use a Xenial Multipass virtual machine (VM) to avoid
-making any modifications to your machine. We have chosen `Multipass`_ for this
-tutorial because it allows us to easily launch VMs without requiring any
-complicated setup.
-
-To install Multipass on your computer, run the following command on your
-machine:
+To avoid making any modifications to your live system during the tutorial, we
+will set up a virtual machine using `Multipass`_. We are using Multipass
+because it allows us to launch VMs without needing any complicated setup. To
+install Multipass on your system, run the following command on your machine:
 
 .. code-block:: bash
 
-    $ sudo snap install multipass
+   $ sudo snap install multipass
