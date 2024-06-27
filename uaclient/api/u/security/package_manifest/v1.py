@@ -66,7 +66,7 @@ from uaclient.api.u.security.package_manifest.v1 import package_manifest
 
 result = package_manifest()
 """,
-    "result_cls": PackageManifestResult,
+    "result_class": PackageManifestResult,
     "exceptions": [],
     "example_cli": "pro api u.security.package_manifest.v1",
     "example_json": """

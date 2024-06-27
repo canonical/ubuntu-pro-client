@@ -140,7 +140,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import is_attached
 
 result = is_attached()
 """,  # noqa: E501
-    "result_cls": IsAttachedResult,
+    "result_class": IsAttachedResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.status.is_attached.v1",
     "example_json": """

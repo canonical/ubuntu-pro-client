@@ -114,7 +114,7 @@ from uaclient.api.u.pro.security.fix.usn.plan.v1 import plan, USNFixPlanOptions
 options = USNFixPlanOptions(cves=["USN-1234-1", "USN-1235-1"])
 result = plan(options)
 """,  # noqa: E501
-    "result_cls": USNSFixPlanResult,
+    "result_class": USNSFixPlanResult,
     "ignore_result_classes": [DataObject, AdditionalData],
     "extra_result_classes": [
         USNAdditionalData,

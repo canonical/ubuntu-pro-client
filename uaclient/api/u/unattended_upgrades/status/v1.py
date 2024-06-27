@@ -297,7 +297,7 @@ from uaclient.api.u.unattended_upgrades.status.v1 import status
 
 result = status()
 """,
-    "result_cls": UnattendedUpgradesStatusResult,
+    "result_class": UnattendedUpgradesStatusResult,
     "exceptions": [
         (
             UnattendedUpgradesError,
