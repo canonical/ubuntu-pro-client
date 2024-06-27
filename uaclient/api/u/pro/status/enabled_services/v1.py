@@ -122,7 +122,7 @@ from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services
 
 result = enabled_services()
 """,  # noqa: E501
-    "result_cls": EnabledServicesResult,
+    "result_class": EnabledServicesResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.status.enabled_services.v1",
     "example_json": """

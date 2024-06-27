@@ -91,7 +91,7 @@ from uaclient.api.u.pro.attach.magic.initiate.v1 import initiate
 
 result = initiate()
 """,
-    "result_cls": MagicAttachInitiateResult,
+    "result_class": MagicAttachInitiateResult,
     "exceptions": [
         (
             exceptions.ConnectivityError,

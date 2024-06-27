@@ -70,7 +70,7 @@ from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_
 options = ConfigureRetryServiceOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
 result = configure_retry_service(options)
 """,  # noqa: E501
-    "result_cls": ConfigureRetryServiceResult,
+    "result_class": ConfigureRetryServiceResult,
     "exceptions": [],
     "example_cli": 'pro api u.pro.attach.auto.configure_retry_service.v1 --data {"enable": ["esm-infra", "esm-apps"]}',  # noqa: E501
     "example_json": """

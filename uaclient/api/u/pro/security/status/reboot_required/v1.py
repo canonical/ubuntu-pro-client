@@ -227,7 +227,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import reboot_require
 
 result = reboot_required()
 """,  # noqa: E501
-    "result_cls": RebootRequiredResult,
+    "result_class": RebootRequiredResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.security.status.reboot_required.v1",
     "example_json": """

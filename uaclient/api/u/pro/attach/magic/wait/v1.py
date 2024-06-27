@@ -161,7 +161,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import MagicAttachWaitOptions, wait
 options = MagicAttachWaitOptions(magic_token="<magic_token>")
 result = wait(options)
 """,  # noqa: E501
-    "result_cls": MagicAttachWaitResult,
+    "result_class": MagicAttachWaitResult,
     "exceptions": [
         (
             exceptions.ConnectivityError,

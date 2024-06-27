@@ -53,7 +53,7 @@ from uaclient.api.u.pro.version.v1 import version
 
 result = version()
 """,
-    "result_cls": VersionResult,
+    "result_class": VersionResult,
     "exceptions": [
         (VersionError, "Raised if the Client cannot determine the version.")
     ],
