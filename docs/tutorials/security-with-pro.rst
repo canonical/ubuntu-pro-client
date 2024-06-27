@@ -569,14 +569,3 @@ Further reading
 
 .. _Multipass: https://multipass.run/
 .. _CVE-2023-5764: https://ubuntu.com/security/CVE-2023-5764
-
-.. NOTES
-System requirements - use the multipass system requirements
-
-How often is "periodically"? (in terms of update frequency)
-Default config for unattended-upgrades is "daily" (this includes Pro security updates - app security and infra security are included in unattended-upgrades)
-
-Pro fix is more interesting to those who want to control what goes in -> they will be especially interested in the upcoming vulnerability command. This will be announced on the Pro category on discourse.
-
-
- 
