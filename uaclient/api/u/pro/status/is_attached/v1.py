@@ -20,10 +20,32 @@ from uaclient.files import machine_token
 
 class IsAttachedResult(DataObject, AdditionalInfo):
     fields = [
-        Field("is_attached", BoolDataValue),
-        Field("contract_status", StringDataValue, False),
-        Field("contract_remaining_days", IntDataValue),
-        Field("is_attached_and_contract_valid", BoolDataValue),
+        Field(
+            "is_attached",
+            BoolDataValue,
+            doc=(
+                "True if the machine is attached to an Ubuntu Pro subscription"
+            ),
+        ),
+        Field(
+            "contract_status",
+            StringDataValue,
+            False,
+            doc="Status of the Ubuntu Pro subscription",
+        ),
+        Field(
+            "contract_remaining_days",
+            IntDataValue,
+            doc="Number of days left in the Ubuntu Pro subscription",
+        ),
+        Field(
+            "is_attached_and_contract_valid",
+            BoolDataValue,
+            doc=(
+                "True if the machine is attached to an Ubuntu Pro subscription"
+                " and that subscription is not expired"
+            ),
+        ),
     ]
 
     def __init__(
@@ -79,6 +101,9 @@ def is_attached() -> IsAttachedResult:
 
 
 def _is_attached(cfg: UAConfig) -> IsAttachedResult:
+    """
+    This endpoint shows if the machine is attached to a Pro subscription.
+    """
     machine_token_file = machine_token.get_machine_token_file(cfg)
     is_machine_attached = bool(machine_token_file.machine_token)
 
@@ -107,3 +132,37 @@ endpoint = APIEndpoint(
     fn=_is_attached,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "28",
+    "example_python": """
+from uaclient.api.u.pro.status.is_attached.v1 import is_attached
+
+result = is_attached()
+""",  # noqa: E501
+    "result_cls": IsAttachedResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.status.is_attached.v1",
+    "example_json": """
+{
+    "contract_remaining_days": 360,
+    "contract_status": "active",
+    "is_attached": true,
+    "is_attached_and_contract_valid": true
+}
+""",
+    "extra": """
+.. tab-item:: Explanation
+    :sync: explanation
+
+    The ``contract_status`` field can return 4 different states, they are:
+
+    * **active**: The contract is currently valid.
+    * **grace-period**: The contract is in the grace period. This means that
+      it is expired, but there are still some days where the contract will be
+      valid.
+    * **active-soon-to-expire**: The contract is almost expired, but still
+      valid.
+    * **expired**: The contract is expired and no longer valid.
+""",
+}
