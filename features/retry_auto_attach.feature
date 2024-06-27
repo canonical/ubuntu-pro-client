@@ -145,7 +145,7 @@ Feature: auto-attach retries periodically on failures
     When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
       """
       {
-          "https://contracts.canonical.com/v1/clouds/$behave_var{cloud system-under-test}/token": [{
+          "https://contracts.canonical.com/v1/clouds/$behave_var{cloud sut}/token": [{
             "type": "contract",
             "code": 400,
             "response": {
@@ -304,7 +304,7 @@ Feature: auto-attach retries periodically on failures
     When I create the file `/var/lib/ubuntu-advantage/response-overlay.json` with the following:
       """
       {
-          "https://contracts.canonical.com/v1/clouds/$behave_var{cloud system-under-test}/token": [{
+          "https://contracts.canonical.com/v1/clouds/$behave_var{cloud sut}/token": [{
             "type": "contract",
             "code": 400,
             "response": {

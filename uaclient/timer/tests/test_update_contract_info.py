@@ -4,7 +4,10 @@ import mock
 import pytest
 
 from uaclient.files.notices import Notice
-from uaclient.timer.update_contract_info import update_contract_info
+from uaclient.timer.update_contract_info import (
+    update_contract_info,
+    validate_release_series,
+)
 
 M_PATH = "uaclient.timer.update_contract_info."
 
@@ -28,14 +31,11 @@ class TestUpdateContractInfo:
         contract_changed,
         is_attached,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_contract_changed.return_value = contract_changed
-        if is_attached:
-            cfg = FakeConfig().for_attached_machine()
-        else:
-            cfg = FakeConfig()
-
-        update_contract_info(cfg=cfg)
+        fake_machine_token_file.attached = is_attached
+        update_contract_info(cfg=FakeConfig())
 
         if is_attached:
             if contract_changed:
@@ -73,16 +73,66 @@ class TestUpdateContractInfo:
         contract_changed,
         caplog_text,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_contract_changed.side_effect = (contract_changed,)
         m_notices.add.side_effect = Exception("Error checking contract info")
         m_notices.remove.side_effect = Exception(
             "Error checking contract info"
         )
-        cfg = FakeConfig().for_attached_machine()
+        fake_machine_token_file.attached = True
 
-        assert False is update_contract_info(cfg=cfg)
+        assert False is update_contract_info(cfg=FakeConfig())
         assert (
             "Failed to check for change in machine contract."
             " Reason: Error checking contract info\n"
         ) in caplog_text()
+
+
+class TestValidateReleaseSeries:
+    @pytest.mark.parametrize("allowed_series", (None, "bionic", "jammy"))
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="jammy"),
+    )
+    @mock.patch("uaclient.system.get_distro_info")
+    @mock.patch(M_PATH + "detach")
+    @mock.patch(
+        M_PATH + "_is_attached",
+        return_value=mock.MagicMock(is_attached=True),
+    )
+    def test_validate_release_series(
+        self,
+        m_is_attached,
+        m_detach,
+        m_get_distro_info,
+        m_get_release_info,
+        allowed_series,
+        FakeConfig,
+        fake_machine_token_file,
+    ):
+        fake_machine_token_file._entitlements = {
+            "support": {
+                "entitlement": {"affordances": {"onlySeries": allowed_series}}
+            }
+        }
+        m_get_distro_info.side_effect = [
+            mock.MagicMock(
+                release="20.04",
+                series_codename="Bionic Beaver",
+                series="bionic",
+            ),
+            mock.MagicMock(
+                release="22.04",
+                series_codename="Jammy Jellyfish",
+                series="jammy",
+            ),
+        ]
+        validate_release_series(cfg=FakeConfig())
+        if allowed_series:
+            if allowed_series != "jammy":
+                assert m_get_distro_info.call_count == 1
+                assert m_detach.call_count == 1
+        else:
+            assert m_get_distro_info.call_count == 0
+            assert m_detach.call_count == 0

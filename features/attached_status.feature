@@ -42,35 +42,29 @@ Feature: Attached status
   Scenario Outline: Non-root status can see in-progress operations
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    When I run shell command `sudo pro enable cis >/dev/null & pro status` as non-root
+    When I run shell command `sudo pro refresh & pro status` as non-root
     Then stdout matches regexp:
       """
       NOTICES
-      Operation in progress: pro enable
+      Operation in progress: pro refresh
       """
     When I run `pro status --wait` as non-root
-    When I run `pro disable cis --assume-yes` with sudo
-    When I run shell command `sudo pro enable cis & pro status --wait` as non-root
+    When I run shell command `sudo pro refresh & pro status --wait` as non-root
     Then stdout matches regexp:
       """
-      One moment, checking your subscription first
-      Configuring APT access to CIS Audit
-      Updating CIS Audit package lists
-      Updating standard Ubuntu package lists
-      Installing CIS Audit packages
-      CIS Audit enabled
-      Visit https://ubuntu.com/security/cis to learn how to use CIS
+      Successfully processed your pro configuration.
+      Successfully refreshed your subscription.
+      Successfully updated Ubuntu Pro related APT and MOTD messages.
       \.+
       SERVICE +ENTITLED +STATUS +DESCRIPTION
       """
     Then stdout does not match regexp:
       """
       NOTICES
-      Operation in progress: pro enable
+      Operation in progress: pro refresh
       """
-    When I run `pro disable cis --assume-yes` with sudo
     When I apt install `jq`
-    When I run shell command `sudo pro enable cis >/dev/null & pro status --format json | jq -r .execution_status` as non-root
+    When I run shell command `sudo pro refresh >/dev/null & pro status --format json | jq -r .execution_status` as non-root
     Then I will see the following on stdout:
       """
       active
@@ -138,7 +132,7 @@ Feature: Attached status
       cis             +yes      +disabled +Security compliance and audit tools
       esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      livepatch       +yes      +warning  +Current kernel is not supported
+      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
       """
     When I verify root and non-root `pro status --all` calls have the same output
     And I run `pro status --all` as non-root
@@ -154,7 +148,7 @@ Feature: Attached status
       fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
       landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +warning  +Current kernel is not supported
+      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
       """
 
     Examples: ubuntu release
@@ -424,7 +418,8 @@ Feature: Attached status
       livepatch       +yes      +n/a      +Canonical Livepatch service
       realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
       ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
-      └ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       ros             +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
       usg             +yes      +disabled +Security compliance and audit tools
@@ -468,6 +463,9 @@ Feature: Attached status
       landscape       +yes      +disabled +Management and administration tool for Ubuntu
       livepatch       +yes      +n/a      +Canonical Livepatch service
       realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
+      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       ros             +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
       usg             +yes      +n/a      +Security compliance and audit tools

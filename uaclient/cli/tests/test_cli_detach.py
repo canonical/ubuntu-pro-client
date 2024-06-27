@@ -25,20 +25,27 @@ def entitlement_cls_mock_factory(can_disable, name=None):
     if name:
         type(m_instance).name = mock.PropertyMock(return_value=name)
 
-    return mock.Mock(return_value=m_instance)
+    return m_instance
 
 
 @mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
 class TestActionDetach:
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_non_root_users_are_rejected(
-        self, m_we_are_currently_root, _m_prompt, FakeConfig, event, capsys
+        self,
+        m_we_are_currently_root,
+        _m_prompt,
+        FakeConfig,
+        fake_machine_token_file,
+        event,
+        capsys,
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         m_we_are_currently_root.return_value = False
         args = mock.MagicMock()
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         with pytest.raises(exceptions.NonRootUserError):
             action_detach(args, cfg=cfg)
 
@@ -113,11 +120,13 @@ class TestActionDetach:
         m_check_lock_info,
         m_prompt,
         FakeConfig,
+        fake_machine_token_file,
         capsys,
         event,
     ):
         """Check when an operation holds a lock file, detach cannot run."""
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         args = mock.MagicMock()
         m_check_lock_info.return_value = (123, "pro enable")
 
@@ -182,6 +191,7 @@ class TestActionDetach:
         assume_yes,
         expect_disable,
         FakeConfig,
+        fake_machine_token_file,
         event,
         capsys,
     ):
@@ -192,15 +202,16 @@ class TestActionDetach:
         #   expect_disable: whether or not the enabled entitlement is expected
         #                   to be disabled by the action
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig()
+        fake_machine_token_file.attached = True
         fake_client = FakeContractClient(cfg)
         m_client.return_value = fake_client
 
         m_prompt.return_value = prompt_response
-        disabled_cls = entitlement_cls_mock_factory(True, name="test")
 
         m_disable_order.return_value = ["test"]
-        m_ent_factory.return_value = disabled_cls
+        m_ent = entitlement_cls_mock_factory(True, name="test")
+        m_ent_factory.return_value = m_ent
 
         args = mock.MagicMock(assume_yes=assume_yes)
         with mock.patch.object(lock, "lock_data_file"):
@@ -208,15 +219,13 @@ class TestActionDetach:
 
         assert [
             mock.call(ignore_dependent_services=True)
-        ] == disabled_cls.return_value.can_disable.call_args_list
+        ] == m_ent.can_disable.call_args_list
 
         if expect_disable:
-            assert [
-                mock.call(mock.ANY)
-            ] == disabled_cls.return_value.disable.call_args_list
+            assert [mock.call(mock.ANY)] == m_ent.disable.call_args_list
             assert 0 == return_code
         else:
-            assert 0 == disabled_cls.return_value.disable.call_count
+            assert 0 == m_ent.disable.call_count
             assert 1 == return_code
         assert [mock.call(assume_yes=assume_yes)] == m_prompt.call_args_list
         if expect_disable:
@@ -224,7 +233,6 @@ class TestActionDetach:
                 mock.call(cfg)
             ] == m_update_apt_and_motd_msgs.call_args_list
 
-        cfg = FakeConfig.for_attached_machine()
         fake_stdout = io.StringIO()
         # On json response, we will never prompt the user
         m_prompt.return_value = True
@@ -363,6 +371,7 @@ class TestActionDetach:
         disabled_services,
         tmpdir,
         FakeConfig,
+        fake_machine_token_file,
         event,
     ):
         m_ent_factory.side_effect = classes
@@ -384,15 +393,15 @@ class TestActionDetach:
         assert expected_message in out
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
-        cfg = FakeConfig.for_attached_machine()
         fake_stdout = io.StringIO()
         m_ent_factory.side_effect = classes
+        fake_machine_token_file.attached = True
         with contextlib.redirect_stdout(fake_stdout):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(lock, "lock_data_file"):
-                    main_error_handler(action_detach)(args, cfg)
+                    main_error_handler(action_detach)(args, FakeConfig())
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,

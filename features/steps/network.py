@@ -73,8 +73,7 @@ def disable_internet_connection(context, machine_name=SUT):
     )
     when_i_run_command(
         context,
-        "ufw enable",
+        "ufw --force enable",
         "with sudo",
         machine_name=machine_name,
-        stdin="y\n",
     )

@@ -85,17 +85,19 @@ class TestAssertRoot:
 # Test multiple uids, to be sure that the root checking is absent
 @pytest.mark.parametrize("root", [True, False])
 class TestAssertAttached:
-    def test_assert_attached_when_attached(self, capsys, root, FakeConfig):
+    def test_assert_attached_when_attached(
+        self, capsys, root, fake_machine_token_file
+    ):
         @assert_attached()
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        cfg = FakeConfig.for_attached_machine()
+        fake_machine_token_file.attached = True
 
         with mock.patch(
             "uaclient.cli.util.we_are_currently_root", return_value=root
         ):
-            ret = test_function(mock.Mock(), cfg)
+            ret = test_function(mock.Mock(), None)
 
         assert mock.sentinel.success == ret
 
@@ -118,18 +120,18 @@ class TestAssertAttached:
 
 @pytest.mark.parametrize("root", [True, False])
 class TestAssertNotAttached:
-    def test_when_attached(self, root, FakeConfig):
+    def test_when_attached(self, root, fake_machine_token_file):
         @assert_not_attached
         def test_function(args, cfg):
             pass
 
-        cfg = FakeConfig.for_attached_machine()
+        fake_machine_token_file.attached = True
 
         with mock.patch(
             "uaclient.cli.util.we_are_currently_root", return_value=root
         ):
             with pytest.raises(AlreadyAttachedError):
-                test_function(mock.Mock(), cfg)
+                test_function(mock.Mock(), None)
 
     def test_when_not_attached(self, capsys, root, FakeConfig):
         @assert_not_attached

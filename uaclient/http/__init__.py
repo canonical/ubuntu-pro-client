@@ -164,7 +164,7 @@ def _readurl_urllib(
     req: request.Request, timeout: Optional[int] = None
 ) -> UnparsedHTTPResponse:
     try:
-        resp = request.urlopen(req, timeout=timeout)
+        resp = request.urlopen(req, timeout=timeout)  # nosec B310
     except error.HTTPError as e:
         resp = e
     except error.URLError as e:
@@ -335,6 +335,9 @@ def readurl(
     timeout: Optional[int] = None,
     log_response_body: bool = True,
 ) -> HTTPResponse:
+    if not is_service_url(url):
+        raise exceptions.InvalidUrl(url=url)
+
     if data and not method:
         method = "POST"
     req = request.Request(url, data=data, headers=headers, method=method)

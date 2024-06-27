@@ -465,6 +465,32 @@ def get_installed_packages_by_origin(origin: str) -> List[apt_pkg.Package]:
     return list(result)
 
 
+def get_installed_packages_with_uninstalled_candidate_in_origin(
+    origin: Optional[str],
+) -> List[apt_pkg.Package]:
+    if origin is None:
+        return []
+
+    # Avoiding duplicate entries, which may happen due to version being in
+    # multiple pockets or supporting multiple architectures.
+    result = set()
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
+        dep_cache = apt_pkg.DepCache(cache)
+        for package in cache.packages:
+            installed_version = package.current_ver
+            if installed_version:
+                candidate = dep_cache.get_candidate_ver(package)
+                if (
+                    candidate
+                    and candidate.ver_str != installed_version.ver_str
+                ):
+                    for file, _ in candidate.file_list:
+                        if file.origin == origin:
+                            result.add(package)
+
+    return list(result)
+
+
 def get_remote_versions_for_package(
     package: apt_pkg.Package, exclude_origin: Optional[str] = None
 ) -> List[apt_pkg.Version]:
@@ -737,16 +763,19 @@ def is_installed(pkg: str) -> bool:
 
 
 def get_installed_packages() -> List[InstalledAptPackage]:
-    out, _ = system.subp(["apt", "list", "--installed"])
-    package_list = out.splitlines()[1:]
-    return [
-        InstalledAptPackage(
-            name=entry.split("/")[0],
-            version=entry.split(" ")[1],
-            arch=entry.split(" ")[2],
-        )
-        for entry in package_list
-    ]
+    installed = []
+    with PreserveAptCfg(get_apt_pkg_cache) as cache:
+        for package in cache.packages:
+            installed_version = package.current_ver
+            if installed_version:
+                installed.append(
+                    InstalledAptPackage(
+                        name=package.name,
+                        version=installed_version.ver_str,
+                        arch=installed_version.arch,
+                    )
+                )
+    return installed
 
 
 def get_installed_packages_names() -> List[str]:

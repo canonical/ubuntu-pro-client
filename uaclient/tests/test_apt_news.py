@@ -257,17 +257,14 @@ class TestAptNews:
         architecture,
         package_version_side_effect,
         expected,
-        FakeConfig,
+        fake_machine_token_file,
     ):
-        if attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
+        fake_machine_token_file.attached = attached
         m_get_platform_info.return_value = mock.MagicMock(series=series)
         m_get_cloud_type.return_value = cloud_type
         m_get_dpkg_arch.return_value = architecture
         m_get_pkg_version.side_effect = package_version_side_effect
-        assert expected == apt_news.do_selectors_apply(cfg, selectors)
+        assert expected == apt_news.do_selectors_apply(None, selectors)
 
     @pytest.mark.parametrize(
         ["begin", "end", "expected"],
@@ -642,18 +639,22 @@ class TestAptNews:
         expiry_status,
         remaining_days,
         expected,
-        FakeConfig,
+        fake_machine_token_file,
     ):
         m_is_attached.return_value = mock.MagicMock(
             is_attached=True,
             contract_status=expiry_status.value,
             contract_remaining_days=remaining_days,
         )
+        fake_machine_token_file.token = {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": datetime(2012, 12, 21, tzinfo=timezone.utc)
+                }
+            }
+        }
 
-        cfg = FakeConfig.for_attached_machine(
-            effective_to=datetime(2012, 12, 21, tzinfo=timezone.utc)
-        )
-        assert expected == apt_news.local_apt_news(cfg)
+        assert expected == apt_news.local_apt_news(None)
 
     @pytest.mark.parametrize(
         ["msg", "expected"],

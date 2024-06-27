@@ -284,7 +284,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       This command must be run as root (try using sudo).
       """
-    And I verify that running `pro enable esm-apps --beta` `with sudo` exits `1`
+    And I verify that running `pro enable esm-apps` `with sudo` exits `1`
     And I will see the following on stdout:
       """
       One moment, checking your subscription first
@@ -1034,7 +1034,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       corrupted
       """
     Then I verify that running `pro enable esm-infra --assume-yes` `with sudo` exits `1`
-    And stderr matches regexp:
+    And stdout matches regexp:
       """
       There is a corrupted lock file in the system. To continue, please remove it
       from the system by running:

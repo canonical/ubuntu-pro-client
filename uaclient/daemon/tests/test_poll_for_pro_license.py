@@ -251,11 +251,10 @@ class TestPollForProLicense:
         expected_is_pro_license_present_calls,
         expected_attempt_auto_attach_calls,
         FakeConfig,
+        fake_machine_token_file,
     ):
-        if is_attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
+        fake_machine_token_file.attached = is_attached
+        cfg = FakeConfig()
         cfg.user_config.poll_for_pro_license = cfg_poll_for_pro_licenses
 
         m_is_config_value_true.return_value = is_config_value_true

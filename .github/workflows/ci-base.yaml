@@ -34,10 +34,6 @@ jobs:
           hunspell -p ./tools/spellcheck-allowed-words.txt -L ./uaclient/messages/__init__.py
           hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py
           [ $(hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py | wc -c) = "0" ]
-      - name: Translation Template Updated
-        run: |
-          ./tools/update-pos.sh
-          [ $(git diff --ignore-matching-lines="POT-Creation-Date" | wc -c) = "0" ]
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-22.04

@@ -10,6 +10,7 @@ from uaclient.config import UAConfig
 from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 from uaclient.entitlements import order_entitlements_for_enabling
 from uaclient.entitlements.entitlement_status import CanEnableFailure
+from uaclient.files import machine_token
 
 event = event_logger.get_event_logger()
 
@@ -37,14 +38,12 @@ class FullAutoAttachResult(DataObject, AdditionalInfo):
 
 
 def _enable_services_by_name(
-    cfg: UAConfig, services: List[str], allow_beta: bool
+    cfg: UAConfig, services: List[str]
 ) -> List[Tuple[str, messages.NamedMessage]]:
     failed_services = []
     for name in order_entitlements_for_enabling(cfg, services):
         try:
-            ent_ret, reason = actions.enable_entitlement_by_name(
-                cfg, name, assume_yes=True, allow_beta=allow_beta
-            )
+            ent_ret, reason = actions.enable_entitlement_by_name(cfg, name)
         except exceptions.UbuntuProError as e:
             failed_services.append(
                 (name, messages.NamedMessage(e.msg_code or "unknown", e.msg))
@@ -94,10 +93,11 @@ def _full_auto_attach_in_lock(
     mode: event_logger.EventLoggerMode,
 ) -> FullAutoAttachResult:
     event.set_event_mode(mode)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
 
     if _is_attached(cfg).is_attached:
         raise exceptions.AlreadyAttachedError(
-            account_name=cfg.machine_token_file.account.get("name", "")
+            account_name=machine_token_file.account.get("name", "")
         )
 
     if util.is_config_value_true(
@@ -115,13 +115,9 @@ def _full_auto_attach_in_lock(
 
     failed = []
     if options.enable is not None:
-        failed += _enable_services_by_name(
-            cfg, options.enable, allow_beta=False
-        )
+        failed += _enable_services_by_name(cfg, options.enable)
     if options.enable_beta is not None:
-        failed += _enable_services_by_name(
-            cfg, options.enable_beta, allow_beta=True
-        )
+        failed += _enable_services_by_name(cfg, options.enable_beta)
 
     contract_client = contract.UAContractClient(cfg)
     contract_client.update_activity_token()

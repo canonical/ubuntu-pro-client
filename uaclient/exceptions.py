@@ -172,6 +172,10 @@ class ErrorInstallingLivepatch(UbuntuProError):
 ###############################################################################
 
 
+class InvalidUrl(UbuntuProError):
+    _formatted_msg = messages.E_INVALID_URL
+
+
 class ProxyNotWorkingError(UbuntuProError):
     _formatted_msg = messages.E_NOT_SETTING_PROXY_NOT_WORKING
 
@@ -392,6 +396,10 @@ class AttachFailureDefaultServices(EntitlementsNotEnabledError):
 
 class AttachFailureUnknownError(EntitlementsNotEnabledError):
     _msg = messages.E_ATTACH_FAILURE_UNEXPECTED
+
+
+class AttachFailureRestrictedRelease(UbuntuProError):
+    _formatted_msg = messages.ATTACH_FAILURE_RESTRICTED_RELEASE
 
 
 class RepoNoAptKey(UbuntuProError):

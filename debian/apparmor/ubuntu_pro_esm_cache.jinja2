@@ -178,6 +178,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     /{,usr/}bin/dpkg mr,
 
+    # LP: #2067810
+    /var/lib/dpkg/** r,
+
   }
 
   profile ubuntu_distro_info flags=(attach_disconnected) {
@@ -212,6 +215,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     /{,usr/}lib/apt/methods/store mr,
 
     /usr/share/dpkg/** r,
+
+    # LP: #2067810
+    /var/lib/dpkg/** r,
 
     /var/lib/ubuntu-advantage/apt-esm/** rwk,
 
@@ -251,6 +257,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     # Note: observed only in xenial tests, but makes sense for all releases
     /etc/apt/** r,
     /var/lib/apt/** r,
+
+    # LP: #2067810
+    /var/lib/dpkg/** r,
 
   }
 

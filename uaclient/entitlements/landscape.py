@@ -24,7 +24,7 @@ class LandscapeEntitlement(UAEntitlement):
 
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         cmd = ["landscape-config"] + self.extra_args
-        if self.assume_yes and "--silent" not in cmd:
+        if not progress.is_interactive() and "--silent" not in cmd:
             cmd += ["--silent"]
 
         LOG.debug("Executing: %r", cmd)
@@ -34,10 +34,10 @@ class LandscapeEntitlement(UAEntitlement):
             )
         )
         try:
-            system.subp(cmd, pipe_stdouterr=self.assume_yes)
+            system.subp(cmd, pipe_stdouterr=not progress.is_interactive())
         except exceptions.ProcessExecutionError as e:
             LOG.exception(e)
-            if self.assume_yes:
+            if not progress.is_interactive():
                 progress.emit("info", e.stderr.strip())
                 raise exceptions.LandscapeConfigFailed(
                     stdout=e.stdout.strip(), stderr=e.stderr.strip()

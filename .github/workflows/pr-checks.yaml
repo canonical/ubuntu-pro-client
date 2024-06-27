@@ -1,0 +1,28 @@
+---
+
+name: PR Checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+    branches:
+      - main
+      - next-*
+
+jobs:
+  pr-checklist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: cd ./.github/actions/pr-checklist && npm install
+      - name: PR checklist
+        uses: ./.github/actions/pr-checklist
+        id: pr-checklist
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

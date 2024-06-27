@@ -3,10 +3,41 @@ import pytest
 
 from uaclient import messages
 from uaclient.entitlements.entitlement_status import ApplicabilityStatus
-from uaclient.entitlements.realtime import IntelIotgRealtime
+from uaclient.entitlements.realtime import (
+    IntelIotgRealtime,
+    RaspberryPiRealtime,
+)
 from uaclient.system import CpuInfo
 
-RT_PATH = "uaclient.entitlements.realtime.RealtimeKernelEntitlement."
+M_PATH = "uaclient.entitlements.realtime."
+
+
+class TestRaspiVariant:
+    @pytest.mark.parametrize(
+        [
+            "load_file_side_effect",
+            "expected_result",
+        ],
+        [
+            (["Raspberry Pi 5 Model B Rev 1.0"], True),
+            (["Raspberry Pi 4 Model B Rev 1.1"], True),
+            (["Raspberry Pi 3 Model B Plus Rev 1.3"], False),
+            ([FileNotFoundError()], False),
+        ],
+    )
+    @mock.patch(M_PATH + "system.load_file")
+    def test_variant_auto_select(
+        self,
+        m_load_file,
+        load_file_side_effect,
+        expected_result,
+        FakeConfig,
+    ):
+        m_load_file.side_effect = load_file_side_effect
+        assert (
+            expected_result
+            == RaspberryPiRealtime(FakeConfig()).variant_auto_select()
+        )
 
 
 class TestIntelIOTGVariannt:

@@ -1,10 +1,10 @@
 import logging
-from typing import List, Optional
+from typing import Iterable, List, Optional, Tuple, Type
 
 from uaclient import entitlements, lock, messages, status, util
 from uaclient.api import AbstractProgress, ProgressWrapper, exceptions
 from uaclient.api.api import APIEndpoint
-from uaclient.api.data_types import AdditionalInfo
+from uaclient.api.data_types import AdditionalInfo, ErrorWarningObject
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
@@ -60,6 +60,53 @@ class EnableResult(DataObject, AdditionalInfo):
         self.messages = messages
 
 
+def _auto_select_variant(
+    cfg: UAConfig,
+    progress: ProgressWrapper,
+    entitlement: entitlements.UAEntitlement,
+    available_variants: Iterable[Type[entitlements.UAEntitlement]],
+    access_only: bool,
+) -> Tuple[entitlements.UAEntitlement, Optional[ErrorWarningObject]]:
+    variant = None
+    for v_cls in available_variants:
+        v = v_cls(cfg=cfg, access_only=access_only)
+        if (
+            v.applicability_status()[0]
+            == entitlements.ApplicabilityStatus.APPLICABLE
+            and v.variant_auto_select()
+        ):
+            variant = v
+            break
+    if variant is None and entitlement.default_variant is not None:
+        variant = entitlement.default_variant(cfg=cfg, access_only=access_only)
+    if variant is not None:
+        progress.emit(
+            "message_operation",
+            [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": messages.AUTO_SELECTING_VARIANT.format(
+                            variant=messages.TxtColor.BOLD
+                            + variant.variant_name
+                            + messages.TxtColor.ENDC
+                        ),
+                    },
+                )
+            ],
+        )
+        warning = messages.AUTO_SELECTED_VARIANT_WARNING.format(
+            variant_name=variant.variant_name
+        )
+        return variant, ErrorWarningObject(
+            title=warning.msg,
+            code=warning.name,
+            meta={"variant_name": variant.variant_name},
+        )
+    else:
+        return entitlement, None
+
+
 def _enabled_services_names(cfg: UAConfig) -> List[str]:
     return [s.name for s in _enabled_services(cfg).enabled_services]
 
@@ -76,6 +123,7 @@ def _enable(
     progress_object: Optional[AbstractProgress] = None,
 ) -> EnableResult:
     progress = ProgressWrapper(progress_object)
+    warnings = []
 
     if not util.we_are_currently_root():
         raise exceptions.NonRootUserError()
@@ -87,7 +135,20 @@ def _enable(
         raise exceptions.NotSupported()
 
     enabled_services_before = _enabled_services_names(cfg)
-    if options.service in enabled_services_before:
+
+    already_enabled = next(
+        (
+            s
+            for s in _enabled_services(cfg).enabled_services
+            if s.name == options.service
+            and (
+                not options.variant
+                or (s.variant_enabled and s.variant_name == options.variant)
+            )
+        ),
+        None,
+    )
+    if already_enabled:
         # nothing to do
         return EnableResult(
             enabled=[],
@@ -96,16 +157,31 @@ def _enable(
             messages=[],
         )
 
-    ent_cls = entitlements.entitlement_factory(
-        cfg=cfg, name=options.service, variant=options.variant or ""
-    )
-    entitlement = ent_cls(
-        cfg,
-        assume_yes=True,
-        allow_beta=True,
-        called_name=options.service,
+    entitlement = entitlements.entitlement_factory(
+        cfg=cfg,
+        name=options.service,
+        variant=options.variant or "",
         access_only=options.access_only,
     )
+
+    applicability, _ = entitlement.applicability_status()
+    available_variants = entitlement.variants
+    if all(
+        [
+            applicability == entitlements.ApplicabilityStatus.APPLICABLE,
+            not entitlement.is_variant,
+            available_variants,
+        ]
+    ):
+        entitlement, auto_select_warning = _auto_select_variant(
+            cfg=cfg,
+            progress=progress,
+            entitlement=entitlement,
+            available_variants=available_variants.values(),
+            access_only=options.access_only,
+        )
+        if auto_select_warning:
+            warnings.append(auto_select_warning)
 
     progress.total_steps = entitlement.calculate_total_enable_steps()
 
@@ -141,7 +217,7 @@ def _enable(
     status.status(cfg=cfg)  # Update the status cache
     progress.finish()
 
-    return EnableResult(
+    result = EnableResult(
         enabled=sorted(
             list(
                 set(enabled_services_after).difference(
@@ -159,6 +235,8 @@ def _enable(
         reboot_required=entitlement._check_for_reboot(),
         messages=post_enable_messages,
     )
+    result.warnings = warnings
+    return result
 
 
 endpoint = APIEndpoint(

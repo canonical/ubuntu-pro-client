@@ -77,6 +77,7 @@ def action_disable(args, *, cfg, **kwargs):
     }
 
     json_output = args.format == "json"
+    assume_yes = args.assume_yes
     # HACK NOTICE: interactive_only_print here will be a no-op "null_print"
     # function defined above if args.format == "json". We use this function
     # throughout enable for things that should get printed in the normal
@@ -85,7 +86,7 @@ def action_disable(args, *, cfg, **kwargs):
         json_output
     )
 
-    if args.purge and args.assume_yes:
+    if args.purge and assume_yes:
         raise exceptions.InvalidOptionCombination(
             option1="--purge", option2="--assume-yes"
         )
@@ -102,14 +103,17 @@ def action_disable(args, *, cfg, **kwargs):
 
     ret = True
     for ent_name in entitlements_found:
-        ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
-        ent = ent_cls(cfg, assume_yes=args.assume_yes, purge=args.purge)
+        ent = entitlements.entitlement_factory(
+            cfg=cfg,
+            name=ent_name,
+            purge=args.purge,
+        )
 
         variant = ent.enabled_variant
         if variant is not None:
             ent = variant
 
-        if not args.assume_yes:
+        if not assume_yes:
             # this never happens for json output because we assert earlier that
             # assume_yes must be True for json output
             try:
@@ -133,7 +137,9 @@ def action_disable(args, *, cfg, **kwargs):
         if json_output:
             progress = api.ProgressWrapper()
         else:
-            progress = api.ProgressWrapper(cli_util.CLIEnableDisableProgress())
+            progress = api.ProgressWrapper(
+                cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
+            )
         progress.total_steps = ent.calculate_total_disable_steps()
         try:
             disable_ret, reason = ent.disable(progress)
@@ -185,9 +191,7 @@ def action_disable(args, *, cfg, **kwargs):
     if entitlements_not_found:
         ret = False
         valid_names = (
-            "Try "
-            + ", ".join(entitlements.valid_services(cfg=cfg, allow_beta=True))
-            + "."
+            "Try " + ", ".join(entitlements.valid_services(cfg=cfg)) + "."
         )
         service_msg = "\n".join(
             textwrap.wrap(

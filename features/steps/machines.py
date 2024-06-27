@@ -54,7 +54,7 @@ def given_a_machine(
     context.pro_config.clouds.get(cloud).manage_ssh_key()
 
     time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
-    instance_name = "upro-behave-{series}-{machine_name}-{time_suffix}".format(
+    instance_name = "pro-{series}-{machine_name}-{time_suffix}".format(
         series=series,
         machine_name=machine_name,
         time_suffix=time_suffix,
@@ -234,6 +234,13 @@ def given_a_sut_machine(context, series, machine_type):
         given_a_machine(context, series, machine_type=machine_type)
         _update_distro_info_data(context)
         when_i_install_uat(context)
+
+    # trigger GH: #3137 on all machines
+    when_i_run_command(
+        context,
+        "touch /var/lib/dpkg/arch",
+        "with sudo",
+    )
 
     logging.info(
         "--- instance ip: {}".format(context.machines[SUT].instance.ip)

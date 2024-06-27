@@ -90,10 +90,10 @@ class TestLandscapeEntitlement:
         FakeConfig,
     ):
         m_subp.side_effect = subp_sideeffect
-        landscape = LandscapeEntitlement(
-            FakeConfig(), assume_yes=assume_yes, extra_args=extra_args
-        )
-        assert expected_result == landscape._perform_enable(mock.MagicMock())
+        landscape = LandscapeEntitlement(FakeConfig(), extra_args=extra_args)
+        mock_progress = mock.MagicMock()
+        mock_progress.is_interactive.return_value = not assume_yes
+        assert expected_result == landscape._perform_enable(mock_progress)
         assert expected_subp_calls == m_subp.call_args_list
 
     @pytest.mark.parametrize(

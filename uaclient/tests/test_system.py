@@ -970,11 +970,11 @@ class TestGetReleaseInfo:
 
 @mock.patch("uaclient.files.state_files.machine_id_file.write")
 class TestGetMachineId:
-    def test_get_machine_id_from_config(
-        self, _m_machine_id_file_write, FakeConfig
+    def test_get_machine_id_from_machine_token_file(
+        self, _m_machine_id_file_write, fake_machine_token_file
     ):
-        cfg = FakeConfig.for_attached_machine()
-        value = system.get_machine_id(cfg)
+        fake_machine_token_file.attached = True
+        value = system.get_machine_id(None)
         assert "test_machine_id" == value
 
     @mock.patch("uaclient.files.state_files.machine_id_file.read")
@@ -1064,16 +1064,12 @@ class TestGetMachineId:
         self,
         m_machine_id_file_read,
         m_machine_id_file_write,
-        FakeConfig,
         empty_value,
+        fake_machine_token_file,
     ):
         m_machine_id_file_read.return_value = None
-        cfg = FakeConfig().for_attached_machine(
-            machine_token={"some": "thing"},
-        )
-        # Need to initialize the property with a noop,
-        # so load_file is not called after mocked
-        cfg.machine_token
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = {"some": "thing"}
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             m_exists.return_value = True
             with mock.patch(
@@ -1083,7 +1079,7 @@ class TestGetMachineId:
                     m_uuid4.return_value = uuid.UUID(
                         "0123456789abcdef0123456789abcdef"
                     )
-                    value = system.get_machine_id(cfg)
+                    value = system.get_machine_id.__wrapped__(None)
         assert "01234567-89ab-cdef-0123-456789abcdef" == value
         assert [
             mock.call("01234567-89ab-cdef-0123-456789abcdef")

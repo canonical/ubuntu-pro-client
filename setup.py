@@ -27,7 +27,7 @@ def split_link_deps(reqs_filename):
     return pkgs, links
 
 
-TEST_REQUIRES, TEST_LINKS = split_link_deps("test-requirements.txt")
+TEST_REQUIRES, TEST_LINKS = split_link_deps("requirements.test.txt")
 
 
 def _get_data_files():

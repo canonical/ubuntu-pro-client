@@ -16,10 +16,13 @@ class TestEnabledServicesV1:
         m_is_attached.return_value = mock.MagicMock(is_attached=True)
 
         m_cls_1 = mock.MagicMock()
+        type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
         m_inst_1 = mock.MagicMock(variants={})
+        type(m_inst_1).name = mock.PropertyMock(return_value="ent1")
         type(m_inst_1).presentation_name = mock.PropertyMock(
             return_value="ent1"
         )
+        type(m_inst_1).valid_names = mock.PropertyMock(return_value=["ent1"])
         m_inst_1.user_facing_status.return_value = (
             UserFacingStatus.ACTIVE,
             "",
@@ -35,10 +38,13 @@ class TestEnabledServicesV1:
         m_variant_cls.return_value = m_variant_inst
 
         m_cls_2 = mock.MagicMock()
+        type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
         m_inst_2 = mock.MagicMock(variants={"variant": m_variant_cls})
+        type(m_inst_2).name = mock.PropertyMock(return_value="ent2")
         type(m_inst_2).presentation_name = mock.PropertyMock(
             return_value="ent2"
         )
+        type(m_inst_2).valid_names = mock.PropertyMock(return_value=["ent2"])
         m_inst_2.user_facing_status.return_value = (
             UserFacingStatus.ACTIVE,
             "",
@@ -46,10 +52,13 @@ class TestEnabledServicesV1:
         m_cls_2.return_value = m_inst_2
 
         m_cls_3 = mock.MagicMock()
+        type(m_cls_3).name = mock.PropertyMock(return_value="ent3")
         m_inst_3 = mock.MagicMock()
+        type(m_inst_3).name = mock.PropertyMock(return_value="ent3")
         type(m_inst_3).presentation_name = mock.PropertyMock(
             return_value="ent3"
         )
+        type(m_inst_3).valid_names = mock.PropertyMock(return_value=["ent3"])
         m_inst_3.user_facing_status.return_value = (
             UserFacingStatus.INACTIVE,
             "",
@@ -57,10 +66,13 @@ class TestEnabledServicesV1:
         m_cls_3.return_value = m_inst_3
 
         m_cls_4 = mock.MagicMock()
+        type(m_cls_4).name = mock.PropertyMock(return_value="ent4")
         m_inst_4 = mock.MagicMock()
+        type(m_inst_4).name = mock.PropertyMock(return_value="ent4")
         type(m_inst_4).presentation_name = mock.PropertyMock(
             return_value="ent4"
         )
+        type(m_inst_4).valid_names = mock.PropertyMock(return_value=["ent4"])
         m_inst_4.user_facing_status.return_value = (
             UserFacingStatus.INAPPLICABLE,
             "",
@@ -68,10 +80,13 @@ class TestEnabledServicesV1:
         m_cls_4.return_value = m_inst_4
 
         m_cls_5 = mock.MagicMock()
+        type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
         m_inst_5 = mock.MagicMock()
+        type(m_inst_5).name = mock.PropertyMock(return_value="ent5")
         type(m_inst_5).presentation_name = mock.PropertyMock(
             return_value="ent5"
         )
+        type(m_inst_5).valid_names = mock.PropertyMock(return_value=["ent5"])
         m_inst_5.user_facing_status.return_value = (
             UserFacingStatus.WARNING,
             NamedMessage(name="warning_code", msg="warning_msg"),

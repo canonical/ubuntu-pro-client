@@ -1,7 +1,7 @@
 {
-  "name": "bug-refs",
+  "name": "release-checklist",
   "version": "1.0.0",
-  "description": "Block PRs on missing bug references",
+  "description": "Add release checklist to the PR",
   "main": "index.js",
   "dependencies": {
     "@actions/core": "^1.10.0",

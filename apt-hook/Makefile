@@ -3,10 +3,10 @@ all: build
 build: json-hook
 
 json-hook: json-hook.cc
-	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook json-hook-main.cc json-hook.cc esm-counts.cc -ljson-c -lapt-pkg $(LDLIBS)
+	$(CXX) -Wall -Wextra -Wshadow -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook json-hook-main.cc json-hook.cc esm-counts.cc -ljson-c -lapt-pkg $(LDLIBS)
 
 test:
-	$(CXX) -Wall -Wextra -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook-test json-hook.cc json-hook.test.cc esm-counts.cc -ljson-c -lapt-pkg -lboost_unit_test_framework $(LDLIBS)
+	$(CXX) -Wall -Wextra -Wshadow -pedantic -std=c++11 $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o json-hook-test json-hook.cc json-hook.test.cc esm-counts.cc -ljson-c -lapt-pkg -lboost_unit_test_framework $(LDLIBS)
 	./json-hook-test
 
 install-conf:

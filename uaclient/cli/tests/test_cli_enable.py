@@ -1,24 +1,29 @@
-import contextlib
-import io
-import json
-import textwrap
+from argparse import Namespace
 
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, lock, messages
+from uaclient import exceptions, messages
 from uaclient.api.u.pro.services.dependencies.v1 import (
+    DependenciesResult,
     ServiceWithDependencies,
     ServiceWithReason,
 )
-from uaclient.api.u.pro.status.enabled_services.v1 import EnabledService
-from uaclient.cli import main, main_error_handler
-from uaclient.cli.enable import action_enable, prompt_for_dependency_handling
-from uaclient.entitlements.entitlement_status import (
-    CanEnableFailure,
-    CanEnableFailureReason,
+from uaclient.api.u.pro.services.enable.v1 import EnableOptions, EnableResult
+from uaclient.api.u.pro.status.enabled_services.v1 import (
+    EnabledService,
+    EnabledServicesResult,
 )
-from uaclient.files.user_config_file import UserConfigData
+from uaclient.api.u.pro.status.is_attached.v1 import IsAttachedResult
+from uaclient.cli import main
+from uaclient.cli.enable import (
+    _enable_landscape,
+    _enable_one_service,
+    _EnableOneServiceResult,
+    _print_json_output,
+    action_enable,
+    prompt_for_dependency_handling,
+)
 from uaclient.testing.helpers import does_not_raise
 
 HELP_OUTPUT = """\
@@ -45,13 +50,6 @@ Flags:
 """
 
 
-@mock.patch(
-    "uaclient.files.user_config_file.UserConfigFileObject.public_config",
-    new_callable=mock.PropertyMock,
-    return_value=UserConfigData(),
-)
-@mock.patch("uaclient.contract.UAContractClient.update_activity_token")
-@mock.patch("uaclient.contract.refresh")
 class TestActionEnable:
     @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.contract.get_available_resources")
@@ -59,9 +57,6 @@ class TestActionEnable:
         self,
         _m_resources,
         _m_setup_logging,
-        _refresh,
-        _m_update_activity_token,
-        _m_public_config,
         capsys,
         FakeConfig,
     ):
@@ -75,1073 +70,806 @@ class TestActionEnable:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
-    @mock.patch("uaclient.log.setup_cli_logging")
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_non_root_users_are_rejected(
-        self,
-        _m_resources,
-        _refresh,
-        we_are_currently_root,
-        m_setup_logging,
-        _m_update_activity_token,
-        _m_public_config,
-        capsys,
-        event,
-        FakeConfig,
-        tmpdir,
-    ):
-        """Check that a UID != 0 will receive a message and exit non-zero"""
-        args = mock.MagicMock()
-
-        cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(exceptions.NonRootUserError):
-            action_enable(args, cfg=cfg)
-
-        default_get_user_log_file = tmpdir.join("default.log").strpath
-        defaults_ret = {
-            "log_level": "debug",
-            "log_file": default_get_user_log_file,
-        }
-
-        with pytest.raises(SystemExit):
-            with mock.patch(
-                "sys.argv",
+    @pytest.mark.parametrize(
+        [
+            "is_attached",
+            "args",
+            "kwargs",
+            "refresh_side_effect",
+            "valid_entitlement_names",
+            "enabled_services",
+            "dependencies",
+            "entitlements_for_enabling",
+            "enable_one_service_side_effect",
+            "expected_enable_one_service_calls",
+            "expected_print_json_output_calls",
+            "expected_raises",
+        ],
+        (
+            # assume-yes required for json output
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=False,
+                ),
+                {},
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                pytest.raises(exceptions.CLIJSONFormatRequireAssumeYes),
+            ),
+            # variant + access-only not allowed
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    format="cli",
+                    variant="variant",
+                    access_only=True,
+                    assume_yes=False,
+                ),
+                {},
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                pytest.raises(exceptions.InvalidOptionCombination),
+            ),
+            # contract not valid
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=False,
+                ),
+                Namespace(
+                    format="cli",
+                    variant="",
+                    access_only=False,
+                    assume_yes=False,
+                ),
+                {},
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
                 [
-                    "/usr/bin/ua",
-                    "enable",
-                    "foobar",
-                    "--assume-yes",
-                    "--format",
-                    "json",
+                    mock.call(
+                        False,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        [],
+                        [],
+                        [
+                            {
+                                "type": "system",
+                                "message": messages.E_CONTRACT_EXPIRED.msg,
+                                "message_code": messages.E_CONTRACT_EXPIRED.name,  # noqa: E501
+                            }
+                        ],
+                        [],
+                        success=False,
+                    )
                 ],
-            ):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    with mock.patch(
-                        "uaclient.log.get_user_log_file",
-                        return_value=tmpdir.join("user.log").strpath,
-                    ):
-                        with mock.patch.dict(
-                            "uaclient.cli.defaults.CONFIG_DEFAULTS",
-                            defaults_ret,
-                        ):
-                            main()
-
-        expected_message = messages.E_NONROOT_USER
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": expected_message.msg,
-                    "message_code": expected_message.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(capsys.readouterr()[0])
-
-    @mock.patch("uaclient.lock.check_lock_info")
-    @mock.patch("time.sleep")
-    @mock.patch("uaclient.system.subp")
-    def test_lock_file_exists(
-        self,
-        m_subp,
-        m_sleep,
-        m_check_lock_info,
-        _refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        capsys,
-        event,
-        FakeConfig,
-    ):
-        """Check inability to enable if operation holds lock file."""
-        cfg = FakeConfig.for_attached_machine()
-        m_check_lock_info.return_value = (123, "pro disable")
-        args = mock.MagicMock()
-
-        with pytest.raises(exceptions.LockHeldError) as err:
-            action_enable(args, cfg=cfg)
-        assert 12 == m_check_lock_info.call_count
-
-        expected_msg = messages.E_LOCK_HELD_ERROR.format(
-            lock_request="pro enable", lock_holder="pro disable", pid="123"
-        )
-        assert expected_msg.msg == err.value.msg
-
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                main_error_handler(action_enable)(args, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "additional_info": {
-                        "lock_holder": "pro disable",
-                        "lock_request": "pro enable",
-                        "pid": 123,
-                    },
-                    "message": expected_msg.msg,
-                    "message_code": expected_msg.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(capsys.readouterr()[0])
-
-    @pytest.mark.parametrize(
-        "root,expected_error_template",
-        [
-            (True, messages.E_VALID_SERVICE_FAILURE_UNATTACHED),
-            (False, messages.E_NONROOT_USER),
-        ],
-    )
-    @mock.patch("uaclient.util.we_are_currently_root")
-    def test_unattached_error_message(
-        self,
-        m_we_are_currently_root,
-        _refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        root,
-        expected_error_template,
-        capsys,
-        event,
-        FakeConfig,
-    ):
-        """Check that root user gets unattached message."""
-
-        m_we_are_currently_root.return_value = root
-
-        cfg = FakeConfig()
-        args = mock.MagicMock()
-        args.command = "enable"
-        args.service = ["esm-infra"]
-
-        if root:
-            expected_error = expected_error_template.format(
-                valid_service="esm-infra", operation="enable"
-            )
-            expected_info = {
-                "valid_service": "esm-infra",
-                "operation": "enable",
-            }
-        else:
-            expected_error = expected_error_template
-            expected_info = None
-
-        with pytest.raises(exceptions.UbuntuProError) as err:
-            action_enable(args, cfg)
-        assert expected_error.msg == err.value.msg
-
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                main_error_handler(action_enable)(args, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": expected_error.msg,
-                    "message_code": expected_error.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        if expected_info is not None:
-            expected["errors"][0]["additional_info"] = expected_info
-        assert expected == json.loads(capsys.readouterr()[0])
-
-    @pytest.mark.parametrize("is_attached", (True, False))
-    @pytest.mark.parametrize(
-        "root,expected_error_template",
-        [
-            (True, messages.E_INVALID_SERVICE_OP_FAILURE),
-            (False, messages.E_NONROOT_USER),
-        ],
-    )
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.util.we_are_currently_root")
-    def test_invalid_service_error_message(
-        self,
-        m_we_are_currently_root,
-        _m_check_lock_info,
-        _refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        root,
-        expected_error_template,
-        is_attached,
-        event,
-        FakeConfig,
-    ):
-        """Check invalid service name results in custom error message."""
-
-        m_we_are_currently_root.return_value = root
-        if is_attached:
-            cfg = FakeConfig.for_attached_machine()
-            service_msg = "\n".join(
-                textwrap.wrap(
-                    (
-                        "Try "
-                        + ", ".join(
-                            entitlements.valid_services(
-                                cfg=cfg, allow_beta=True
-                            )
-                        )
-                        + "."
+                does_not_raise(),
+            ),
+            # contract not valid, json output
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=False,
+                ),
+                Namespace(
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        [],
+                        [],
+                        [
+                            {
+                                "type": "system",
+                                "message": messages.E_CONTRACT_EXPIRED.msg,
+                                "message_code": messages.E_CONTRACT_EXPIRED.name,  # noqa: E501
+                            }
+                        ],
+                        [],
+                        success=False,
+                    )
+                ],
+                does_not_raise(),
+            ),
+            # contract not valid, json output, contract refresh warning
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=False,
+                ),
+                Namespace(
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                exceptions.ConnectivityError(cause=Exception(), url=""),
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        [],
+                        [],
+                        [
+                            {
+                                "type": "system",
+                                "message": messages.E_CONTRACT_EXPIRED.msg,
+                                "message_code": messages.E_CONTRACT_EXPIRED.name,  # noqa: E501
+                            }
+                        ],
+                        [
+                            {
+                                "type": "system",
+                                "message": messages.E_REFRESH_CONTRACT_FAILURE.msg,  # noqa: E501
+                                "message_code": messages.E_REFRESH_CONTRACT_FAILURE.name,  # noqa: E501
+                            }
+                        ],
+                        success=False,
+                    )
+                ],
+                does_not_raise(),
+            ),
+            # success multiple services, one needs reboot
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    service=["one", "two", "three"],
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                None,
+                (["one", "two", "three"], []),
+                EnabledServicesResult(enabled_services=[]),
+                DependenciesResult(services=mock.sentinel.dependencies),
+                ["three", "two", "one"],
+                [
+                    _EnableOneServiceResult(
+                        success=True, needs_reboot=False, error=None
                     ),
-                    width=80,
-                    break_long_words=False,
-                    break_on_hyphens=False,
-                )
-            )
-        else:
-            cfg = FakeConfig()
-            service_msg = ""
-
-        args = mock.MagicMock()
-        args.service = ["bogus"]
-        args.command = "enable"
-        args.access_only = False
-
-        fake_stdout = io.StringIO()
-        if root and is_attached:
-            expected_err = does_not_raise()
-        else:
-            expected_err = pytest.raises(exceptions.UbuntuProError)
-        with expected_err as err:
-            with mock.patch.object(lock, "lock_data_file"):
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args, cfg=cfg)
-
-        if root:
-            expected_error = expected_error_template.format(
-                operation="enable",
-                invalid_service="bogus",
-                service_msg=service_msg,
-            )
-            expected_info = {
-                "invalid_service": "bogus",
-                "operation": "enable",
-                "service_msg": service_msg,
-            }
-        else:
-            expected_error = expected_error_template
-            expected_info = None
-
-        if root and is_attached:
-            assert expected_error.msg in fake_stdout.getvalue()
-        else:
-            assert expected_error.msg == err.value.msg
-
-        args.assume_yes = True
-        args.format = "json"
-        if root and is_attached:
-            expected_err = does_not_raise()
-        else:
-            expected_err = pytest.raises(SystemExit)
-        with expected_err:
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                with mock.patch.object(lock, "lock_data_file"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": expected_error.msg,
-                    "message_code": expected_error.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": ["bogus"] if root and is_attached else [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        if expected_info is not None:
-            expected["errors"][0]["additional_info"] = expected_info
-        assert expected == json.loads(fake_stdout.getvalue())
-
-    @pytest.mark.parametrize(
-        "root,expected_error_template",
-        [
-            (True, messages.E_MIXED_SERVICES_FAILURE_UNATTACHED),
-            (False, messages.E_NONROOT_USER),
-        ],
+                    _EnableOneServiceResult(
+                        success=True, needs_reboot=True, error=None
+                    ),
+                    _EnableOneServiceResult(
+                        success=True, needs_reboot=False, error=None
+                    ),
+                ],
+                [
+                    mock.call(
+                        mock.ANY,
+                        "three",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                    mock.call(
+                        mock.ANY,
+                        "two",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                    mock.call(
+                        mock.ANY,
+                        "one",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                ],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": True},
+                        ["three", "two", "one"],
+                        [],
+                        [],
+                        [],
+                        success=True,
+                    )
+                ],
+                does_not_raise(),
+            ),
+            # some services not found
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    service=["one", "two", "three"],
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                None,
+                (["two"], ["one", "three"]),
+                EnabledServicesResult(enabled_services=[]),
+                DependenciesResult(services=mock.sentinel.dependencies),
+                ["two"],
+                [
+                    _EnableOneServiceResult(
+                        success=True, needs_reboot=False, error=None
+                    ),
+                ],
+                [
+                    mock.call(
+                        mock.ANY,
+                        "two",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                ],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        ["two"],
+                        ["one", "three"],
+                        [
+                            {
+                                "type": "system",
+                                "service": None,
+                                "message": mock.ANY,
+                                "message_code": "invalid-service-or-failure",
+                                "additional_info": {
+                                    "operation": "enable",
+                                    "invalid_service": "one, three",
+                                    "service_msg": mock.ANY,
+                                },
+                            }
+                        ],
+                        [],
+                        success=False,
+                    )
+                ],
+                does_not_raise(),
+            ),
+            # one success, one fail, one not found
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    service=["one", "two", "three"],
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                None,
+                (["one", "two"], ["three"]),
+                EnabledServicesResult(enabled_services=[]),
+                DependenciesResult(services=mock.sentinel.dependencies),
+                ["two", "one"],
+                [
+                    _EnableOneServiceResult(
+                        success=False,
+                        needs_reboot=False,
+                        error={"test": "error"},
+                    ),
+                    _EnableOneServiceResult(
+                        success=True, needs_reboot=False, error=None
+                    ),
+                ],
+                [
+                    mock.call(
+                        mock.ANY,
+                        "two",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                    mock.call(
+                        mock.ANY,
+                        "one",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                ],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        ["one"],
+                        ["two", "three"],
+                        [
+                            {"test": "error"},
+                            {
+                                "type": "system",
+                                "service": None,
+                                "message": mock.ANY,
+                                "message_code": "invalid-service-or-failure",
+                                "additional_info": {
+                                    "operation": "enable",
+                                    "invalid_service": "three",
+                                    "service_msg": mock.ANY,
+                                },
+                            },
+                        ],
+                        [],
+                        success=False,
+                    )
+                ],
+                does_not_raise(),
+            ),
+        ),
     )
-    @mock.patch("uaclient.util.we_are_currently_root")
-    def test_unattached_invalid_and_valid_service_error_message(
+    @mock.patch("uaclient.contract.UAContractClient.update_activity_token")
+    @mock.patch("uaclient.cli.enable._enable_one_service")
+    @mock.patch("uaclient.entitlements.order_entitlements_for_enabling")
+    @mock.patch("uaclient.cli.enable._dependencies")
+    @mock.patch("uaclient.cli.enable._enabled_services")
+    @mock.patch("uaclient.entitlements.get_valid_entitlement_names")
+    @mock.patch("uaclient.cli.enable._print_json_output")
+    @mock.patch("uaclient.contract.refresh")
+    @mock.patch("uaclient.cli.cli_util.create_interactive_only_print_function")
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=True)
+    @mock.patch("uaclient.cli.enable._is_attached")
+    def test_action_enable(
         self,
+        m_is_attached,
         m_we_are_currently_root,
-        _refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        root,
-        expected_error_template,
-        event,
-        FakeConfig,
-    ):
-        """Check invalid service name results in custom error message."""
-
-        m_we_are_currently_root.return_value = root
-        cfg = FakeConfig()
-
-        args = mock.MagicMock()
-        args.service = ["bogus", "fips"]
-        args.command = "enable"
-        with pytest.raises(exceptions.UbuntuProError) as err:
-            action_enable(args, cfg)
-
-        if root:
-            expected_error = expected_error_template.format(
-                operation="enable",
-                valid_service="fips",
-                invalid_service="bogus",
-                service_msg="",
-            )
-            expected_info = {
-                "invalid_service": "bogus",
-                "operation": "enable",
-                "service_msg": "",
-                "valid_service": "fips",
-            }
-        else:
-            expected_error = expected_error_template
-            expected_info = None
-
-        assert expected_error.msg == err.value.msg
-
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": expected_error.msg,
-                    "message_code": expected_error.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        if expected_info is not None:
-            expected["errors"][0]["additional_info"] = expected_info
-        assert expected == json.loads(fake_stdout.getvalue())
-
-    @pytest.mark.parametrize("assume_yes", (True, False))
-    @mock.patch("uaclient.files.state_files.status_cache_file.write")
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.entitlements.valid_services")
-    def test_assume_yes_passed_to_service_init(
-        self,
-        m_valid_services,
-        _m_get_available_resources,
-        _m_check_lock_info,
-        _m_status_cache_file,
+        m_create_interactive_only_print_function,
         m_refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        assume_yes,
+        m_print_json_output,
+        m_get_valid_entitlement_names,
+        m_enabled_services,
+        m_dependencies,
+        m_order_entitlements_for_enabling,
+        m_enable_one_service,
+        m_update_activity_token,
+        is_attached,
+        args,
+        kwargs,
+        refresh_side_effect,
+        valid_entitlement_names,
+        enabled_services,
+        dependencies,
+        entitlements_for_enabling,
+        enable_one_service_side_effect,
+        expected_enable_one_service_calls,
+        expected_print_json_output_calls,
+        expected_raises,
         FakeConfig,
+        fake_machine_token_file,
     ):
-        """assume-yes parameter is passed to entitlement instantiation."""
-
-        m_entitlement_cls = mock.MagicMock()
-        m_valid_services.return_value = ["testitlement"]
-        m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.enable.return_value = (True, None)
-
-        cfg = FakeConfig.for_attached_machine()
-        args = mock.MagicMock()
-        args.service = ["testitlement"]
-        args.assume_yes = assume_yes
-        args.beta = False
-        args.access_only = False
-        args.variant = ""
-
-        with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ):
-            with mock.patch.object(lock, "lock_data_file"):
-                action_enable(args, cfg)
-
-        assert [
-            mock.call(
-                cfg,
-                assume_yes=assume_yes,
-                allow_beta=False,
-                called_name="testitlement",
-                access_only=False,
-                extra_args=None,
-            ),
-        ] == m_entitlement_cls.call_args_list
-
-    @mock.patch("uaclient.files.state_files.status_cache_file.write")
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.entitlements.valid_services")
-    def test_entitlements_not_found_disabled_and_enabled(
-        self,
-        m_valid_services,
-        m_entitlement_factory,
-        _m_get_available_resources,
-        _m_check_lock_info,
-        _m_refresh,
-        _m_status_cache_file,
-        _m_update_activity_token,
-        _m_public_config,
-        event,
-        FakeConfig,
-    ):
-        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
-
-        m_ent1_cls = mock.MagicMock()
-        m_ent1_obj = m_ent1_cls.return_value
-        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent1")
-        m_ent1_obj.enable.return_value = (False, None)
-        m_ent1_obj._check_for_reboot.return_value = False
-
-        m_ent2_cls = mock.MagicMock()
-        m_ent2_cls.name = "ent2"
-        m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls).is_beta = m_ent2_is_beta
-        m_ent2_obj = m_ent2_cls.return_value
-        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
-        m_ent2_obj._check_for_reboot.return_value = False
-        m_ent2_obj.enable.return_value = (
-            False,
-            CanEnableFailure(CanEnableFailureReason.IS_BETA),
+        m_is_attached.return_value = is_attached
+        m_refresh.side_effect = refresh_side_effect
+        m_get_valid_entitlement_names.return_value = valid_entitlement_names
+        m_enabled_services.return_value = enabled_services
+        m_dependencies.return_value = dependencies
+        m_order_entitlements_for_enabling.return_value = (
+            entitlements_for_enabling
         )
+        m_enable_one_service.side_effect = enable_one_service_side_effect
+        fake_machine_token_file.attached = True
 
-        m_ent3_cls = mock.MagicMock()
-        m_ent3_cls.name = "ent3"
-        m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls).is_beta = m_ent3_is_beta
-        m_ent3_obj = m_ent3_cls.return_value
-        type(m_ent3_obj).title = mock.PropertyMock(return_value="Ent3")
-        m_ent3_obj.enable.return_value = (True, None)
-        m_ent3_obj._check_for_reboot.return_value = False
+        with expected_raises:
+            action_enable(args, cfg=FakeConfig(), **kwargs)
 
-        def factory_side_effect(cfg, name, variant=""):
-            if name == "ent2":
-                return m_ent2_cls
-            if name == "ent3":
-                return m_ent3_cls
-            return None
-
-        m_entitlement_factory.side_effect = factory_side_effect
-        m_valid_services.return_value = ["ent2", "ent3"]
-
-        cfg = FakeConfig.for_attached_machine()
-        assume_yes = False
-        args_mock = mock.Mock()
-        args_mock.service = ["ent1", "ent2", "ent3"]
-        args_mock.access_only = False
-        args_mock.assume_yes = assume_yes
-        args_mock.beta = False
-        args_mock.variant = ""
-
-        expected_msg = (
-            "One moment, checking your subscription first\n"
-            "Could not enable Ent2.\n"
-            "Ent3 enabled\n"
-        )
-
-        with mock.patch.object(lock, "lock_data_file"):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg=cfg)
-
-        service_msg = (
-            "Try "
-            + ", ".join(entitlements.valid_services(allow_beta=False))
-            + "."
-        )
-        expected_error = expected_error_tmpl.format(
-            operation="enable",
-            invalid_service="ent1, ent2",
-            service_msg=service_msg,
+        assert (
+            expected_enable_one_service_calls
+            == m_enable_one_service.call_args_list
         )
         assert (
-            expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
+            expected_print_json_output_calls
+            == m_print_json_output.call_args_list
         )
-
-        for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
-            assert [
-                mock.call(
-                    cfg,
-                    assume_yes=assume_yes,
-                    allow_beta=False,
-                    called_name=m_ent_cls.name,
-                    access_only=False,
-                    extra_args=None,
-                ),
-            ] == m_ent_cls.call_args_list
-
-        expected_enable_call = mock.call(mock.ANY)
-        for m_ent in [m_ent2_obj, m_ent3_obj]:
-            assert [expected_enable_call] == m_ent.enable.call_args_list
-
-        assert 0 == m_ent1_obj.call_count
-
-        event.reset()
-        args_mock.assume_yes = True
-        args_mock.format = "json"
-        with mock.patch.object(lock, "lock_data_file"):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args_mock, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "additional_info": {
-                        "invalid_service": "ent1, ent2",
-                        "operation": "enable",
-                        "service_msg": service_msg,
-                    },
-                    "message": expected_error.msg,
-                    "message_code": expected_error.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": ["ent1", "ent2"],
-            "needs_reboot": False,
-            "processed_services": ["ent3"],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
-
-    @pytest.mark.parametrize("beta_flag", ((False), (True)))
-    @mock.patch("uaclient.files.state_files.status_cache_file.write")
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.entitlements.valid_services")
-    def test_entitlements_not_found_and_beta(
-        self,
-        m_valid_services,
-        m_entitlement_factory,
-        _m_get_available_resources,
-        _m_check_lock_info,
-        _m_status_cache_file,
-        _m_refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        beta_flag,
-        event,
-        FakeConfig,
-    ):
-        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
-
-        m_ent1_cls = mock.MagicMock()
-        m_ent1_obj = m_ent1_cls.return_value
-        type(m_ent1_obj).title = mock.PropertyMock(return_value="Ent1")
-        m_ent1_obj.enable.return_value = (False, None)
-        m_ent1_obj._check_for_reboot.return_value = False
-
-        m_ent2_cls = mock.MagicMock()
-        m_ent2_cls.name = "ent2"
-        m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls)._is_beta = m_ent2_is_beta
-        m_ent2_obj = m_ent2_cls.return_value
-        type(m_ent2_obj).title = mock.PropertyMock(return_value="Ent2")
-        m_ent2_obj._check_for_reboot.return_value = False
-        failure_reason = CanEnableFailure(CanEnableFailureReason.IS_BETA)
-        if beta_flag:
-            m_ent2_obj.enable.return_value = (True, None)
-        else:
-            m_ent2_obj.enable.return_value = (False, failure_reason)
-
-        m_ent3_cls = mock.MagicMock()
-        m_ent3_cls.name = "ent3"
-        m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls)._is_beta = m_ent3_is_beta
-        m_ent3_obj = m_ent3_cls.return_value
-        type(m_ent3_obj).title = mock.PropertyMock(return_value="Ent3")
-        m_ent3_obj.enable.return_value = (True, None)
-        m_ent3_obj._check_for_reboot.return_value = False
-
-        cfg = FakeConfig.for_attached_machine()
-        assume_yes = False
-        args_mock = mock.Mock()
-        args_mock.service = ["ent1", "ent2", "ent3"]
-        args_mock.access_only = False
-        args_mock.assume_yes = assume_yes
-        args_mock.beta = beta_flag
-        args_mock.variant = ""
-
-        def factory_side_effect(cfg, name, variant=""):
-            if name == "ent2":
-                return m_ent2_cls
-            if name == "ent3":
-                return m_ent3_cls
-            return None
-
-        m_entitlement_factory.side_effect = factory_side_effect
-
-        def valid_services_side_effect(cfg, allow_beta, all_names=False):
-            if allow_beta:
-                return ["ent2", "ent3"]
-            return ["ent2"]
-
-        m_valid_services.side_effect = valid_services_side_effect
-
-        if beta_flag:
-            expected_msg = (
-                "One moment, checking your subscription first\n"
-                "Ent2 enabled\n"
-                "Ent3 enabled\n"
-            )
-        else:
-            expected_msg = (
-                "One moment, checking your subscription first\n"
-                "Could not enable Ent2.\n"
-                "Ent3 enabled\n"
-            )
-        not_found_name = "ent1"
-        mock_ent_list = [m_ent3_cls]
-        mock_obj_list = [m_ent3_obj]
-
-        service_names = entitlements.valid_services(cfg, allow_beta=beta_flag)
-        ent_str = "Try " + ", ".join(service_names) + "."
-        if not beta_flag:
-            not_found_name += ", ent2"
-        else:
-            mock_ent_list.append(m_ent2_cls)
-            mock_obj_list.append(m_ent3_obj)
-        service_msg = "\n".join(
-            textwrap.wrap(
-                ent_str,
-                width=80,
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
-        )
-
-        with mock.patch.object(lock, "lock_data_file"):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg=cfg)
-
-        expected_error = expected_error_tmpl.format(
-            operation="enable",
-            invalid_service=not_found_name,
-            service_msg=service_msg,
-        )
-        assert (
-            expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
-        )
-
-        for m_ent_cls in mock_ent_list:
-            assert [
-                mock.call(
-                    cfg,
-                    assume_yes=assume_yes,
-                    allow_beta=beta_flag,
-                    called_name=m_ent_cls.name,
-                    access_only=False,
-                    extra_args=None,
-                ),
-            ] == m_ent_cls.call_args_list
-
-        expected_enable_call = mock.call(mock.ANY)
-        for m_ent in mock_obj_list:
-            assert [expected_enable_call] == m_ent.enable.call_args_list
-
-        assert 0 == m_ent1_obj.call_count
-
-        event.reset()
-        args_mock.assume_yes = True
-        args_mock.format = "json"
-        with mock.patch.object(lock, "lock_data_file"):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args_mock, cfg=cfg)
-
-        expected_failed_services = ["ent1", "ent2"]
-        if beta_flag:
-            expected_failed_services = ["ent1"]
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "additional_info": {
-                        "invalid_service": ", ".join(
-                            sorted(expected_failed_services)
-                        ),
-                        "operation": "enable",
-                        "service_msg": service_msg,
-                    },
-                    "message": expected_error.msg,
-                    "message_code": expected_error.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": expected_failed_services,
-            "needs_reboot": False,
-            "processed_services": ["ent2", "ent3"] if beta_flag else ["ent3"],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
-
-    @mock.patch("uaclient.files.state_files.status_cache_file.write")
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    def test_print_message_when_can_enable_fails(
-        self,
-        _m_get_available_resources,
-        _m_check_lock_info,
-        _m_status_cache_file,
-        _m_refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        event,
-        FakeConfig,
-    ):
-        m_entitlement_cls = mock.MagicMock()
-        type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
-        m_entitlement_obj = m_entitlement_cls.return_value
-        type(m_entitlement_obj).title = mock.PropertyMock(return_value="Title")
-        m_entitlement_obj.enable.return_value = (
-            False,
-            CanEnableFailure(
-                CanEnableFailureReason.ALREADY_ENABLED,
-                message=messages.NamedMessage("test-code", "msg"),
-            ),
-        )
-
-        cfg = FakeConfig.for_attached_machine()
-        args_mock = mock.Mock()
-        args_mock.service = ["ent1"]
-        args_mock.assume_yes = False
-        args_mock.beta = False
-        args_mock.access_only = False
-
-        with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ), mock.patch(
-            "uaclient.entitlements.valid_services", return_value=["ent1"]
-        ):
-            with mock.patch.object(lock, "lock_data_file"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg=cfg)
-
-            assert (
-                "One moment, checking your subscription first\nmsg\n"
-                "Could not enable Title.\n"
-            ) == fake_stdout.getvalue()
-
-        args_mock.assume_yes = True
-        args_mock.format = "json"
-
-        with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ), mock.patch(
-            "uaclient.entitlements.valid_services", return_value=["ent1"]
-        ):
-            with mock.patch.object(lock, "lock_data_file"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_enable(args_mock, cfg=cfg)
-
-        expected_ret = 1
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": "msg",
-                    "message_code": "test-code",
-                    "service": "ent1",
-                    "type": "service",
-                }
-            ],
-            "failed_services": ["ent1"],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
-        assert expected_ret == ret
 
     @pytest.mark.parametrize(
-        "service, beta",
-        ((["bogus"], False), (["bogus"], True), (["bogus1", "bogus2"], False)),
+        [
+            "kwargs",
+            "prompt_for_dependency_handling_side_effect",
+            "enable_landscape_result",
+            "enable_result",
+            "expected_prompt_for_dependency_handling_calls",
+            "expected_enable_landscape_calls",
+            "expected_enable_calls",
+            "expected_status_calls",
+            "expected_result",
+        ],
+        (
+            # already enabled
+            (
+                {
+                    "ent_name": "one",
+                    "variant": "",
+                    "access_only": False,
+                    "assume_yes": False,
+                    "json_output": False,
+                    "extra_args": None,
+                    "enabled_services": [EnabledService(name="one")],
+                    "all_dependencies": [],
+                },
+                None,
+                None,
+                None,
+                [],
+                [],
+                [],
+                [],
+                _EnableOneServiceResult(
+                    success=False,
+                    needs_reboot=False,
+                    error={
+                        "type": "service",
+                        "service": "one",
+                        "message": messages.ALREADY_ENABLED.format(
+                            title=mock.sentinel.ent_title
+                        ).msg,
+                        "message_code": "service-already-enabled",
+                    },
+                ),
+            ),
+            # prompt denied fails
+            (
+                {
+                    "ent_name": "one",
+                    "variant": "",
+                    "access_only": False,
+                    "assume_yes": False,
+                    "json_output": False,
+                    "extra_args": None,
+                    "enabled_services": [],
+                    "all_dependencies": [],
+                },
+                [exceptions.PromptDeniedError()],
+                None,
+                None,
+                [
+                    mock.call(
+                        mock.ANY,
+                        "one",
+                        [],
+                        [],
+                        called_name="one",
+                        variant="",
+                        service_title=mock.sentinel.ent_title,
+                    )
+                ],
+                [],
+                [],
+                [],
+                _EnableOneServiceResult(
+                    success=False, needs_reboot=False, error=None
+                ),
+            ),
+            # landscape
+            (
+                {
+                    "ent_name": "landscape",
+                    "variant": "",
+                    "access_only": mock.sentinel.access_only,
+                    "assume_yes": mock.sentinel.assume_yes,
+                    "json_output": False,
+                    "extra_args": mock.sentinel.extra_args,
+                    "enabled_services": [],
+                    "all_dependencies": [],
+                },
+                None,
+                EnableResult(
+                    enabled=["landscape"],
+                    disabled=[],
+                    reboot_required=mock.sentinel.reboot,
+                    messages=[],
+                ),
+                None,
+                [],
+                [
+                    mock.call(
+                        mock.ANY,
+                        mock.sentinel.access_only,
+                        extra_args=mock.sentinel.extra_args,
+                        progress_object=mock.sentinel.cli_progress,
+                    )
+                ],
+                [],
+                [mock.call(cfg=mock.ANY)],
+                _EnableOneServiceResult(
+                    success=True, needs_reboot=mock.sentinel.reboot, error=None
+                ),
+            ),
+            # non-landscape
+            (
+                {
+                    "ent_name": "one",
+                    "variant": mock.sentinel.variant,
+                    "access_only": mock.sentinel.access_only,
+                    "assume_yes": mock.sentinel.assume_yes,
+                    "json_output": False,
+                    "extra_args": mock.sentinel.extra_args,
+                    "enabled_services": [],
+                    "all_dependencies": [],
+                },
+                None,
+                None,
+                EnableResult(
+                    enabled=["one"],
+                    disabled=[],
+                    reboot_required=mock.sentinel.reboot,
+                    messages=[],
+                ),
+                [],
+                [],
+                [
+                    mock.call(
+                        EnableOptions(
+                            service="one",
+                            variant=mock.sentinel.variant,
+                            access_only=mock.sentinel.access_only,
+                        ),
+                        mock.ANY,
+                        progress_object=mock.sentinel.cli_progress,
+                    )
+                ],
+                [mock.call(cfg=mock.ANY)],
+                _EnableOneServiceResult(
+                    success=True, needs_reboot=mock.sentinel.reboot, error=None
+                ),
+            ),
+            # json output
+            (
+                {
+                    "ent_name": "one",
+                    "variant": mock.sentinel.variant,
+                    "access_only": mock.sentinel.access_only,
+                    "assume_yes": mock.sentinel.assume_yes,
+                    "json_output": True,
+                    "extra_args": mock.sentinel.extra_args,
+                    "enabled_services": [],
+                    "all_dependencies": [],
+                },
+                None,
+                None,
+                EnableResult(
+                    enabled=["one"],
+                    disabled=[],
+                    reboot_required=mock.sentinel.reboot,
+                    messages=[],
+                ),
+                [],
+                [],
+                [
+                    mock.call(
+                        EnableOptions(
+                            service="one",
+                            variant=mock.sentinel.variant,
+                            access_only=mock.sentinel.access_only,
+                        ),
+                        mock.ANY,
+                        progress_object=None,
+                    )
+                ],
+                [mock.call(cfg=mock.ANY)],
+                _EnableOneServiceResult(
+                    success=True, needs_reboot=mock.sentinel.reboot, error=None
+                ),
+            ),
+        ),
     )
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    def test_invalid_service_names(
+    @mock.patch("uaclient.cli.status.status")
+    @mock.patch("uaclient.cli.enable._enable")
+    @mock.patch("uaclient.cli.enable._enable_landscape")
+    @mock.patch("uaclient.cli.enable.cli_util.CLIEnableDisableProgress")
+    @mock.patch("uaclient.cli.enable.prompt_for_dependency_handling")
+    @mock.patch("uaclient.cli.enable.entitlements.entitlement_factory")
+    @mock.patch("uaclient.cli.cli_util.create_interactive_only_print_function")
+    def test_enable_one_service(
         self,
-        _m_check_lock_info,
-        _m_refresh,
-        _m_update_activity_token,
-        _m_public_config,
-        service,
-        beta,
-        event,
+        m_create_interactive_only_print_function,
+        m_entitlement_factory,
+        m_prompt_for_dependency_handling,
+        m_progress_class,
+        m_enable_landscape,
+        m_enable,
+        m_status,
+        kwargs,
+        prompt_for_dependency_handling_side_effect,
+        enable_landscape_result,
+        enable_result,
+        expected_prompt_for_dependency_handling_calls,
+        expected_enable_landscape_calls,
+        expected_enable_calls,
+        expected_status_calls,
+        expected_result,
         FakeConfig,
     ):
-        expected_error_tmpl = messages.E_INVALID_SERVICE_OP_FAILURE
-        expected_msg = "One moment, checking your subscription first\n"
-
-        cfg = FakeConfig.for_attached_machine()
-        args_mock = mock.MagicMock()
-        args_mock.service = service
-        args_mock.beta = beta
-        args_mock.access_only = False
-
-        with mock.patch.object(lock, "lock_data_file"):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg=cfg)
-
-        service_names = entitlements.valid_services(cfg=cfg, allow_beta=beta)
-        ent_str = "Try " + ", ".join(service_names) + "."
-        service_msg = "\n".join(
-            textwrap.wrap(
-                ent_str,
-                width=80,
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
+        mock_ent = mock.MagicMock()
+        m_entitlement_factory.return_value = mock_ent
+        mock_ent.name = kwargs.get("ent_name")
+        mock_ent.title = mock.sentinel.ent_title
+        m_prompt_for_dependency_handling.side_effect = (
+            prompt_for_dependency_handling_side_effect
         )
-        expected_error = expected_error_tmpl.format(
-            operation="enable",
-            invalid_service=", ".join(sorted(service)),
-            service_msg=service_msg,
+        m_progress_class.return_value = mock.sentinel.cli_progress
+        m_enable_landscape.return_value = enable_landscape_result
+        m_enable.return_value = enable_result
+
+        assert expected_result == _enable_one_service(FakeConfig(), **kwargs)
+
+        assert (
+            expected_prompt_for_dependency_handling_calls
+            == m_prompt_for_dependency_handling.call_args_list
         )
         assert (
-            expected_msg + expected_error.msg + "\n" == fake_stdout.getvalue()
+            expected_enable_landscape_calls
+            == m_enable_landscape.call_args_list
         )
+        assert expected_enable_calls == m_enable.call_args_list
+        assert expected_status_calls == m_status.call_args_list
 
-        args_mock.assume_yes = True
-        args_mock.format = "json"
-
-        with mock.patch.object(lock, "lock_data_file"):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args_mock, cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "additional_info": {
-                        "invalid_service": ", ".join(sorted(service)),
-                        "operation": "enable",
-                        "service_msg": service_msg,
-                    },
-                    "message": expected_error.msg,
-                    "message_code": expected_error.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": service,
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
-
-    @pytest.mark.parametrize("allow_beta", ((True), (False)))
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.status.get_available_resources", return_value={})
-    @mock.patch("uaclient.status.status")
-    def test_entitlement_instantiated_and_enabled(
+    @pytest.mark.parametrize(
+        [
+            "enable_side_effect",
+            "expected_raises",
+            "expected_result",
+        ],
+        (
+            (
+                exceptions.LandscapeConfigFailed(),
+                pytest.raises(exceptions.LandscapeConfigFailed),
+                None,
+            ),
+            (
+                [(False, None)],
+                pytest.raises(exceptions.EntitlementNotEnabledError),
+                None,
+            ),
+            (
+                [(True, None)],
+                does_not_raise(),
+                EnableResult(
+                    enabled=["landscape"],
+                    disabled=[],
+                    reboot_required=False,
+                    messages=[],
+                ),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.cli.enable.lock.RetryLock")
+    @mock.patch("uaclient.cli.enable.entitlements.LandscapeEntitlement")
+    def test_enable_landscape(
         self,
-        m_status,
-        _m_get_available_resources,
-        _m_check_lock_info,
-        _m_refresh,
-        m_update_activity_token,
-        _m_public_config,
-        allow_beta,
-        event,
+        m_landscape_entitlement,
+        m_lock,
+        enable_side_effect,
+        expected_raises,
+        expected_result,
         FakeConfig,
     ):
-        m_entitlement_cls = mock.MagicMock()
-        m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.enable.return_value = (True, None)
-        m_entitlement_obj._check_for_reboot.return_value = False
-
-        cfg = FakeConfig.for_attached_machine()
-
-        args_mock = mock.MagicMock()
-        args_mock.access_only = False
-        args_mock.assume_yes = True
-        args_mock.beta = allow_beta
-        args_mock.service = ["testitlement"]
-        args_mock.variant = ""
-        args_mock.format = "json"
-
-        with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ), mock.patch(
-            "uaclient.entitlements.valid_services",
-            return_value=["testitlement"],
-        ):
-            with mock.patch.object(lock, "lock_data_file"):
-                ret = action_enable(args_mock, cfg=cfg)
-
+        m_enable = m_landscape_entitlement.return_value.enable
+        m_enable.side_effect = enable_side_effect
+        with expected_raises:
+            assert expected_result == _enable_landscape(
+                FakeConfig,
+                mock.sentinel.access_only,
+                mock.sentinel.extra_args,
+                None,
+            )
         assert [
             mock.call(
-                cfg,
-                assume_yes=True,
-                allow_beta=allow_beta,
-                called_name="testitlement",
-                access_only=False,
-                extra_args=None,
-            ),
-        ] == m_entitlement_cls.call_args_list
+                mock.ANY,
+                called_name="landscape",
+                access_only=mock.sentinel.access_only,
+                extra_args=mock.sentinel.extra_args,
+            )
+        ] == m_landscape_entitlement.call_args_list
 
-        m_entitlement = m_entitlement_cls.return_value
-        expected_enable_call = mock.call(mock.ANY)
-        expected_ret = 0
-        assert [expected_enable_call] == m_entitlement.enable.call_args_list
-        assert expected_ret == ret
-        assert 1 == m_status.call_count
-        assert 1 == m_update_activity_token.call_count
-
-        with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
-            return_value=m_entitlement_cls,
-        ), mock.patch(
-            "uaclient.entitlements.valid_services",
-            return_value=["testitlement"],
-        ):
-            with mock.patch.object(lock, "lock_data_file"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_enable(args_mock, cfg=cfg)
-
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "success",
-            "errors": [],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": ["testitlement"],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
-        assert expected_ret == ret
-
-    def test_format_json_fails_when_assume_yes_flag_not_used(
-        self,
-        _m_get_available_resources,
-        _m_update_activity_token,
-        _m_public_config,
-        event,
+    @pytest.mark.parametrize(
+        [
+            "json_output",
+            "expected_print_calls",
+        ],
+        (
+            (True, [mock.call(mock.ANY)]),
+            (False, []),
+        ),
+    )
+    @mock.patch("builtins.print")
+    def test_print_json_output(
+        self, m_print, json_output, expected_print_calls
     ):
-        cfg = mock.MagicMock()
-        args_mock = mock.MagicMock()
-        args_mock.format = "json"
-        args_mock.assume_yes = False
-
-        with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_enable)(args_mock, cfg)
-
-        expected_message = messages.E_JSON_FORMAT_REQUIRE_ASSUME_YES
-        expected = {
-            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
-            "result": "failure",
-            "errors": [
-                {
-                    "message": expected_message.msg,
-                    "message_code": expected_message.name,
-                    "service": None,
-                    "type": "system",
-                }
-            ],
-            "failed_services": [],
-            "needs_reboot": False,
-            "processed_services": [],
-            "warnings": [],
-        }
-        assert expected == json.loads(fake_stdout.getvalue())
-
-    @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    def test_access_only_cannot_be_used_together_with_variant(
-        self,
-        _m_check_lock_info,
-        _m_get_available_resources,
-        _m_update_activity_token,
-        _m_public_config,
-        FakeConfig,
-    ):
-        cfg = FakeConfig.for_attached_machine()
-        args_mock = mock.MagicMock()
-        args_mock.access_only = True
-        args_mock.variant = "variant"
-
-        with pytest.raises(exceptions.InvalidOptionCombination):
-            with mock.patch.object(lock, "lock_data_file"):
-                action_enable(args_mock, cfg)
+        _print_json_output(json_output, {}, [], [], [], [], True)
+        assert expected_print_calls == m_print.call_args_list
 
 
 class TestPromptForDependencyHandling:

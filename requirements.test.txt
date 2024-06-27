@@ -1,7 +1,3 @@
-# Linting
-flake8
-pycodestyle
-
 # Unit testing
 mock
 pytest

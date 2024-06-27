@@ -473,12 +473,13 @@ def _print_apt_update_call():
 
 
 def security_status(cfg: UAConfig):
-    esm_infra_status = ESMInfraEntitlement(cfg).application_status()[0]
-    esm_infra_applicability = ESMInfraEntitlement(cfg).applicability_status()[
-        0
-    ]
-    esm_apps_status = ESMAppsEntitlement(cfg).application_status()[0]
-    esm_apps_applicability = ESMAppsEntitlement(cfg).applicability_status()[0]
+    esm_infra_ent = ESMInfraEntitlement(cfg)
+    esm_apps_ent = ESMAppsEntitlement(cfg)
+
+    esm_infra_status = esm_infra_ent.application_status()[0]
+    esm_infra_applicability = esm_infra_ent.applicability_status()[0]
+    esm_apps_status = esm_apps_ent.application_status()[0]
+    esm_apps_applicability = esm_apps_ent.applicability_status()[0]
 
     series = get_release_info().series
     is_lts = is_current_series_lts()
@@ -606,10 +607,11 @@ def list_esm_infra_packages(cfg):
     series = get_release_info().series
     is_lts = is_current_series_lts()
 
-    esm_infra_status = ESMInfraEntitlement(cfg).application_status()[0]
-    esm_infra_applicability = ESMInfraEntitlement(cfg).applicability_status()[
-        0
-    ]
+    esm_infra_ent = ESMInfraEntitlement(cfg)
+    esm_apps_ent = ESMAppsEntitlement(cfg)
+
+    esm_infra_status = esm_infra_ent.application_status()[0]
+    esm_infra_applicability = esm_apps_ent.applicability_status()[0]
 
     installed_package_names = sorted(
         [package.name for package in infra_packages]
@@ -695,8 +697,9 @@ def list_esm_apps_packages(cfg):
 
     is_lts = is_current_series_lts()
 
-    esm_apps_status = ESMAppsEntitlement(cfg).application_status()[0]
-    esm_apps_applicability = ESMAppsEntitlement(cfg).applicability_status()[0]
+    esm_apps_ent = ESMAppsEntitlement(cfg)
+    esm_apps_status = esm_apps_ent.application_status()[0]
+    esm_apps_applicability = esm_apps_ent.applicability_status()[0]
 
     installed_package_names = sorted(
         [package.name for package in apps_packages]

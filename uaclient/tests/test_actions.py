@@ -29,7 +29,6 @@ class TestAttachWithToken:
             "allow_enable",
             "add_contract_machine_side_effect",
             "machine_id",
-            "entitlements",
             "enable_entitlement_by_name_side_effect",
             "expected_add_contract_machine_call_args",
             "expected_machine_token_file_write_call_args",
@@ -50,7 +49,6 @@ class TestAttachWithToken:
                 exceptions.ConnectivityError(cause=Exception(), url="url"),
                 None,
                 None,
-                None,
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [],
                 [],
@@ -68,7 +66,6 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 exceptions.ConnectivityError(cause=Exception(), url="url"),
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -87,7 +84,6 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 fakes.FakeUbuntuProError(),
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -106,7 +102,6 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 [(True, None)],
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -125,7 +120,6 @@ class TestAttachWithToken:
                 True,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 [(True, None)],
                 [mock.call(contract_token="token", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -144,7 +138,6 @@ class TestAttachWithToken:
                 False,
                 [{"machineTokenInfo": {"machineId": "machine-id"}}],
                 "get-machine-id-result",
-                mock.sentinel.entitlements,
                 [(True, None)],
                 [mock.call(contract_token="token2", attachment_dt=mock.ANY)],
                 [mock.call({"machineTokenInfo": {"machineId": "machine-id"}})],
@@ -174,19 +167,12 @@ class TestAttachWithToken:
     @mock.patch("uaclient.files.state_files.attachment_data_file.write")
     @mock.patch("uaclient.actions.enable_entitlement_by_name")
     @mock.patch("uaclient.contract.get_enabled_by_default_services")
-    @mock.patch(
-        "uaclient.files.MachineTokenFile.entitlements",
-        new_callable=mock.PropertyMock,
-    )
     @mock.patch(M_PATH + "system.get_machine_id")
-    @mock.patch("uaclient.files.MachineTokenFile.write")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
     def test_attach_with_token(
         self,
         m_add_contract_machine,
-        m_machine_token_file_write,
         m_get_machine_id,
-        m_entitlements,
         m_get_enabled_by_default_services,
         m_enable_ent_by_name,
         m_attachment_data_file_write,
@@ -200,7 +186,6 @@ class TestAttachWithToken:
         allow_enable,
         add_contract_machine_side_effect,
         machine_id,
-        entitlements,
         enable_entitlement_by_name_side_effect,
         expected_add_contract_machine_call_args,
         expected_machine_token_file_write_call_args,
@@ -214,11 +199,11 @@ class TestAttachWithToken:
         expected_timer_start_call_args,
         expected_raises,
         FakeConfig,
+        fake_machine_token_file,
     ):
         cfg = FakeConfig()
         m_add_contract_machine.side_effect = add_contract_machine_side_effect
         m_get_machine_id.return_value = machine_id
-        m_entitlements.return_value = entitlements
         m_enable_ent_by_name.side_effect = (
             enable_entitlement_by_name_side_effect
         )
@@ -235,8 +220,8 @@ class TestAttachWithToken:
             == m_add_contract_machine.call_args_list
         )
         assert (
-            expected_machine_token_file_write_call_args
-            == m_machine_token_file_write.call_args_list
+            expected_machine_id_file_call_count
+            == fake_machine_token_file.write_calls
         )
         assert (
             expected_get_machine_id_call_args
@@ -244,7 +229,7 @@ class TestAttachWithToken:
         )
         assert (
             expected_machine_id_file_call_count
-            == m_machine_token_file_write.call_count
+            == m_machine_id_file_write.call_count
         )
         assert (
             expected_attachment_data_file_write_call_args
@@ -333,8 +318,9 @@ class TestAutoAttach:
         assert unexpected_error == excinfo.value
 
 
-@mock.patch("uaclient.actions._write_command_output_to_file")
 class TestCollectLogs:
+    @mock.patch("uaclient.actions.shutil.copy")
+    @mock.patch("uaclient.actions._write_command_output_to_file")
     @mock.patch("uaclient.actions.status")
     @mock.patch("uaclient.actions.LOG.warning")
     @mock.patch("uaclient.util.get_pro_environment")

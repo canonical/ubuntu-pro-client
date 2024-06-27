@@ -85,13 +85,10 @@ class TestRetryAutoAttach:
         m_cleanup,
         is_attached,
         expected_state_read_calls,
-        FakeConfig,
+        fake_machine_token_file,
     ):
-        if is_attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
-        retry_auto_attach(cfg)
+        fake_machine_token_file.attached = is_attached
+        retry_auto_attach(None)
         assert expected_state_read_calls == m_state_read.call_args_list
 
     def test_early_return_when_attached_during_sleep(

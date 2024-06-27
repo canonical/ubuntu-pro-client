@@ -505,9 +505,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
     if choice == "e":
         print(colorize_commands([["pro", "enable", service]]))
-        ret, reason = enable_entitlement_by_name(
-            cfg=cfg, name=service, assume_yes=True
-        )
+        ret, reason = enable_entitlement_by_name(cfg=cfg, name=service)
 
         if (
             not ret
@@ -528,8 +526,7 @@ def _handle_subscription_for_required_service(
     """
     Verify if the Ubuntu Pro subscription has the required service enabled.
     """
-    ent_cls = entitlement_factory(cfg=cfg, name=service)
-    ent = ent_cls(cfg)
+    ent = entitlement_factory(cfg=cfg, name=service)
     if ent:
         ent_status, _ = ent.user_facing_status()
 

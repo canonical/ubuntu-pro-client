@@ -9,7 +9,6 @@ from uaclient.api.u.pro.packages.updates.v1 import (
     UpdateSummary,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import ContractExpiryStatus
-from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import notices
 from uaclient.timer.update_messaging import (
     update_contract_expiry,
@@ -58,16 +57,17 @@ class TestGetContractExpiryStatus:
         expiry,
         is_updated,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_get_contract_machine.return_value = {
             "machineTokenInfo": {"contractInfo": {"effectiveTo": expiry}}
         }
-        cfg = FakeConfig.for_attached_machine()
-        update_contract_expiry(cfg)
+        fake_machine_token_file.attached = True
+        update_contract_expiry(FakeConfig())
         if is_updated:
-            assert 1 == m_machine_token_write.call_count
+            assert 1 == fake_machine_token_file.write_calls
         else:
-            assert 0 == m_machine_token_write.call_count
+            assert 0 == fake_machine_token_file.write_calls
 
 
 class TestUpdateMotdMessages:
@@ -75,9 +75,9 @@ class TestUpdateMotdMessages:
         [
             "is_attached_side_effect",
             "is_current_series_active_esm",
-            "infra_status",
+            "infra_enabled",
             "is_current_series_lts",
-            "apps_status",
+            "apps_enabled",
             "updates",
             "expected",
             "update_contract_expiry_calls",
@@ -98,9 +98,9 @@ class TestUpdateMotdMessages:
                     )
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 False,
                 [],
@@ -120,9 +120,9 @@ class TestUpdateMotdMessages:
                     )
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [],
@@ -142,9 +142,9 @@ class TestUpdateMotdMessages:
                     )
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [],
@@ -170,9 +170,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -198,9 +198,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -226,9 +226,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -254,9 +254,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -290,9 +290,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -326,9 +326,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 True,
-                (ApplicationStatus.DISABLED, None),
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -354,9 +354,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
+                False,
                 True,
-                (ApplicationStatus.DISABLED, None),
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -382,9 +382,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
                 False,
-                None,
+                False,
+                False,
                 None,
                 True,
                 [mock.call(mock.ANY)],
@@ -410,9 +410,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 True,
-                (ApplicationStatus.ENABLED, None),
+                True,
                 False,
-                None,
+                False,
                 PackageUpdatesResult(UpdateSummary(0, 0, 4, 0, 0), []),
                 True,
                 [mock.call(mock.ANY)],
@@ -446,9 +446,9 @@ class TestUpdateMotdMessages:
                     ),
                 ],
                 False,
-                None,
+                False,
                 True,
-                (ApplicationStatus.ENABLED, None),
+                True,
                 PackageUpdatesResult(UpdateSummary(0, 5, 0, 0, 0), []),
                 True,
                 [mock.call(mock.ANY)],
@@ -467,15 +467,11 @@ class TestUpdateMotdMessages:
             ),
         ],
     )
+    @mock.patch(M_PATH + "_enabled_services")
     @mock.patch(M_PATH + "api_u_pro_packages_updates_v1")
-    @mock.patch(M_PATH + "ESMAppsEntitlement.application_status")
     @mock.patch(M_PATH + "system.is_current_series_lts")
-    @mock.patch(M_PATH + "ESMInfraEntitlement.application_status")
     @mock.patch(M_PATH + "system.is_current_series_active_esm")
     @mock.patch(M_PATH + "notices.add")
-    @mock.patch(
-        M_PATH + "UAConfig.machine_token_file", new_callable=mock.PropertyMock
-    )
     @mock.patch(M_PATH + "system.write_file")
     @mock.patch(M_PATH + "system.ensure_file_absent")
     @mock.patch(M_PATH + "notices.remove")
@@ -488,18 +484,16 @@ class TestUpdateMotdMessages:
         m_notices_remove,
         m_ensure_file_absent,
         m_write_file,
-        m_machine_token_file,
         m_notices_add,
         m_is_current_series_active_esm,
-        m_infra_status,
         m_is_current_series_lts,
-        m_apps_status,
         m_api_updates_v1,
+        m_enabled_services,
         is_attached_side_effect,
         is_current_series_active_esm,
-        infra_status,
+        infra_enabled,
         is_current_series_lts,
-        apps_status,
+        apps_enabled,
         updates,
         expected,
         update_contract_expiry_calls,
@@ -508,23 +502,33 @@ class TestUpdateMotdMessages:
         write_file_calls,
         notices_add_calls,
         FakeConfig,
+        fake_machine_token_file,
     ):
+        enabled_services = []
+        if infra_enabled:
+            m_infra = mock.MagicMock()
+            type(m_infra).name = mock.PropertyMock(return_value="esm-infra")
+            enabled_services.append(m_infra)
 
+        if apps_enabled:
+            m_apps = mock.MagicMock()
+            type(m_apps).name = mock.PropertyMock(return_value="esm-apps")
+            enabled_services.append(m_apps)
+
+        m_enabled_services.return_value = mock.MagicMock(
+            enabled_services=enabled_services
+        )
         m_is_attached.side_effect = is_attached_side_effect
         m_is_current_series_active_esm.return_value = (
             is_current_series_active_esm
         )
-        m_infra_status.return_value = infra_status
         m_is_current_series_lts.return_value = is_current_series_lts
-        m_apps_status.return_value = apps_status
         m_api_updates_v1.return_value = updates
+        print(updates)
 
-        machine_token_file = mock.MagicMock()
-        machine_token_file.contract_expiry_datetime = datetime.datetime(
+        fake_machine_token_file._contract_expiry_datetime = datetime.datetime(
             2012, 12, 21
         )
-        m_machine_token_file.return_value = machine_token_file
-
         assert expected == update_motd_messages(FakeConfig())
 
         assert (

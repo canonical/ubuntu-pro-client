@@ -1,5 +1,5 @@
-name: 'Custom Checklists'
-description: 'Add context-specific checklists to the PR'
+name: 'PR Checklist'
+description: 'Add context-specific checklist to the PR'
 inputs:
   repo-token:
     description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'

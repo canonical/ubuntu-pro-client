@@ -87,6 +87,9 @@ jobs:
           - release: bionic
             platform: aws.pro-fips
             host_os: ubuntu-22.04
+          - release: focal
+            platform: lxd-vm
+            host_os: ubuntu-22.04
     steps:
       - name: Prepare test tools
         run: |

@@ -117,14 +117,7 @@ Feature: FIPS enablement in cloud based machines
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I run `pro enable <fips-service> --assume-yes` with sudo
-    Then stdout matches regexp:
-      """
-      Updating standard Ubuntu package lists
-      Installing <fips-name> packages
-      <fips-name> enabled
-      A reboot is required to complete install.
-      """
-    And I verify that `<fips-service>` is enabled
+    Then I verify that `<fips-service>` is enabled
     And I ensure apt update runs without errors
     And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
     When I run `apt-cache policy <fips-package>` as non-root

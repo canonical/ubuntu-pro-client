@@ -60,7 +60,7 @@ class AnboxEntitlement(RepoEntitlement):
         directives = self.entitlement_cfg.get("entitlement", {}).get(
             "directives", {}
         )
-        machine_token = self.cfg.machine_token["machineToken"]
+        machine_token = self.machine_token_file.machine_token["machineToken"]
         client = contract.UAContractClient(self.cfg)
         anbox_images_machine_access = client.get_resource_machine_access(
             machine_token, "anbox-images"

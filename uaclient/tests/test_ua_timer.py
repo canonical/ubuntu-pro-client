@@ -110,6 +110,7 @@ class TestTimer:
             metering=m_job_status,
             update_messaging=None,
             update_contract_info=None,
+            validate_release_series=None,
         )
         expected_next_run = now + datetime.timedelta(seconds=43200)
 
@@ -139,6 +140,7 @@ class TestTimer:
             metering=m_job_status,
             update_messaging=None,
             update_contract_info=None,
+            validate_release_series=None,
         )
 
         m_job_func = mock.Mock()
@@ -185,7 +187,7 @@ class TestTimer:
             assert [
                 mock.call(m_jobs_state())
             ] == fake_file.write.call_args_list
-            assert 2 == m_run_job.call_count
+            assert 3 == m_run_job.call_count
         else:
             assert [] == fake_file.write.call_args_list
             assert 0 == m_run_job.call_count
@@ -207,12 +209,16 @@ class TestMeteringTimedJob:
         activity_ping_interval_value,
         config_value,
         expected_value,
+        fake_machine_token_file,
     ):
         m_run_interval_seconds.return_value = config_value
         m_cfg = mock.MagicMock()
-        type(m_cfg.machine_token_file).activity_ping_interval = (
-            mock.PropertyMock(return_value=activity_ping_interval_value)
-        )
+        fake_machine_token_file.attached = True
+        fake_machine_token_file.token = {
+            "activityInfo": {
+                "activityPingInterval": activity_ping_interval_value
+            }
+        }
 
         metering_job = MeteringTimedJob(
             job_func=mock.MagicMock(),

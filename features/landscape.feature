@@ -9,13 +9,13 @@ Feature: Enable landscape on Ubuntu
       """
       This command must be run as root (try using sudo).
       """
-    When I run `pro enable landscape -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key} --silent` with sudo
+    When I run `pro enable landscape -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key} --silent` with sudo
     Then stdout contains substring:
       """
       One moment, checking your subscription first
       Updating standard Ubuntu package lists
       Installing landscape-client
-      Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
+      Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       """
     Then stdout contains substring
       """
@@ -25,13 +25,13 @@ Feature: Enable landscape on Ubuntu
     When I run `sudo pro disable landscape` with sudo
     Then I verify that `landscape` is disabled
     # Enable with assume-yes
-    When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
+    When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
       Updating standard Ubuntu package lists
       Installing landscape-client
-      Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
+      Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       Landscape enabled
       """
     And I verify that `landscape` is enabled
@@ -45,13 +45,13 @@ Feature: Enable landscape on Ubuntu
       See: sudo pro status
       """
     # Fail to enable with assume-yes
-    When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
+    When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
       Updating standard Ubuntu package lists
       Installing landscape-client
-      Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
+      Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       Invalid account name or registration key.
       landscape-config command failed
       Could not enable Landscape.
@@ -75,7 +75,7 @@ Feature: Enable landscape on Ubuntu
       landscape +yes +disabled
       """
     # Enable with assume-yes and format json
-    When I run `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
+    When I run `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
     Then I will see the following on stdout:
       """
       {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["landscape"], "result": "success", "warnings": []}
@@ -83,7 +83,7 @@ Feature: Enable landscape on Ubuntu
     And I verify that `landscape` is enabled
     When I run `sudo pro disable landscape` with sudo
     # Fail to enable with assume-yes and format json
-    When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
+    When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
     Then I will see the following on stdout:
       """
       {"_schema_version": "0.1", "errors": [{"additional_info": {"stderr": "Invalid account name or registration key.", "stdout": ""}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": ["landscape"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
@@ -126,7 +126,7 @@ Feature: Enable landscape on Ubuntu
       # request registration
       """
       n
-      $behave_var{machine-name system-under-test}
+      $behave_var{machine-name sut}
       pro-client-qa
       $behave_var{config landscape_registration_key}
       $behave_var{config landscape_registration_key}
@@ -150,7 +150,7 @@ Feature: Enable landscape on Ubuntu
     When I verify that running `pro enable landscape` `with sudo` and the following stdin exits `1`
       """
       n
-      $behave_var{machine-name system-under-test}
+      $behave_var{machine-name sut}
       pro-client-qa
       wrong
       wrong
@@ -184,13 +184,13 @@ Feature: Enable landscape on Ubuntu
   Scenario Outline: Easily re-enable Landscape non-interactively after a disable
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo and options `--no-auto-enable`
-    When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
+    When I run `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key}` with sudo
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
       Updating standard Ubuntu package lists
       Installing landscape-client
-      Executing `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key <REDACTED> --silent`
+      Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       Landscape enabled
       """
     When I run `pro status` with sudo
@@ -220,7 +220,7 @@ Feature: Enable landscape on Ubuntu
     When I run shell command `cat /etc/landscape/client.conf | grep computer_title` with sudo
     Then I will see the following on stdout:
       """
-      computer_title = $behave_var{machine-name system-under-test}
+      computer_title = $behave_var{machine-name sut}
       """
     When I run shell command `cat /etc/landscape/client.conf | grep account_name` with sudo
     Then I will see the following on stdout:
@@ -255,7 +255,7 @@ Feature: Enable landscape on Ubuntu
     When I run shell command `cat /etc/landscape/client.conf | grep computer_title` with sudo
     Then I will see the following on stdout:
       """
-      computer_title = $behave_var{machine-name system-under-test}
+      computer_title = $behave_var{machine-name sut}
       """
     When I run shell command `cat /etc/landscape/client.conf | grep account_name` with sudo
     Then I will see the following on stdout:
@@ -284,7 +284,7 @@ Feature: Enable landscape on Ubuntu
       inactive
       """
     # enable with landscape-config directly
-    When I run `landscape-config --computer-title $behave_var{machine-name system-under-test} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key} --silent` with sudo
+    When I run `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key $behave_var{config landscape_registration_key} --silent` with sudo
     Then I will see the following on stdout:
       """
       Please wait...

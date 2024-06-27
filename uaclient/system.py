@@ -5,7 +5,7 @@ import os
 import pathlib
 import re
 import stat
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 import time
 import uuid
@@ -44,7 +44,14 @@ RE_KERNEL_UNAME = (
 )
 
 DistroInfo = NamedTuple(
-    "DistroInfo", [("eol", datetime.date), ("eol_esm", datetime.date)]
+    "DistroInfo",
+    [
+        ("eol", datetime.date),
+        ("eol_esm", datetime.date),
+        ("series", str),
+        ("release", str),
+        ("series_codename", str),
+    ],
 )
 
 KernelInfo = NamedTuple(
@@ -71,6 +78,7 @@ ReleaseInfo = NamedTuple(
         ("pretty_version", str),
     ],
 )
+
 CpuInfo = NamedTuple(
     "CpuInfo",
     [
@@ -274,14 +282,16 @@ def get_machine_id(cfg) -> str:
     We first check for the machine-id in machine-token.json before
     looking at the system file.
     """
+    from uaclient.files import machine_token
     from uaclient.files.state_files import machine_id_file
 
-    if cfg.machine_token:
-        cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
-            "machineId"
-        )
-        if cfg_machine_id:
-            return cfg_machine_id
+    machine_token_file = machine_token.get_machine_token_file()
+    if machine_token_file.machine_token:
+        machine_id = machine_token_file.machine_token.get(
+            "machineTokenInfo", {}
+        ).get("machineId")
+        if machine_id:
+            return machine_id
 
     fallback_machine_id = machine_id_file.read()
 
@@ -433,6 +443,9 @@ def get_distro_info(series: str) -> DistroInfo:
             else:
                 eol_esm = values[7] if "LTS" in values[0] else values[5]
             return DistroInfo(
+                release=values[0],
+                series_codename=values[1],
+                series=values[2],
                 eol=datetime.datetime.strptime(values[5], "%Y-%m-%d").date(),
                 eol_esm=datetime.datetime.strptime(eol_esm, "%Y-%m-%d").date(),
             )
@@ -631,7 +644,7 @@ def _subp(
         rcs = [0]
     redacted_cmd = util.redact_sensitive_logs(" ".join(args))
     try:
-        proc = subprocess.Popen(
+        proc = subprocess.Popen(  # nosec B603
             bytes_args,
             stdout=stdout,
             stderr=stderr,

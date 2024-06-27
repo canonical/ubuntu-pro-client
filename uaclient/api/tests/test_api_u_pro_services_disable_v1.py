@@ -131,8 +131,7 @@ class TestDisable:
             enabled_services_names_before,
             enabled_services_names_after,
         ]
-        m_ent_class = m_entitlement_factory.return_value
-        m_ent = m_ent_class.return_value
+        m_ent = m_entitlement_factory.return_value
         m_ent_variant = m_ent.enabled_variant
         m_ent_variant.disable.return_value = disable_result
 
@@ -151,13 +150,6 @@ class TestDisable:
                 mock.call(
                     cfg=cfg,
                     name=options.service,
-                )
-            ]
-            assert m_ent_class.call_args_list == [
-                mock.call(
-                    cfg,
-                    assume_yes=True,
-                    called_name=options.service,
                     purge=options.purge,
                 )
             ]

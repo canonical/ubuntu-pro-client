@@ -130,13 +130,13 @@ class TestMain:
         api_side_effect,
         log_msg,
         caplog_text,
-        FakeConfig,
+        fake_machine_token_file,
     ):
-        cfg = FakeConfig.for_attached_machine()
+        fake_machine_token_file.attached = True
         m_check_cloudinit.return_value = False
         m_api_full_auto_attach.side_effect = api_side_effect
 
-        main(cfg=cfg)
+        main(cfg=None)
 
         assert (
             mock.call(
