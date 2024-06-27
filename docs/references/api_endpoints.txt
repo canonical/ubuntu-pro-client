@@ -1,4 +1,8 @@
-Available endpoints
+..
+   THIS DOCUMENTATION WAS AUTOMATICALLY GENERATED
+   Do not edit this document directly. Instead, edit the metadata in the api source code.
+
+Available Endpoints
 ===================
 
 The currently available endpoints are:
@@ -35,9 +39,10 @@ u.pro.version.v1
 This endpoint shows the installed Pro Client version.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -68,6 +73,7 @@ This endpoint shows the installed Pro Client version.
 
       - Raised exceptions:
 
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
         - ``VersionError``: Raised if the Client cannot determine the version.
 
    .. tab-item:: CLI interaction
@@ -79,41 +85,60 @@ This endpoint shows the installed Pro Client version.
 
            pro api u.pro.version.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-              "installed_version":"<version>"
+               "installed_version": "32.3~24.04"
            }
+
+
+
 
 u.pro.attach.auto.configure_retry_service.v1
 ============================================
 
-This endpoint configures options for the retry auto-attach functionality, and
-creates files that will activate the retry auto-attach functionality if
-``ubuntu-advantage.service`` runs.
+This endpoint configures options for the retry auto-attach functionality,
+and creates files that will activate the retry auto-attach functionality
+if ``ubuntu-advantage.service`` runs.
 
-Note that this does not start ``ubuntu-advantage.service``. This makes it useful
-for calling during the boot process ``Before: ubuntu-advantage.service`` so that
-when ``ubuntu-advantage.service`` starts, its ``ConditionPathExists`` check
+Note that this does not start ``ubuntu-advantage.service``. This makes it
+useful for calling during the boot process
+``Before: ubuntu-advantage.service`` so that when
+``ubuntu-advantage.service`` starts, its ``ConditionPathExists`` check
 passes and activates the retry auto-attach function.
 
-If you call this function outside of the boot process and would like the retry
-auto-attach functionality to actually start, you'll need to call something
-like ``systemctl start ubuntu-advantage.service``.
+If you call this function outside of the boot process and would like the
+retry auto-attach functionality to actually start, you'll need to call
+something like ``systemctl start ubuntu-advantage.service``.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
 
-  - ``enable``: Optional list of services to enable after auto-attaching.
-  - ``enable_beta``: Optional list of beta services to enable after
-    auto-attaching.
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``enable``
+     - ``Optional[List[str]]``
+     - Optional list of services to enable after auto-attaching.
+   * - ``enable_beta``
+     - ``Optional[List[str]]``
+     - Optional list of beta services to enable after auto-attaching.
+   * - ``cloud_override``
+     - ``Optional[str]``
+     - Ignore the result of ``cloud-id`` and act as if running on this cloud.
 
 .. note::
 
-   If none of the lists are set, the services will be enabled based on the
-   contract definitions.
+    If none of the lists are set, the services will be enabled based on the
+    contract definitions.
 
 .. tab-set::
 
@@ -133,19 +158,31 @@ like ``systemctl start ubuntu-advantage.service``.
 
         - ``uaclient.api.u.pro.attach.auto.configure_retry_service.v1.ConfigureRetryServiceResult``
 
-          No data present in the result.
+          - This object has no fields.
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
 
       - Calling from the CLI:
 
-        - This endpoint currently has no CLI support. Only the Python-based
-          version is available.
+        .. code-block:: bash
+
+           pro api u.pro.attach.auto.configure_retry_service.v1 --data {"enable": ["esm-infra", "esm-apps"]}
+
+        
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+           {}
+
+
+
 
 u.pro.attach.auto.full_auto_attach.v1
 =====================================
@@ -153,15 +190,29 @@ u.pro.attach.auto.full_auto_attach.v1
 This endpoint runs the whole auto-attach process on the system.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
 
-  - ``enable``: Optional list of services to enable after auto-attaching.
-  - ``enable_beta``: Optional list of beta services to enable after auto-attaching.
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``enable``
+     - ``Optional[List[str]]``
+     - Optional list of services to enable after auto-attaching.
+   * - ``enable_beta``
+     - ``Optional[List[str]]``
+     - Optional list of beta services to enable after auto-attaching.
+   * - ``cloud_override``
+     - ``Optional[str]``
+     - Ignore the result of ``cloud-id`` and act as if running on this cloud.
 
 .. note::
 
-   If none of the lists are set, the services will be enabled based on the
-   contract definitions.
+    If none of the lists are set, the services will be enabled based on the
+    contract definitions.
 
 .. tab-set::
 
@@ -181,38 +232,38 @@ This endpoint runs the whole auto-attach process on the system.
 
         - ``uaclient.api.u.pro.attach.auto.full_auto_attach.v1.FullAutoAttachResult``
 
-          No data present in the result.
+          - This object has no fields.
 
-      - Raised exceptions
+      - Raised exceptions:
 
-        - ``AlreadyAttachedError``: Raised if running on a machine which is
-          already attached to a Pro subscription.
-        - ``AutoAttachDisabledError``: Raised if ``disable_auto_attach: true``
-          in ``uaclient.conf``.
-        - ``ConnectivityError``: Raised if it is not possible to connect to the
-          contracts service.
-        - ``ContractAPIError``: Raised if there is an unexpected error in the
-          contracts service interaction.
-        - ``EntitlementsNotEnabledError``: Raised if the Client fails to enable
-          any of the entitlements (whether present in any of the lists or
-          listed in the contract).
-        - ``LockHeldError``: Raised if another Client process is holding the
-          lock on the machine.
-        - ``NonAutoAttachImageError``: Raised if the cloud where the system is
-          running does not support auto-attach.
-        - ``UserFacingError``: Raised if:
-
-          - The Client is unable to determine which cloud the system is running
-            on. 
-          - The image where the Client is running does not support auto-attach.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``AlreadyAttachedError``: Raised if running on a machine which is already attached to a Pro subscription.
+        - ``AutoAttachDisabledError``: Raised if ``disable_auto_attach: true`` in ``uaclient.conf``.
+        - ``ConnectivityError``: Raised if it is not possible to connect to the contracts service.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the contracts service interaction.
+        - ``EntitlementsNotEnabledError``: Raised if the Client fails to enable any of the entitlements (whether present in any of the lists or listed in the contract).
+        - ``LockHeldError``: Raised if another Client process is holding the lock on the machine.
+        - ``NonAutoAttachImageError``: Raised if the cloud where the system is running does not support auto-attach.
 
    .. tab-item:: CLI interaction
       :sync: CLI
 
       - Calling from the CLI:
 
-        This endpoint currently has no CLI support. Only the Python-based
-        version is available.
+        .. code-block:: bash
+
+           pro api u.pro.attach.auto.full_auto_attach.v1 --data {"enable": ["esm-infra", "esm-apps"]}
+
+        
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+           {}
+
+
+
 
 u.pro.attach.auto.should_auto_attach.v1
 =======================================
@@ -220,9 +271,10 @@ u.pro.attach.auto.should_auto_attach.v1
 This endpoint checks if a given system should run auto-attach on boot.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -253,7 +305,7 @@ This endpoint checks if a given system should run auto-attach on boot.
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -264,13 +316,18 @@ This endpoint checks if a given system should run auto-attach on boot.
 
            pro api u.pro.attach.auto.should_auto_attach.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "should_auto_attach": false
            }
+
+
+
 
 u.pro.attach.magic.initiate.v1
 ==============================
@@ -279,9 +336,10 @@ This endpoint initiates the Magic Attach flow, retrieving the User Code to
 confirm the operation and the Token used to proceed.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -321,12 +379,10 @@ confirm the operation and the Token used to proceed.
 
       - Raised exceptions:
 
-        - ``ConnectivityError``: Raised if it is not possible to connect to the
-          contracts service.
-        - ``ContractAPIError``: Raised if there is an unexpected error in the
-          contracts service interaction.
-        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is
-          busy or unavailable at the moment.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``ConnectivityError``: Raised if it is not possible to connect to the contracts service.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the contracts service interaction.
+        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is busy or unavailable at the moment.
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -337,16 +393,20 @@ confirm the operation and the Token used to proceed.
 
            pro api u.pro.attach.magic.initiate.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-              "user_code":"<UI_code>",
-              "token":"<magic_token>",
-              "expires": "<yyyy-MM-dd>T<HH:mm:ss>.<TZ>",
-              "expires_in": 600
+               "user_code":"<UI_code>",
+               "token":"<magic_token>",
+               "expires": "<yyyy-MM-dd>T<HH:mm:ss>.<TZ>",
+               "expires_in": 600
            }
+
+
 
 
 u.pro.attach.magic.revoke.v1
@@ -355,9 +415,18 @@ u.pro.attach.magic.revoke.v1
 This endpoint revokes a Magic Attach Token.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
 
-  - ``magic_token``: The Token provided by the initiate endpoint.
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``magic_token``
+     - ``str``
+     - The Token provided by the initiate endpoint.
 
 .. tab-set::
 
@@ -375,22 +444,18 @@ This endpoint revokes a Magic Attach Token.
 
       - Expected return object:
 
-        - ``uaclient.api.u.pro.attach.magic.wait.v1.MagicAttachRevokeResult``
+        - ``uaclient.api.u.pro.attach.magic.revoke.v1.MagicAttachRevokeResult``
 
-          No data present in the result.
+          - This object has no fields.
 
       - Raised exceptions:
 
-        - ``ConnectivityError``: Raised if it is not possible to connect to the
-          contracts service.
-        - ``ContractAPIError``: Raised if there is an unexpected error in the
-          contracts service interaction.
-        - ``MagicAttachTokenAlreadyActivated``: Raised when trying to revoke a
-          Token which was already activated through the UI.
-        - ``MagicAttachTokenError``: Raised when an invalid/expired Token is
-          sent.
-        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is busy
-          or unavailable at the moment.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``ConnectivityError``: Raised if it is not possible to connect to the contracts service.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the contracts service interaction.
+        - ``MagicAttachTokenAlreadyActivated``: Raised when trying to revoke a Token which was already activated through the UI.
+        - ``MagicAttachTokenError``: Raised when an invalid/expired Token is sent.
+        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is busy or unavailable at the moment.
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -401,22 +466,36 @@ This endpoint revokes a Magic Attach Token.
 
            pro api u.pro.attach.magic.revoke.v1 --args magic_token=<token>
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {}
+
+
+
 
 u.pro.attach.magic.wait.v1
 ==========================
 
-This endpoint polls the contracts service waiting for the user to confirm the
-Magic Attach.
+This endpoint polls the contracts service waiting for the user to confirm
+the Magic Attach.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
-- Args:
 
-  - ``magic_token``: The Token provided by the initiate endpoint.
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``magic_token``
+     - ``str``
+     - The Token provided by the initiate endpoint.
 
 .. tab-set::
 
@@ -463,14 +542,11 @@ Magic Attach.
 
       - Raised exceptions:
 
-        - ``ConnectivityError``: Raised if it is not possible to connect to the
-          contracts service.
-        - ``ContractAPIError``: Raised if there is an unexpected error in the
-          contracts service interaction.
-        - ``MagicAttachTokenError``: Raised when an invalid/expired Token is
-          sent.
-        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is
-          busy or unavailable at the moment.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``ConnectivityError``: Raised if it is not possible to connect to the contracts service.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the contracts service interaction.
+        - ``MagicAttachTokenError``: Raised when an invalid/expired Token is sent.
+        - ``MagicAttachUnavailable``: Raised if the Magic Attach service is busy or unavailable at the moment.
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -481,9 +557,11 @@ Magic Attach.
 
            pro api u.pro.attach.magic.wait.v1 --args magic_token=<magic_token>
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "user_code":"<UI_code>",
@@ -494,18 +572,31 @@ Magic Attach.
                "contract_token": "<attach_token>",
            }
 
-u.pro.attach.token.full_token_attach.v1
-============================================
 
-This endpoint allow the user to attach to a Pro subscription using
-a token.
+
+
+u.pro.attach.token.full_token_attach.v1
+=======================================
+
+This endpoint allows the user to attach to a Pro subscription using a
+token.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
-- Args:
 
-  - ``token``: The token associated with a Pro subscription
-  - ``auto_enable_services``: If false, the attach operation will not enable any service during the
-    operation
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``token``
+     - ``str``
+     - The token associated with a Pro subscription
+   * - ``auto_enable_services``
+     - ``Optional[bool]``
+     - If false, the attach operation will not enable any service during the operation (default: true)
 
 .. tab-set::
 
@@ -540,7 +631,11 @@ a token.
 
       - Raised exceptions:
 
-        - ``NonRootUserError``: Raised if a non-root user executes this endpoint
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``ConnectivityError``: Raised if it is not possible to connect to the contracts service.
+        - ``ContractAPIError``: Raised if there is an unexpected error in the contracts service interaction.
+        - ``LockHeldError``: Raised if another Client process is holding the lock on the machine.
+        - ``NonRootUserError``: Raised if a non-root user executes this endpoint.
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -549,39 +644,52 @@ a token.
 
         .. code-block:: bash
 
-           pro api u.pro.attach.token.full_token_attach.v1
+           pro api u.pro.attach.token.full_token_attach.v1 --data -
 
-        Note that we don't need to explicitly pass the token when calling the CLI command.
-        If we define a JSON file (i.e. ``file.json``) with the same attributes as the options for this endpoint:
+        Note that it is generally not recommended to pass secrets such as the token on
+        the command line. The example uses the arguments ``--data -`` which causes
+        ``pro`` to read the input data from ``stdin``. Then the arguments can be
+        written as JSON to ``stdin`` of the process.
+
+        For example, if we define a JSON file (i.e. ``file.json``) with the same
+        attributes as the options for this endpoint:
 
         .. code-block:: json
 
-           {
-               "token": "TOKEN",
-               "auto_enable_services": false
-           }
+            {
+                "token": "TOKEN",
+                "auto_enable_services": false
+            }
 
         Then we can call the API like this:
 
         .. code-block:: bash
 
-           cat file.json | pro api u.pro.attach.token.full_token_attach.v1 --data -
+            cat file.json | pro api u.pro.attach.token.full_token_attach.v1 --data -
 
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "enabled": ["service1", "service2"],
                "reboot_required": false
            }
 
-u.pro.detach.v1
-============================================
 
-This endpoint allow the user to detach the machine from a Pro subscription.
+
+
+u.pro.detach.v1
+===============
+
+This endpoint allows the user to detach the machine from a Pro
+subscription.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
+
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -615,7 +723,8 @@ This endpoint allow the user to detach the machine from a Pro subscription.
 
       - Raised exceptions:
 
-        - ``NonRootUserError``: Raised if a non-root user executes this endpoint
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``NonRootUserError``: Raised if a non-root user executes this endpoint.
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -626,25 +735,31 @@ This endpoint allow the user to detach the machine from a Pro subscription.
 
            pro api u.pro.detach.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "disabled": ["service1", "service2"],
                "reboot_required": false
            }
 
+
+
+
 u.pro.packages.summary.v1
 =========================
 
-This endpoint shows a summary of installed packages in the system, categorised
-by origin.
+This endpoint shows a summary of installed packages in the system,
+categorised by origin.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -711,7 +826,7 @@ by origin.
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -722,9 +837,11 @@ by origin.
 
            pro api u.pro.packages.summary.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "summary":{
@@ -740,16 +857,20 @@ by origin.
                },
            }
 
+
+
+
 u.pro.packages.updates.v1
 =========================
 
-This endpoint shows available updates for packages in a system, categorised by
-where they can be obtained.
+This endpoint shows available updates for packages in a system, categorised
+by where they can be obtained.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -834,7 +955,7 @@ where they can be obtained.
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.   
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -845,19 +966,21 @@ where they can be obtained.
 
            pro api u.pro.packages.updates.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-               "summary":{
+               "summary": {
                    "num_updates": 1,
                    "num_esm_apps_updates": 2,
                    "num_esm_infra_updates": 3,
                    "num_standard_security_updates": 4,
                    "num_standard_updates": 5,
                },
-               "updates":[
+               "updates": [
                    {
                        "download_size": 6,
                        "origin": "<some site>",
@@ -869,15 +992,27 @@ where they can be obtained.
                ]
            }
 
+
+
+
 u.pro.security.fix.cve.execute.v1
-===================================
+=================================
 
 This endpoint fixes the specified CVEs on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``30~``
-- Args:
 
-  - ``cves``: A list of CVE (i.e. CVE-2023-2650) titles
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``cves``
+     - ``List[str]``
+     - A list of CVE (i.e. CVE-2023-2650) titles
 
 .. tab-set::
 
@@ -904,8 +1039,8 @@ This endpoint fixes the specified CVEs on the machine.
                - Type
                - Description
              * - ``cves_data``
-               - ``List[CVEAPIFixExecuteResult]``
-               - A list of CVEAPIFixExecuteResult objects
+               - ``CVEAPIFixExecuteResult``
+               - A list of ``CVEAPIFixExecuteResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.cve.execute.v1.CVEAPIFixExecuteResult``
 
@@ -920,7 +1055,7 @@ This endpoint fixes the specified CVEs on the machine.
                - The status of fixing the CVEs
              * - ``cves``
                - ``List[FixExecuteResult]``
-               - A list of FixExecuteResult objects
+               - A list of ``FixExecuteResult`` objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
 
@@ -933,15 +1068,18 @@ This endpoint fixes the specified CVEs on the machine.
              * - ``title``
                - ``str``
                - The title of the CVE
-             * - ``expected_status``
+             * - ``description``
+               - ``Optional[str]``
+               - The description of the CVE
+             * - ``status``
                - ``str``
                - The status of fixing the CVE
              * - ``upgraded_packages``
-               - ``List[UpgradedPackage]``
-               - A list of UpgradedPackage objects
-             * - ``error``
-               - ``Optional[FixExecuteError]``
-               - A FixExecuteError object
+               - ``Optional[List[UpgradedPackage]]``
+               - A list of ``UpgradedPackage`` objects
+             * - ``errors``
+               - ``Optional[List[FixExecuteError]]``
+               - A list of ``FixExecuteError`` objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
 
@@ -977,7 +1115,7 @@ This endpoint fixes the specified CVEs on the machine.
                - The reason why the error occurred
              * - ``failed_upgrades``
                - ``Optional[List[FailedUpgrade]]``
-               - A list of FailedUpgrade objects
+               - A list of ``FailedUpgrade`` objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
 
@@ -991,12 +1129,12 @@ This endpoint fixes the specified CVEs on the machine.
                - ``str``
                - The name of the package
              * - ``pocket``
-               - ``str``
+               - ``Optional[str]``
                - The pocket which contained the package upgrade
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.   
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -1007,129 +1145,148 @@ This endpoint fixes the specified CVEs on the machine.
 
            pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-1234-1234", "CVE-1234-1235"]}'
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-              "cves_data": {
-                  "status": "fixed",
-                  "cves": [
-                    {
-                        "title": "CVE-1234-56789",
-                        "status": "fixed",
-                        "upgraded_packages": {
-                            "name": "pkg1",
-                            "version": "1.1",
-                            "pocket": "standard-updates"
-                        },
-                        "error": null
-                    }
-                  ]
-              }
+               "cves_data": {
+                   "status": "fixed",
+                   "cves": [
+                       {
+                           "title": "CVE-1234-56789",
+                           "description": "..."
+                           "status": "fixed",
+                           "upgraded_packages": {
+                               "name": "pkg1",
+                               "version": "1.1",
+                               "pocket": "standard-updates"
+                           },
+                           "errors": []
+                       }
+                   ]
+               }
            }
 
    .. tab-item:: Explanation
-      :sync: explanation
+       :sync: explanation
 
-      When using the CVE endpoint, the expected output is as follows:
+       When using the CVE endpoint, the expected output is as follows:
 
-      .. code-block:: json
+       .. code-block:: json
 
-         {
-           "_schema_version": "v1",
-           "data": {
-             "attributes": {
-               "cves_data": {
-                 "cves": [
-                   {
-                     "description": "description",
-                     "errors": null,
-                     "status": "fixed",
-                     "title": "CVE-2021-27135",
-                     "upgraded_packages": [
-                       {
-                         "name": "xterm",
-                         "pocket": "standard-updates",
-                         "version": "VERSION"
+           {
+               "_schema_version": "v1",
+               "data": {
+                   "attributes": {
+                       "cves_data": {
+                           "cves": [
+                               {
+                                   "description": "description",
+                                   "errors": null,
+                                   "status": "fixed",
+                                   "title": "CVE-2021-27135",
+                                   "upgraded_packages": [
+                                       {
+                                           "name": "xterm",
+                                           "pocket": "standard-updates",
+                                           "version": "VERSION"
+                                       }
+                                   ]
+                               }
+                           ],
+                           "status": "fixed"
                        }
-                     ]
+                   },
+                   "meta": {
+                       "environment_vars": []
+                   },
+                   "type": "CVEFixExecute"
+               },
+               "errors": [],
+               "result": "success",
+               "version": "30",
+               "warnings": []
+           }
+
+       From this output, we can see that the **cves_data** object contains two
+       attributes:
+
+       * **cves**: A list of CVE objects detailing what happened during the fix
+         operation.
+       * **status**: The status of the fix operation considering **all** CVEs.
+         This means that if one CVE cannot be fixed, this field will reflect that.
+
+       If we take a look at a CVE object, we will see the following structure:
+
+       * **title**: The title of the CVE.
+       * **description**: The CVE description.
+       * **error**: Any error captured when fixing the CVE will appear here. The
+         error object will be detailed in a following section.
+       * **status**: The expected status of the CVE after the fix operation.
+         There are three possible scenarios: **fixed**, **still-affected** and
+         **not-affected**. The system is considered **still-affected** if there
+         is something that prevents any required packages from being upgraded.
+         The system is considered **not-affected** if the CVE doesn't affect the
+         system at all.
+       * **upgraded_packages**: A list of UpgradedPackage objects referencing each
+         package that was upgraded during the fix operation. The UpgradedPackage
+         object always contain the **name** of the package, the **version** it was
+         upgraded to and the **pocket** where the package upgrade came from.
+
+       **What errors can be generated?**
+
+       There some errors that can happen when executing this endpoint. For
+       example, the system might require the user to attach to a Pro subscription
+       to install the upgrades, or the user might run the command as non-root
+       when a package upgrade is needed.
+
+       In those situations, the error JSON error object will follow this
+       representation:
+
+       .. code-block:: json
+
+           {
+               "error_type": "error-type",
+               "reason": "reason",
+               "failed_upgrades": [
+                   {
+                       "name": "pkg1",
+                       "pocket": "esm-infra"
                    }
-                 ],
-                 "status": "fixed"
-               }
-             },
-             "meta": {
-               "environment_vars": []
-             },
-             "type": "CVEFixExecute"
-           },
-           "errors": [],
-           "result": "success",
-           "version": "30",
-           "warnings": []
-         }
+               ]
+           }
 
-      From this output, we can see that the **cves_data** object contains two attributes:
+       We can see that the representation has the following fields:
 
-      * **cves**: A list of CVE objects detailing what happened during the fix operation.
-      * **status**: The status of the fix operation considering **all** CVEs.
-                    This means that if one CVE cannot be fixed, this field will reflect that.
+       * **error_type**: The error type
+       * **reason**: The explanation of why the error happened
+       * **failed_upgrade**: A list of objects that always contain the name of the
+         package that was not upgraded and the pocket where the upgrade would have
+         come from.
 
-      If we take a look at a CVE object, we will see the following structure:
-
-      * **title**: The title of the CVE.
-      * **description**: The CVE description.
-      * **error**: Any error captured when fixing the CVE will appear here. The error object
-                  will be detailed in a following section.
-      * **status**: The expected status of the CVE after the fix operation. There are
-        three possible scenarios: **fixed**, **still-affected** and **not-affected**.
-        The system is considered **still-affected** if there is something that
-        prevents any required packages from being upgraded. The system
-        is considered **not-affected** if the CVE doesn't affect the system at all.
-      * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
-        that was upgraded during the fix operation. The UpgradedPackage object always contain
-        the **name** of the package, the **version** it was upgraded to and the **pocket** where
-        the package upgrade came from.
-
-      **What errors can be generated?**
-
-      There some errors that can happen when executing this endpoint. For example, the system
-      might require the user to attach to a Pro subscription to install the upgrades,
-      or the user might run the command as non-root when a package upgrade is needed.
-
-      In those situations, the error JSON error object will follow this representation:
-
-      .. code-block:: json
-
-         {
-           "error_type": "error-type",
-           "reason": "reason",
-           "failed_upgrades": [
-             {
-               "name": "pkg1",
-               "pocket": "esm-infra"
-             }
-           ]
-         }
-
-      We can see that the representation has the following fields:
-
-      * **error_type**: The error type
-      * **reason**: The explanation of why the error happened
-      * **failed_upgrade**: A list of objects that always contain the name of the package
-        that was not upgraded and the pocket where the upgrade would have come from.
 
 u.pro.security.fix.cve.plan.v1
-===============================
+==============================
 
-This endpoint shows the necessary steps required to fix CVEs in the system without
-executing any of those steps.
+This endpoint shows the necessary steps required to fix CVEs in the system
+without executing any of those steps.
 
 - Introduced in Ubuntu Pro Client Version: ``29~``
-- Args:
 
-  - ``cves``: A list of CVE (i.e. CVE-2023-2650) titles
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``cves``
+     - ``List[str]``
+     - A list of CVE (i.e. CVE-2023-2650) titles
 
 .. tab-set::
 
@@ -1156,7 +1313,7 @@ executing any of those steps.
                - Type
                - Description
              * - ``cves_data``
-               - ``List[CVEFixPlanResult]``
+               - ``CVEFixPlanResult``
                - A list of ``CVEFixPlanResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.cve.plan.v1.CVEFixPlanResult``
@@ -1174,7 +1331,7 @@ executing any of those steps.
                - ``List[FixPlanResult]``
                - A list of ``FixPlanResult`` objects
 
-        - ``uaclient.api.u.pro.security.fix.FixPlanResult``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanResult``
 
           .. list-table::
              :header-rows: 1
@@ -1184,24 +1341,33 @@ executing any of those steps.
                - Description
              * - ``title``
                - ``str``
-               - The title of the CVE
+               - The title of the issue
+             * - ``description``
+               - ``Optional[str]``
+               - The description of the issue
+             * - ``current_status``
+               - ``Optional[str]``
+               - The current status of the issue on the system
              * - ``expected_status``
                - ``str``
-               - The expected status of fixing the CVE
+               - The expected status of fixing the issue
+             * - ``affected_packages``
+               - ``Optional[List[str]]``
+               - A list of package names affected by the issue
              * - ``plan``
                - ``List[FixPlanStep]``
-               - A list of FixPlanStep objects
+               - A list of ``FixPlanStep`` objects
              * - ``warnings``
-               - ``List[FixPlanWarning]``
-               - A list of FixPlanWarning objects
+               - ``Optional[List[FixPlanWarning]]``
+               - A list of ``FixPlanWarning`` objects
              * - ``error``
                - ``Optional[FixPlanError]``
-               - A list of FixPlanError objects
+               - A ``FixPlanError`` object, if an error occurred.
              * - ``additional_data``
-               - ``AdditionalData``
-               - Additional data for the CVE
+               - ``Optional[AdditionalData]``
+               - Additional data for the issue
 
-        - ``uaclient.api.u.pro.security.fix.FixPlanStep``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanStep``
 
           .. list-table::
              :header-rows: 1
@@ -1211,15 +1377,19 @@ executing any of those steps.
                - Description
              * - ``operation``
                - ``str``
-               - The operation that would be performed to fix the CVE. This can be either an attach, enable, apt-upgrade or a no-op type
+               - The operation that would be performed to fix the issue. This can be either an attach, enable, apt-upgrade or a no-op type
              * - ``order``
                - ``int``
                - The execution order of the operation
              * - ``data``
-               - ``object``
+               - ``DataObject``
                - A data object that can be either an ``AptUpgradeData``, ``AttachData``, ``EnableData``, ``NoOpData``
 
-        - ``uaclient.api.u.pro.security.fix.FixPlanWarning``
+        - ``uaclient.data_types.DataObject``
+
+          - This object has no fields.
+
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanWarning``
 
           .. list-table::
              :header-rows: 1
@@ -1234,10 +1404,10 @@ executing any of those steps.
                - ``int``
                - The execution order of the operation
              * - ``data``
-               - ``object``
-               - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
+               - ``DataObject``
+               - A data object that represents either a ``PackageCannotBeInstalledData`` or a ``SecurityIssueNotFixedData``
 
-        - ``uaclient.api.u.pro.security.fix.FixPlanError``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanError``
 
           .. list-table::
              :header-rows: 1
@@ -1249,14 +1419,14 @@ executing any of those steps.
                - ``str``
                - The error message
              * - ``code``
-               - ``str``
+               - ``Optional[str]``
                - The message code
 
-        - ``uaclient.api.u.pro.security.fix.AdditionalData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.AdditionalData``
 
-            For a CVE, we don't expect any additional data at the moment
+          - This object has no fields.
 
-        - ``uaclient.api.u.pro.security.fix.AptUpgradeData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.AptUpgradeData``
 
           .. list-table::
              :header-rows: 1
@@ -1274,7 +1444,7 @@ executing any of those steps.
                - ``str``
                - The pocket where the packages will be installed from
 
-        - ``uaclient.api.u.pro.security.fix.AttachData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.AttachData``
 
           .. list-table::
              :header-rows: 1
@@ -1285,14 +1455,14 @@ executing any of those steps.
              * - ``reason``
                - ``str``
                - The reason why an attach operation is needed
-             * - ``source_packages``
-               - ``List[str]``
-               - The source packages that require the attach operation
              * - ``required_service``
                - ``str``
                - The required service that requires the attach operation
+             * - ``source_packages``
+               - ``List[str]``
+               - The source packages that require the attach operation
 
-        - ``uaclient.api.u.pro.security.fix.EnableData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.EnableData``
 
           .. list-table::
              :header-rows: 1
@@ -1302,12 +1472,12 @@ executing any of those steps.
                - Description
              * - ``service``
                - ``str``
-               - The Pro client service that needs to be enabled
+               - The service that needs to be enabled
              * - ``source_packages``
-               - ``str``
+               - ``List[str]``
                - The source packages that require the service to be enabled
 
-        - ``uaclient.api.u.pro.security.fix.NoOpData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.NoOpData``
 
           .. list-table::
              :header-rows: 1
@@ -1317,9 +1487,9 @@ executing any of those steps.
                - Description
              * - ``status``
                - ``str``
-               - The status of the CVE when no operation can be performed
+               - The status of the issue when no operation can be performed
 
-        - ``uaclient.api.u.pro.security.fix.NoOpAlreadyFixedData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.NoOpAlreadyFixedData``
 
           .. list-table::
              :header-rows: 1
@@ -1329,15 +1499,15 @@ executing any of those steps.
                - Description
              * - ``status``
                - ``str``
-               - The status of the CVE when no operation can be performed
+               - The status of the issue when no operation can be performed
              * - ``source_packages``
-               - ``str``
+               - ``List[str]``
                - The source packages that are already fixed
              * - ``pocket``
                - ``str``
                - The pocket where the packages would have been installed from
 
-        - ``uaclient.api.u.pro.security.fix.NoOpLivepatchFixData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.NoOpLivepatchFixData``
 
           .. list-table::
              :header-rows: 1
@@ -1350,9 +1520,9 @@ executing any of those steps.
                - The status of the CVE when no operation can be performed
              * - ``patch_version``
                - ``str``
-               - Version of the path from Livepatch that fixed the CVE
+               - Version of the patch from Livepatch that fixed the CVE
 
-        - ``uaclient.api.u.pro.security.fix.PackageCannotBeInstalledData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.PackageCannotBeInstalledData``
 
           .. list-table::
              :header-rows: 1
@@ -1371,12 +1541,12 @@ executing any of those steps.
                - The source package associated with the binary package
              * - ``related_source_packages``
                - ``List[str]``
-               - A list of source packages that comes from the same pocket as the affected package
+               - A list of source packages that come from the same pocket as the affected package
              * - ``pocket``
                - ``str``
                - The pocket where the affected package should be installed from
 
-        - ``uaclient.api.u.pro.security.fix.SecurityIssueNotFixedData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.SecurityIssueNotFixedData``
 
           .. list-table::
              :header-rows: 1
@@ -1393,7 +1563,7 @@ executing any of those steps.
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.   
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -1404,45 +1574,59 @@ executing any of those steps.
 
            pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-1234-56789", "CVE-1234-1235"]}'
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-              "cves_data": {
-                  "expected_status": "fixed",
-                  "cves": [
-                    {
-                        "title": "CVE-1234-56789",
-                        "expected_status": "fixed",
-                        "plan": [
-                            {
-                                "operation": "apt-upgrade",
-                                "order": 1,
-                                "data": {
-                                    "binary_packages": ["pkg1"],
-                                    "source_packages": ["pkg1"],
-                                    "pocket": "standard-updates",
-                                }
-                            }
-                        ],
-                        "warnings": [],
-                        "error": null,
-                        "additional_data": {}
-                    }
-                  ]
-              }
+               "cves_data": {
+                   "expected_status": "fixed",
+                   "cves": [
+                       {
+                           "title": "CVE-1234-56789",
+                           "expected_status": "fixed",
+                           "plan": [
+                               {
+                                   "operation": "apt-upgrade",
+                                   "order": 1,
+                                   "data": {
+                                       "binary_packages": ["pkg1"],
+                                       "source_packages": ["pkg1"],
+                                       "pocket": "standard-updates",
+                                   }
+                               }
+                           ],
+                           "warnings": [],
+                           "error": null,
+                           "additional_data": {}
+                       }
+                   ]
+               }
            }
 
+
+
+
 u.pro.security.fix.usn.execute.v1
-===================================
+=================================
 
 This endpoint fixes the specified USNs on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``30~``
-- Args:
 
-  - ``usns``: A list of USNs (i.e. USN-6188-1) titles
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``usns``
+     - ``List[str]``
+     - A list of USNs (i.e. USN-6188-1) titles
 
 .. tab-set::
 
@@ -1469,8 +1653,8 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``usns_data``
-               - ``List[USNAPIFixExecuteResult]``
-               - A list of USNAPIFixExecuteResult objects
+               - ``USNAPIFixExecuteResult``
+               - A list of ``USNAPIFixExecuteResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.usn.execute.v1.USNAPIFixExecuteResult``
 
@@ -1483,9 +1667,9 @@ This endpoint fixes the specified USNs on the machine.
              * - ``status``
                - ``str``
                - The status of fixing the USNs
-             * - ``cves``
+             * - ``usns``
                - ``List[FixExecuteUSNResult]``
-               - A list of FixExecuteResult objects
+               - A list of ``FixExecuteUSNResult`` objects
 
         - ``uaclient.api.u.pro.security.fix.usn.execute.v1.FixExecuteUSNResult``
 
@@ -1496,11 +1680,11 @@ This endpoint fixes the specified USNs on the machine.
                - Type
                - Description
              * - ``target_usn``
-               - ``str``
-               - The FixExecuteResult for the target USN
+               - ``FixExecuteResult``
+               - The ``FixExecuteResult`` for the target USN
              * - ``related_usns``
-               - ``List[FixExecuteResult]``
-               - A list of FixExecuteResult objects for the related USNs
+               - ``Optional[List[FixExecuteResult]]``
+               - A list of ``FixExecuteResult`` objects for the related USNs
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FixExecuteResult``
 
@@ -1512,16 +1696,19 @@ This endpoint fixes the specified USNs on the machine.
                - Description
              * - ``title``
                - ``str``
-               - The title of the USN
-             * - ``expected_status``
+               - The title of the CVE
+             * - ``description``
+               - ``Optional[str]``
+               - The description of the CVE
+             * - ``status``
                - ``str``
-               - The status of fixing the USN
+               - The status of fixing the CVE
              * - ``upgraded_packages``
-               - ``List[UpgradedPackage]``
-               - A list of UpgradedPackage objects
-             * - ``error``
-               - ``Optional[FixExecuteError]``
-               - A FixExecuteError object
+               - ``Optional[List[UpgradedPackage]]``
+               - A list of ``UpgradedPackage`` objects
+             * - ``errors``
+               - ``Optional[List[FixExecuteError]]``
+               - A list of ``FixExecuteError`` objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.UpgradedPackage``
 
@@ -1557,7 +1744,7 @@ This endpoint fixes the specified USNs on the machine.
                - The reason why the error occurred
              * - ``failed_upgrades``
                - ``Optional[List[FailedUpgrade]]``
-               - A list of FailedUpgrade objects
+               - A list of ``FailedUpgrade`` objects
 
         - ``uaclient.api.u.pro.security.fix._common.execute.v1.FailedUpgrade``
 
@@ -1571,12 +1758,12 @@ This endpoint fixes the specified USNs on the machine.
                - ``str``
                - The name of the package
              * - ``pocket``
-               - ``str``
+               - ``Optional[str]``
                - The pocket which contained the package upgrade
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.   
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -1587,129 +1774,148 @@ This endpoint fixes the specified USNs on the machine.
 
            pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-              "usns_data": {
-                  "status": "fixed",
-                  "usns": [
-                    {
-                        "target_usn": {
-                            "title": "CVE-1234-56789",
-                            "status": "fixed",
-                            "upgraded_packages": {
-                                "name": "pkg1",
-                                "version": "1.1",
-                                "pocket": "standard-updates"
-                            },
-                            "error": null
-                        },
-                        "related_usns": []
-                    }
-                  ]
-              }
+               "usns_data": {
+                   "status": "fixed",
+                   "usns": [
+                       {
+                           "target_usn": {
+                               "title": "CVE-1234-56789",
+                               "status": "fixed",
+                               "upgraded_packages": {
+                                   "name": "pkg1",
+                                   "version": "1.1",
+                                   "pocket": "standard-updates"
+                               },
+                               "error": null
+                           },
+                           "related_usns": []
+                       }
+                   ]
+               }
            }
 
    .. tab-item:: Explanation
-      :sync: explanation
+       :sync: explanation
 
-      When using the USN endpoint, the expected output is as follows:
+       When using the USN endpoint, the expected output is as follows:
 
-      .. code-block:: json
+       .. code-block:: json
 
-          {
-            "usns_data": {
-                "status": "fixed",
-                "usns": [
-                  {
-                      "target_usn": {
-                          "title": "CVE-1234-56789",
-                          "status": "fixed",
-                          "upgraded_packages": {
-                              "name": "pkg1",
-                              "version": "1.1",
-                              "pocket": "standard-updates"
-                          },
-                          "error": null
-                      },
-                      "related_usns": []
-                  }
-                ]
-            }
-          }
+           {
+               "usns_data": {
+                   "status": "fixed",
+                   "usns": [
+                       {
+                           "target_usn": {
+                               "title": "CVE-1234-56789",
+                               "status": "fixed",
+                               "upgraded_packages": {
+                                   "name": "pkg1",
+                                   "version": "1.1",
+                                   "pocket": "standard-updates"
+                               },
+                               "error": null
+                           },
+                           "related_usns": []
+                       }
+                   ]
+               }
+           }
 
-      From this output, we can see that the **usns_data** object contains two attributes:
+       From this output, we can see that the **usns_data** object contains two
+       attributes:
 
-      * **usns**: A list of USN objects detailing what happened during the fix operation.
-      * **status**: The status of the fix operation considering **all** USNs.
-                    This means that if one USN cannot be fixed, this field will reflect that.
-                    Note that related USNs don't interfere with this attribute, meaning
-                    that a related USN can fail to be fixed without modifying the **status**
-                    value.
+       * **usns**: A list of USN objects detailing what happened during the fix
+         operation.
+       * **status**: The status of the fix operation considering **all** USNs.
+         This means that if one USN cannot be fixed, this field will reflect that.
+         Note that related USNs don't interfere with this attribute, meaning that
+         a related USN can fail to be fixed without modifying the **status**
+         value.
 
-      Each **usn** object contains a reference for both **target_usn** and **related_usns**.
-      The target is the USN requested to be fixed by the user, while related USNs are USNs
-      that are related to the main USN and an attempt to fix them will be performed by the
-      endpoint too. To better understand that distinction, please refer to 
-      :ref:`our explanation of CVEs and USNs <expl-cve-usn>`.
+       Each **usn** object contains a reference for both **target_usn** and
+       **related_usns**. The target is the USN requested to be fixed by the user,
+       while related USNs are USNs that are related to the main USN and an
+       attempt to fix them will be performed by the endpoint too. To better
+       understand that distinction, please refer to
+       :ref:`our explanation of CVEs and USNs <expl-cve-usn>`.
 
-      With that said both **target_usn** object and any object from **related_usns**
-      follow this structure:
+       With that said both **target_usn** object and any object from
+       **related_usns** follow this structure:
 
-      * **title**: The title of the USN.
-      * **description**: The USN description.
-      * **error**: Any error captured when fixing the USN will appear here. The error object
-                  will be detailed in a following section.
-      * **status**: The expected status of the USN after the fix operation. There are
-        three possible scenarios: **fixed**, **still-affected** and **not-affected**.
-        The system is considered **still-affected** if there is something that
-        prevents any required packages from being upgraded. The system
-        is considered **not-affected** if the USN doesn't affect the system at all.
-      * **upgraded_packages**: A list of UpgradedPackage objects referencing each package
-        that was upgraded during the fix operation. The UpgradedPackage object always contain
-        the **name** of the package, the **version** it was upgraded to and the **pocket** where
-        the package upgrade came from.
+       * **title**: The title of the USN.
+       * **description**: The USN description.
+       * **error**: Any error captured when fixing the USN will appear here. The
+         error object will be detailed in a following section.
+       * **status**: The expected status of the USN after the fix operation.
+         There are three possible scenarios: **fixed**, **still-affected** and
+         **not-affected**. The system is considered **still-affected** if there
+         is something that prevents any required packages from being upgraded.
+         The system is considered **not-affected** if the USN doesn't affect the
+         system at all.
+       * **upgraded_packages**: A list of UpgradedPackage objects referencing each
+         package that was upgraded during the fix operation. The UpgradedPackage
+         object always contain the **name** of the package, the **version** it was
+         upgraded to and the **pocket** where the package upgrade came from.
 
-      **What errors can be generated?**
+       **What errors can be generated?**
 
-      There some errors that can happen when executing this endpoint. For example, the system
-      might require the user to attach to a Pro subscription to install the upgrades,
-      or the user might run the command as non-root when a package upgrade is needed.
+       There some errors that can happen when executing this endpoint. For
+       example, the system might require the user to attach to a Pro subscription
+       to install the upgrades, or the user might run the command as non-root
+       when a package upgrade is needed.
 
-      In those situations, the error JSON error object will follow this representation:
+       In those situations, the error JSON error object will follow this
+       representation:
 
-      .. code-block:: json
+       .. code-block:: json
 
-         {
-           "error_type": "error-type",
-           "reason": "reason",
-           "failed_upgrades": [
-             {
-               "name": "pkg1",
-               "pocket": "esm-infra"
-             }
-           ]
-         }
+           {
+               "error_type": "error-type",
+               "reason": "reason",
+               "failed_upgrades": [
+                   {
+                       "name": "pkg1",
+                       "pocket": "esm-infra"
+                   }
+               ]
+           }
 
-      We can see that the representation has the following fields:
+       We can see that the representation has the following fields:
 
-      * **error_type**: The error type
-      * **reason**: The explanation of why the error happened
-      * **failed_upgrade**: A list of objects that always contain the name of the package
-        that was not upgraded and the pocket where the upgrade would have come from.
+       * **error_type**: The error type
+       * **reason**: The explanation of why the error happened
+       * **failed_upgrade**: A list of objects that always contain the name of the
+         package that was not upgraded and the pocket where the upgrade would have
+         come from.
+
 
 u.pro.security.fix.usn.plan.v1
-===============================
+==============================
 
-This endpoint shows the necessary steps required to fix USNs in the system without
-executing any of those steps.
+This endpoint shows the necessary steps required to fix USNs in the system
+without executing any of those steps.
 
 - Introduced in Ubuntu Pro Client Version: ``29~``
-- Args:
 
-  - ``usns``: A list of USNs (i.e. USN-6119-1) titles
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``usns``
+     - ``List[str]``
+     - A list of USNs (i.e. USN-6119-1) titles
 
 .. tab-set::
 
@@ -1727,7 +1933,7 @@ executing any of those steps.
 
       - Expected return object:
 
-        - ``uaclient.api.u.pro.security.fix.cve.plan.v1.USNSFixPlanResult``
+        - ``uaclient.api.u.pro.security.fix.usn.plan.v1.USNSFixPlanResult``
 
           .. list-table::
              :header-rows: 1
@@ -1736,10 +1942,10 @@ executing any of those steps.
                - Type
                - Description
              * - ``usns_data``
-               - ``List[USNFixPlanResult]``
+               - ``USNFixPlanResult``
                - A list of ``USNFixPlanResult`` objects
 
-        - ``uaclient.api.u.pro.security.fix.cve.plan.v1.USNFixPlanResult``
+        - ``uaclient.api.u.pro.security.fix.usn.plan.v1.USNFixPlanResult``
 
           .. list-table::
              :header-rows: 1
@@ -1750,11 +1956,11 @@ executing any of those steps.
              * - ``expected_status``
                - ``str``
                - The expected status of fixing the USNs
-             * - ``cves``
+             * - ``usns``
                - ``List[FixPlanUSNResult]``
-               - A list of FixPlanUSNResult objects
+               - A list of ``FixPlanUSNResult`` objects
 
-        - ``uaclient.api.u.pro.security.fix.FixPlanUSNResult``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanUSNResult``
 
           .. list-table::
              :header-rows: 1
@@ -1766,10 +1972,10 @@ executing any of those steps.
                - ``FixPlanResult``
                - A ``FixPlanResult`` object for the target USN
              * - ``related_usns_plan``
-               - ``List[FixPlanResult]``
+               - ``Optional[List[FixPlanResult]]``
                - A list of ``FixPlanResult`` objects for the related USNs
 
-        - ``uaclient.api.u.pro.security.fix.FixPlanResult``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanResult``
 
           .. list-table::
              :header-rows: 1
@@ -1779,24 +1985,33 @@ executing any of those steps.
                - Description
              * - ``title``
                - ``str``
-               - The title of the USN
+               - The title of the issue
+             * - ``description``
+               - ``Optional[str]``
+               - The description of the issue
+             * - ``current_status``
+               - ``Optional[str]``
+               - The current status of the issue on the system
              * - ``expected_status``
                - ``str``
-               - The expected status of fixing the USN
+               - The expected status of fixing the issue
+             * - ``affected_packages``
+               - ``Optional[List[str]]``
+               - A list of package names affected by the issue
              * - ``plan``
                - ``List[FixPlanStep]``
-               - A list of FixPlanStep objects
+               - A list of ``FixPlanStep`` objects
              * - ``warnings``
-               - ``List[FixPlanWarning]``
-               - A list of FixPlanWarning objects
+               - ``Optional[List[FixPlanWarning]]``
+               - A list of ``FixPlanWarning`` objects
              * - ``error``
                - ``Optional[FixPlanError]``
-               - A list of FixPlanError objects
+               - A ``FixPlanError`` object, if an error occurred.
              * - ``additional_data``
-               - ``AdditionalData``
-               - Additional data for the USN
+               - ``Optional[AdditionalData]``
+               - Additional data for the issue
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanStep``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanStep``
 
           .. list-table::
              :header-rows: 1
@@ -1806,15 +2021,19 @@ executing any of those steps.
                - Description
              * - ``operation``
                - ``str``
-               - The operation that would be performed to fix the USN
+               - The operation that would be performed to fix the issue. This can be either an attach, enable, apt-upgrade or a no-op type
              * - ``order``
                - ``int``
                - The execution order of the operation
              * - ``data``
-               - ``object``
+               - ``DataObject``
                - A data object that can be either an ``AptUpgradeData``, ``AttachData``, ``EnableData``, ``NoOpData``
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanWarning``
+        - ``uaclient.data_types.DataObject``
+
+          - This object has no fields.
+
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanWarning``
 
           .. list-table::
              :header-rows: 1
@@ -1829,10 +2048,10 @@ executing any of those steps.
                - ``int``
                - The execution order of the operation
              * - ``data``
-               - ``object``
-               - A data object that represents either an PackageCannotBeInstalledData or a SecurityIssueNotFixedData
+               - ``DataObject``
+               - A data object that represents either a ``PackageCannotBeInstalledData`` or a ``SecurityIssueNotFixedData``
 
-        - ``uaclient.api.u.pro.security.fix import FixPlanError``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.FixPlanError``
 
           .. list-table::
              :header-rows: 1
@@ -1844,10 +2063,14 @@ executing any of those steps.
                - ``str``
                - The error message
              * - ``code``
-               - ``str``
+               - ``Optional[str]``
                - The message code
 
-        - ``uaclient.api.u.pro.security.fix.AdditionalData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.AdditionalData``
+
+          - This object has no fields.
+
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.USNAdditionalData``
 
           .. list-table::
              :header-rows: 1
@@ -1862,8 +2085,7 @@ executing any of those steps.
                - ``List[str]``
                - The associated Launchpad bugs for the USN
 
-
-        - ``uaclient.api.u.pro.security.fix import AptUpgradeData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.AptUpgradeData``
 
           .. list-table::
              :header-rows: 1
@@ -1881,7 +2103,7 @@ executing any of those steps.
                - ``str``
                - The pocket where the packages will be installed from
 
-        - ``uaclient.api.u.pro.security.fix import AttachData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.AttachData``
 
           .. list-table::
              :header-rows: 1
@@ -1892,14 +2114,14 @@ executing any of those steps.
              * - ``reason``
                - ``str``
                - The reason why an attach operation is needed
-             * - ``source_packages``
-               - ``List[str]``
-               - The source packages that require the attach operation
              * - ``required_service``
                - ``str``
                - The required service that requires the attach operation
+             * - ``source_packages``
+               - ``List[str]``
+               - The source packages that require the attach operation
 
-        - ``uaclient.api.u.pro.security.fix import EnableData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.EnableData``
 
           .. list-table::
              :header-rows: 1
@@ -1909,12 +2131,12 @@ executing any of those steps.
                - Description
              * - ``service``
                - ``str``
-               - The Pro client service that needs to be enabled
+               - The service that needs to be enabled
              * - ``source_packages``
-               - ``str``
+               - ``List[str]``
                - The source packages that require the service to be enabled
 
-        - ``uaclient.api.u.pro.security.fix import NoOpData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.NoOpData``
 
           .. list-table::
              :header-rows: 1
@@ -1924,9 +2146,9 @@ executing any of those steps.
                - Description
              * - ``status``
                - ``str``
-               - The status of the USN when no operation can be performed
+               - The status of the issue when no operation can be performed
 
-        - ``uaclient.api.u.pro.security.fix.NoOpAlreadyFixedData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.NoOpAlreadyFixedData``
 
           .. list-table::
              :header-rows: 1
@@ -1936,15 +2158,15 @@ executing any of those steps.
                - Description
              * - ``status``
                - ``str``
-               - The status of the CVE when no operation can be performed
+               - The status of the issue when no operation can be performed
              * - ``source_packages``
-               - ``str``
+               - ``List[str]``
                - The source packages that are already fixed
              * - ``pocket``
                - ``str``
                - The pocket where the packages would have been installed from
 
-        - ``uaclient.api.u.pro.security.fix import PackageCannotBeInstalledData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.PackageCannotBeInstalledData``
 
           .. list-table::
              :header-rows: 1
@@ -1963,12 +2185,12 @@ executing any of those steps.
                - The source package associated with the binary package
              * - ``related_source_packages``
                - ``List[str]``
-               - A list of source packages that comes from the same pocket as the affected package
+               - A list of source packages that come from the same pocket as the affected package
              * - ``pocket``
                - ``str``
                - The pocket where the affected package should be installed from
 
-        - ``uaclient.api.u.pro.security.fix import SecurityIssueNotFixedData``
+        - ``uaclient.api.u.pro.security.fix._common.plan.v1.SecurityIssueNotFixedData``
 
           .. list-table::
              :header-rows: 1
@@ -1981,11 +2203,11 @@ executing any of those steps.
                - A list of source packages that cannot be fixed at the moment
              * - ``status``
                - ``str``
-               - The status of the USN regarding those packages
+               - The status of the CVE regarding those packages
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.   
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -1996,45 +2218,50 @@ executing any of those steps.
 
            pro api u.pro.security.fix.usn.plan.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
-              "usns_data": {
-                  "expected_status": "fixed",
-                  "usns": [
-                    {
-                        "related_usns_plan": [],
-                        "target_usn_plan": {
-                            "title": "USN-1234-5",
-                            "expected_status": "fixed",
-                            "plan": [
-                                {
-                                    "operation": "apt-upgrade",
-                                    "order": 1,
-                                    "data": {
-                                        "binary_packages": ["pkg1"],
-                                        "source_packages": ["pkg1"],
-                                        "pocket": "standard-updates"
-                                    }
-                                }
-                            ],
-                            "warnings": [],
-                            "error": null,
-                            "additional_data": {
-                                "associated_cves": [
-                                    "CVE-1234-56789"
-                                ],
-                                "associated_launchpad_bus": [
-                                    "https://launchpad.net/bugs/BUG_ID"
-                                ]
-                            }
-                        },
-                    }
-                  ]
-              }
+               "usns_data": {
+                   "expected_status": "fixed",
+                   "usns": [
+                       {
+                           "related_usns_plan": [],
+                           "target_usn_plan": {
+                               "title": "USN-1234-5",
+                               "expected_status": "fixed",
+                               "plan": [
+                                   {
+                                       "operation": "apt-upgrade",
+                                       "order": 1,
+                                       "data": {
+                                           "binary_packages": ["pkg1"],
+                                           "source_packages": ["pkg1"],
+                                           "pocket": "standard-updates"
+                                       }
+                                   }
+                               ],
+                               "warnings": [],
+                               "error": null,
+                               "additional_data": {
+                                   "associated_cves": [
+                                       "CVE-1234-56789"
+                                   ],
+                                   "associated_launchpad_bus": [
+                                       "https://launchpad.net/bugs/BUG_ID"
+                                   ]
+                               }
+                           },
+                       }
+                   ]
+               }
            }
+
+
+
 
 u.pro.security.status.livepatch_cves.v1
 =======================================
@@ -2042,9 +2269,10 @@ u.pro.security.status.livepatch_cves.v1
 This endpoint lists Livepatch patches for the currently-running kernel.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2070,7 +2298,7 @@ This endpoint lists Livepatch patches for the currently-running kernel.
                - Type
                - Description
              * - ``fixed_cves``
-               - ``list(LivepatchCVEObject)``
+               - ``List[LivepatchCVEObject]``
                - List of Livepatch patches for the given system
 
         - ``uaclient.api.u.pro.security.status.livepatch_cves.v1.LivepatchCVEObject``
@@ -2090,7 +2318,7 @@ This endpoint lists Livepatch patches for the currently-running kernel.
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2101,39 +2329,45 @@ This endpoint lists Livepatch patches for the currently-running kernel.
 
            pro api u.pro.security.status.livepatch_cves.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-      .. code-block:: json
+        .. code-block:: js
 
-         {
-             "fixed_cves":[
-                 {
-                     "name": "<CVE Name>",
-                     "patched": true
-                 },
-                 {
-                     "name": "<Other CVE Name>",
-                     "patched": false
-                 },
-             ], 
-         }
+           {
+               "fixed_cves":[
+                   {
+                       "name": "<CVE Name>",
+                       "patched": true
+                   },
+                   {
+                       "name": "<Other CVE Name>",
+                       "patched": false
+                   },
+               ]
+           }
+
+
+
 
 u.pro.security.status.reboot_required.v1
 ========================================
 
-This endpoint informs if the system should be rebooted or not. Possible outputs
-are:
+This endpoint informs if the system should be rebooted or not. Possible
+outputs are:
 
 #. ``yes``: The system should be rebooted.
 #. ``no``: There is no known need to reboot the system.
-#. ``yes-kernel-livepatches-applied``: There are Livepatch patches applied to 
-   the current kernel, but a reboot is required for an update to take place.
-   This reboot can wait until the next maintenance window.
+#. ``yes-kernel-livepatches-applied``: There are Livepatch patches applied
+   to the current kernel, but a reboot is required for an update to take
+   place. This reboot can wait until the next maintenance window.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2160,12 +2394,41 @@ are:
                - Description
              * - ``reboot_required``
                - ``str``
-               - One of the descriptive strings indicating if the system should
-                 be rebooted
+               - Either 'yes', 'no', or 'yes-kernel-livepatches-applied'
+             * - ``reboot_required_packages``
+               - ``RebootRequiredPkgs``
+               - The packages that require a reboot
+             * - ``livepatch_enabled_and_kernel_patched``
+               - ``bool``
+               - True if livepatch is enabled and working
+             * - ``livepatch_enabled``
+               - ``bool``
+               - True if livepatch is enabled
+             * - ``livepatch_state``
+               - ``Optional[str]``
+               - The state of livepatch as reported by the livepatch client
+             * - ``livepatch_support``
+               - ``Optional[str]``
+               - Whether livepatch covers the current kernel
+
+        - ``uaclient.api.u.pro.security.status.reboot_required.v1.RebootRequiredPkgs``
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field Name
+               - Type
+               - Description
+             * - ``standard_packages``
+               - ``Optional[List[str]]``
+               - Non-kernel packages that require a reboot
+             * - ``kernel_packages``
+               - ``Optional[List[str]]``
+               - Kernel packages that require a reboot
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2176,16 +2439,21 @@ are:
 
            pro api u.pro.security.status.reboot_required.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "reboot_required": "yes|no|yes-kernel-livepatches-applied"
            }
 
+
+
+
 u.pro.services.dependencies.v1
-========================================
+==============================
 
 This endpoint will return a full list of all service dependencies,
 regardless of the current system state. That means it will always return
@@ -2193,9 +2461,10 @@ the same thing until new services are added, or until we add/remove
 dependencies between services.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2254,7 +2523,7 @@ dependencies between services.
                - Name of the Pro service this item corresponds to
              * - ``reason``
                - ``Reason``
-               - Reason that this service is in the list it is in.
+               - Reason that this service is in the list it is in
 
         - ``uaclient.api.u.pro.services.dependencies.v1.Reason``
 
@@ -2266,14 +2535,14 @@ dependencies between services.
                - Description
              * - ``code``
                - ``str``
-               - Short string that represents the reason.
+               - Short string that represents the reason
              * - ``title``
                - ``str``
-               - Longer string describing the reason - possibly translated.
+               - Longer string describing the reason - possibly translated
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2284,38 +2553,43 @@ dependencies between services.
 
            pro api u.pro.services.dependencies.v1
 
+        
+
       - Expected attributes in JSON structure:
 
         .. code-block:: js
 
-            {
-              "services": [
-                {
-                  "name": "one",
-                  "depends_on": [
-                    {
-                      "name": "zero",
-                      "reason": {
-                        "code": "one-and-zero",
-                        "title": "Service One requires service Zero."
-                      }
-                    },
-                    ...
-                  ],
-                  "incompatible_with": [
-                    {
-                      "name": "two",
-                      "reason": {
-                        "code": "one-and-two",
-                        "title": "Services One and Two are not compatible."
-                      }
-                    },
-                    ...
-                  ]
-                },
-                ...
-              ]
-            }
+           {
+               "services": [
+                   {
+                       "name": "one",
+                       "depends_on": [
+                           {
+                               "name": "zero",
+                               "reason": {
+                                   "code": "one-and-zero",
+                                   "title": "Service One requires service Zero."
+                               }
+                           },
+                           ...
+                       ],
+                       "incompatible_with": [
+                           {
+                               "name": "two",
+                               "reason": {
+                                   "code": "one-and-two",
+                                   "title": "Services One and Two are not compatible."
+                               }
+                           },
+                           ...
+                       ]
+                   },
+                   ...
+               ]
+           }
+
+
+
 
 u.pro.services.disable.v1
 =========================
@@ -2324,20 +2598,21 @@ Disable a Pro service. This will automatically disable any services that
 depend on the target service.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
-- Args:
 
-  .. list-table::
-    :header-rows: 1
+Arguments:
 
-    * - Field Name
-      - Type
-      - Description
-    * - ``service``
-      - ``str``
-      - Pro service to disable
-    * - ``purge``
-      - ``Optional[bool]``
-      - Also remove all packages that were installed from this service. Only supported by some services. (default: false)
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``service``
+     - ``str``
+     - Pro service to disable
+   * - ``purge``
+     - ``Optional[bool]``
+     - Also remove all packages that were installed from this service. Only supported by some services. (default: false)
 
 .. tab-set::
 
@@ -2348,25 +2623,26 @@ depend on the target service.
 
         .. code-block:: python
 
-            from uaclient.api.u.pro.services.disable.v1 import disable, DisableOptions
-            result = disable(DisableOptions(service="usg"))
+           from uaclient.api.u.pro.services.disable.v1 import disable, DisableOptions
+           result = disable(DisableOptions(service="usg"))
 
       - Expected return object:
 
         - ``uaclient.api.u.pro.services.disable.v1.DisableResult``
 
           .. list-table::
-            :header-rows: 1
+             :header-rows: 1
 
-            * - Field Name
-              - Type
-              - Description
-            * - ``disabled``
-              - ``List[str]``
-              - List of services disabled
+             * - Field Name
+               - Type
+               - Description
+             * - ``disabled``
+               - ``List[str]``
+               - List of services disabled
 
       - Raised exceptions:
 
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
         - ``NonRootUserError``: When called as non-root user
         - ``UnattachedError``: When called on a machine that is not attached to a Pro subscription
         - ``EntitlementNotFoundError``: When the service argument is not a valid Pro service name
@@ -2382,15 +2658,20 @@ depend on the target service.
 
            pro api u.pro.services.disable.v1 --args service=usg
 
+        
+
       - Expected attributes in JSON structure:
 
         .. code-block:: js
 
-            {
-                "disabled": [
-                    "usg"
-                ]
-            }
+           {
+               "disabled": [
+                   "usg"
+               ]
+           }
+
+
+
 
 u.pro.services.enable.v1
 ========================
@@ -2399,23 +2680,24 @@ Enable a Pro service. This will automatically disable incompatible services
 and enable required services that that target service depends on.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
-- Args:
 
-  .. list-table::
-    :header-rows: 1
+Arguments:
 
-    * - Field Name
-      - Type
-      - Description
-    * - ``service``
-      - ``str``
-      - Pro service to be enabled
-    * - ``variant``
-      - ``Optional[str]``
-      - Optional variant of the Pro service to be enabled.
-    * - ``access_only``
-      - ``Optional[bool]``
-      - If true and the target service supports it, only enable access to the service (default: false)
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``service``
+     - ``str``
+     - Pro service to be enabled
+   * - ``variant``
+     - ``Optional[str]``
+     - Optional variant of the Pro service to be enabled.
+   * - ``access_only``
+     - ``Optional[bool]``
+     - If true and the target service supports it, only enable access to the service (default: false)
 
 .. tab-set::
 
@@ -2426,34 +2708,35 @@ and enable required services that that target service depends on.
 
         .. code-block:: python
 
-            from uaclient.api.u.pro.services.enable.v1 import enable, EnableOptions
-            result = enable(EnableOptions(service="usg"))
+           from uaclient.api.u.pro.services.enable.v1 import enable, EnableOptions
+           result = enable(EnableOptions(service="usg"))
 
       - Expected return object:
 
         - ``uaclient.api.u.pro.services.enable.v1.EnableResult``
 
           .. list-table::
-            :header-rows: 1
+             :header-rows: 1
 
-            * - Field Name
-              - Type
-              - Description
-            * - ``enabled``
-              - ``List[str]``
-              - List of services that were enabled.
-            * - ``disabled``
-              - ``List[str]``
-              - List of services that were disabled.
-            * - ``reboot_required``
-              - ``bool``
-              - True if one of the services that was enabled requires a reboot.
-            * - ``messages``
-              - ``List[str]``
-              - List of information message strings about the service that was just enabled. Possibly translated.
+             * - Field Name
+               - Type
+               - Description
+             * - ``enabled``
+               - ``List[str]``
+               - List of services that were enabled.
+             * - ``disabled``
+               - ``List[str]``
+               - List of services that were disabled.
+             * - ``reboot_required``
+               - ``bool``
+               - True if one of the services that was enabled requires a reboot.
+             * - ``messages``
+               - ``List[str]``
+               - List of information message strings about the service that was just enabled. Possibly translated.
 
       - Raised exceptions:
 
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
         - ``NonRootUserError``: When called as non-root user
         - ``UnattachedError``: When called on a machine that is not attached to a Pro subscription
         - ``NotSupported``: When called for a service that doesn't support being enabled via API (currently only Landscape)
@@ -2470,18 +2753,23 @@ and enable required services that that target service depends on.
 
            pro api u.pro.services.enable.v1 --args service=usg
 
+        
+
       - Expected attributes in JSON structure:
 
         .. code-block:: js
 
-            {
-                "disabled": [],
-                "enabled": [
-                    "usg"
-                ],
-                "messages": [],
-                "reboot_required": false
-            }
+           {
+               "disabled": [],
+               "enabled": [
+                   "usg"
+               ],
+               "messages": [],
+               "reboot_required": false
+           }
+
+
+
 
 u.pro.status.enabled_services.v1
 ================================
@@ -2489,9 +2777,10 @@ u.pro.status.enabled_services.v1
 This endpoint shows the Pro services that are enabled on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``28~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2530,15 +2819,17 @@ This endpoint shows the Pro services that are enabled on the machine.
                - Description
              * - ``name``
                - ``str``
-               - | Name of the service.
-                 | Possible values are: ``cc-eal``, ``cis``, ``esm-apps``, ``esm-infra``, ``fips``, ``fips-updates``, ``livepatch``, ``realtime-kernel``, ``ros``, ``ros-updates``.
-                 | When ``usg`` is enabled, this value will be ``cis``.
+               - Name of the service
              * - ``variant_enabled``
                - ``bool``
                - If a variant of the service is enabled
              * - ``variant_name``
                - ``Optional[str]``
                - Name of the variant, if a variant is enabled
+
+      - Raised exceptions:
+
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2549,15 +2840,45 @@ This endpoint shows the Pro services that are enabled on the machine.
 
            pro api u.pro.status.enabled_services.v1
 
+        
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+           {
+               "enabled_services": [
+                   {
+                       "name": "esm-apps",
+                       "variant_enabled": false,
+                       "variant_name": null
+                   },
+                   {
+                       "name": "esm-infra",
+                       "variant_enabled": false,
+                       "variant_name": null
+                   },
+                   {
+                       "name": "realtime-kernel",
+                       "variant_enabled": true,
+                       "variant_name": "raspi"
+                   }
+               ]
+           }
+
+
+
+
 u.pro.status.is_attached.v1
 ===========================
 
 This endpoint shows if the machine is attached to a Pro subscription.
 
 - Introduced in Ubuntu Pro Client Version: ``28~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2584,17 +2905,20 @@ This endpoint shows if the machine is attached to a Pro subscription.
                - Description
              * - ``is_attached``
                - ``bool``
-               - If the machine is attached to a Pro subscription
+               - True if the machine is attached to an Ubuntu Pro subscription
              * - ``contract_status``
-               - ``str``
-               - The current contract status (active, grace-period, active-soon-to-expire, expired).
-                 Please refer to the explanation tab for a description of each state.
+               - ``Optional[str]``
+               - Status of the Ubuntu Pro subscription
              * - ``contract_remaining_days``
                - ``int``
-               - The number of days remaining for the contract to be valid
+               - Number of days left in the Ubuntu Pro subscription
              * - ``is_attached_and_contract_valid``
                - ``bool``
-               - If the machine is attached and the contract is still valid
+               - True if the machine is attached to an Ubuntu Pro subscription and that subscription is not expired
+
+      - Raised exceptions:
+
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2604,27 +2928,45 @@ This endpoint shows if the machine is attached to a Pro subscription.
         .. code-block:: bash
 
            pro api u.pro.status.is_attached.v1
-           
+
+        
+
+      - Expected attributes in JSON structure:
+
+        .. code-block:: js
+
+           {
+               "contract_remaining_days": 360,
+               "contract_status": "active",
+               "is_attached": true,
+               "is_attached_and_contract_valid": true
+           }
+
    .. tab-item:: Explanation
-      :sync: explanation
+       :sync: explanation
 
-      The ``contract_status`` field can return 4 different states, they are:
+       The ``contract_status`` field can return 4 different states, they are:
 
-      * **active**: The contract is currently valid.
-      * **grace-period**: The contract is in the grace period. This means that it is expired,
-        but there are still some days where the contract will be valid.
-      * **active-soon-to-expire**: The contract is almost expired, but still valid.
-      * **expired**: The contract is expired and no longer valid.
+       * **active**: The contract is currently valid.
+       * **grace-period**: The contract is in the grace period. This means that
+         it is expired, but there are still some days where the contract will be
+         valid.
+       * **active-soon-to-expire**: The contract is almost expired, but still
+         valid.
+       * **expired**: The contract is expired and no longer valid.
+
 
 u.apt_news.current_news.v1
-==============================
+==========================
 
-This endpoint returns the current APT News that gets displayed in `apt upgrade`.
+This endpoint returns the current APT News that gets displayed in
+`apt upgrade`.
 
 - Introduced in Ubuntu Pro Client Version: ``29~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2651,11 +2993,11 @@ This endpoint returns the current APT News that gets displayed in `apt upgrade`.
                - Description
              * - ``current_news``
                - ``Optional[str]``
-               - | The current APT News to be displayed for the system. This could be a str with up to three lines (i.e. up to two ``\n`` characters).
-                 | If there is no APT News to be displayed, this will be ``None``.
+               - The current APT News to be displayed for the system. This could be a str with up to three lines (i.e. up to two ``\n`` characters). If there is no APT News to be displayed, this will be ``None``.
+
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2666,24 +3008,30 @@ This endpoint returns the current APT News that gets displayed in `apt upgrade`.
 
            pro api u.apt_news.current_news.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "current_news":"This is a news message.\nThis is the second line of the message.\nAnd this is the third line."
            }
 
+
+
+
 u.security.package_manifest.v1
 ==============================
 
-This endpoint returns the status of installed packages (``apt`` and ``snap``),
-formatted as a manifest file (i.e., ``package_name\tversion``).
+This endpoint returns the status of installed packages (``apt`` and
+``snap``), formatted as a manifest file (i.e., ``package_name\tversion``).
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2714,7 +3062,7 @@ formatted as a manifest file (i.e., ``package_name\tversion``).
 
       - Raised exceptions:
 
-        - No exceptions raised by this endpoint.   
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2725,32 +3073,38 @@ formatted as a manifest file (i.e., ``package_name\tversion``).
 
            pro api u.security.package_manifest.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "package_manifest":"package1\t1.0\npackage2\t2.3\n"
            }
 
+
+
+
 u.unattended_upgrades.status.v1
 ===============================
 
-This endpoint returns the status around ``unattended-upgrades``. The focus of
-the endpoint is to verify if the application is running and how it is
+This endpoint returns the status around ``unattended-upgrades``. The focus
+of the endpoint is to verify if the application is running and how it is
 configured on the machine.
 
 .. important::
 
-   For this endpoint, we deliver a unique key under ``meta`` called
-   ``raw_config``. This field contains all related ``unattended-upgrades``
-   configurations, unparsed. This means that this field will maintain both
-   original name and values for those configurations.
+    For this endpoint, we deliver a unique key under ``meta`` called
+    ``raw_config``. This field contains all related ``unattended-upgrades``
+    configurations, unparsed. This means that this field will maintain both
+    original name and values for those configurations.
 
 - Introduced in Ubuntu Pro Client Version: ``27.14~``
-- Args:
 
-  - This endpoint takes no arguments.
+Arguments:
+
+- This endpoint takes no arguments.
 
 .. tab-set::
 
@@ -2794,13 +3148,13 @@ configured on the machine.
                - ``bool``
                - Indicate if the ``unattended-upgrade`` service is correctly configured and running
              * - ``unattended_upgrades_disabled_reason``
-               - ``object``
+               - ``Optional[UnattendedUpgradesDisabledReason]``
                - Object that explains why ``unattended-upgrades`` is not running -- if the application is running, the object will be null
              * - ``unattended_upgrades_last_run``
-               - ``datetime.datetime``
+               - ``Optional[datetime]``
                - The last time ``unattended-upgrades`` ran
 
-        - ``uaclient.api.u.unattended_upgrades.status.v1.UnattendedUpgradesStatusDisabledReason``
+        - ``uaclient.api.u.unattended_upgrades.status.v1.UnattendedUpgradesDisabledReason``
 
           .. list-table::
              :header-rows: 1
@@ -2810,14 +3164,15 @@ configured on the machine.
                - Description
              * - ``msg``
                - ``str``
-               - The reason why ``unattended-upgrades`` is not running on the system
+               - Human readable reason
              * - ``code``
                - ``str``
-               - The message code associated with the message
+               - Reason code
 
       - Raised exceptions:
 
-        - ``UnattendedUpgradesError``: Raised if we cannot run a necessary command to show the status of ``unattended-upgrades``.
+        - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+        - ``UnattendedUpgradesError``: Raised if we cannot run a necessary command to show the status of ``unattended-upgrades``
 
    .. tab-item:: CLI interaction
       :sync: CLI
@@ -2828,19 +3183,21 @@ configured on the machine.
 
            pro api u.unattended_upgrades.status.v1
 
+        
+
       - Expected attributes in JSON structure:
 
-        .. code-block:: json
+        .. code-block:: js
 
            {
                "apt_periodic_job_enabled": true,
                "package_lists_refresh_frequency_days": 1,
                "systemd_apt_timer_enabled": true,
                "unattended_upgrades_allowed_origins": [
-                 "${distro_id}:${distro_codename}",
-                 "${distro_id}:${distro_codename}-security",
-                 "${distro_id}ESMApps:${distro_codename}-apps-security",
-                 "${distro_id}ESM:${distro_codename}-infra-security"
+                   "${distro_id}:${distro_codename}",
+                   "${distro_id}:${distro_codename}-security",
+                   "${distro_id}ESMApps:${distro_codename}-apps-security",
+                   "${distro_id}ESM:${distro_codename}-infra-security"
                ],
                "unattended_upgrades_disabled_reason": null,
                "unattended_upgrades_frequency_days": 1,
@@ -2854,17 +3211,19 @@ configured on the machine.
 
            {
                "meta": {
-                 "environment_vars": [],
-                 "raw_config": {
-                   "APT::Periodic::Enable": "1",
-                   "APT::Periodic::Unattended-Upgrade": "1",
-                   "APT::Periodic::Update-Package-Lists": "1",
-                   "Unattended-Upgrade::Allowed-Origins": [
-                     "${distro_id}:${distro_codename}",
-                     "${distro_id}:${distro_codename}-security",
-                     "${distro_id}ESMApps:${distro_codename}-apps-security",
-                     "${distro_id}ESM:${distro_codename}-infra-security"
-                   ]
-                 }
+                   "environment_vars": [],
+                   "raw_config": {
+                       "APT::Periodic::Enable": "1",
+                       "APT::Periodic::Unattended-Upgrade": "1",
+                       "APT::Periodic::Update-Package-Lists": "1",
+                       "Unattended-Upgrade::Allowed-Origins": [
+                           "${distro_id}:${distro_codename}",
+                           "${distro_id}:${distro_codename}-security",
+                           "${distro_id}ESMApps:${distro_codename}-apps-security",
+                           "${distro_id}ESM:${distro_codename}-infra-security"
+                       ]
+                   }
                }
            }
+
+
