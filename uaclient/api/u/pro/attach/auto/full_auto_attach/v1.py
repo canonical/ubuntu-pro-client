@@ -173,7 +173,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach,
 options = FullAutoAttachOptions(enable=["<service1>", "<service2>"], enable_beta=["<beta_service3>"])
 result = full_auto_attach(options)
 """,  # noqa: E501
-    "result_cls": FullAutoAttachResult,
+    "result_class": FullAutoAttachResult,
     "exceptions": [
         (
             exceptions.AlreadyAttachedError,

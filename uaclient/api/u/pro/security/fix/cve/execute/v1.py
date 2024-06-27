@@ -110,7 +110,7 @@ from uaclient.api.u.pro.security.fix.cve.execute.v1 import execute, CVEFixExecut
 options = CVEFixExecuteOptions(cves=["CVE-1234-1234", "CVE-1234-1235"])
 result = execute(options)
 """,  # noqa: E501
-    "result_cls": CVESAPIFixExecuteResult,
+    "result_class": CVESAPIFixExecuteResult,
     "exceptions": [],
     "example_cli": """pro api u.pro.security.fix.cve.execute.v1 --data '{"cves": ["CVE-1234-1234", "CVE-1234-1235"]}'""",  # noqa: E501
     "example_json": """

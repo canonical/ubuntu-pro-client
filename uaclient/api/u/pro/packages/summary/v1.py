@@ -128,7 +128,7 @@ from uaclient.api.u.pro.packages.summary.v1 import summary
 
 result = summary()
 """,  # noqa: E501
-    "result_cls": PackageSummaryResult,
+    "result_class": PackageSummaryResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.packages.summary.v1",
     "example_json": """

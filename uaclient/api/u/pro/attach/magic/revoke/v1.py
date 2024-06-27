@@ -54,7 +54,7 @@ from uaclient.api.u.pro.attach.magic.revoke.v1 import MagicAttachRevokeOptions, 
 options = MagicAttachWaitOptions(magic_token="<magic_token>")
 result = revoke(options)
 """,  # noqa: E501
-    "result_cls": MagicAttachRevokeResult,
+    "result_class": MagicAttachRevokeResult,
     "exceptions": [
         (
             exceptions.ConnectivityError,

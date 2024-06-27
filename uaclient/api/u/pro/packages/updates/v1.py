@@ -182,7 +182,7 @@ from uaclient.api.u.pro.packages.updates.v1 import updates
 
 result = updates()
 """,  # noqa: E501
-    "result_cls": PackageUpdatesResult,
+    "result_class": PackageUpdatesResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.packages.updates.v1",
     "example_json": """

@@ -55,7 +55,7 @@ from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import should_auto_att
 
 result = should_auto_attach()
 """,  # noqa: E501
-    "result_cls": ShouldAutoAttachResult,
+    "result_class": ShouldAutoAttachResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.attach.auto.should_auto_attach.v1",
     "example_json": """

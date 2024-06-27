@@ -157,7 +157,7 @@ _doc = {
 from uaclient.api.u.pro.services.dependencies.v1 import dependencies
 result = dependencies()
 """,
-    "result_cls": DependenciesResult,
+    "result_class": DependenciesResult,
     "example_cli": "pro api u.pro.services.dependencies.v1",
     "example_json": """
 {

@@ -52,7 +52,7 @@ from uaclient.api.u.apt_news.current_news.v1 import current_news
 
 result = current_news().current_news
 """,
-    "result_cls": CurrentNewsResult,
+    "result_class": CurrentNewsResult,
     "exceptions": [],
     "example_cli": "pro api u.apt_news.current_news.v1",
     "example_json": """
