@@ -1012,8 +1012,6 @@ where they can be obtained.
                ]
            }
 
-.. _cve-execute-api-v1:
-
 u.pro.security.fix.cve.execute.v1
 ===================================
 
