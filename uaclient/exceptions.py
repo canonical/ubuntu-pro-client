@@ -106,7 +106,7 @@ class APTInvalidRepoError(UbuntuProError):
     _formatted_msg = messages.E_APT_UPDATE_INVALID_URL_CONFIG
 
 
-class APTUpdateProcessConflictError(UbuntuProError):
+class APTUpdateProcessConflictError(APTProcessConflictError):
     _msg = messages.E_APT_UPDATE_PROCESS_CONFLICT
 
 
@@ -118,7 +118,7 @@ class APTUpdateFailed(UbuntuProError):
     _formatted_msg = messages.E_APT_UPDATE_FAILED
 
 
-class APTInstallProcessConflictError(UbuntuProError):
+class APTInstallProcessConflictError(APTProcessConflictError):
     _msg = messages.E_APT_INSTALL_PROCESS_CONFLICT
 
 
