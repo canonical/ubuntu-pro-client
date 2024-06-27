@@ -148,8 +148,8 @@ this in our terminal output:
     Try Ubuntu Pro with a free personal subscription on up to 5 machines.
     Learn more at https://ubuntu.com/pro
 
-Understanding the output
-------------------------
+The security-status output
+--------------------------
 
 Here, we learn that all 518 installed packages on our system come from the
 Ubuntu Main or Restricted repositories. This is not surprising if we recall
@@ -414,7 +414,7 @@ Now we can check on the security status of our machine once more by running
     update.
 
 We are now fully up-to-date with all of the software and security updates for
-the packages on our VM, and Livepatch has taken care of the kernel updates
+the packages on our VM, and Livepatch has taken care of the kernel CVE fixes
 for us.
 
 But what about the case where we are not using a fresh VM? Let's now consider
@@ -423,32 +423,69 @@ a scenario that might affect our live system.
 CVEs, USNs, and pro fix
 =======================
 
-There are two types of vulnerabilities that could affect your system: 
-`Common Vulnerabilities and Exposures <cve_>`_ (CVEs, as we've already seen)
-and `Ubuntu Security Notices <usn_>`_ (USNs). The Pro Client can be used to
-inspect and resolve both types using the ``pro fix`` command.
+There are two types of vulnerabilities that could affect a system:
+`Common Vulnerabilities and Exposures <cve_>`_ (CVEs) and
+`Ubuntu Security Notices <usn_>`_ (USNs).
 
-Inspecting a CVE
-----------------
+We've seen how, just by attaching our Pro subscription and upgrading our
+machine, the Pro Client services have taken care of applying the available
+fixes for the CVEs that affected our VM. In fact, as long as we upgrade
+our machine periodically, these fixes will always be applied after they are
+released. The default configuration of ``unattended-upgrades`` runs upgrades
+for you daily and includes Pro security updates.
 
-But how do you know if you're affected by a CVE or USN?
-[[ how to know if you're affected ]]
+However, there is always a period of time between a CVE or USN being reported,
+and a fix being released. In this case, we might reasonably want some way to
+find out if a vulnerability is affecting our system.
 
-[[vulnerability show -> doesn't exist yet, will in 4 months or so. ]]
+In an upcoming release of the Pro Client, we will have a command that will show
+us a list of all CVEs that affect our system, and their status. For now, we can
+use the ``pro fix`` command to manually inspect and resolve both CVEs and USNs.
 
-[[ use ``pro fix CVE-XXXX-XXXX`` with the ``--dry-run`` flag ]]
+.. note::
+   This may be especially of interest to users running airgapped setups, or
+   those who otherwise need more control over their updates!
+
+Now, we have a bit of a problem. We know that our machine is fully up-to-date
+and all available fixes have been applied! But, using our VM we can simulate
+having a package affected by a known CVE using the Ansible package we installed
+earlier. `CVE-2023-5764`_ affected the free Bionic version of Ansible, so let's
+use this as our test case. We can run the ``pro fix`` command with the
+``--dry-run`` flag to inspect the CVE without actually fixing anything, so let
+us do just that:
 
 .. code-block:: bash
 
-   $ pro fix cve-2024-1086 --dry-run
+   sudo pro fix cve-2023-5764 --dry-run   
 
-[[find a cve that exists in bionic free, but is fixed in bionic pro]]
-[[so before we attach we would run pro fix (whatever cve dry run) and it would tell you that it affects your system]]
 
-Understanding the output
-------------------------
+[[ output ]]
 
-The output of the ``pro fix`` command has the same structure, whether you are
+
+As we can see, in the version of Ansible we are running, thanks to Pro, we are
+not affected by this CVE. But what happens if we downgrade Ansible to an older
+version that **was** affected by it:
+
+.. code-block:: bash
+
+   sudo apt install ansible/bionic-updates
+
+This command will install the latest free update for Ansible in Bionic, which
+doesn't have the updates we got from Pro. Now, we can use this command again
+to see what happened:
+
+.. code-block:: bash
+
+   sudo pro fix cve-2023-5764 --dry-run   
+
+[[ output ]]
+
+Now we can see that we **are** affected by a CVE in the Ansible package. 
+
+The pro fix output
+------------------
+
+The output of the ``pro fix`` command has the same structure, whether we are
 only inspecting a CVE using ``--dry-run``, or resolving a CVE. It:
 
 * describes the CVE/USN;
@@ -458,36 +495,21 @@ only inspecting a CVE using ``--dry-run``, or resolving a CVE. It:
 
 This is best demonstrated in a ``pro fix`` call that *does* fix a package.
 
-Resolving a CVE
----------------
+Manually resolve the CVE
+------------------------
 
-[[Therefore let us install an older package on the VM that we know is associated
-with `CVE-2020-25686`_. You can install the package by running these commands:
-
-.. code-block:: bash
-
-    $ sudo apt update
-    $ sudo apt install dnsmasq=2.75-1
+Now that we've found a package that has a vulnerability, we can fix it using
+the ``pro fix`` command on the CVE:
 
 Now, let's run ``pro fix`` on the CVE:
 
 .. code-block:: bash
 
-    $ sudo pro fix CVE-2020-25686
+    $ sudo pro fix CVE-2023-5764
 
 You will then see the following output:
 
-.. code-block:: text
-
-    CVE-2020-25686: Dnsmasq vulnerabilities
-     - https://ubuntu.com/security/CVE-2020-25686
-
-    1 affected package is installed: dnsmasq
-    (1/1) dnsmasq:
-    A fix is available in Ubuntu standard updates.
-    { apt update && apt install --only-upgrade -y dnsmasq }
-
-    ✔ CVE-2020-25686 is resolved.
+[[ output ]]
 
 .. note::
     We need to run the command with ``sudo`` because it will be installing a
@@ -505,18 +527,7 @@ Also, at the end of the output you can see confirmation that the CVE was fixed
 by the command. Just to confirm that the fix was successfully applied, let's
 run the ``pro fix`` command again, and we should now see the following:
 
-.. code-block:: text
-
-    CVE-2020-25686: Dnsmasq vulnerabilities
-     - https://ubuntu.com/security/CVE-2020-25686
-
-    1 affected package is installed: dnsmasq
-    (1/1) dnsmasq:
-    A fix is available in Ubuntu standard updates.
-    The update is already installed.
-
-    ✔ CVE-2020-25686 is resolved.
-
+[[ output ]]
 
 
 Success!
@@ -542,6 +553,8 @@ Further reading
 * ESM explained
 * CVES/USNs explained
 * What services are for me?
+* all the pro fix stuff
+
 
 * In :ref:`Understanding scenarios encountered when using pro fix to solve a CVE/USN <pro-fix-howto>` you can continue using the test environment you created here to explore different scenarios you might encounter and understand the different outputs you will find.
 * :ref:`How do I know what the pro fix command would change? <pro-fix-dry-run>` will show you how to use ``pro fix`` in ``--dry-run`` mode to safely simulate the changes before they're applied.
@@ -554,10 +567,16 @@ Further reading
 
 .. include:: ../links.txt
 
-.. _CVE-2020-15180: https://ubuntu.com/security/CVE-2020-15180
-.. _CVE-2020-25686: https://ubuntu.com/security/CVE-2020-25686
-
-
-
-.. LINKS
 .. _Multipass: https://multipass.run/
+.. _CVE-2023-5764: https://ubuntu.com/security/CVE-2023-5764
+
+.. NOTES
+System requirements - use the multipass system requirements
+
+How often is "periodically"? (in terms of update frequency)
+Default config for unattended-upgrades is "daily" (this includes Pro security updates - app security and infra security are included in unattended-upgrades)
+
+Pro fix is more interesting to those who want to control what goes in -> they will be especially interested in the upcoming vulnerability command. This will be announced on the Pro category on discourse.
+
+
+ 
