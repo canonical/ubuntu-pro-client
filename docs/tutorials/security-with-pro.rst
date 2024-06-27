@@ -39,12 +39,11 @@ This command will create (``launch``) a Bionic VM that we will label with the
 name "``test-vm``".
 
 It will probably take a few minutes to fetch the Bionic image (depending on
-your internet speed). Once it has successfully set up the VM, you will see
-a message like this in your terminal:
+your internet speed). Once Multipass has successfully set up the VM, you will
+see a message like this in your terminal:
 
 .. code-block:: text
 
-   Waiting for initialization to complete |
    Launched: test-vm
 
 We can now enter our new VM with this command:
@@ -54,8 +53,8 @@ We can now enter our new VM with this command:
    $ multipass shell test-vm
 
 Notice that when we run this command, our terminal username and hostname
-change to ``ubuntu@test-vm``, which indicates that we are now operating
-inside the VM. 
+change to ``ubuntu@test-vm``, which tells us we are now operating inside the
+VM. 
 
 We then see a welcome message that looks similar to this (truncated for
 brevity, removed sections indicated with ``[...]``):
@@ -107,7 +106,7 @@ brevity):
 
 One of the packages that needs updating is the ``ubuntu-advantage-tools``
 package, which provides the Pro Client, but it's good practice to always keep
-software up-to-date, so let's update all of these packages in our VM:
+software up-to-date, so let's upgrade all of these packages in our VM:
 
 .. code-block::
 
@@ -152,9 +151,9 @@ The security-status output
 --------------------------
 
 Here, we learn that all 518 installed packages on our system come from the
-Ubuntu Main or Restricted repositories. This is not surprising if we recall
-that this is a fresh VM and we haven't installed any packages ourselves yet.
-The only packages on the system are those that shipped with the Bionic image.
+Ubuntu Main or Restricted repositories. This is not surprising; this is a
+"fresh" VM and we haven't installed any packages ourselves yet! The only
+packages on the system are those that shipped with the default Bionic image.
 
 The message also lets us know that ``esm-infra is not enabled``. ESM-Infra is
 the Ubuntu Pro service that provides security coverage for packages in Main
@@ -170,7 +169,7 @@ comes from Universe, such as Ansible:
    $ sudo apt install ansible
 
 And now let's run ``pro security-status`` again to see how the output changes
-(truncated to remove the parts that remained the same):
+(truncated to only show the parts that changed):
 
 .. code-block:: text
 
@@ -223,9 +222,10 @@ We should see output like this, giving us a link and a code:
     https://ubuntu.com/pro/attach
     And provide the following code: H31JIV
 
-We need to open the link in our browser (without closing the terminal window).
+Let's first copy the code (``H31JIV`` in this example, but yours will be
+different), then open the link in our browser (without closing the terminal
+window). Paste the code into the "Enter your code" field.
 
-In the "Enter your code" field, copy and paste the code shown in the terminal.
 By default, the "Free Personal Token" will be selected in the "Choose a
 subscription to attach" field, and we can click on "Submit" to accept this. 
 
@@ -233,9 +233,8 @@ subscription to attach" field, and we can click on "Submit" to accept this.
    You can safely use one of your free personal tokens for this -- after we
    close down this VM the token can be re-used.
 
-The attach process will then continue in the terminal window, and once the
-authentication is completed we will eventually be presented with the following
-message:
+The attach process will then continue in the terminal window, and after the
+authentication is complete we will be presented with the following message:
 
 .. code-block:: text 
 
@@ -266,23 +265,57 @@ command to check on the status of the different Ubuntu Pro services:
     esm-infra        yes       enabled      Expanded Security Maintenance for Infrastructure
     fips             yes       disabled     NIST-certified FIPS crypto packages
     fips-updates     yes       disabled     FIPS compliant crypto packages with stable security updates
-    livepatch        yes       enabled      Canonical Livepatch service
+    livepatch        yes       warning      Canonical Livepatch service
     ros              yes       disabled     Security Updates for the Robot Operating System
     ros-updates      yes       disabled     All Updates for the Robot Operating System
 
-We might notice that three services are already enabled:
-``esm-apps``, ``esm-infra`` and ``livepatch``. These services are considered
-useful for everyone, and so they are enabled automatically.
+We might notice that there are three services that are not disabled by default:
+``esm-apps``, ``esm-infra``, and ``livepatch``. These three services are
+considered useful for everyone, and so they are enabled by default when you
+attach.
 
 Enabling ``esm-apps`` and ``esm-infra`` provides us with access to the
-additional security updates we saw earlier, so we can run our upgrade commands
-once more:
+repositories containing the additional security updates we saw earlier.
+
+There is also a warning beside ``livepatch`` with the following notice:
+
+.. code-block:: text
+
+    NOTICES
+    Operation in progress: pro attach
+    The running kernel has reached the end of its active livepatch window.
+    Please upgrade the kernel with apt and reboot for continued livepatch support.
+
+This is because the kernel in the default Bionic image is older and needs to be
+upgraded before we can run Livepatch. Luckily, we can apply the ESM security
+updates **and** upgrade our kernel just by running our upgrade command once
+more:
 
 .. code-block:: bash
 
    sudo apt update && sudo apt upgrade
 
-This will install and apply the security updates that we were missing.
+This may take a few minutes!
+
+Restart the VM
+--------------
+
+After this update has been completed, we will need to restart our VM to boot
+into the newly upgraded kernel. To do this, press :kbd:`Ctrl` + :kbd:`D`
+together to exit the VM, and then run:
+
+.. code-block:: bash
+
+   multipass restart test-vm
+
+Then, once Multipass has restarted our VM, we can log back into it:
+
+.. code-block:: bash
+
+   multipass shell test-vm
+
+Now if we run ``pro status`` again, we will see that Livepatch no longer has a
+warning, and its status is listed as ``enabled``. 
 
 What happens when Livepatch is enabled
 ======================================
@@ -306,7 +339,7 @@ We can see what fixes Livepatch applied for us using the following command:
 
 .. code-block:: bash
 
-   $ canonical-livepatch status --format yaml
+   canonical-livepatch status --format yaml
 
 Specifying the ``yaml`` format lets us see the details of exactly which CVEs
 have been automatically patched.
@@ -458,11 +491,21 @@ us do just that:
 
    sudo pro fix cve-2023-5764 --dry-run   
 
+.. code-block:: text
 
-[[ output ]]
+    WARNING: The option --dry-run is being used.
+    No packages will be installed when running this command.
+    CVE-2023-5764: Ansible vulnerabilities
+     - https://ubuntu.com/security/CVE-2023-5764
 
+    1 affected source package is installed: ansible
+    (1/1) ansible:
+    A fix is available in Ubuntu Pro: ESM Apps.
+    The update is already installed.
 
-As we can see, in the version of Ansible we are running, thanks to Pro, we are
+    ✔ CVE-2023-5764 is resolved.
+
+As we can see, in the version of Ansible we are running (thanks to Pro) we are
 not affected by this CVE. But what happens if we downgrade Ansible to an older
 version that **was** affected by it:
 
@@ -478,9 +521,22 @@ to see what happened:
 
    sudo pro fix cve-2023-5764 --dry-run   
 
-[[ output ]]
+.. code-block:: text
 
-Now we can see that we **are** affected by a CVE in the Ansible package. 
+    WARNING: The option --dry-run is being used.
+    No packages will be installed when running this command.
+    CVE-2023-5764: Ansible vulnerabilities
+     - https://ubuntu.com/security/CVE-2023-5764
+
+    1 affected source package is installed: ansible
+    (1/1) ansible:
+    A fix is available in Ubuntu Pro: ESM Apps.
+    { apt update && apt install --only-upgrade -y ansible }
+
+    ✔ CVE-2023-5764 is resolved.
+
+Now we can see that we **are** affected by a CVE in the Ansible package, and
+that the CVE is resolved so we can apply the fix for it. 
 
 The pro fix output
 ------------------
@@ -509,7 +565,17 @@ Now, let's run ``pro fix`` on the CVE:
 
 You will then see the following output:
 
-[[ output ]]
+.. code-block:: text
+
+    CVE-2023-5764: Ansible vulnerabilities
+     - https://ubuntu.com/security/CVE-2023-5764
+
+    1 affected source package is installed: ansible
+    (1/1) ansible:
+    A fix is available in Ubuntu Pro: ESM Apps.
+    { apt update && apt install --only-upgrade -y ansible }
+
+      ✔ CVE-2023-5764 is resolved.
 
 .. note::
     We need to run the command with ``sudo`` because it will be installing a
@@ -527,8 +593,17 @@ Also, at the end of the output you can see confirmation that the CVE was fixed
 by the command. Just to confirm that the fix was successfully applied, let's
 run the ``pro fix`` command again, and we should now see the following:
 
-[[ output ]]
+.. code-block:: text
 
+    CVE-2023-5764: Ansible vulnerabilities
+     - https://ubuntu.com/security/CVE-2023-5764
+
+    1 affected source package is installed: ansible
+    (1/1) ansible:
+    A fix is available in Ubuntu Pro: ESM Apps.
+    The update is already installed.
+
+      ✔ CVE-2023-5764 is resolved.
 
 Success!
 ========
@@ -544,8 +619,18 @@ In this tutorial, we have successfully run a Multipass VM and used it to:
 - And we've used ``pro fix --dry-run`` to check the status of a CVE and used
   ``pro fix`` to resolve it.
 
-.. Instructions for closing down and deleting the VM
-.. include:: ./common/shutdown-vm.txt
+Close down the VM
+-----------------
+
+When you are finished and want to leave the tutorial, you can shut down the VM
+by first pressing :kbd:`Ctrl` + :kbd:`D` to exit it, and then running the
+following commands to delete the VM completely:
+
+.. code-block:: bash
+
+   multipass delete test-vm
+   multipass purge
+
 
 Further reading
 ---------------
