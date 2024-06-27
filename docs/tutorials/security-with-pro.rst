@@ -327,7 +327,7 @@ machine to apply these patches.
 .. tip::
    Common Vulnerabilities and Exposures (CVEs) are a way to publicly track
    and catalogue security vulnerabilities in software. Each is given a unique
-   identifier in the format CVE-XXXX-XXXX. To learn more about CVEs, check
+   identifier in the format ``CVE-XXXX-XXXX``. To learn more about CVEs, check
    out our :ref:`explanation of CVEs and USNs <expl-cve-usn>`.
 
 When Livepatch was enabled, the Livepatch client was installed automatically,
