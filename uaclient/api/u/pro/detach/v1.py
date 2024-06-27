@@ -144,7 +144,7 @@ from uaclient.api.u.pro.detach.v1 import detach
 
 result = detach()
 """,  # noqa: E501
-    "result_cls": DetachResult,
+    "result_class": DetachResult,
     "exceptions": [
         (
             exceptions.NonRootUserError,

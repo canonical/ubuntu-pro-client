@@ -161,7 +161,7 @@ from uaclient.api.u.pro.attach.token.full_token_attach.v1 import full_token_atta
 options = FullTokenAttachOptions(token="TOKEN")
 result = full_token_attach(options)
 """,  # noqa: E501
-    "result_cls": FullTokenAttachResult,
+    "result_class": FullTokenAttachResult,
     "exceptions": [
         (
             exceptions.ConnectivityError,

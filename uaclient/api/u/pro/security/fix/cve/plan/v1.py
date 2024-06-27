@@ -111,7 +111,7 @@ from uaclient.api.u.pro.security.fix.cve.plan.v1 import plan, CVEFixPlanOptions
 options = CVEFixPlanOptions(cves=["CVE-1234-1234", "CVE-1234-1235"])
 result = plan(options)
 """,  # noqa: E501
-    "result_cls": CVESFixPlanResult,
+    "result_class": CVESFixPlanResult,
     "ignore_result_classes": [DataObject],
     "extra_result_classes": [
         AptUpgradeData,

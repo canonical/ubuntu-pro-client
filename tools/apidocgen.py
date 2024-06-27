@@ -143,7 +143,7 @@ def print_endpoint_docs(endpoint_name):
     if extra_args_content:
         args_section += "\n\n" + extra_args_content.strip()
 
-    result_class = module._doc.get("result_cls")
+    result_class = module._doc.get("result_class")
     result_classes = [result_class]
     collect_data_object_classes(
         result_class,

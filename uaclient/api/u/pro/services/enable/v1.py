@@ -292,7 +292,7 @@ _doc = {
 from uaclient.api.u.pro.services.enable.v1 import enable, EnableOptions
 result = enable(EnableOptions(service="usg"))
 """,
-    "result_cls": EnableResult,
+    "result_class": EnableResult,
     "exceptions": [
         (exceptions.NonRootUserError, "When called as non-root user"),
         (

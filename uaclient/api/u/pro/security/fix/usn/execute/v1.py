@@ -150,7 +150,7 @@ from uaclient.api.u.pro.security.fix.usn.execute.v1 import execute, USNFixExecut
 options = USNFixExecuteOptions(usns=["USN-1234-1", "USN-1235-1"])
 result = execute(options)
 """,  # noqa: E501
-    "result_cls": USNSAPIFixExecuteResult,
+    "result_class": USNSAPIFixExecuteResult,
     "exceptions": [],
     "example_cli": """pro api u.pro.security.fix.usn.execute.v1 --data '{"usns": ["USN-1234-1", "USN-1235-1"]}'""",  # noqa: E501
     "example_json": """

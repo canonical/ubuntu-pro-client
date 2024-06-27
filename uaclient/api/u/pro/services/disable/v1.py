@@ -151,7 +151,7 @@ _doc = {
 from uaclient.api.u.pro.services.disable.v1 import disable, DisableOptions
 result = disable(DisableOptions(service="usg"))
 """,
-    "result_cls": DisableResult,
+    "result_class": DisableResult,
     "exceptions": [
         (exceptions.NonRootUserError, "When called as non-root user"),
         (

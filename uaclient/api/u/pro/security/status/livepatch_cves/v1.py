@@ -70,7 +70,7 @@ from uaclient.api.u.pro.security.status.livepatch_cves.v1 import livepatch_cves
 
 result = livepatch_cves()
 """,  # noqa: E501
-    "result_cls": LivepatchCVEsResult,
+    "result_class": LivepatchCVEsResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.security.status.livepatch_cves.v1",
     "example_json": """
