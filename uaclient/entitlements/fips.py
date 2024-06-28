@@ -2,7 +2,7 @@ import logging
 import os
 import re
 from itertools import groupby
-from typing import Callable, List, Optional, Tuple, Union  # noqa: F401
+from typing import List, Optional, Tuple
 
 from uaclient import api, apt, event_logger, exceptions, messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type

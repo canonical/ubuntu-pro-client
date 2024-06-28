@@ -1,6 +1,6 @@
 import sys
 from gettext import NullTranslations, translation
-from typing import Callable, Dict, Optional  # noqa: F401
+from typing import Callable, Dict, Optional
 
 from uaclient.messages import urls
 

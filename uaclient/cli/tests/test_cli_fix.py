@@ -264,8 +264,8 @@ class TestExecuteFixPlan:
 
                    {check} USN-### does not affect your system.
                    """.format(
-                        check=messages.OKGREEN_CHECK  # noqa: E126
-                    )  # noqa: E126
+                        check=messages.OKGREEN_CHECK
+                    )
                 ),
                 FixStatus.SYSTEM_NOT_AFFECTED,
                 [],
@@ -331,8 +331,8 @@ class TestExecuteFixPlan:
 
                    {check} USN-### is resolved.
                    """.format(
-                        check=messages.OKGREEN_CHECK  # noqa: E126
-                    )  # noqa: E126
+                        check=messages.OKGREEN_CHECK
+                    )
                 ),
                 FixStatus.SYSTEM_NON_VULNERABLE,
                 [],
@@ -1727,8 +1727,8 @@ A fix is available in Ubuntu standard updates.\n"""
 
                    {check} USN-### does not affect your system.
                    """.format(
-                        check=messages.OKGREEN_CHECK  # noqa: E126
-                    )  # noqa: E126
+                        check=messages.OKGREEN_CHECK
+                    )
                 ),
                 FixStatus.SYSTEM_NOT_AFFECTED,
                 [],
