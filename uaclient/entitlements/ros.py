@@ -1,4 +1,4 @@
-from typing import Tuple, Type  # noqa: F401
+from typing import Tuple, Type
 
 from uaclient import messages
 from uaclient.entitlements import repo
