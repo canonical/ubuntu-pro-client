@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, Tuple, Type  # noqa: F401
+from typing import Any, Dict, Optional, Tuple, Type
 
 from uaclient import apt, event_logger, messages, system, util
 from uaclient.entitlements import repo

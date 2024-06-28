@@ -1,13 +1,13 @@
 import enum
 import textwrap
 from collections import defaultdict
-from typing import Dict, List, NamedTuple, Optional, Tuple, Type  # noqa: F401
+from typing import Dict, List, Optional, Type
 
 from uaclient import exceptions
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
 from uaclient.entitlements.anbox import AnboxEntitlement
-from uaclient.entitlements.base import UAEntitlement  # noqa: F401
+from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.entitlement_status import ApplicabilityStatus

@@ -105,7 +105,8 @@ def _get_kernel_changelog_timestamp(
 ) -> Optional[datetime.datetime]:
     if is_container():
         LOG.warning(
-            "Not attempting to use timestamp of kernel changelog because we're in a container"  # noqa: E501
+            "Not attempting to use timestamp of kernel "
+            "changelog because we're in a container"
         )
         return None
 

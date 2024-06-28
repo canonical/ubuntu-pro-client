@@ -7,7 +7,7 @@ import sys
 import textwrap
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Union  # noqa: F401
+from typing import Any, Dict, List, Optional, Union  # noqa: F401
 
 from uaclient import exceptions, messages
 from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST

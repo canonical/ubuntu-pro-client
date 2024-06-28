@@ -2,7 +2,7 @@ import copy
 import enum
 import socket
 from collections import defaultdict
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple  # noqa: F401
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 from uaclient import apt, exceptions, livepatch, messages, system, util
 from uaclient.http import serviceclient
