@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Any, Dict, Optional  # noqa: F401
+from typing import Any, Dict, Optional
 
 from uaclient import defaults, exceptions, system, util
 from uaclient.contract_data_types import PublicMachineTokenData

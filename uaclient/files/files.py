@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Any, Dict, Optional  # noqa: F401
+from typing import Any, Dict, Optional
 
 from uaclient import defaults, event_logger, exceptions, system, util
 
