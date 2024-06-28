@@ -5,7 +5,7 @@ import logging
 import os
 import re
 import shutil
-from typing import List, Optional  # noqa: F401
+from typing import List, Optional
 
 from uaclient import (
     api,
@@ -21,7 +21,6 @@ from uaclient import log as pro_log
 from uaclient import messages, secret_manager
 from uaclient import status as ua_status
 from uaclient import system, timer, util
-from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.defaults import (
     APPARMOR_PROFILES,
     CLOUD_BUILD_INFO,
