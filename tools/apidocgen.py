@@ -232,10 +232,18 @@ if __name__ == "__main__":
         print_endpoint_docs(endpoint_name)
     else:
         # all
-        print("..")
-        print("   THIS DOCUMENTATION WAS AUTOMATICALLY GENERATED")
         print(
-            "   Do not edit this document directly. Instead, edit the metadata in the api source code."  # noqa: E501
+            """\
+..
+   THIS DOCUMENTATION WAS AUTOMATICALLY GENERATED
+   Do not edit this document directly. Instead, edit the metadata in the api
+   source code. The api source code can be found on the main branch of the git
+   repo at https://github.com/canonical/ubuntu-pro-client. The api source code
+   is nested in the uaclient/api folder. If you need to edit the documentation
+   for u.pro.version.v1 you can find the api source code in
+   uaclient/api/u/pro/version/v1.py The documentation metadata is at the bottom
+   of that file.
+"""
         )
         print()
         print("Available endpoints")
