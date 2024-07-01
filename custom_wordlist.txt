@@ -63,6 +63,7 @@ json
 latencies
 Libera
 livepatch
+livepatches
 Livepatch
 Livepatches
 LTS
