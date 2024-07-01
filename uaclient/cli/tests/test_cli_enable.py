@@ -15,61 +15,18 @@ from uaclient.api.u.pro.status.enabled_services.v1 import (
     EnabledServicesResult,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import IsAttachedResult
-from uaclient.cli import main
 from uaclient.cli.enable import (
     _enable_landscape,
     _enable_one_service,
     _EnableOneServiceResult,
     _print_json_output,
-    action_enable,
+    enable_command,
     prompt_for_dependency_handling,
 )
 from uaclient.testing.helpers import does_not_raise
 
-HELP_OUTPUT = """\
-usage: pro enable <service> [<service>] [flags]
-
-Enable an Ubuntu Pro service.
-
-Arguments:
-  service              the name(s) of the Ubuntu Pro services to enable. One
-                       of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
-                       fips, fips-preview, fips-updates, landscape, livepatch,
-                       realtime-kernel, ros, ros-updates
-
-Flags:
-  -h, --help           show this help message and exit
-  --assume-yes         do not prompt for confirmation before performing the
-                       enable
-  --access-only        do not auto-install packages. Valid for cc-eal, cis and
-                       realtime-kernel.
-  --beta               allow beta service to be enabled
-  --format {cli,json}  output in the specified format (default: cli)
-  --variant VARIANT    The name of the variant to use when enabling the
-                       service
-"""
-
 
 class TestActionEnable:
-    @mock.patch("uaclient.log.setup_cli_logging")
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_enable_help(
-        self,
-        _m_resources,
-        _m_setup_logging,
-        capsys,
-        FakeConfig,
-    ):
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
-
     @pytest.mark.parametrize(
         [
             "is_attached",
@@ -543,7 +500,7 @@ class TestActionEnable:
         fake_machine_token_file.attached = True
 
         with expected_raises:
-            action_enable(args, cfg=FakeConfig(), **kwargs)
+            enable_command.action(args, cfg=FakeConfig(), **kwargs)
 
         assert (
             expected_enable_one_service_calls
