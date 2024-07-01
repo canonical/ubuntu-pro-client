@@ -6,6 +6,7 @@ from typing import Any, Optional  # noqa: F401
 from uaclient import exceptions, messages
 from uaclient.api import AbstractProgress
 from uaclient.api.api import call_api
+from uaclient.cli.commands import ProArgument, ProCommand
 
 
 class CLIAPIProgress(AbstractProgress):
@@ -45,28 +46,32 @@ def action_api(args, *, cfg, **kwargs):
     return 0 if result.result == "success" else 1
 
 
-def add_parser(subparsers, cfg):
-    """Build or extend an arg parser for the api subcommand."""
-    parser = subparsers.add_parser("api", help=messages.CLI_ROOT_API)
-    parser.prog = "api"
-    parser.description = messages.CLI_API_DESC
-    parser.add_argument(
-        "endpoint_path", metavar="endpoint", help=messages.CLI_API_ENDPOINT
-    )
-    parser.add_argument(
-        "--show-progress",
-        action="store_true",
-        help=messages.CLI_API_SHOW_PROGRESS,
-    )
-    parser.add_argument(
-        "--args",
-        dest="options",
-        default=[],
-        nargs="*",
-        help=messages.CLI_API_ARGS,
-    )
-    parser.add_argument(
-        "--data", dest="data", default="", help=messages.CLI_API_DATA
-    )
-    parser.set_defaults(action=action_api)
-    return parser
+api_command = ProCommand(
+    "api",
+    help=messages.CLI_ROOT_API,
+    description=messages.CLI_API_DESC,
+    action=action_api,
+    arguments=[
+        ProArgument(
+            "endpoint_path", help=messages.CLI_API_ENDPOINT, metavar="endpoint"
+        ),
+        ProArgument(
+            "--show-progress",
+            help=messages.CLI_API_SHOW_PROGRESS,
+            action="store_true",
+        ),
+        ProArgument(
+            "--args",
+            help=messages.CLI_API_ARGS,
+            dest="options",
+            default=[],
+            nargs="*",
+        ),
+        ProArgument(
+            "--data",
+            help=messages.CLI_API_DATA,
+            dest="data",
+            default="",
+        ),
+    ],
+)
