@@ -46,11 +46,12 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.cli import cli_util, enable, fix
+from uaclient.cli import cli_util, fix
 from uaclient.cli.api import api_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.disable import disable_command, perform_disable
+from uaclient.cli.enable import enable_command
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.entitlements import (
     create_enable_entitlements_not_found_error,
@@ -73,7 +74,7 @@ STATUS_FORMATS = ["tabular", "json", "yaml"]
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-COMMANDS = [api_command, collect_logs_command, disable_command]
+COMMANDS = [api_command, collect_logs_command, disable_command, enable_command]
 
 
 class UAArgumentParser(argparse.ArgumentParser):
@@ -908,7 +909,6 @@ def get_parser(cfg: config.UAConfig):
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
 
-    enable.add_parser(subparsers, cfg)
     fix.add_parser(subparsers)
 
     parser_security_status = subparsers.add_parser(
