@@ -17,9 +17,17 @@ from uaclient.data_types import DataObject, Field, StringDataValue, data_list
 
 class UpgradedPackage(DataObject):
     fields = [
-        Field("name", StringDataValue),
-        Field("version", StringDataValue),
-        Field("pocket", StringDataValue),
+        Field("name", StringDataValue, doc="The name of the package"),
+        Field(
+            "version",
+            StringDataValue,
+            doc="The version that the package was upgraded to",
+        ),
+        Field(
+            "pocket",
+            StringDataValue,
+            doc="The pocket which contained the package upgrade",
+        ),
     ]
 
     def __init__(self, name: str, version: str, pocket: str):
@@ -30,8 +38,13 @@ class UpgradedPackage(DataObject):
 
 class FailedUpgrade(DataObject):
     fields = [
-        Field("name", StringDataValue),
-        Field("pocket", StringDataValue, required=False),
+        Field("name", StringDataValue, doc="The name of the package"),
+        Field(
+            "pocket",
+            StringDataValue,
+            required=False,
+            doc="The pocket which contained the package upgrade",
+        ),
     ]
 
     def __init__(self, name: str, pocket: Optional[str] = None):
@@ -41,9 +54,16 @@ class FailedUpgrade(DataObject):
 
 class FixExecuteError(DataObject):
     fields = [
-        Field("error_type", StringDataValue),
-        Field("reason", StringDataValue),
-        Field("failed_upgrades", data_list(FailedUpgrade), required=False),
+        Field("error_type", StringDataValue, doc="The type of the error"),
+        Field(
+            "reason", StringDataValue, doc="The reason why the error occurred"
+        ),
+        Field(
+            "failed_upgrades",
+            data_list(FailedUpgrade),
+            required=False,
+            doc="A list of ``FailedUpgrade`` objects",
+        ),
     ]
 
     def __init__(
@@ -59,11 +79,26 @@ class FixExecuteError(DataObject):
 
 class FixExecuteResult(DataObject):
     fields = [
-        Field("title", StringDataValue),
-        Field("description", StringDataValue, required=False),
-        Field("status", StringDataValue),
-        Field("upgraded_packages", data_list(UpgradedPackage), required=False),
-        Field("errors", data_list(FixExecuteError), required=False),
+        Field("title", StringDataValue, doc="The title of the CVE"),
+        Field(
+            "description",
+            StringDataValue,
+            required=False,
+            doc="The description of the CVE",
+        ),
+        Field("status", StringDataValue, doc="The status of fixing the CVE"),
+        Field(
+            "upgraded_packages",
+            data_list(UpgradedPackage),
+            required=False,
+            doc="A list of ``UpgradedPackage`` objects",
+        ),
+        Field(
+            "errors",
+            data_list(FixExecuteError),
+            required=False,
+            doc="A list of ``FixExecuteError`` objects",
+        ),
     ]
 
     def __init__(
