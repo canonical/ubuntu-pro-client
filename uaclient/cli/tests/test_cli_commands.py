@@ -65,13 +65,18 @@ class TestProArgument:
         short_n_long_option = ProArgument(
             "--maybe-short", short_name="-m", help="help3"
         )
+        kwargs_included = ProArgument(
+            "--one-with-kwargs", help="help4", something="else"
+        )
 
         named_argument.register(mock_parser)
         long_option.register(mock_parser)
         short_n_long_option.register(mock_parser)
+        kwargs_included.register(mock_parser)
 
         assert [
             mock.call("mandatory-field", help="help1"),
             mock.call("--try-this-one", help="help2"),
             mock.call("-m", "--maybe-short", help="help3"),
+            mock.call("--one-with-kwargs", help="help4", something="else"),
         ] == mock_parser.add_argument.call_args_list
