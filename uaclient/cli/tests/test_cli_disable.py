@@ -11,8 +11,11 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
     ServiceWithDependencies,
     ServiceWithReason,
 )
-from uaclient.cli import main, main_error_handler
-from uaclient.cli.disable import action_disable, prompt_for_dependency_handling
+from uaclient.cli import main_error_handler
+from uaclient.cli.disable import (
+    disable_command,
+    prompt_for_dependency_handling,
+)
 from uaclient.entitlements.entitlement_status import (
     CanDisableFailure,
     CanDisableFailureReason,
@@ -35,45 +38,7 @@ def all_service_msg(FakeConfig):
     return ALL_SERVICE_MSG
 
 
-HELP_OUTPUT = textwrap.dedent(
-    """\
-usage: pro disable <service> [<service>] [flags]
-
-Disable an Ubuntu Pro service.
-
-Arguments:
-  service              the name(s) of the Ubuntu Pro services to disable. One
-                       of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
-                       fips, fips-preview, fips-updates, landscape, livepatch,
-                       realtime-kernel, ros, ros-updates
-
-Flags:
-  -h, --help           show this help message and exit
-  --assume-yes         do not prompt for confirmation before performing the
-                       disable
-  --format {cli,json}  output in the specified format (default: cli)
-  --purge              disable the service and remove/downgrade related
-                       packages (experimental)
-"""
-)
-
-
 class TestDisable:
-    @mock.patch("uaclient.log.setup_cli_logging")
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_disable_help(
-        self, _m_resources, _m_setup_logging, capsys, FakeConfig
-    ):
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
-
     @pytest.mark.parametrize("service", [["testitlement"], ["ent1", "ent2"]])
     @pytest.mark.parametrize("assume_yes", (True, False))
     @pytest.mark.parametrize(
@@ -147,7 +112,7 @@ class TestDisable:
         args_mock.purge = False
 
         with mock.patch.object(lock, "lock_data_file"):
-            ret = action_disable(args_mock, cfg=cfg)
+            ret = disable_command.action(args_mock, cfg=cfg)
 
         expected_disable_call = mock.call(mock.ANY)
         for m_entitlement in entitlements_obj:
@@ -169,7 +134,7 @@ class TestDisable:
                 with mock.patch.object(lock, "lock_data_file"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
-                        ret = action_disable(args_mock, cfg=cfg)
+                        ret = disable_command.action(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -273,7 +238,7 @@ class TestDisable:
         first_fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(first_fake_stdout):
             with mock.patch.object(lock, "lock_data_file"):
-                action_disable(args_mock, cfg=cfg)
+                disable_command.action(args_mock, cfg=cfg)
 
         assert (
             expected_error_tmpl.format(
@@ -296,7 +261,7 @@ class TestDisable:
         with mock.patch.object(lock, "lock_data_file"):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_disable)(args_mock, cfg=cfg)
+                main_error_handler(disable_command.action)(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -366,7 +331,7 @@ class TestDisable:
 
         with pytest.raises(exceptions.UbuntuProError) as err:
             with mock.patch.object(lock, "lock_data_file"):
-                action_disable(args, cfg)
+                disable_command.action(args, cfg)
 
         assert expected_error.msg == err.value.msg
 
@@ -380,7 +345,9 @@ class TestDisable:
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
                         with mock.patch.object(lock, "lock_data_file"):
-                            main_error_handler(action_disable)(args, cfg)
+                            main_error_handler(disable_command.action)(
+                                args, cfg
+                            )
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -430,7 +397,7 @@ class TestDisable:
         with contextlib.redirect_stdout(first_fake_stdout):
             with mock.patch.object(lock, "lock_data_file"):
                 args.service = service
-                action_disable(args, cfg)
+                disable_command.action(args, cfg)
 
         assert expected_error.msg in first_fake_stdout.getvalue()
 
@@ -439,7 +406,7 @@ class TestDisable:
         with mock.patch.object(lock, "lock_data_file"):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_disable)(args, cfg)
+                main_error_handler(disable_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -500,7 +467,7 @@ class TestDisable:
 
         with pytest.raises(exceptions.UbuntuProError) as err:
             args.service = ["esm-infra"]
-            action_disable(args, cfg)
+            disable_command.action(args, cfg)
 
         assert expected_error.msg == err.value.msg
 
@@ -513,7 +480,7 @@ class TestDisable:
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args, cfg)
+                        main_error_handler(disable_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -557,7 +524,7 @@ class TestDisable:
         m_check_lock_info.return_value = (123, "pro enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args.service = ["esm-infra"]
-            action_disable(args, cfg)
+            disable_command.action(args, cfg)
         assert 12 == m_check_lock_info.call_count
         assert expected_error.msg == err.value.msg
 
@@ -570,7 +537,7 @@ class TestDisable:
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
                     with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args, cfg)
+                        main_error_handler(disable_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -607,7 +574,7 @@ class TestDisable:
             ):
                 fake_stdout = io.StringIO()
                 with contextlib.redirect_stdout(fake_stdout):
-                    main_error_handler(action_disable)(args_mock, cfg)
+                    main_error_handler(disable_command.action)(args_mock, cfg)
 
         expected_message = messages.E_JSON_FORMAT_REQUIRE_ASSUME_YES
         expected = {
@@ -647,7 +614,7 @@ class TestDisable:
 
         with pytest.raises(SystemExit):
             with mock.patch.object(lock, "lock_data_file"):
-                main_error_handler(action_disable)(args_mock, cfg)
+                main_error_handler(disable_command.action)(args_mock, cfg)
 
         _out, err = capsys.readouterr()
 

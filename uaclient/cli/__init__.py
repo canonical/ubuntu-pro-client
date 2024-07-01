@@ -29,7 +29,6 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api import ProgressWrapper
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     _full_auto_attach,
@@ -47,10 +46,11 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.cli import cli_util, disable, enable, fix
+from uaclient.cli import cli_util, enable, fix
 from uaclient.cli.api import api_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
+from uaclient.cli.disable import disable_command, perform_disable
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.entitlements import (
     create_enable_entitlements_not_found_error,
@@ -59,7 +59,6 @@ from uaclient.entitlements import (
 )
 from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
-    CanDisableFailure,
     CanEnableFailure,
 )
 from uaclient.files import machine_token, state_files
@@ -74,7 +73,7 @@ STATUS_FORMATS = ["tabular", "json", "yaml"]
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-COMMANDS = [api_command, collect_logs_command]
+COMMANDS = [api_command, collect_logs_command, disable_command]
 
 
 class UAArgumentParser(argparse.ArgumentParser):
@@ -437,52 +436,6 @@ def _print_help_for_subcommand(
         )
 
 
-def _perform_disable(
-    entitlement, cfg, *, json_output, assume_yes, update_status=True
-):
-    """Perform the disable action on a named entitlement.
-
-    :param entitlement_name: the name of the entitlement to enable
-    :param cfg: the UAConfig to pass to the entitlement
-    :param json_output: output should be json only
-
-    @return: True on success, False otherwise
-    """
-    # Make sure we have the correct variant of the service
-    # This can affect what packages get uninstalled
-    variant = entitlement.enabled_variant
-    if variant is not None:
-        entitlement = variant
-
-    if json_output:
-        progress = ProgressWrapper()
-    else:
-        progress = ProgressWrapper(
-            cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
-        )
-
-    ret, reason = entitlement.disable(progress)
-
-    if not ret:
-        event.service_failed(entitlement.name)
-
-        if reason is not None and isinstance(reason, CanDisableFailure):
-            if reason.message is not None:
-                event.info(reason.message.msg)
-                event.error(
-                    error_msg=reason.message.msg,
-                    error_code=reason.message.name,
-                    service=entitlement.name,
-                )
-    else:
-        event.service_processed(entitlement.name)
-
-    if update_status:
-        status.status(cfg=cfg)  # Update the status cache
-
-    return ret
-
-
 def action_config(args, *, cfg, **kwargs):
     """Perform the config action.
 
@@ -749,7 +702,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
-        _perform_disable(
+        perform_disable(
             ent,
             cfg,
             json_output=json_output,
@@ -955,7 +908,6 @@ def get_parser(cfg: config.UAConfig):
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
 
-    disable.add_parser(subparsers, cfg)
     enable.add_parser(subparsers, cfg)
     fix.add_parser(subparsers)
 
