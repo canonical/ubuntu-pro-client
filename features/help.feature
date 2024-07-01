@@ -33,6 +33,27 @@ Feature: Pro Client help text
                               key=value
         --data DATA           arguments in JSON format to the API endpoint
       """
+    When I run `pro disable --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro disable \[flags\]
+
+      Disable an Ubuntu Pro service.
+
+      positional arguments:
+        service              the name\(s\) of the Ubuntu Pro services to disable. One
+                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
+                             fips, fips-preview, fips-updates, landscape, livepatch,
+                             realtime-kernel, ros, ros-updates
+
+      (optional arguments|options):
+        -h, --help           show this help message and exit
+        --assume-yes         do not prompt for confirmation before performing the
+                             disable
+        --format \{cli,json\}  output in the specified format \(default: cli\)
+        --purge              disable the service and remove/downgrade related
+                             packages \(experimental\)
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
