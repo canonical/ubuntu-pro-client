@@ -9,7 +9,6 @@ from typing import Optional
 
 from uaclient import (
     actions,
-    api,
     apt,
     apt_news,
     config,
@@ -30,6 +29,7 @@ from uaclient import (
     util,
     version,
 )
+from uaclient.api import ProgressWrapper
 from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     _full_auto_attach,
@@ -47,7 +47,8 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.cli import cli_api, cli_util, disable, enable, fix
+from uaclient.cli import cli_util, disable, enable, fix
+from uaclient.cli.api import api_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
@@ -73,7 +74,7 @@ STATUS_FORMATS = ["tabular", "json", "yaml"]
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-COMMANDS = [collect_logs_command]
+COMMANDS = [api_command, collect_logs_command]
 
 
 class UAArgumentParser(argparse.ArgumentParser):
@@ -454,9 +455,9 @@ def _perform_disable(
         entitlement = variant
 
     if json_output:
-        progress = api.ProgressWrapper()
+        progress = ProgressWrapper()
     else:
-        progress = api.ProgressWrapper(
+        progress = ProgressWrapper(
             cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
         )
 
@@ -935,8 +936,6 @@ def get_parser(cfg: config.UAConfig):
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
-
-    cli_api.add_parser(subparsers, cfg)
 
     parser_auto_attach = subparsers.add_parser(
         "auto-attach", help=messages.CLI_ROOT_AUTO_ATTACH
