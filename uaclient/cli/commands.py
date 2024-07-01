@@ -6,15 +6,22 @@ from uaclient.cli.constants import NAME, USAGE_TMPL
 
 class ProArgument:
     def __init__(
-        self, long_name: str, help: str, short_name: Optional[str] = None
+        self,
+        long_name: str,
+        help: str,
+        short_name: Optional[str] = None,
+        **kwargs
     ):
         self.names = (
             (long_name,) if short_name is None else (short_name, long_name)
         )
         self.help = help
+        self.additional_args = kwargs
 
     def register(self, parser: argparse.ArgumentParser):
-        parser.add_argument(*self.names, help=self.help)
+        parser.add_argument(
+            *self.names, help=self.help, **self.additional_args
+        )
 
 
 class ProCommand:
