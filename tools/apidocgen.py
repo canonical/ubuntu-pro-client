@@ -37,36 +37,36 @@ Arguments:
    .. tab-item:: Python API interaction
       :sync: python
 
-      - Calling from Python code:
+      **Calling from Python code:**
 
-        .. code-block:: python
+      .. code-block:: python
 
-           {example_python}
+         {example_python}
 
-      - Expected return object:
+      **Expected return object:**
 
-        {result_classes}
+      {result_classes}
 
-      - Raised exceptions:
+      **Raised exceptions:**
 
-        {exceptions}
+      {exceptions}
 
    .. tab-item:: CLI interaction
       :sync: CLI
 
-      - Calling from the CLI:
+      **Calling from the CLI:**
 
-        .. code-block:: bash
+      .. code-block:: bash
 
-           {example_cli}
+         {example_cli}
 
-        {example_cli_extra}
+      {example_cli_extra}
 
-      - Expected attributes in JSON structure:
+      **Expected attributes in JSON structure:**
 
-        .. code-block:: js
+      .. code-block:: js
 
-           {example_json}
+         {example_json}
 
 {extra}
 
@@ -169,7 +169,7 @@ def print_endpoint_docs(endpoint_name):
         )
     result_class_definitions_str = textwrap.indent(
         "\n\n".join(result_class_definitions),
-        prefix=(BLOCK_INDENT * 2) + LIST_INDENT,
+        prefix=BLOCK_INDENT * 2,
     ).strip()
 
     possible_exceptions = [
@@ -190,7 +190,7 @@ def print_endpoint_docs(endpoint_name):
             "- ``{name}``: {msg}".format(name=err_cls.__name__, msg=msg)
         )
     exceptions_str = textwrap.indent(
-        "\n".join(exception_str_list), prefix=(BLOCK_INDENT * 2) + LIST_INDENT
+        "\n".join(exception_str_list), prefix=BLOCK_INDENT * 2
     ).strip()
 
     extra_indent = module._doc.get("extra_indent", 1)
@@ -203,18 +203,18 @@ def print_endpoint_docs(endpoint_name):
         "args_section": args_section,
         "example_python": textwrap.indent(
             module._doc.get("example_python").strip(),
-            prefix=(BLOCK_INDENT * 3) + LIST_INDENT,
+            prefix=BLOCK_INDENT * 3,
         ).strip(),
         "result_classes": result_class_definitions_str,
         "exceptions": exceptions_str,
         "example_cli": module._doc.get("example_cli").strip(),
         "example_cli_extra": textwrap.indent(
             module._doc.get("example_cli_extra", ""),
-            prefix=(BLOCK_INDENT * 2) + LIST_INDENT,
+            prefix=BLOCK_INDENT * 2,
         ).strip(),
         "example_json": textwrap.indent(
             module._doc.get("example_json").strip(),
-            prefix=(BLOCK_INDENT * 3) + LIST_INDENT,
+            prefix=BLOCK_INDENT * 3,
         ).strip(),
         "extra": textwrap.indent(
             module._doc.get("extra", "").strip(),
