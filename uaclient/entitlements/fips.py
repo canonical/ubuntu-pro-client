@@ -155,7 +155,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 )
             ]
 
-        return {
+        messaging = {
             "pre_enable": [
                 (
                     util.prompt_for_confirmation,
@@ -170,7 +170,38 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             ],
             "post_enable": post_enable,
             "pre_disable": pre_disable,
-        }
+        }  # type: MessagingOperationsDict
+
+        if len(self.packages) == 1:
+            # that is the kernel "ubuntu-fips" or "ubuntu-${cloud}-fips"
+            ubuntu_fips_package_name = self.packages[0]
+            ubuntu_fips_package_flavor_match = re.match(
+                "ubuntu-([a-z]+)-fips", ubuntu_fips_package_name
+            )
+            if ubuntu_fips_package_flavor_match:
+                ubuntu_fips_package_flavor = (
+                    ubuntu_fips_package_flavor_match.group(1)
+                )
+            else:
+                ubuntu_fips_package_flavor = "generic"
+            current_flavor = system.get_kernel_info().flavor
+            if ubuntu_fips_package_flavor != current_flavor:
+                pre_enable = messaging.get("pre_enable") or []
+                msg = messages.KERNEL_FLAVOR_CHANGE_WARNING_PROMPT.format(
+                    variant=ubuntu_fips_package_flavor,
+                    service=self.name,
+                    base_flavor=ubuntu_fips_package_flavor,
+                    current_flavor=current_flavor or "unknown",
+                )
+                pre_enable.append(
+                    (
+                        util.prompt_for_confirmation,
+                        {"msg": msg},
+                    )
+                )
+                messaging["pre_enable"] = pre_enable
+
+        return messaging
 
     @property
     def conditional_packages(self):
