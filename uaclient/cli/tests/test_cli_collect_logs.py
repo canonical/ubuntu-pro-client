@@ -1,52 +1,13 @@
-import re
-import textwrap
-
 import mock
 import pytest
 
-from uaclient.cli import (
-    action_collect_logs,
-    collect_logs_parser,
-    get_parser,
-    main,
-)
+from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.defaults import APPARMOR_PROFILES
 
 M_PATH = "uaclient.cli."
 
-HELP_OUTPUT = textwrap.dedent(
-    """\
-usage: pro collect-logs \[flags\]
-
-Collect logs and relevant system information into a tarball.
-
-(optional arguments|options):
-  -h, --help            show this help message and exit
-  -o OUTPUT, --output OUTPUT
-                        tarball where the logs will be stored. \(Defaults to
-                        ./pro_logs.tar.gz\)
-"""  # noqa
-)
-
 
 class TestActionCollectLogs:
-    @mock.patch("uaclient.log.setup_cli_logging")
-    @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_collect_logs_help(
-        self, _m_resources, _m_setup_logging, capsys, FakeConfig
-    ):
-        with pytest.raises(SystemExit):
-            with mock.patch(
-                "sys.argv", ["/usr/bin/ua", "collect-logs", "--help"]
-            ):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, _err = capsys.readouterr()
-        assert re.match(HELP_OUTPUT, out)
-
     @pytest.mark.parametrize(
         "series,extension", (("jammy", "list"), ("noble", "sources"))
     )
@@ -115,7 +76,7 @@ class TestActionCollectLogs:
             ]
 
         cfg = FakeConfig()
-        action_collect_logs(mock.MagicMock(), cfg=cfg)
+        collect_logs_command.action(mock.MagicMock(), cfg=cfg)
 
         assert m_subp.call_args_list == [
             mock.call(["cloud-id"], rcs=None),
@@ -235,20 +196,3 @@ class TestActionCollectLogs:
             APPARMOR_PROFILES
         )
         assert m_shutilcopy.call_count == len(APPARMOR_PROFILES)
-
-
-class TestParser:
-    @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_collect_logs_parser_updates_parser_config(
-        self, _m_resources, FakeConfig
-    ):
-        """Update the parser configuration for 'collect-logs'."""
-        m_parser = collect_logs_parser(mock.Mock())
-        assert "pro collect-logs [flags]" == m_parser.usage
-        assert "collect-logs" == m_parser.prog
-
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "collect-logs"]):
-            args = full_parser.parse_args()
-        assert "collect-logs" == args.command
-        assert "action_collect_logs" == args.action.__name__

@@ -3,13 +3,12 @@ import io
 import json
 import logging
 import socket
-import textwrap
 
 import mock
 import pytest
 
 from uaclient import defaults, exceptions, messages, status
-from uaclient.cli import action_help, get_parser, main
+from uaclient.cli import action_help, main
 from uaclient.entitlements import get_valid_entitlement_names
 from uaclient.exceptions import (
     AlreadyAttachedError,
@@ -420,27 +419,6 @@ class TestMain:
             )
 
         assert expected_setup_logging_calls == m_setup_logging.call_args_list
-
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_argparse_errors_well_formatted(
-        self, _m_resources, capsys, FakeConfig
-    ):
-        cfg = FakeConfig()
-        parser = get_parser(cfg)
-        with mock.patch("sys.argv", ["pro", "enable"]):
-            with pytest.raises(SystemExit) as excinfo:
-                parser.parse_args()
-        assert 2 == excinfo.value.code
-        _, err = capsys.readouterr()
-        assert (
-            textwrap.dedent(
-                """\
-            usage: pro enable <service> [<service>] [flags]
-            the following arguments are required: service
-        """
-            )
-            == str(err)
-        )
 
     @pytest.mark.parametrize(
         "cli_args,is_tty,should_warn",

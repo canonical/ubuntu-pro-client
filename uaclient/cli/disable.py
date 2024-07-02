@@ -4,7 +4,6 @@ import textwrap
 from typing import Dict, List  # noqa: F401
 
 from uaclient import (
-    api,
     config,
     contract,
     entitlements,
@@ -14,14 +13,17 @@ from uaclient import (
     status,
     util,
 )
+from uaclient.api import ProgressWrapper
 from uaclient.api.u.pro.services.dependencies.v1 import (
     ServiceWithDependencies,
     _dependencies,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
-from uaclient.cli import cli_util, constants
+from uaclient.cli import cli_util
+from uaclient.cli.commands import ProArgument, ProCommand
 from uaclient.entitlements.entitlement_status import CanDisableFailure
 
+event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
@@ -54,6 +56,52 @@ def prompt_for_dependency_handling(
                 service_being_disabled=service_title,
                 dependent_service=dependent_service_title,
             )
+
+
+def perform_disable(
+    entitlement, cfg, *, json_output, assume_yes, update_status=True
+):
+    """Perform the disable action on a named entitlement.
+
+    :param entitlement_name: the name of the entitlement to enable
+    :param cfg: the UAConfig to pass to the entitlement
+    :param json_output: output should be json only
+
+    @return: True on success, False otherwise
+    """
+    # Make sure we have the correct variant of the service
+    # This can affect what packages get uninstalled
+    variant = entitlement.enabled_variant
+    if variant is not None:
+        entitlement = variant
+
+    if json_output:
+        progress = ProgressWrapper()
+    else:
+        progress = ProgressWrapper(
+            cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
+        )
+
+    ret, reason = entitlement.disable(progress)
+
+    if not ret:
+        event.service_failed(entitlement.name)
+
+        if reason is not None and isinstance(reason, CanDisableFailure):
+            if reason.message is not None:
+                event.info(reason.message.msg)
+                event.error(
+                    error_msg=reason.message.msg,
+                    error_code=reason.message.name,
+                    service=entitlement.name,
+                )
+    else:
+        event.service_processed(entitlement.name)
+
+    if update_status:
+        status.status(cfg=cfg)  # Update the status cache
+
+    return ret
 
 
 @cli_util.verify_json_format_args
@@ -135,9 +183,9 @@ def action_disable(args, *, cfg, **kwargs):
                 continue
 
         if json_output:
-            progress = api.ProgressWrapper()
+            progress = ProgressWrapper()
         else:
-            progress = api.ProgressWrapper(
+            progress = ProgressWrapper(
                 cli_util.CLIEnableDisableProgress(assume_yes=assume_yes)
             )
         progress.total_steps = ent.calculate_total_disable_steps()
@@ -241,43 +289,38 @@ def action_disable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
-def add_parser(subparsers, cfg: config.UAConfig):
-    """Build or extend an arg parser for disable subcommand."""
-    parser = subparsers.add_parser("disable", help=messages.CLI_ROOT_DISABLE)
-    parser.set_defaults(action=action_disable)
-    usage = constants.USAGE_TMPL.format(
-        name=constants.NAME, command="disable <service> [<service>]"
-    )
-    parser.description = messages.CLI_DISABLE_DESC
-    parser.usage = usage
-    parser.prog = "disable"
-    parser._positionals.title = messages.CLI_ARGS
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.add_argument(
-        "service",
-        action="store",
-        nargs="+",
-        help=(
-            messages.CLI_DISABLE_SERVICE.format(
-                options=", ".join(entitlements.valid_services(cfg=cfg))
-            )
+disable_command = ProCommand(
+    "disable",
+    help=messages.CLI_ROOT_DISABLE,
+    description=messages.CLI_DISABLE_DESC,
+    action=action_disable,
+    arguments=[
+        ProArgument(
+            "service",
+            help=messages.CLI_DISABLE_SERVICE.format(
+                options=", ".join(
+                    entitlements.valid_services(cfg=config.UAConfig())
+                )
+            ),
+            action="store",
+            nargs="+",
         ),
-    )
-    parser.add_argument(
-        "--assume-yes",
-        action="store_true",
-        help=messages.CLI_ASSUME_YES.format(command="disable"),
-    )
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=["cli", "json"],
-        default="cli",
-        help=messages.CLI_FORMAT_DESC.format(default="cli"),
-    )
-    parser.add_argument(
-        "--purge",
-        action="store_true",
-        help=messages.CLI_PURGE,
-    )
-    return parser
+        ProArgument(
+            "--assume-yes",
+            help=messages.CLI_ASSUME_YES.format(command="disable"),
+            action="store_true",
+        ),
+        ProArgument(
+            "--format",
+            help=messages.CLI_FORMAT_DESC.format(default="cli"),
+            action="store",
+            choices=["cli", "json"],
+            default="cli",
+        ),
+        ProArgument(
+            "--purge",
+            help=messages.CLI_PURGE,
+            action="store_true",
+        ),
+    ],
+)

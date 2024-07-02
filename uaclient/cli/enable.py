@@ -28,7 +28,8 @@ from uaclient.api.u.pro.status.enabled_services.v1 import (
     _enabled_services,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.cli import cli_util, constants
+from uaclient.cli import cli_util
+from uaclient.cli.commands import ProArgument, ProCommand
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -505,47 +506,48 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     return 0 if ret else 1
 
 
-def add_parser(subparsers, cfg: config.UAConfig):
-    parser = subparsers.add_parser("enable", help=messages.CLI_ROOT_ENABLE)
-    parser.set_defaults(action=action_enable)
-    parser.description = messages.CLI_ENABLE_DESC
-    parser.usage = constants.USAGE_TMPL.format(
-        name=constants.NAME, command="enable <service> [<service>]"
-    )
-    parser.prog = "enable"
-    parser._positionals.title = messages.CLI_ARGS
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.add_argument(
-        "service",
-        action="store",
-        nargs="+",
-        help=(
-            messages.CLI_ENABLE_SERVICE.format(
-                options=", ".join(entitlements.valid_services(cfg=cfg))
-            )
+enable_command = ProCommand(
+    "enable",
+    help=messages.CLI_ROOT_ENABLE,
+    description=messages.CLI_ENABLE_DESC,
+    action=action_enable,
+    arguments=[
+        ProArgument(
+            "service",
+            help=messages.CLI_ENABLE_SERVICE.format(
+                options=", ".join(
+                    entitlements.valid_services(cfg=config.UAConfig())
+                )
+            ),
+            action="store",
+            nargs="+",
         ),
-    )
-    parser.add_argument(
-        "--assume-yes",
-        action="store_true",
-        help=messages.CLI_ASSUME_YES.format(command="enable"),
-    )
-    parser.add_argument(
-        "--access-only",
-        action="store_true",
-        help=messages.CLI_ENABLE_ACCESS_ONLY,
-    )
-    parser.add_argument(
-        "--beta", action="store_true", help=messages.CLI_ENABLE_BETA
-    )
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=["cli", "json"],
-        default="cli",
-        help=messages.CLI_FORMAT_DESC.format(default="cli"),
-    )
-    parser.add_argument(
-        "--variant", action="store", help=messages.CLI_ENABLE_VARIANT
-    )
-    return parser
+        ProArgument(
+            "--assume-yes",
+            help=messages.CLI_ASSUME_YES.format(command="enable"),
+            action="store_true",
+        ),
+        ProArgument(
+            "--access-only",
+            help=messages.CLI_ENABLE_ACCESS_ONLY,
+            action="store_true",
+        ),
+        ProArgument(
+            "--beta",
+            help=messages.CLI_ENABLE_BETA,
+            action="store_true",
+        ),
+        ProArgument(
+            "--format",
+            help=messages.CLI_FORMAT_DESC.format(default="cli"),
+            action="store",
+            choices=["cli", "json"],
+            default="cli",
+        ),
+        ProArgument(
+            "--variant",
+            help=messages.CLI_ENABLE_VARIANT,
+            action="store",
+        ),
+    ],
+)
