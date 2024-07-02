@@ -87,6 +87,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     repo_pin_priority = 1001
     repo_key_file = "ubuntu-pro-fips.gpg"  # Same for fips & fips-updates
     FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
+    pre_enable_msg = messages.PROMPT_FIPS_PRE_ENABLE
 
     # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS
     # Review this fix to see if we want more general functionality for all
@@ -126,6 +127,50 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         "ubuntu-azure-fips",
         "ubuntu-gcp-fips",
     ]
+
+    @property
+    def messaging(self) -> MessagingOperationsDict:
+        post_enable = None  # type: Optional[MessagingOperations]
+        if system.is_container():
+            pre_enable_prompt = (
+                messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
+                    title=self.title
+                )
+            )
+            if not self.auto_upgrade_all_on_enable():
+                post_enable = [messages.FIPS_RUN_APT_UPGRADE]
+        else:
+            pre_enable_prompt = self.pre_enable_msg
+
+        pre_disable = None  # type: Optional[MessagingOperations]
+        if not self.purge:
+            pre_disable = [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
+                            title=self.title
+                        ),
+                    },
+                )
+            ]
+
+        return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {"msg": pre_enable_prompt},
+                )
+            ],
+            "pre_install": [
+                (
+                    self.prompt_if_kernel_downgrade,
+                    {},
+                )
+            ],
+            "post_enable": post_enable,
+            "pre_disable": pre_disable,
+        }
 
     @property
     def conditional_packages(self):
@@ -551,50 +596,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             ),
         )
 
-    @property
-    def messaging(self) -> MessagingOperationsDict:
-        post_enable = None  # type: Optional[MessagingOperations]
-        if system.is_container():
-            pre_enable_prompt = (
-                messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
-                    title=self.title
-                )
-            )
-            if not self.auto_upgrade_all_on_enable():
-                post_enable = [messages.FIPS_RUN_APT_UPGRADE]
-        else:
-            pre_enable_prompt = self.pre_enable_msg
-
-        pre_disable = None  # type: Optional[MessagingOperations]
-        if not self.purge:
-            pre_disable = [
-                (
-                    util.prompt_for_confirmation,
-                    {
-                        "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
-                            title=self.title
-                        ),
-                    },
-                )
-            ]
-
-        return {
-            "pre_enable": [
-                (
-                    util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt},
-                )
-            ],
-            "pre_install": [
-                (
-                    self.prompt_if_kernel_downgrade,
-                    {},
-                )
-            ],
-            "post_enable": post_enable,
-            "pre_disable": pre_disable,
-        }
-
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
@@ -618,6 +619,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     origin = "UbuntuFIPSUpdates"
     description = messages.FIPS_UPDATES_DESCRIPTION
     help_text = messages.FIPS_UPDATES_HELP_TEXT
+    pre_enable_msg = messages.PROMPT_FIPS_UPDATES_PRE_ENABLE
 
     @property
     def incompatible_services(self) -> Tuple[EntitlementWithMessage, ...]:
@@ -632,50 +634,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                 messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE,
             ),
         )
-
-    @property
-    def messaging(self) -> MessagingOperationsDict:
-        post_enable = None  # type: Optional[MessagingOperations]
-        if system.is_container():
-            pre_enable_prompt = (
-                messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
-                    title=self.title
-                )
-            )
-            if not self.auto_upgrade_all_on_enable():
-                post_enable = [messages.FIPS_RUN_APT_UPGRADE]
-        else:
-            pre_enable_prompt = messages.PROMPT_FIPS_UPDATES_PRE_ENABLE
-
-        pre_disable = None  # type: Optional[MessagingOperations]
-        if not self.purge:
-            pre_disable = [
-                (
-                    util.prompt_for_confirmation,
-                    {
-                        "msg": messages.PROMPT_FIPS_PRE_DISABLE.format(
-                            title=self.title
-                        ),
-                    },
-                )
-            ]
-
-        return {
-            "pre_enable": [
-                (
-                    util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt},
-                )
-            ],
-            "pre_install": [
-                (
-                    self.prompt_if_kernel_downgrade,
-                    {},
-                )
-            ],
-            "post_enable": post_enable,
-            "pre_disable": pre_disable,
-        }
 
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         if super()._perform_enable(progress=progress):
