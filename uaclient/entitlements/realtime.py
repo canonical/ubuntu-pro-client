@@ -147,6 +147,29 @@ class GenericRealtime(RealtimeVariant):
     is_variant = True
     check_packages_are_installed = True
 
+    @property
+    def messaging(
+        self,
+    ) -> MessagingOperationsDict:
+        messaging = super().messaging
+        current_flavor = system.get_kernel_info().flavor
+        if current_flavor != "generic":
+            pre_enable = messaging.get("pre_enable") or []
+            msg = messages.KERNEL_FLAVOR_CHANGE_WARNING_PROMPT.format(
+                variant=self.variant_name,
+                service=self.name,
+                base_flavor="generic",
+                current_flavor=current_flavor or "unknown",
+            )
+            pre_enable.append(
+                (
+                    util.prompt_for_confirmation,
+                    {"msg": msg},
+                )
+            )
+            messaging["pre_enable"] = pre_enable
+        return messaging
+
 
 class NvidiaTegraRealtime(RealtimeVariant):
     variant_name = "nvidia-tegra"

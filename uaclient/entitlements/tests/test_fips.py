@@ -265,6 +265,76 @@ class TestFIPSEntitlementDefaults:
         else:
             assert False, "Unknown entitlement {}".format(entitlement.name)
 
+    @pytest.mark.parametrize(
+        [
+            "fips_packages",
+            "current_kernel",
+            "expected_pre_enable_messages",
+        ],
+        [
+            ([], None, [(util.prompt_for_confirmation, {"msg": mock.ANY})]),
+            (
+                ["ubuntu-fips"],
+                mock.MagicMock(flavor="generic"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-aws-fips"],
+                mock.MagicMock(flavor="aws"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-azure-fips"],
+                mock.MagicMock(flavor="azure"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-gcp-fips"],
+                mock.MagicMock(flavor="gcp"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-fips"],
+                mock.MagicMock(flavor="nonstandard"),
+                [
+                    (util.prompt_for_confirmation, {"msg": mock.ANY}),
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "msg": messages.KERNEL_FLAVOR_CHANGE_WARNING_PROMPT.format(  # noqa: E501
+                                variant="generic",
+                                service="fips",
+                                base_flavor="generic",
+                                current_flavor="nonstandard",
+                            )
+                        },
+                    ),
+                ],
+            ),
+        ],
+    )
+    @mock.patch(
+        "uaclient.entitlements.fips.FIPSCommonEntitlement.packages",
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("uaclient.system.is_container", return_value=False)
+    def test_messaging_on_wrong_kernel(
+        self,
+        _m_is_container,
+        m_get_kernel_info,
+        m_fips_packages,
+        fips_packages,
+        current_kernel,
+        expected_pre_enable_messages,
+        FakeConfig,
+    ):
+        m_get_kernel_info.return_value = current_kernel
+        m_fips_packages.return_value = fips_packages
+        assert expected_pre_enable_messages == FIPSEntitlement(
+            FakeConfig()
+        ).messaging.get("pre_enable")
+
 
 class TestFIPSEntitlementEnable:
     @pytest.mark.parametrize(

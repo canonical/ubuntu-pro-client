@@ -1337,6 +1337,18 @@ Warning: Downgrading the kernel may cause hardware failures.  Please ensure the
          hardware is compatible with the new kernel version before proceeding.
 """
 )
+KERNEL_FLAVOR_CHANGE_WARNING_PROMPT = t.gettext(
+    """\
+The "{variant}" variant of {service} is based on the "{base_flavor}" Ubuntu
+kernel but this machine is running the "{current_flavor}" kernel.
+The "{current_flavor}" kernel may have significant hardware support
+differences from "{variant}" {service}.
+
+Warning: Installing {variant} {service} may result in lost hardware support
+         and may prevent the system from booting.
+
+Do you accept the risk and wish to continue? (y/N) """
+)
 FIPS_SYSTEM_REBOOT_REQUIRED = t.gettext(
     "FIPS support requires system reboot to complete configuration."
 )

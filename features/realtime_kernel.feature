@@ -398,3 +398,35 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Examples: ubuntu release
       | release | machine_type |
       | jammy   | lxd-vm       |
+
+  Scenario Outline: Show flavor change warning
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
+    When I run `pro enable realtime-kernel --variant=generic` `with sudo` and stdin `y\ny`
+    Then stdout matches regexp:
+      """
+      One moment, checking your subscription first
+      The Real-time kernel is an Ubuntu kernel with PREEMPT_RT patches integrated.
+
+      .*This will change your kernel. To revert to your original kernel, you will need
+      to make the change manually..*
+
+      Do you want to continue\? \[ default = Yes \]: \(Y/n\) The "generic" variant of realtime-kernel is based on the "generic" Ubuntu
+      kernel but this machine is running the "aws" kernel.
+      The "aws" kernel may have significant hardware support
+      differences from "generic" realtime-kernel.
+
+      Warning: Installing generic realtime-kernel may result in lost hardware support
+               and may prevent the system from booting.
+
+      Do you accept the risk and wish to continue\? \(y/N\) Configuring APT access to Real-time kernel
+      Updating Real-time kernel package lists
+      Updating standard Ubuntu package lists
+      Installing Real-time kernel packages
+      Real-time kernel enabled
+      A reboot is required to complete install\.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | jammy   | aws.generic  |
