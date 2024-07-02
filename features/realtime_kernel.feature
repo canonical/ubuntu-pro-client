@@ -362,6 +362,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       | release | machine_type |
       | jammy   | lxd-vm       |
 
+  Scenario Outline: Enable generic-hwe kernel
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
+
   Scenario Outline: Enable Real-time kernel service access-only
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo and options `--no-auto-enable`

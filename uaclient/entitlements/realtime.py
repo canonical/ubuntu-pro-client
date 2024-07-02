@@ -148,6 +148,18 @@ class GenericRealtime(RealtimeVariant):
     check_packages_are_installed = True
 
 
+class GenericHWERealtime(RealtimeVariant):
+    variant_name = "generic-hwe"
+    title = messages.REALTIME_GENERIC_HWE_TITLE
+    description = messages.REALTIME_GENERIC_HWE_DESCRIPTION
+    is_variant = True
+    check_packages_are_installed = True
+
+    def variant_auto_select(self) -> bool:
+        # TODO auto select on hwe?
+        return False
+
+
 class NvidiaTegraRealtime(RealtimeVariant):
     variant_name = "nvidia-tegra"
     title = messages.REALTIME_NVIDIA_TITLE
