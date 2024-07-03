@@ -1648,7 +1648,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
-    @mock.patch("uaclient.cli.action_detach")
+    @mock.patch(M_PATH + "action_detach")
     @mock.patch(M_PATH + "attach_with_token")
     @mock.patch(M_PATH + "_check_subscription_is_expired")
     @mock.patch(M_PATH + "_handle_subscription_for_required_service")
