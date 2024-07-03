@@ -1,9 +1,23 @@
 from functools import wraps
 from typing import Optional
 
-from uaclient import api, entitlements, exceptions, lock, util
+from uaclient import (
+    actions,
+    api,
+    daemon,
+    entitlements,
+    event_logger,
+    exceptions,
+    lock,
+    messages,
+    status,
+    util,
+)
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.config import UAConfig
 from uaclient.files import machine_token
+
+event = event_logger.get_event_logger()
 
 
 class CLIEnableDisableProgress(api.AbstractProgress):
@@ -151,3 +165,23 @@ def _raise_enable_disable_unattached_error(command, service_names, cfg):
             invalid_service=", ".join(entitlements_not_found),
             service_msg="",
         )
+
+
+def post_cli_attach(cfg: UAConfig) -> None:
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    contract_name = machine_token_file.contract_name
+
+    if contract_name:
+        event.info(
+            messages.ATTACH_SUCCESS_TMPL.format(contract_name=contract_name)
+        )
+    else:
+        event.info(messages.ATTACH_SUCCESS_NO_CONTRACT_NAME)
+
+    daemon.stop()
+    daemon.cleanup(cfg)
+
+    status_dict, _ret = actions.status(cfg)
+    output = status.format_tabular(status_dict)
+    event.info(util.handle_unicode_characters(output))
+    event.process_events()

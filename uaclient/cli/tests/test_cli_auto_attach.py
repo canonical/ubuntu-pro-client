@@ -60,7 +60,7 @@ class TestActionAutoAttach:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
-    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "cli_util.post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
     def test_happy_path(
         self,
@@ -94,7 +94,7 @@ class TestActionAutoAttach:
         ),
     )
     @mock.patch(M_PATH + "event")
-    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "cli_util.post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
     def test_handle_full_auto_attach_errors(
         self,
@@ -143,7 +143,7 @@ class TestActionAutoAttach:
         ],
     )
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "cli_util.post_cli_attach")
     @mock.patch(M_PATH + "_full_auto_attach")
     def test_uncaught_errors_are_handled(
         self,

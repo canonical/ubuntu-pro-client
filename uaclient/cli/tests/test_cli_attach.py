@@ -2,20 +2,13 @@ import contextlib
 import copy
 import io
 import json
-import textwrap
 
 import mock
 import pytest
 
 from uaclient import event_logger, http, lock, messages, util
-from uaclient.cli import (
-    _post_cli_attach,
-    action_attach,
-    attach_parser,
-    get_parser,
-    main,
-    main_error_handler,
-)
+from uaclient.cli import main_error_handler
+from uaclient.cli.attach import attach_command
 from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
@@ -28,31 +21,7 @@ from uaclient.files.user_config_file import UserConfigData
 from uaclient.testing.fakes import FakeFile, FakeUbuntuProError
 from uaclient.yaml import safe_dump
 
-HELP_OUTPUT = textwrap.dedent(
-    """\
-usage: pro attach <token> [flags]
-
-Attach this machine to an Ubuntu Pro subscription with a token obtained from:
-https://ubuntu.com/pro/dashboard
-
-When running this command without a token, it will generate a short code
-and prompt you to attach the machine to your Ubuntu Pro account using
-a web browser.
-
-positional arguments:
-  token                 token obtained for Ubuntu Pro authentication
-
-Flags:
-  -h, --help            show this help message and exit
-  --no-auto-enable      do not enable any recommended services automatically
-  --attach-config ATTACH_CONFIG
-                        use the provided attach config file instead of passing
-                        the token on the cli
-  --format {cli,json}   output in the specified format (default: cli)
-"""
-)
-
-M_PATH = "uaclient.cli."
+M_PATH = "uaclient.cli.attach."
 
 # Also used in test_cli_auto_attach.py
 BASIC_MACHINE_TOKEN = {
@@ -106,7 +75,9 @@ ENTITLED_MACHINE_TOKEN["machineTokenInfo"]["contractInfo"][
 ] = [ENTITLED_EXAMPLE_ESM_RESOURCE]
 
 
-@mock.patch(M_PATH + "util.we_are_currently_root", return_value=False)
+@mock.patch(
+    "uaclient.cli.cli_util.util.we_are_currently_root", return_value=False
+)
 def test_non_root_users_are_rejected(
     m_we_are_currently_root, FakeConfig, capsys, event
 ):
@@ -114,13 +85,13 @@ def test_non_root_users_are_rejected(
 
     cfg = FakeConfig()
     with pytest.raises(NonRootUserError):
-        action_attach(mock.MagicMock(), cfg)
+        attach_command.action(mock.MagicMock(), cfg)
 
     with pytest.raises(SystemExit):
         with mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
-            main_error_handler(action_attach)(mock.MagicMock(), cfg)
+            main_error_handler(attach_command.action)(mock.MagicMock(), cfg)
 
     expected = {
         "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -147,13 +118,15 @@ class TestActionAttach:
         fake_machine_token_file.attached = True
 
         with pytest.raises(AlreadyAttachedError):
-            action_attach(mock.MagicMock(), cfg=None)
+            attach_command.action(mock.MagicMock(), cfg=None)
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_attach)(mock.MagicMock(), None)
+                main_error_handler(attach_command.action)(
+                    mock.MagicMock(), None
+                )
 
         msg = messages.E_ALREADY_ATTACHED.format(account_name="test")
         expected = {
@@ -194,7 +167,7 @@ class TestActionAttach:
         )
         """Check when an operation holds a lock file, attach cannot run."""
         with pytest.raises(LockHeldError) as exc_info:
-            action_attach(mock.MagicMock(), cfg=cfg)
+            attach_command.action(mock.MagicMock(), cfg=cfg)
         assert 12 == m_check_lock_info.call_count
         assert expected_msg.msg == exc_info.value.msg
 
@@ -202,7 +175,9 @@ class TestActionAttach:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_attach)(mock.MagicMock(), cfg)
+                main_error_handler(attach_command.action)(
+                    mock.MagicMock(), cfg
+                )
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -227,31 +202,6 @@ class TestActionAttach:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
-    @mock.patch(
-        "uaclient.status.format_tabular", return_value="mock_tabular_status"
-    )
-    @mock.patch("uaclient.actions.status", return_value=("", 0))
-    @mock.patch(M_PATH + "daemon")
-    def test_post_cli_attach(
-        self,
-        m_daemon,
-        m_status,
-        m_format_tabular,
-        capsys,
-        fake_machine_token_file,
-    ):
-        cfg = mock.MagicMock()
-        fake_machine_token_file.attached = True
-        _post_cli_attach(cfg)
-
-        assert [mock.call()] == m_daemon.stop.call_args_list
-        assert [mock.call(cfg)] == m_daemon.cleanup.call_args_list
-        assert [mock.call(cfg)] == m_status.call_args_list
-        assert [mock.call("")] == m_format_tabular.call_args_list
-        out, _ = capsys.readouterr()
-        assert "This machine is now attached to 'test_contract'" in out
-        assert "mock_tabular_status" in out
-
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
         "uaclient.entitlements.check_entitlement_apt_directives_are_unique",
@@ -267,7 +217,7 @@ class TestActionAttach:
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
     @mock.patch(M_PATH + "contract.UAContractClient.add_contract_machine")
-    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "cli_util.post_cli_attach")
     def test_happy_path_with_token_arg(
         self,
         m_post_cli,
@@ -296,7 +246,7 @@ class TestActionAttach:
         contract_machine_attach.side_effect = fake_contract_attach
 
         with mock.patch.object(lock, "lock_data_file"):
-            ret = action_attach(args, cfg)
+            ret = attach_command.action(args, cfg)
 
         assert 0 == ret
         expected_calls = [
@@ -317,7 +267,7 @@ class TestActionAttach:
     @mock.patch("uaclient.files.notices.NoticesManager.remove")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.timer.update_messaging.update_motd_messages")
-    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "cli_util.post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")
     def test_auto_enable_passed_through_to_attach_with_token(
         self,
@@ -339,7 +289,7 @@ class TestActionAttach:
 
         cfg = FakeConfig()
         with mock.patch.object(lock, "lock_data_file"):
-            action_attach(args, cfg)
+            attach_command.action(args, cfg)
 
         assert [
             mock.call(mock.ANY, token="token", allow_enable=auto_enable)
@@ -357,7 +307,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UbuntuProError) as e:
             with mock.patch.object(lock, "lock_data_file"):
-                action_attach(args, cfg=cfg)
+                attach_command.action(args, cfg=cfg)
 
         assert e.value.msg == messages.E_ATTACH_TOKEN_ARG_XOR_CONFIG.msg
 
@@ -365,7 +315,7 @@ class TestActionAttach:
     @mock.patch(
         M_PATH + "contract.UAContractClient.update_activity_token",
     )
-    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "cli_util.post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")
     def test_token_from_attach_config(
         self,
@@ -381,7 +331,7 @@ class TestActionAttach:
         )
         cfg = FakeConfig()
         with mock.patch.object(lock, "lock_data_file"):
-            action_attach(args, cfg=cfg)
+            attach_command.action(args, cfg=cfg)
 
         assert [
             mock.call(mock.ANY, token="faketoken", allow_enable=True)
@@ -406,7 +356,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UbuntuProError) as e:
             with mock.patch.object(lock, "lock_data_file"):
-                action_attach(args, cfg=cfg)
+                attach_command.action(args, cfg=cfg)
         assert "Error while reading fakename:" in e.value.msg
 
         args.attach_config = FakeFile(
@@ -418,7 +368,7 @@ class TestActionAttach:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(lock, "lock_data_file"):
-                    main_error_handler(action_attach)(args, cfg)
+                    main_error_handler(attach_command.action)(args, cfg)
 
         expected_message = messages.E_ATTACH_CONFIG_READ_ERROR.format(
             config_name="fakename",
@@ -498,7 +448,7 @@ class TestActionAttach:
             auto_enable=auto_enable,
         )
         with mock.patch.object(lock, "lock_data_file"):
-            action_attach(args, cfg=cfg)
+            attach_command.action(args, cfg=cfg)
 
         assert [
             mock.call(mock.ANY, token="faketoken", allow_enable=False)
@@ -519,7 +469,7 @@ class TestActionAttach:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(lock, "lock_data_file"):
-                    main_error_handler(action_attach)(args, cfg)
+                    main_error_handler(attach_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -652,7 +602,7 @@ class TestActionAttach:
                     event_logger.EventLoggerMode.JSON,
                 ):
                     with mock.patch.object(lock, "lock_data_file"):
-                        main_error_handler(action_attach)(args, cfg)
+                        main_error_handler(attach_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -701,7 +651,7 @@ class TestActionAttach:
 
         with pytest.raises(MagicAttachTokenError):
             with mock.patch.object(lock, "lock_data_file"):
-                action_attach(args=m_args, cfg=FakeConfig())
+                attach_command.action(args=m_args, cfg=FakeConfig())
 
         assert 1 == m_initiate.call_count
         assert 1 == m_wait.call_count
@@ -715,86 +665,8 @@ class TestActionAttach:
 
         with pytest.raises(MagicAttachInvalidParam) as exc_info:
             with mock.patch.object(lock, "lock_data_file"):
-                action_attach(args=m_args, cfg=FakeConfig())
+                attach_command.action(args=m_args, cfg=FakeConfig())
 
         assert (
             "This attach flow does not support --format with value: json"
         ) == exc_info.value.msg
-
-
-@mock.patch(M_PATH + "contract.get_available_resources")
-class TestParser:
-    @mock.patch("uaclient.log.setup_cli_logging")
-    def test_attach_help(
-        self, _m_resources, _m_setup_logging, capsys, FakeConfig
-    ):
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", ["/usr/bin/pro", "attach", "--help"]):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, _err = capsys.readouterr()
-        assert HELP_OUTPUT in out
-
-    def test_attach_parser_usage(self, _m_resources):
-        parser = attach_parser(mock.Mock())
-        assert "pro attach <token> [flags]" == parser.usage
-
-    def test_attach_parser_prog(self, _m_resources):
-        parser = attach_parser(mock.Mock())
-        assert "attach" == parser.prog
-
-    def test_attach_parser_optionals_title(self, _m_resources):
-        parser = attach_parser(mock.Mock())
-        assert "Flags" == parser._optionals.title
-
-    def test_attach_parser_stores_token(self, _m_resources, FakeConfig):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "attach", "token"]):
-            args = full_parser.parse_args()
-        assert "token" == args.token
-
-    def test_attach_parser_allows_empty_required_token(
-        self, _m_resources, FakeConfig
-    ):
-        """Token required but parse_args allows none due to action_attach"""
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "attach"]):
-            args = full_parser.parse_args()
-        assert None is args.token
-
-    def test_attach_parser_accepts_and_stores_no_auto_enable(
-        self, _m_resources, FakeConfig
-    ):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch(
-            "sys.argv", ["pro", "attach", "--no-auto-enable", "token"]
-        ):
-            args = full_parser.parse_args()
-        assert not args.auto_enable
-
-    def test_attach_parser_defaults_to_auto_enable(
-        self, _m_resources, FakeConfig
-    ):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "attach", "token"]):
-            args = full_parser.parse_args()
-        assert args.auto_enable
-
-    def test_attach_parser_default_to_cli_format(
-        self, _m_resources, FakeConfig
-    ):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "attach", "token"]):
-            args = full_parser.parse_args()
-        assert "cli" == args.format
-
-    def test_attach_parser_accepts_format_flag(self, _m_resources, FakeConfig):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch(
-            "sys.argv", ["pro", "attach", "token", "--format", "json"]
-        ):
-            args = full_parser.parse_args()
-        assert "json" == args.format

@@ -78,6 +78,29 @@ Feature: Pro Client help text
         --variant VARIANT    The name of the variant to use when enabling the
                              service
       """
+    When I run `pro attach --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro attach \[flags\]
+
+      Attach this machine to an Ubuntu Pro subscription with a token obtained from:
+      https://ubuntu.com/pro/dashboard
+
+      When running this command without a token, it will generate a short code
+      and prompt you to attach the machine to your Ubuntu Pro account using
+      a web browser.
+
+      positional arguments:
+        token                 token obtained for Ubuntu Pro authentication
+
+      (optional arguments|options):
+        -h, --help            show this help message and exit
+        --no-auto-enable      do not enable any recommended services automatically
+        --attach-config ATTACH_CONFIG
+                              use the provided attach config file instead of passing
+                              the token on the cli
+        --format \{cli,json\}   output in the specified format \(default: cli\)
+      """
 
     Examples: ubuntu release
       | release | machine_type  |

@@ -22,7 +22,6 @@ from uaclient import (
     lock,
     log,
     messages,
-    secret_manager,
     security_status,
     status,
     timer,
@@ -33,39 +32,23 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     _full_auto_attach,
 )
-from uaclient.api.u.pro.attach.magic.initiate.v1 import _initiate
-from uaclient.api.u.pro.attach.magic.revoke.v1 import (
-    MagicAttachRevokeOptions,
-    _revoke,
-)
-from uaclient.api.u.pro.attach.magic.wait.v1 import (
-    MagicAttachWaitOptions,
-    _wait,
-)
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.cli import cli_util, fix
 from uaclient.cli.api import api_command
+from uaclient.cli.attach import attach_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.disable import disable_command, perform_disable
 from uaclient.cli.enable import enable_command
-from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
-from uaclient.entitlements import (
-    create_enable_entitlements_not_found_error,
-    entitlements_disable_order,
-    get_valid_entitlement_names,
-)
-from uaclient.entitlements.entitlement_status import (
-    ApplicationStatus,
-    CanEnableFailure,
-)
+from uaclient.entitlements import entitlements_disable_order
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import machine_token, state_files
 from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
-from uaclient.yaml import safe_dump, safe_load
+from uaclient.yaml import safe_dump
 
 UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
@@ -74,7 +57,13 @@ STATUS_FORMATS = ["tabular", "json", "yaml"]
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-COMMANDS = [api_command, collect_logs_command, disable_command, enable_command]
+COMMANDS = [
+    api_command,
+    attach_command,
+    collect_logs_command,
+    disable_command,
+    enable_command,
+]
 
 
 class UAArgumentParser(argparse.ArgumentParser):
@@ -187,35 +176,6 @@ def config_parser(parser):
     )
     parser_unset.set_defaults(action=action_config_unset)
     config_unset_parser(parser_unset, parent_command=command)
-    return parser
-
-
-def attach_parser(parser):
-    """Build or extend an arg parser for attach subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
-    parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.prog = "attach"
-    parser.description = messages.CLI_ATTACH_DESC
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.add_argument("token", nargs="?", help=messages.CLI_ATTACH_TOKEN)
-    parser.add_argument(
-        "--no-auto-enable",
-        action="store_false",
-        dest="auto_enable",
-        help=messages.CLI_ATTACH_NO_AUTO_ENABLE,
-    )
-    parser.add_argument(
-        "--attach-config",
-        type=argparse.FileType("r"),
-        help=messages.CLI_ATTACH_ATTACH_CONFIG,
-    )
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=["cli", "json"],
-        default="cli",
-        help=messages.CLI_FORMAT_DESC.format(default="cli"),
-    )
     return parser
 
 
@@ -719,26 +679,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
     return 0
 
 
-def _post_cli_attach(cfg: config.UAConfig) -> None:
-    machine_token_file = machine_token.get_machine_token_file(cfg)
-    contract_name = machine_token_file.contract_name
-
-    if contract_name:
-        event.info(
-            messages.ATTACH_SUCCESS_TMPL.format(contract_name=contract_name)
-        )
-    else:
-        event.info(messages.ATTACH_SUCCESS_NO_CONTRACT_NAME)
-
-    daemon.stop()
-    daemon.cleanup(cfg)
-
-    status_dict, _ret = actions.status(cfg)
-    output = status.format_tabular(status_dict)
-    event.info(util.handle_unicode_characters(output))
-    event.process_events()
-
-
 @cli_util.assert_root
 def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
     try:
@@ -751,112 +691,8 @@ def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
         event.info(messages.E_ATTACH_FAILURE.msg)
         return 1
     else:
-        _post_cli_attach(cfg)
+        cli_util.post_cli_attach(cfg)
         return 0
-
-
-def _magic_attach(args, *, cfg, **kwargs):
-    if args.format == "json":
-        raise exceptions.MagicAttachInvalidParam(
-            param="--format",
-            value=args.format,
-        )
-
-    event.info(messages.CLI_MAGIC_ATTACH_INIT)
-    initiate_resp = _initiate(cfg=cfg)
-    event.info(
-        "\n"
-        + messages.CLI_MAGIC_ATTACH_SIGN_IN.format(
-            user_code=initiate_resp.user_code
-        )
-    )
-
-    wait_options = MagicAttachWaitOptions(magic_token=initiate_resp.token)
-
-    try:
-        wait_resp = _wait(options=wait_options, cfg=cfg)
-    except exceptions.MagicAttachTokenError as e:
-        event.info(messages.CLI_MAGIC_ATTACH_FAILED)
-
-        revoke_options = MagicAttachRevokeOptions(
-            magic_token=initiate_resp.token
-        )
-        _revoke(options=revoke_options, cfg=cfg)
-        raise e
-
-    event.info("\n" + messages.CLI_MAGIC_ATTACH_PROCESSING)
-    return wait_resp.contract_token
-
-
-@cli_util.assert_not_attached
-@cli_util.assert_root
-@cli_util.assert_lock_file("pro attach")
-def action_attach(args, *, cfg, **kwargs):
-    if args.token and args.attach_config:
-        raise exceptions.CLIAttachTokenArgXORConfig()
-    elif not args.token and not args.attach_config:
-        token = _magic_attach(args, cfg=cfg)
-        enable_services_override = None
-    elif args.token:
-        token = args.token
-        secret_manager.secrets.add_secret(token)
-        enable_services_override = None
-    else:
-        try:
-            attach_config = AttachActionsConfigFile.from_dict(
-                safe_load(args.attach_config)
-            )
-        except IncorrectTypeError as e:
-            raise exceptions.AttachInvalidConfigFileError(
-                config_name=args.attach_config.name, error=e.msg
-            )
-
-        token = attach_config.token
-        enable_services_override = attach_config.enable_services
-
-    allow_enable = args.auto_enable and enable_services_override is None
-
-    try:
-        actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
-    except exceptions.ConnectivityError:
-        raise exceptions.AttachError()
-    else:
-        ret = 0
-        if enable_services_override is not None and args.auto_enable:
-            found, not_found = get_valid_entitlement_names(
-                enable_services_override, cfg
-            )
-            for name in found:
-                ent_ret, reason = actions.enable_entitlement_by_name(cfg, name)
-                if not ent_ret:
-                    ret = 1
-                    if (
-                        reason is not None
-                        and isinstance(reason, CanEnableFailure)
-                        and reason.message is not None
-                    ):
-                        event.info(reason.message.msg)
-                        event.error(
-                            error_msg=reason.message.msg,
-                            error_code=reason.message.name,
-                            service=name,
-                        )
-                else:
-                    event.service_processed(name)
-
-            if not_found:
-                error = create_enable_entitlements_not_found_error(
-                    not_found, cfg=cfg
-                )
-                event.info(error.msg, file_type=sys.stderr)
-                event.error(error_msg=error.msg, error_code=error.msg_code)
-                ret = 1
-
-        contract_client = contract.UAContractClient(cfg)
-        contract_client.update_activity_token()
-
-        _post_cli_attach(cfg)
-        return ret
 
 
 def get_parser(cfg: config.UAConfig):
@@ -884,12 +720,6 @@ def get_parser(cfg: config.UAConfig):
 
     for command in COMMANDS:
         command.register(subparsers)
-
-    parser_attach = subparsers.add_parser(
-        "attach", help=messages.CLI_ROOT_ATTACH
-    )
-    attach_parser(parser_attach)
-    parser_attach.set_defaults(action=action_attach)
 
     parser_auto_attach = subparsers.add_parser(
         "auto-attach", help=messages.CLI_ROOT_AUTO_ATTACH
