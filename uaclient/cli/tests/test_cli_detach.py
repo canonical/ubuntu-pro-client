@@ -7,13 +7,11 @@ import mock
 import pytest
 
 from uaclient import event_logger, exceptions, lock, messages
-from uaclient.cli import (
-    action_detach,
-    detach_parser,
-    get_parser,
-    main_error_handler,
-)
+from uaclient.cli import main_error_handler
+from uaclient.cli.detach import detach_command
 from uaclient.testing.fakes import FakeContractClient
+
+M_PATH = "uaclient.cli.detach."
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
@@ -28,9 +26,9 @@ def entitlement_cls_mock_factory(can_disable, name=None):
     return m_instance
 
 
-@mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
+@mock.patch(M_PATH + "util.prompt_for_confirmation", return_value=True)
 class TestActionDetach:
-    @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
+    @mock.patch(M_PATH + "util.we_are_currently_root", return_value=False)
     def test_non_root_users_are_rejected(
         self,
         m_we_are_currently_root,
@@ -47,13 +45,13 @@ class TestActionDetach:
         cfg = FakeConfig()
         fake_machine_token_file.attached = True
         with pytest.raises(exceptions.NonRootUserError):
-            action_detach(args, cfg=cfg)
+            detach_command.action(args, cfg=cfg)
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_detach)(args, cfg)
+                main_error_handler(detach_command.action)(args, cfg)
 
         expected_message = messages.E_NONROOT_USER
         expected = {
@@ -82,14 +80,14 @@ class TestActionDetach:
         cfg = FakeConfig()
         args = mock.MagicMock()
         with pytest.raises(exceptions.UnattachedError) as err:
-            action_detach(args, cfg=cfg)
+            detach_command.action(args, cfg=cfg)
         assert messages.E_UNATTACHED.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_detach)(args, cfg)
+                main_error_handler(detach_command.action)(args, cfg)
 
         expected_message = messages.E_UNATTACHED
         expected = {
@@ -131,7 +129,7 @@ class TestActionDetach:
         m_check_lock_info.return_value = (123, "pro enable")
 
         with pytest.raises(exceptions.LockHeldError) as err:
-            action_detach(args, cfg=cfg)
+            detach_command.action(args, cfg=cfg)
 
         assert 12 == m_check_lock_info.call_count
         expected_error_msg = messages.E_LOCK_HELD_ERROR.format(
@@ -143,7 +141,7 @@ class TestActionDetach:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
-                main_error_handler(action_detach)(args, cfg)
+                main_error_handler(detach_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -175,9 +173,9 @@ class TestActionDetach:
     @mock.patch("uaclient.files.state_files.delete_state_files")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.cli.update_motd_messages")
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.cli.entitlements.entitlement_factory")
+    @mock.patch(M_PATH + "update_motd_messages")
+    @mock.patch(M_PATH + "entitlements.entitlements_disable_order")
+    @mock.patch(M_PATH + "entitlements.entitlement_factory")
     def test_entitlements_disabled_appropriately(
         self,
         m_ent_factory,
@@ -215,7 +213,7 @@ class TestActionDetach:
 
         args = mock.MagicMock(assume_yes=assume_yes)
         with mock.patch.object(lock, "lock_data_file"):
-            return_code = action_detach(args, cfg=cfg)
+            return_code = detach_command.action(args, cfg=cfg)
 
         assert [
             mock.call(ignore_dependent_services=True)
@@ -241,7 +239,7 @@ class TestActionDetach:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(lock, "lock_data_file"):
-                    main_error_handler(action_detach)(args, cfg)
+                    main_error_handler(detach_command.action)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -256,9 +254,9 @@ class TestActionDetach:
 
     @mock.patch("uaclient.files.state_files.delete_state_files")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.cli.cli_util._is_attached")
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch(M_PATH + "cli_util._is_attached")
+    @mock.patch(M_PATH + "entitlements.entitlements_disable_order")
+    @mock.patch(M_PATH + "update_motd_messages")
     def test_correct_message_emitted(
         self,
         m_update_apt_and_motd_msgs,
@@ -279,7 +277,7 @@ class TestActionDetach:
 
         m_cfg = mock.MagicMock()
         with mock.patch.object(lock, "lock_data_file"):
-            action_detach(mock.MagicMock(), m_cfg)
+            detach_command.action(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
         assert messages.DETACH_SUCCESS + "\n" == out
@@ -288,9 +286,9 @@ class TestActionDetach:
 
     @mock.patch("uaclient.files.state_files.delete_state_files")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.cli.cli_util._is_attached")
-    @mock.patch("uaclient.cli.entitlements_disable_order")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch(M_PATH + "cli_util._is_attached")
+    @mock.patch(M_PATH + "entitlements.entitlements_disable_order")
+    @mock.patch(M_PATH + "update_motd_messages")
     def test_returns_zero(
         self,
         m_update_apt_and_motd_msgs,
@@ -310,7 +308,7 @@ class TestActionDetach:
 
         m_cfg = mock.MagicMock()
         with mock.patch.object(lock, "lock_data_file"):
-            ret = action_detach(mock.MagicMock(), m_cfg)
+            ret = detach_command.action(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
         assert [mock.call()] == m_delete_state_files.call_args_list
@@ -351,10 +349,10 @@ class TestActionDetach:
     )
     @mock.patch("uaclient.files.state_files.delete_state_files")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
-    @mock.patch("uaclient.cli.cli_util._is_attached")
-    @mock.patch("uaclient.cli.update_motd_messages")
+    @mock.patch(M_PATH + "cli_util._is_attached")
+    @mock.patch(M_PATH + "update_motd_messages")
     @mock.patch("uaclient.entitlements.entitlement_factory")
-    @mock.patch("uaclient.cli.entitlements_disable_order")
+    @mock.patch(M_PATH + "entitlements.entitlements_disable_order")
     def test_informational_message_emitted(
         self,
         m_disable_order,
@@ -386,7 +384,7 @@ class TestActionDetach:
         args = mock.MagicMock()
 
         with mock.patch.object(lock, "lock_data_file"):
-            action_detach(args, m_cfg)
+            detach_command.action(args, m_cfg)
 
         out, _err = capsys.readouterr()
 
@@ -401,7 +399,9 @@ class TestActionDetach:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(lock, "lock_data_file"):
-                    main_error_handler(action_detach)(args, FakeConfig())
+                    main_error_handler(detach_command.action)(
+                        args, FakeConfig()
+                    )
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -413,45 +413,3 @@ class TestActionDetach:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
-
-
-class TestParser:
-    def test_detach_parser_usage(self):
-        parser = detach_parser(mock.Mock())
-        assert "pro detach [flags]" == parser.usage
-
-    def test_detach_parser_prog(self):
-        parser = detach_parser(mock.Mock())
-        assert "detach" == parser.prog
-
-    def test_detach_parser_optionals_title(self):
-        parser = detach_parser(mock.Mock())
-        assert "Flags" == parser._optionals.title
-
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_detach_parser_accepts_and_stores_assume_yes(
-        self, _m_resources, FakeConfig
-    ):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "detach", "--assume-yes"]):
-            args = full_parser.parse_args()
-
-        assert args.assume_yes
-
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_detach_parser_defaults_to_not_assume_yes(
-        self, _m_resources, FakeConfig
-    ):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "detach"]):
-            args = full_parser.parse_args()
-
-        assert not args.assume_yes
-
-    @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_detach_parser_with_json_format(self, _m_resources, FakeConfig):
-        full_parser = get_parser(FakeConfig())
-        with mock.patch("sys.argv", ["pro", "detach", "--format", "json"]):
-            args = full_parser.parse_args()
-
-        assert "json" == args.format

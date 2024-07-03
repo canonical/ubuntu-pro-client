@@ -111,6 +111,19 @@ Feature: Pro Client help text
       (optional arguments|options):
         -h, --help  show this help message and exit
       """
+    When I run `pro detach --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro detach \[flags\]
+
+      Detach this machine from an Ubuntu Pro subscription.
+
+      (optional arguments|options):
+        -h, --help           show this help message and exit
+        --assume-yes         do not prompt for confirmation before performing the
+                             detach
+        --format \{cli,json\}  output in the specified format \(default: cli\)
+      """
 
     Examples: ubuntu release
       | release | machine_type  |

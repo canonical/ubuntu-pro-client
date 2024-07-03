@@ -13,7 +13,6 @@ from uaclient import (
     apt_news,
     config,
     contract,
-    daemon,
     defaults,
     entitlements,
     event_logger,
@@ -24,7 +23,6 @@ from uaclient import (
     messages,
     security_status,
     status,
-    timer,
     util,
     version,
 )
@@ -38,11 +36,11 @@ from uaclient.cli.attach import attach_command
 from uaclient.cli.auto_attach import auto_attach_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
-from uaclient.cli.disable import disable_command, perform_disable
+from uaclient.cli.detach import detach_command
+from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
-from uaclient.entitlements import entitlements_disable_order
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.files import machine_token, state_files
+from uaclient.files import state_files
 from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 from uaclient.yaml import safe_dump
@@ -59,6 +57,7 @@ COMMANDS = [
     attach_command,
     auto_attach_command,
     collect_logs_command,
+    detach_command,
     disable_command,
     enable_command,
 ]
@@ -254,28 +253,6 @@ def action_security_status(args, *, cfg, **kwargs):
             )
         )
     return 0
-
-
-def detach_parser(parser):
-    """Build or extend an arg parser for detach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="detach")
-    parser.usage = usage
-    parser.prog = "detach"
-    parser.description = messages.CLI_DETACH_DESC
-    parser._optionals.title = "Flags"
-    parser.add_argument(
-        "--assume-yes",
-        action="store_true",
-        help=messages.CLI_ASSUME_YES.format(command="detach"),
-    )
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=["cli", "json"],
-        default="cli",
-        help=messages.CLI_FORMAT_DESC.format(default="cli"),
-    )
-    return parser
 
 
 def help_parser(parser, cfg: config.UAConfig):
@@ -598,76 +575,6 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
-@cli_util.verify_json_format_args
-@cli_util.assert_root
-@cli_util.assert_attached()
-@cli_util.assert_lock_file("pro detach")
-def action_detach(args, *, cfg, **kwargs) -> int:
-    """Perform the detach action for this machine.
-
-    @return: 0 on success, 1 otherwise
-    """
-    ret = _detach(
-        cfg, assume_yes=args.assume_yes, json_output=(args.format == "json")
-    )
-    if ret == 0:
-        daemon.start()
-        timer.stop()
-    event.process_events()
-    return ret
-
-
-def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
-    """Detach the machine from the active Ubuntu Pro subscription,
-
-    :param cfg: a ``config.UAConfig`` instance
-    :param assume_yes: Assume a yes answer to any prompts requested.
-         In this case, it means automatically disable any service during
-         detach.
-    :param json_output: output should be json only
-
-    @return: 0 on success, 1 otherwise
-    """
-    to_disable = []
-    for ent_name in entitlements_disable_order(cfg):
-        try:
-            ent = entitlements.entitlement_factory(
-                cfg=cfg,
-                name=ent_name,
-            )
-        except exceptions.EntitlementNotFoundError:
-            continue
-
-        # For detach, we should not consider that a service
-        # cannot be disabled because of dependent services,
-        # since we are going to disable all of them anyway
-        ret, _ = ent.can_disable(ignore_dependent_services=True)
-        if ret:
-            to_disable.append(ent)
-
-    if to_disable:
-        event.info(messages.DETACH_WILL_DISABLE.pluralize(len(to_disable)))
-        for ent in to_disable:
-            event.info("    {}".format(ent.name))
-    if not util.prompt_for_confirmation(assume_yes=assume_yes):
-        return 1
-    for ent in to_disable:
-        perform_disable(
-            ent,
-            cfg,
-            json_output=json_output,
-            assume_yes=assume_yes,
-            update_status=False,
-        )
-
-    machine_token_file = machine_token.get_machine_token_file(cfg)
-    machine_token_file.delete()
-    state_files.delete_state_files()
-    update_motd_messages(cfg)
-    event.info(messages.DETACH_SUCCESS)
-    return 0
-
-
 def get_parser(cfg: config.UAConfig):
     parser = UAArgumentParser(
         prog=NAME,
@@ -699,12 +606,6 @@ def get_parser(cfg: config.UAConfig):
     )
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
-
-    parser_detach = subparsers.add_parser(
-        "detach", help=messages.CLI_ROOT_DETACH
-    )
-    detach_parser(parser_detach)
-    parser_detach.set_defaults(action=action_detach)
 
     fix.add_parser(subparsers)
 

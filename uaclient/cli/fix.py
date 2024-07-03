@@ -58,6 +58,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
     _is_attached,
 )
 from uaclient.cli.constants import NAME, USAGE_TMPL
+from uaclient.cli.detach import action_detach
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUD_URLS,
@@ -472,8 +473,6 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     """
     import argparse
 
-    from uaclient import cli
-
     _inform_ubuntu_pro_existence_if_applicable()
     print(messages.SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
     choice = util.prompt_choices(
@@ -484,9 +483,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
         print(messages.PROMPT_EXPIRED_ENTER_TOKEN)
         token = input("> ")
         print(colorize_commands([["pro", "detach"]]))
-        cli.action_detach(
-            argparse.Namespace(assume_yes=True, format="cli"), cfg
-        )
+        action_detach(argparse.Namespace(assume_yes=True, format="cli"), cfg)
         return _run_ua_attach(cfg, token)
 
     return False
