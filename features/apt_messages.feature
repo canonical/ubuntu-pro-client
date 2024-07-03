@@ -73,8 +73,8 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | standard-pkg         | infra-pkg                                            | apps-pkg     |
-      | xenial  | lxd-container | wget=1.17.1-1ubuntu1 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
+      | release | machine_type  | standard-pkg              | infra-pkg                                            | apps-pkg     |
+      | xenial  | lxd-container | apparmor=2.10.95-0ubuntu2 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-infra on upgrade
