@@ -101,6 +101,16 @@ Feature: Pro Client help text
                               the token on the cli
         --format \{cli,json\}   output in the specified format \(default: cli\)
       """
+    When I run `pro auto-attach --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro auto-attach \[flags\]
+
+      Automatically attach on an Ubuntu Pro cloud instance.
+
+      (optional arguments|options):
+        -h, --help  show this help message and exit
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
