@@ -28,10 +28,6 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
-    FullAutoAttachOptions,
-    _full_auto_attach,
-)
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -39,6 +35,7 @@ from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.cli import cli_util, fix
 from uaclient.cli.api import api_command
 from uaclient.cli.attach import attach_command
+from uaclient.cli.auto_attach import auto_attach_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.disable import disable_command, perform_disable
@@ -60,6 +57,7 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 COMMANDS = [
     api_command,
     attach_command,
+    auto_attach_command,
     collect_logs_command,
     disable_command,
     enable_command,
@@ -82,15 +80,6 @@ class UAArgumentParser(argparse.ArgumentParser):
         if message == "the following arguments are required: ":
             message = messages.CLI_TRY_HELP
         self.exit(2, message + "\n")
-
-
-def auto_attach_parser(parser):
-    """Build or extend an arg parser for auto-attach subcommand."""
-    parser.prog = "auto-attach"
-    parser.description = messages.CLI_AUTO_ATTACH_DESC
-    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
-    parser._optionals.title = messages.CLI_FLAGS
-    return parser
 
 
 def config_show_parser(parser, parent_command: str):
@@ -679,22 +668,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool, json_output: bool) -> int:
     return 0
 
 
-@cli_util.assert_root
-def action_auto_attach(args, *, cfg: config.UAConfig, **kwargs) -> int:
-    try:
-        _full_auto_attach(
-            FullAutoAttachOptions(),
-            cfg=cfg,
-            mode=event_logger.EventLoggerMode.CLI,
-        )
-    except exceptions.ConnectivityError:
-        event.info(messages.E_ATTACH_FAILURE.msg)
-        return 1
-    else:
-        cli_util.post_cli_attach(cfg)
-        return 0
-
-
 def get_parser(cfg: config.UAConfig):
     parser = UAArgumentParser(
         prog=NAME,
@@ -720,12 +693,6 @@ def get_parser(cfg: config.UAConfig):
 
     for command in COMMANDS:
         command.register(subparsers)
-
-    parser_auto_attach = subparsers.add_parser(
-        "auto-attach", help=messages.CLI_ROOT_AUTO_ATTACH
-    )
-    auto_attach_parser(parser_auto_attach)
-    parser_auto_attach.set_defaults(action=action_auto_attach)
 
     parser_config = subparsers.add_parser(
         "config", help=messages.CLI_ROOT_CONFIG
