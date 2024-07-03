@@ -32,6 +32,7 @@ class ProCommand:
         description: str,
         usage: Optional[str] = None,
         action: Callable = lambda *args, **kwargs: None,
+        preserve_description: bool = False,
         arguments: List[ProArgument] = [],
     ):
         self.name = name
@@ -39,6 +40,7 @@ class ProCommand:
         self.description = description
         self.usage = usage or USAGE_TMPL.format(name=NAME, command=name)
         self.action = action
+        self.preserve_description = preserve_description
         self.arguments = arguments
 
     def register(self, subparsers: argparse._SubParsersAction):
@@ -48,6 +50,8 @@ class ProCommand:
             description=self.description,
             usage=self.usage,
         )
+        if self.preserve_description:
+            self.parser.formatter_class = argparse.RawDescriptionHelpFormatter
         for argument in self.arguments:
             argument.register(self.parser)
         self.parser.set_defaults(action=self.action)

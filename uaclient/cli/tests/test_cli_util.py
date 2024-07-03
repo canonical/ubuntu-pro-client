@@ -7,6 +7,7 @@ from uaclient.cli.cli_util import (
     assert_lock_file,
     assert_not_attached,
     assert_root,
+    post_cli_attach,
 )
 from uaclient.exceptions import (
     AlreadyAttachedError,
@@ -149,3 +150,30 @@ class TestAssertNotAttached:
 
         out, _err = capsys.readouterr()
         assert "" == out.strip()
+
+
+class TestPostCliAttach:
+    @mock.patch(
+        "uaclient.status.format_tabular", return_value="mock_tabular_status"
+    )
+    @mock.patch("uaclient.actions.status", return_value=("", 0))
+    @mock.patch("uaclient.cli.cli_util.daemon")
+    def test_post_cli_attach(
+        self,
+        m_daemon,
+        m_status,
+        m_format_tabular,
+        capsys,
+        fake_machine_token_file,
+    ):
+        cfg = mock.MagicMock()
+        fake_machine_token_file.attached = True
+        post_cli_attach(cfg)
+
+        assert [mock.call()] == m_daemon.stop.call_args_list
+        assert [mock.call(cfg)] == m_daemon.cleanup.call_args_list
+        assert [mock.call(cfg)] == m_status.call_args_list
+        assert [mock.call("")] == m_format_tabular.call_args_list
+        out, _ = capsys.readouterr()
+        assert "This machine is now attached to 'test_contract'" in out
+        assert "mock_tabular_status" in out
