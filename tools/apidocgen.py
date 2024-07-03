@@ -229,7 +229,11 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         # assume arg is endpoint name
         endpoint_name = sys.argv[1]
-        print_endpoint_docs(endpoint_name)
+        try:
+            print_endpoint_docs(endpoint_name)
+        except ModuleNotFoundError:
+            print(f"Endpoint `{endpoint_name}` does not exist")
+            sys.exit(1)
     else:
         # all
         print(
