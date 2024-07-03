@@ -480,10 +480,7 @@ def get_installed_packages_with_uninstalled_candidate_in_origin(
             installed_version = package.current_ver
             if installed_version:
                 candidate = dep_cache.get_candidate_ver(package)
-                if (
-                    candidate
-                    and candidate.ver_str != installed_version.ver_str
-                ):
+                if candidate and candidate != installed_version:
                     for file, _ in candidate.file_list:
                         if file.origin == origin:
                             result.add(package)
