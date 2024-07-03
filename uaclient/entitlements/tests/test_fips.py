@@ -153,8 +153,10 @@ class TestFIPSEntitlementDefaults:
     )
     @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
     @mock.patch(M_PATH + "util.prompt_for_confirmation")
+    @mock.patch(M_PATH + "system.get_kernel_info")
     def test_kernel_downgrade(
         self,
+        m_prompt_kernel_info,
         m_prompt_for_confirmation,
         m_pkg_candidate_version,
         fips_version,
@@ -168,6 +170,9 @@ class TestFIPSEntitlementDefaults:
             m_prompt_for_confirmation.return_value = False
         else:
             m_prompt_for_confirmation.return_value = True
+        m_prompt_kernel_info.return_value.proc_version_signature_version = (
+            "6.8.0-22.22-generic"
+        )
         m_pkg_candidate_version.return_value = fips_version
         install_continues = entitlement.prompt_if_kernel_downgrade(
             assume_yes=assume_yes
