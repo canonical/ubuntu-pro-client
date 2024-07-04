@@ -51,6 +51,7 @@ VULNEBILITIES_DATA = {
             "CVE-2022-12345": {
                 "description": "description",
                 "published_at": "2024-06-24T13:19:16",
+                "ubuntu_priority": "low",
                 "notes": ["hint"],
                 "mitigation": "hint",
                 "cvss_severity": "low",
@@ -59,6 +60,7 @@ VULNEBILITIES_DATA = {
             "CVE-2022-56789": {
                 "description": "description",
                 "published_at": "2024-06-24T13:19:16",
+                "ubuntu_priority": "low",
                 "notes": ["hint"],
                 "mitigation": "hint",
                 "cvss_severity": "low",
@@ -90,6 +92,7 @@ class TestCVEVulnerabilities:
                         CVEVulnerabilityResult(
                             name="CVE-2022-12345",
                             description="description",
+                            ubuntu_priority="low",
                             fixable="no",
                             affected_packages=[
                                 CVEAffectedPackage(
@@ -117,6 +120,7 @@ class TestCVEVulnerabilities:
                         CVEVulnerabilityResult(
                             name="CVE-2022-56789",
                             description="description",
+                            ubuntu_priority="low",
                             fixable="yes",
                             affected_packages=[
                                 CVEAffectedPackage(
@@ -157,6 +161,7 @@ class TestCVEVulnerabilities:
                         CVEVulnerabilityResult(
                             name="CVE-2022-56789",
                             description="description",
+                            ubuntu_priority="low",
                             fixable="yes",
                             affected_packages=[
                                 CVEAffectedPackage(
@@ -197,6 +202,7 @@ class TestCVEVulnerabilities:
                         CVEVulnerabilityResult(
                             name="CVE-2022-12345",
                             description="description",
+                            ubuntu_priority="low",
                             fixable="no",
                             affected_packages=[
                                 CVEAffectedPackage(
