@@ -69,6 +69,7 @@ class CVEVulnerabilityResult(DataObject):
         Field("name", StringDataValue),
         Field("description", StringDataValue),
         Field("published_at", DatetimeDataValue),
+        Field("ubuntu_priority", StringDataValue),
         Field("notes", data_list(StringDataValue), False),
         Field("affected_packages", data_list(CVEAffectedPackage)),
         Field("fixable", StringDataValue),
@@ -82,6 +83,7 @@ class CVEVulnerabilityResult(DataObject):
         name: str,
         description: str,
         published_at: datetime.datetime,
+        ubuntu_priority: str,
         fixable: str,
         notes: Optional[List[str]] = None,
         affected_packages: List[CVEAffectedPackage],
@@ -91,6 +93,7 @@ class CVEVulnerabilityResult(DataObject):
         self.name = name
         self.description = description
         self.published_at = published_at
+        self.ubuntu_priority = ubuntu_priority
         self.fixable = fixable
         self.notes = notes
         self.affected_packages = affected_packages
@@ -179,6 +182,7 @@ def _vulnerabilities(
                 published_at=datetime.datetime.strptime(
                     cve["published_at"], "%Y-%m-%dT%H:%M:%S"
                 ),
+                ubuntu_priority=cve["ubuntu_priority"],
                 notes=cve["notes"],
                 affected_packages=[
                     CVEAffectedPackage(
