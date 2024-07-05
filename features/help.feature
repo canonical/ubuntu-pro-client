@@ -124,6 +124,39 @@ Feature: Pro Client help text
                              detach
         --format \{cli,json\}  output in the specified format \(default: cli\)
       """
+    When I run `pro security-status --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro security-status \[flags\]
+
+      Show security updates for packages in the system, including all
+      available Expanded Security Maintenance \(ESM\) related content.
+
+      Shows counts of how many packages are supported for security updates
+      in the system.
+
+      If called with --format json\|yaml it shows a summary of the
+      installed packages based on the origin:
+      - main/restricted/universe/multiverse: packages from the Ubuntu archive
+      - esm-infra/esm-apps: packages from the ESM archive
+      - third-party: packages installed from non-Ubuntu sources
+      - unknown: packages which don't have an installation source \(like local
+        deb packages or packages for which the source was removed\)
+
+      The output contains basic information about Ubuntu Pro. For a
+      complete status on Ubuntu Pro services, run 'pro status'.
+
+      (optional arguments|options):
+        -h, --help            show this help message and exit
+        --format \{json,yaml,text\}
+                              output in the specified format \(default: text\)
+        --thirdparty          List and present information about third-party
+                              packages
+        --unavailable         List and present information about unavailable
+                              packages
+        --esm-infra           List and present information about esm-infra packages
+        --esm-apps            List and present information about esm-apps packages
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
