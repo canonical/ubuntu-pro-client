@@ -437,7 +437,7 @@ class TestMain:
     )
     @mock.patch("uaclient.cli.event.info")
     @mock.patch("uaclient.cli.action_status")
-    @mock.patch("uaclient.cli.action_security_status")
+    @mock.patch("uaclient.cli.security_status.action_security_status")
     @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("sys.stdout.isatty")
     def test_status_human_readable_warning(
