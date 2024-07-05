@@ -7,10 +7,10 @@ from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
+    VulnerabilityData,
     VulnerabilityParser,
     VulnerabilityStatus,
     _get_vulnerability_fix_status,
-    fetch_vulnerabilities_data,
 )
 from uaclient.apt import get_apt_cache_datetime
 from uaclient.config import UAConfig
@@ -23,20 +23,25 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.system import get_release_info
 
 
 class CVEVulnerabilitiesOptions(DataObject):
     fields = [
         Field("all", BoolDataValue, False),
         Field("unfixable", BoolDataValue, False),
+        Field("data_file", StringDataValue, False),
     ]
 
     def __init__(
-        self, *, all: Optional[bool] = False, unfixable: Optional[bool] = False
+        self,
+        *,
+        all: Optional[bool] = False,
+        unfixable: Optional[bool] = False,
+        data_file: Optional[str] = None
     ):
         self.all = all
         self.unfixable = unfixable
+        self.data_file = data_file
 
 
 class CVEAffectedPackage(DataObject):
@@ -137,9 +142,10 @@ def _vulnerabilities(
     options: CVEVulnerabilitiesOptions,
     cfg: UAConfig,
 ) -> CVEVulnerabilitiesResult:
-    series = get_release_info().series
 
-    vulnerabilities_json_data = fetch_vulnerabilities_data(cfg, series)
+    vulnerabilities_json_data = VulnerabilityData(
+        cfg=cfg, data_file=options.data_file
+    ).get()
     installed_pkgs_by_source = query_installed_source_pkg_versions()
 
     cve_parser = CVEParser()

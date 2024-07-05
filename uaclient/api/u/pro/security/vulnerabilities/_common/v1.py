@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 from uaclient import apt
 from uaclient.config import UAConfig
 from uaclient.http import download_file_from_url
+from uaclient.system import get_release_info
 
 
 @enum.unique
@@ -20,16 +21,35 @@ class VulnerabilityStatus(enum.Enum):
     FULL_FIX_AVAILABLE = "yes"
 
 
-def fetch_vulnerabilities_data(cfg: UAConfig, series: str):
-    data_file = "com.ubuntu.{}.pkg.json.bz2".format(series)
-    data_url = urljoin(cfg.vulnerability_data_url_prefix, data_file)
+class VulnerabilityData:
 
-    resp = download_file_from_url(url=data_url)
+    def __init__(
+        self,
+        cfg: UAConfig,
+        data_file: Optional[str] = None,
+    ):
+        self.cfg = cfg
+        self.data_file = data_file
 
-    decompressor = bz2.BZ2Decompressor()
-    raw_json_data = decompressor.decompress(resp.body)  # type: ignore
+    def _load_json_file(self, data_file):
+        with open(data_file, "r") as vuln_data:
+            return json.loads(vuln_data.read())
 
-    return json.loads(raw_json_data.decode("utf-8"))
+    def get(self):
+        if self.data_file:
+            return self._load_json_file(self.data_file)
+
+        series = get_release_info().series
+
+        data_file = "com.ubuntu.{}.pkg.json.bz2".format(series)
+        data_url = urljoin(self.cfg.vulnerability_data_url_prefix, data_file)
+
+        resp = download_file_from_url(url=data_url)
+
+        decompressor = bz2.BZ2Decompressor()
+        raw_json_data = decompressor.decompress(resp.body)  # type: ignore
+
+        return json.loads(raw_json_data.decode("utf-8"))
 
 
 def _get_source_package_from_vulnerabilities_data(

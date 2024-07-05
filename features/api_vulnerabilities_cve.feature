@@ -4,8 +4,12 @@ Feature: Client behaviour for CVE vulnerabilities API
   Scenario Outline: CVE vulnerabilities for xenial machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
+    # Check we can download and parse the JSON data
+    And I run `pro api u.pro.security.vulnerabilities.cve.v1` as non-root
+    And I push static file `security_issues_xenial.bz2` to machine
+    And I run `bzip2 -d /tmp/security_issues_xenial.bz2` as non-root
     And I apt install `jq`
-    And I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 | jq .data.attributes.cves` as non-root
+    And I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 --args data_file=/tmp/security_issues_xenial | jq .data.attributes.cves` as non-root
     Then stdout matches regexp:
       """
         {
@@ -50,12 +54,12 @@ Feature: Client behaviour for CVE vulnerabilities API
         },
       """
     When I apt install `vim`
-    And I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 | jq .data.attributes.cves` as non-root
+    And I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 --args data_file=/tmp/security_issues_xenial | jq .data.attributes.cves` as non-root
     Then stdout does not match regexp:
     """
     "name": "CVE-2022-2286"
     """
-    When I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 --data '{\"all\": true}' | jq .data.attributes.cves` as non-root
+    When I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 --data '{\"all\": true, \"data_file\": \"/tmp/security_issues_xenial\"}' | jq .data.attributes.cves` as non-root
     Then stdout matches regexp:
     """
       {
@@ -80,7 +84,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "ubuntu_priority": "medium"
       },
     """
-    When I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 --data '{\"unfixable\": true}' | jq .data.attributes.cves` as non-root
+    When I run shell command `pro api u.pro.security.vulnerabilities.cve.v1 --data '{\"unfixable\": true, \"data_file\": \"/tmp/security_issues_xenial\"}' | jq .data.attributes.cves` as non-root
     Then stdout matches regexp:
     """
       {

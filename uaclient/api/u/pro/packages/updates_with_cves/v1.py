@@ -1,12 +1,12 @@
 import datetime
-from typing import List
+from typing import List, Optional
 
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.u.pro.packages.updates.v1 import UpdateSummary, _updates
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
+    VulnerabilityData,
     _get_source_package_from_vulnerabilities_data,
-    fetch_vulnerabilities_data,
 )
 from uaclient.apt import PreserveAptCfg, get_apt_pkg_cache, version_compare
 from uaclient.config import UAConfig
@@ -19,7 +19,15 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.system import get_release_info
+
+
+class UpdateInfoWithCVESOptions(DataObject):
+    fields = [
+        Field("data_file", StringDataValue, False),
+    ]
+
+    def __init__(self, *, data_file: Optional[str] = None):
+        self.data_file = data_file
 
 
 class UpdateInfoWithCVES(DataObject):
@@ -103,19 +111,24 @@ class PackageUpdatesWithCVEResult(DataObject, AdditionalInfo):
         self.vulnerability_data_published_at = vulnerability_data_published_at
 
 
-def updates_with_cves() -> PackageUpdatesWithCVEResult:
-    return _updates_with_cves(UAConfig())
+def updates_with_cves(
+    options: UpdateInfoWithCVESOptions,
+) -> PackageUpdatesWithCVEResult:
+    return _updates_with_cves(options=options, cfg=UAConfig())
 
 
 def _get_pkg_current_version(cache, pkg: str):
     return cache[pkg].current_ver.ver_str
 
 
-def _updates_with_cves(cfg: UAConfig) -> PackageUpdatesWithCVEResult:
+def _updates_with_cves(
+    options: UpdateInfoWithCVESOptions, cfg: UAConfig
+) -> PackageUpdatesWithCVEResult:
     package_updates = _updates(cfg)
-    series = get_release_info().series
 
-    vulnerabilities_data = fetch_vulnerabilities_data(cfg, series)
+    vulnerabilities_json_data = VulnerabilityData(
+        cfg=cfg, data_file=options.data_file
+    ).get()
     package_updates_with_cves = []
     cves_info = []
     all_cves = set()
@@ -127,13 +140,13 @@ def _updates_with_cves(cfg: UAConfig) -> PackageUpdatesWithCVEResult:
             pkg_name = pkg.package
 
             source_pkg = _get_source_package_from_vulnerabilities_data(
-                vulnerabilities_data, pkg_name
+                vulnerabilities_json_data, pkg_name
             )
             update_version = pkg.version
             current_pkg_version = _get_pkg_current_version(cache, pkg_name)
 
             pkg_cves = (
-                vulnerabilities_data.get("packages")
+                vulnerabilities_json_data.get("packages")
                 .get(source_pkg, {})
                 .get("cves", {})
             )
@@ -160,7 +173,7 @@ def _updates_with_cves(cfg: UAConfig) -> PackageUpdatesWithCVEResult:
                 )
             )
 
-    cves = vulnerabilities_data.get("security_issues", {}).get("cves", {})
+    cves = vulnerabilities_json_data.get("security_issues", {}).get("cves", {})
     for cve_name in sorted(all_cves):
         cve = cves.get(cve_name)
         cves_info.append(
@@ -182,7 +195,7 @@ def _updates_with_cves(cfg: UAConfig) -> PackageUpdatesWithCVEResult:
         updates=package_updates_with_cves,
         cves=cves_info,
         vulnerability_data_published_at=datetime.datetime.strptime(
-            vulnerabilities_data["published_at"], "%Y-%m-%dT%H:%M:%S"
+            vulnerabilities_json_data["published_at"], "%Y-%m-%dT%H:%M:%S"
         ),
     )
 
@@ -191,5 +204,5 @@ endpoint = APIEndpoint(
     version="v1",
     name="PackageUpdatesWithCVE",
     fn=_updates_with_cves,
-    options_cls=None,
+    options_cls=UpdateInfoWithCVESOptions,
 )
