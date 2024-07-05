@@ -122,23 +122,22 @@ VULNERABILITIES_DATA = {
 class TestPackagesWithCVEs:
     M_PATH = "uaclient.api.u.pro.packages.updates_with_cves.v1."
 
-    @mock.patch(M_PATH + "get_release_info")
-    @mock.patch(M_PATH + "fetch_vulnerabilities_data")
+    @mock.patch(M_PATH + "VulnerabilityData.get")
     @mock.patch(M_PATH + "_get_pkg_current_version")
     @mock.patch(M_PATH + "_updates")
     def test_packages_with_cves(
         self,
         m_updates,
         m_get_pkg_curr_version,
-        m_fetch_vulnerabilities_data,
-        m_get_release_info,
+        m_vulnerability_data_get,
     ):
-        m_get_release_info.return_value = mock.MagicMock(series="test")
-        m_fetch_vulnerabilities_data.return_value = VULNERABILITIES_DATA
+        m_vulnerability_data_get.return_value = VULNERABILITIES_DATA
         m_updates.return_value = PACKAGE_UPDATES
         m_get_pkg_curr_version.side_effect = ["1.1", "1.0.12", "1.3"]
 
-        assert _updates_with_cves(cfg=None) == PackageUpdatesWithCVEResult(
+        assert _updates_with_cves(
+            options=mock.MagicMock(data_file=None), cfg=None
+        ) == PackageUpdatesWithCVEResult(
             summary=UpdateSummary(
                 num_updates=3,
                 num_esm_apps_updates=1,
