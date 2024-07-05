@@ -57,7 +57,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
     ContractExpiryStatus,
     _is_attached,
 )
-from uaclient.cli.constants import NAME, USAGE_TMPL
+from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.detach import action_detach
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
@@ -139,31 +139,6 @@ class FixContext:
             self.unfixed_pkgs.append(
                 UnfixedPackage(pkg=pkg, unfixed_reason=unfixed_reason)
             )
-
-
-def add_parser(subparsers):
-    parser_fix = subparsers.add_parser("fix", help=messages.CLI_ROOT_FIX)
-    parser_fix.set_defaults(action=action_fix)
-    fix_parser(parser_fix)
-
-
-def fix_parser(parser):
-    """Build or extend an arg parser for fix subcommand."""
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
-    )
-    parser.prog = "fix"
-    parser.description = messages.CLI_FIX_DESC
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.add_argument("security_issue", help=messages.CLI_FIX_ISSUE)
-    parser.add_argument(
-        "--dry-run", action="store_true", help=messages.CLI_FIX_DRY_RUN
-    )
-    parser.add_argument(
-        "--no-related", action="store_true", help=messages.CLI_FIX_NO_RELATED
-    )
-
-    return parser
 
 
 def print_cve_header(cve: FixPlanResult):
@@ -933,3 +908,28 @@ def action_fix(args, *, cfg, **kwargs):
         )
 
     return status.exit_code
+
+
+fix_command = ProCommand(
+    "fix",
+    help=messages.CLI_ROOT_FIX,
+    description=messages.CLI_FIX_DESC,
+    action=action_fix,
+    argument_groups=[
+        ProArgumentGroup(
+            arguments=[
+                ProArgument("security_issue", help=messages.CLI_FIX_ISSUE),
+                ProArgument(
+                    "--dry-run",
+                    help=messages.CLI_FIX_DRY_RUN,
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--no-related",
+                    help=messages.CLI_FIX_NO_RELATED,
+                    action="store_true",
+                ),
+            ]
+        )
+    ],
+)

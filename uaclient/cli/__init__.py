@@ -29,7 +29,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.apt import AptProxyScope, setup_apt_proxy
-from uaclient.cli import cli_util, fix
+from uaclient.cli import cli_util
 from uaclient.cli.api import api_command
 from uaclient.cli.attach import attach_command
 from uaclient.cli.auto_attach import auto_attach_command
@@ -38,6 +38,7 @@ from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
+from uaclient.cli.fix import fix_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
@@ -59,6 +60,7 @@ COMMANDS = [
     detach_command,
     disable_command,
     enable_command,
+    fix_command,
     security_status_command,
 ]
 
@@ -538,8 +540,6 @@ def get_parser(cfg: config.UAConfig):
     )
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
-
-    fix.add_parser(subparsers)
 
     parser_help = subparsers.add_parser("help", help=messages.CLI_ROOT_HELP)
     help_parser(parser_help, cfg=cfg)
