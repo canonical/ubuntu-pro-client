@@ -702,7 +702,7 @@ class TestActionEnable:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.status.status")
+    @mock.patch("uaclient.cli.status_module.status")
     @mock.patch("uaclient.cli.enable._enable")
     @mock.patch("uaclient.cli.enable._enable_landscape")
     @mock.patch("uaclient.cli.enable.cli_util.CLIEnableDisableProgress")
