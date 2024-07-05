@@ -18,7 +18,7 @@ positional arguments:
 
 @mock.patch("uaclient.cli.logging.error")
 @mock.patch("uaclient.log.setup_cli_logging")
-@mock.patch(M_PATH + "contract.get_available_resources")
+@mock.patch("uaclient.contract.get_available_resources")
 class TestMainConfigShow:
     def test_config_show_help(
         self,

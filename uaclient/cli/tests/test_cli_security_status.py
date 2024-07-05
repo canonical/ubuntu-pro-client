@@ -10,7 +10,7 @@ M_PATH = "uaclient.cli.security_status."
 
 @mock.patch(M_PATH + "security_status.security_status")
 @mock.patch(M_PATH + "security_status.security_status_dict")
-@mock.patch("uaclient.cli.contract.get_available_resources")
+@mock.patch("uaclient.contract.get_available_resources")
 class TestActionSecurityStatus:
     @pytest.mark.parametrize("output_format", ("json", "yaml", "text"))
     @mock.patch(M_PATH + "safe_dump")
