@@ -1,6 +1,12 @@
 import mock
+import pytest
 
-from uaclient.cli.commands import ProArgument, ProCommand
+from uaclient.cli.commands import (
+    ProArgument,
+    ProArgumentGroup,
+    ProArgumentMutuallyExclusiveGroup,
+    ProCommand,
+)
 
 
 class TestProCommand:
@@ -24,7 +30,9 @@ class TestProCommand:
         assert [mock.call(args, cfg=cfg)] == mock_action.call_args_list
 
     def test_command_register(self):
-        mock_argument = mock.MagicMock()
+        mock_argument_group1 = mock.MagicMock()
+        mock_argument_group2 = mock.MagicMock()
+
         mock_subparsers = mock.MagicMock()
 
         example_command = ProCommand(
@@ -32,7 +40,7 @@ class TestProCommand:
             help="help",
             description="description",
             usage="usage",
-            arguments=[mock_argument],
+            argument_groups=[mock_argument_group1, mock_argument_group2],
         )
 
         example_command.register(mock_subparsers)
@@ -50,7 +58,10 @@ class TestProCommand:
         )
         assert [
             mock.call(example_command.parser)
-        ] == mock_argument.register.call_args_list
+        ] == mock_argument_group1.register.call_args_list
+        assert [
+            mock.call(example_command.parser)
+        ] == mock_argument_group2.register.call_args_list
         assert [
             mock.call(action=example_command.action)
         ] == example_command.parser.set_defaults.call_args_list
@@ -80,3 +91,52 @@ class TestProArgument:
             mock.call("-m", "--maybe-short", help="help3"),
             mock.call("--one-with-kwargs", help="help4", something="else"),
         ] == mock_parser.add_argument.call_args_list
+
+
+class TestProArgumentGroup:
+    @pytest.mark.parametrize(
+        "title,description", (("example", "example_desc"), (None, None))
+    )
+    def test_argument_group_register_titleless(self, title, description):
+        arg1 = mock.MagicMock()
+        arg2 = mock.MagicMock()
+
+        me_arg1 = mock.MagicMock()
+        me_arg2 = mock.MagicMock()
+
+        mock_parser = mock.MagicMock()
+
+        test_group = ProArgumentGroup(
+            title=title,
+            description=description,
+            arguments=[arg1, arg2],
+            mutually_exclusive_groups=[
+                ProArgumentMutuallyExclusiveGroup(
+                    required=False, arguments=[me_arg1, me_arg2]
+                )
+            ],
+        )
+
+        test_group.register(mock_parser)
+
+        if title and description:
+            add_group_args = [mock.call("example", "example_desc")]
+            base_parser = mock_parser.add_argument_group.return_value
+        else:
+            add_group_args = []
+            base_parser = mock_parser
+
+        assert add_group_args == mock_parser.add_argument_group.call_args_list
+
+        assert [
+            mock.call(required=False)
+        ] == base_parser.add_mutually_exclusive_group.call_args_list
+
+        assert [mock.call(base_parser)] == arg1.register.call_args_list
+        assert [mock.call(base_parser)] == arg2.register.call_args_list
+        assert [
+            mock.call(base_parser.add_mutually_exclusive_group.return_value)
+        ] == me_arg1.register.call_args_list
+        assert [
+            mock.call(base_parser.add_mutually_exclusive_group.return_value)
+        ] == me_arg2.register.call_args_list

@@ -20,7 +20,7 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.cli import cli_util
-from uaclient.cli.commands import ProArgument, ProCommand
+from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.entitlements.entitlement_status import CanDisableFailure
 
 event = event_logger.get_event_logger()
@@ -294,33 +294,37 @@ disable_command = ProCommand(
     help=messages.CLI_ROOT_DISABLE,
     description=messages.CLI_DISABLE_DESC,
     action=action_disable,
-    arguments=[
-        ProArgument(
-            "service",
-            help=messages.CLI_DISABLE_SERVICE.format(
-                options=", ".join(
-                    entitlements.valid_services(cfg=config.UAConfig())
-                )
-            ),
-            action="store",
-            nargs="+",
-        ),
-        ProArgument(
-            "--assume-yes",
-            help=messages.CLI_ASSUME_YES.format(command="disable"),
-            action="store_true",
-        ),
-        ProArgument(
-            "--format",
-            help=messages.CLI_FORMAT_DESC.format(default="cli"),
-            action="store",
-            choices=["cli", "json"],
-            default="cli",
-        ),
-        ProArgument(
-            "--purge",
-            help=messages.CLI_PURGE,
-            action="store_true",
-        ),
+    argument_groups=[
+        ProArgumentGroup(
+            arguments=[
+                ProArgument(
+                    "service",
+                    help=messages.CLI_DISABLE_SERVICE.format(
+                        options=", ".join(
+                            entitlements.valid_services(cfg=config.UAConfig())
+                        )
+                    ),
+                    action="store",
+                    nargs="+",
+                ),
+                ProArgument(
+                    "--assume-yes",
+                    help=messages.CLI_ASSUME_YES.format(command="disable"),
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--format",
+                    help=messages.CLI_FORMAT_DESC.format(default="cli"),
+                    action="store",
+                    choices=["cli", "json"],
+                    default="cli",
+                ),
+                ProArgument(
+                    "--purge",
+                    help=messages.CLI_PURGE,
+                    action="store_true",
+                ),
+            ]
+        )
     ],
 )
