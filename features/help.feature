@@ -177,6 +177,53 @@ Feature: Pro Client help text
         --no-related    If used, when fixing a USN, the command will not try to also
                         fix related USNs to the target USN.
       """
+    When I run `pro status --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro status \[flags\]
+
+      Report current status of Ubuntu Pro services on system.
+
+      This shows whether this machine is attached to an Ubuntu Advantage
+      support contract. When attached, the report includes the specific
+      support contract details including contract name, expiry dates, and the
+      status of each service on this system.
+
+      The attached status output has four columns:
+
+      \* SERVICE: name of the service
+      \* ENTITLED: whether the contract to which this machine is attached
+        entitles use of this service. Possible values are: yes or no
+      \* STATUS: whether the service is enabled on this machine. Possible
+        values are: enabled, disabled, n/a \(if your contract entitles
+        you to the service, but it isn't available for this machine\) or — \(if
+        you aren't entitled to this service\)
+      \* DESCRIPTION: a brief description of the service
+
+      The unattached status output instead has three columns. SERVICE
+      and DESCRIPTION are the same as above, and there is the addition
+      of:
+
+      \* AVAILABLE: whether this service would be available if this machine
+        were attached. The possible values are yes or no.
+
+      If --simulate-with-token is used, then the output has five
+      columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
+      as mentioned above, and AUTO_ENABLED shows whether the service is set
+      to be enabled when that token is attached.
+
+      If the --all flag is set, beta and unavailable services are also
+      listed in the output.
+
+      (optional arguments|options):
+        -h, --help            show this help message and exit
+        --wait                Block waiting on pro to complete
+        --format \{tabular,json,yaml\}
+                              output in the specified format \(default: tabular\)
+        --simulate-with-token TOKEN
+                              simulate the output status using a provided token
+        --all                 Include unavailable and beta services
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
