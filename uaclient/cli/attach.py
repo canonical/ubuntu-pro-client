@@ -19,7 +19,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
     _wait,
 )
 from uaclient.cli import cli_util
-from uaclient.cli.commands import ProArgument, ProCommand
+from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.entitlements import (
     create_enable_entitlements_not_found_error,
@@ -141,25 +141,31 @@ attach_command = ProCommand(
     description=messages.CLI_ATTACH_DESC,
     action=action_attach,
     preserve_description=True,
-    arguments=[
-        ProArgument("token", help=messages.CLI_ATTACH_TOKEN, nargs="?"),
-        ProArgument(
-            "--no-auto-enable",
-            help=messages.CLI_ATTACH_NO_AUTO_ENABLE,
-            action="store_false",
-            dest="auto_enable",
-        ),
-        ProArgument(
-            "--attach-config",
-            help=messages.CLI_ATTACH_ATTACH_CONFIG,
-            type=argparse.FileType("r"),
-        ),
-        ProArgument(
-            "--format",
-            help=messages.CLI_FORMAT_DESC.format(default="cli"),
-            action="store",
-            choices=["cli", "json"],
-            default="cli",
-        ),
+    argument_groups=[
+        ProArgumentGroup(
+            arguments=[
+                ProArgument(
+                    "token", help=messages.CLI_ATTACH_TOKEN, nargs="?"
+                ),
+                ProArgument(
+                    "--no-auto-enable",
+                    help=messages.CLI_ATTACH_NO_AUTO_ENABLE,
+                    action="store_false",
+                    dest="auto_enable",
+                ),
+                ProArgument(
+                    "--attach-config",
+                    help=messages.CLI_ATTACH_ATTACH_CONFIG,
+                    type=argparse.FileType("r"),
+                ),
+                ProArgument(
+                    "--format",
+                    help=messages.CLI_FORMAT_DESC.format(default="cli"),
+                    action="store",
+                    choices=["cli", "json"],
+                    default="cli",
+                ),
+            ]
+        )
     ],
 )
