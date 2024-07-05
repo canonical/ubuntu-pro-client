@@ -8,7 +8,7 @@ import mock
 import pytest
 
 from uaclient import defaults, exceptions, messages, status
-from uaclient.cli import action_help, main
+from uaclient.cli import _warn_about_output_redirection, action_help, main
 from uaclient.entitlements import get_valid_entitlement_names
 from uaclient.exceptions import (
     AlreadyAttachedError,
@@ -421,56 +421,60 @@ class TestMain:
         assert expected_setup_logging_calls == m_setup_logging.call_args_list
 
     @pytest.mark.parametrize(
-        "cli_args,is_tty,should_warn",
+        "command,out_format,is_tty,should_warn",
         (
-            (["pro", "status"], True, False),
-            (["pro", "status"], False, True),
-            (["pro", "status", "--format", "tabular"], True, False),
-            (["pro", "status", "--format", "tabular"], False, True),
-            (["pro", "status", "--format", "json"], True, False),
-            (["pro", "status", "--format", "json"], False, False),
-            (["pro", "security-status"], True, False),
-            (["pro", "security-status"], False, True),
-            (["pro", "security-status", "--format", "json"], True, False),
-            (["pro", "security-status", "--format", "json"], False, False),
+            ("status", None, True, False),
+            ("status", None, False, True),
+            ("status", "tabular", True, False),
+            ("status", "tabular", False, True),
+            ("status", "json", True, False),
+            ("status", "json", False, False),
+            ("security-status", None, True, False),
+            ("security-status", None, False, True),
+            ("security-status", "json", True, False),
+            ("security-status", "json", False, False),
         ),
     )
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @mock.patch("uaclient.cli.event.info")
-    @mock.patch("uaclient.cli.action_status")
-    @mock.patch("uaclient.cli.security_status.action_security_status")
-    @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("sys.stdout.isatty")
     def test_status_human_readable_warning(
         self,
         m_tty,
-        _m_setup_logging,
-        _m_action_security_status,
-        _m_action_status,
         m_event_info,
-        cli_args,
+        command,
+        out_format,
         is_tty,
         should_warn,
-        FakeConfig,
+        caplog_text,
     ):
         m_tty.return_value = is_tty
-        with mock.patch("sys.argv", cli_args):
-            with mock.patch(
-                "uaclient.config.UAConfig",
-                return_value=FakeConfig(),
-            ):
-                main()
+
+        m_args = mock.MagicMock()
+        m_args.command = command
+        m_args.format = out_format
+
+        _warn_about_output_redirection(m_args)
 
         if should_warn:
             assert [
                 mock.call(
                     messages.WARNING_HUMAN_READABLE_OUTPUT.format(
-                        command=cli_args[1]
+                        command=command
                     ),
                     file_type=mock.ANY,
                 )
             ] == m_event_info.call_args_list
+            assert (
+                "Not in a tty and human-readable command called"
+                in caplog_text()
+            )
         else:
             assert [] == m_event_info.call_args_list
+            assert (
+                "Not in a tty and human-readable command called"
+                not in caplog_text()
+            )
 
 
 class TestGetValidEntitlementNames:

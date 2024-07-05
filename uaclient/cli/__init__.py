@@ -4,11 +4,10 @@ import argparse
 import json
 import logging
 import sys
-import time
 from typing import Optional
 
+# This will be fixed when the help command goes away
 from uaclient import (
-    actions,
     apt,
     apt_news,
     config,
@@ -21,10 +20,9 @@ from uaclient import (
     lock,
     log,
     messages,
-    status,
-    util,
-    version,
 )
+from uaclient import status as status_module
+from uaclient import util, version
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -40,6 +38,7 @@ from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
 from uaclient.cli.fix import fix_command
 from uaclient.cli.security_status import security_status_command
+from uaclient.cli.status import status_command
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
 from uaclient.log import get_user_or_root_log_file_path
@@ -62,6 +61,7 @@ COMMANDS = [
     enable_command,
     fix_command,
     security_status_command,
+    status_command,
 ]
 
 
@@ -246,41 +246,6 @@ def reboot_required_parser(parser):
     parser.pro = "reboot-required"
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
     parser.description = messages.CLI_SYSTEM_REBOOT_REQUIRED_DESC
-    return parser
-
-
-def status_parser(parser):
-    """Build or extend an arg parser for status subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="status")
-    parser.usage = usage
-    parser.prog = "status"
-    # This formatter_class ensures that our formatting below isn't lost
-    parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = messages.CLI_STATUS_DESC
-
-    parser.add_argument(
-        "--wait",
-        action="store_true",
-        default=False,
-        help=messages.CLI_STATUS_WAIT,
-    )
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=STATUS_FORMATS,
-        default=STATUS_FORMATS[0],
-        help=(messages.CLI_FORMAT_DESC.format(default=STATUS_FORMATS[0])),
-    )
-    parser.add_argument(
-        "--simulate-with-token",
-        metavar="TOKEN",
-        action="store",
-        help=messages.CLI_STATUS_SIMULATE_WITH_TOKEN,
-    )
-    parser.add_argument(
-        "--all", action="store_true", help=messages.CLI_STATUS_ALL
-    )
-    parser._optionals.title = "Flags"
     return parser
 
 
@@ -551,12 +516,6 @@ def get_parser(cfg: config.UAConfig):
     parser_refresh.set_defaults(action=action_refresh)
     refresh_parser(parser_refresh)
 
-    parser_status = subparsers.add_parser(
-        "status", help=messages.CLI_ROOT_STATUS
-    )
-    parser_status.set_defaults(action=action_status)
-    status_parser(parser_status)
-
     parser_version = subparsers.add_parser(
         "version", help=messages.CLI_ROOT_VERSION.format(name=NAME)
     )
@@ -569,35 +528,6 @@ def get_parser(cfg: config.UAConfig):
     system_parser(parser_system)
 
     return parser
-
-
-def action_status(args, *, cfg: config.UAConfig, **kwargs):
-    if not cfg:
-        cfg = config.UAConfig()
-    show_all = args.all if args else False
-    token = args.simulate_with_token if args else None
-    active_value = status.UserFacingConfigStatus.ACTIVE.value
-    status_dict, ret = actions.status(
-        cfg, simulate_with_token=token, show_all=show_all
-    )
-    config_active = bool(status_dict["execution_status"] == active_value)
-
-    if args and args.wait and config_active:
-        while status_dict["execution_status"] == active_value:
-            event.info(".", end="")
-            time.sleep(1)
-            status_dict, ret = actions.status(
-                cfg,
-                simulate_with_token=token,
-                show_all=show_all,
-            )
-        event.info("")
-
-    event.set_output_content(status_dict)
-    output = status.format_tabular(status_dict, show_all=show_all)
-    event.info(util.handle_unicode_characters(output))
-    event.process_events()
-    return ret
 
 
 def action_system(args, *, cfg, **kwargs):
@@ -704,7 +634,7 @@ def action_help(args, *, cfg, **kwargs):
     if not cfg:
         cfg = config.UAConfig()
 
-    help_response = status.help(cfg, service)
+    help_response = status_module.help(cfg, service)
 
     if args.format == "json":
         print(json.dumps(help_response))
