@@ -157,6 +157,26 @@ Feature: Pro Client help text
         --esm-infra           List and present information about esm-infra packages
         --esm-apps            List and present information about esm-apps packages
       """
+    When I run `pro fix --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro fix \[flags\]
+
+      Inspect and resolve CVEs and USNs \(Ubuntu Security Notices\) on this machine.
+
+      positional arguments:
+        security_issue  Security vulnerability ID to inspect and resolve on this
+                        system. Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-
+                        dd
+
+      (optional arguments|options):
+        -h, --help      show this help message and exit
+        --dry-run       If used, fix will not actually run but will display
+                        everything that will happen on the machine during the
+                        command.
+        --no-related    If used, when fixing a USN, the command will not try to also
+                        fix related USNs to the target USN.
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
