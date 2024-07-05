@@ -29,7 +29,7 @@ from uaclient.api.u.pro.status.enabled_services.v1 import (
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util
-from uaclient.cli.commands import ProArgument, ProCommand
+from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -511,43 +511,47 @@ enable_command = ProCommand(
     help=messages.CLI_ROOT_ENABLE,
     description=messages.CLI_ENABLE_DESC,
     action=action_enable,
-    arguments=[
-        ProArgument(
-            "service",
-            help=messages.CLI_ENABLE_SERVICE.format(
-                options=", ".join(
-                    entitlements.valid_services(cfg=config.UAConfig())
-                )
-            ),
-            action="store",
-            nargs="+",
-        ),
-        ProArgument(
-            "--assume-yes",
-            help=messages.CLI_ASSUME_YES.format(command="enable"),
-            action="store_true",
-        ),
-        ProArgument(
-            "--access-only",
-            help=messages.CLI_ENABLE_ACCESS_ONLY,
-            action="store_true",
-        ),
-        ProArgument(
-            "--beta",
-            help=messages.CLI_ENABLE_BETA,
-            action="store_true",
-        ),
-        ProArgument(
-            "--format",
-            help=messages.CLI_FORMAT_DESC.format(default="cli"),
-            action="store",
-            choices=["cli", "json"],
-            default="cli",
-        ),
-        ProArgument(
-            "--variant",
-            help=messages.CLI_ENABLE_VARIANT,
-            action="store",
-        ),
+    argument_groups=[
+        ProArgumentGroup(
+            arguments=[
+                ProArgument(
+                    "service",
+                    help=messages.CLI_ENABLE_SERVICE.format(
+                        options=", ".join(
+                            entitlements.valid_services(cfg=config.UAConfig())
+                        )
+                    ),
+                    action="store",
+                    nargs="+",
+                ),
+                ProArgument(
+                    "--assume-yes",
+                    help=messages.CLI_ASSUME_YES.format(command="enable"),
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--access-only",
+                    help=messages.CLI_ENABLE_ACCESS_ONLY,
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--beta",
+                    help=messages.CLI_ENABLE_BETA,
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--format",
+                    help=messages.CLI_FORMAT_DESC.format(default="cli"),
+                    action="store",
+                    choices=["cli", "json"],
+                    default="cli",
+                ),
+                ProArgument(
+                    "--variant",
+                    help=messages.CLI_ENABLE_VARIANT,
+                    action="store",
+                ),
+            ]
+        )
     ],
 )

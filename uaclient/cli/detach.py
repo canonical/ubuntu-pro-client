@@ -9,7 +9,7 @@ from uaclient import (
     util,
 )
 from uaclient.cli import cli_util
-from uaclient.cli.commands import ProArgument, ProCommand
+from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.disable import perform_disable
 from uaclient.files import machine_token, state_files
 from uaclient.timer.update_messaging import update_motd_messages
@@ -92,18 +92,22 @@ detach_command = ProCommand(
     help=messages.CLI_ROOT_DETACH,
     description=messages.CLI_DETACH_DESC,
     action=action_detach,
-    arguments=[
-        ProArgument(
-            "--assume-yes",
-            help=messages.CLI_ASSUME_YES.format(command="detach"),
-            action="store_true",
-        ),
-        ProArgument(
-            "--format",
-            help=messages.CLI_FORMAT_DESC.format(default="cli"),
-            action="store",
-            choices=["cli", "json"],
-            default="cli",
-        ),
+    argument_groups=[
+        ProArgumentGroup(
+            arguments=[
+                ProArgument(
+                    "--assume-yes",
+                    help=messages.CLI_ASSUME_YES.format(command="detach"),
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--format",
+                    help=messages.CLI_FORMAT_DESC.format(default="cli"),
+                    action="store",
+                    choices=["cli", "json"],
+                    default="cli",
+                ),
+            ]
+        )
     ],
 )
