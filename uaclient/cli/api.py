@@ -6,7 +6,7 @@ from typing import Any, Optional  # noqa: F401
 from uaclient import exceptions, messages
 from uaclient.api import AbstractProgress
 from uaclient.api.api import call_api
-from uaclient.cli.commands import ProArgument, ProCommand
+from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 
 
 class CLIAPIProgress(AbstractProgress):
@@ -51,27 +51,33 @@ api_command = ProCommand(
     help=messages.CLI_ROOT_API,
     description=messages.CLI_API_DESC,
     action=action_api,
-    arguments=[
-        ProArgument(
-            "endpoint_path", help=messages.CLI_API_ENDPOINT, metavar="endpoint"
-        ),
-        ProArgument(
-            "--show-progress",
-            help=messages.CLI_API_SHOW_PROGRESS,
-            action="store_true",
-        ),
-        ProArgument(
-            "--args",
-            help=messages.CLI_API_ARGS,
-            dest="options",
-            default=[],
-            nargs="*",
-        ),
-        ProArgument(
-            "--data",
-            help=messages.CLI_API_DATA,
-            dest="data",
-            default="",
-        ),
+    argument_groups=[
+        ProArgumentGroup(
+            arguments=[
+                ProArgument(
+                    "endpoint_path",
+                    help=messages.CLI_API_ENDPOINT,
+                    metavar="endpoint",
+                ),
+                ProArgument(
+                    "--show-progress",
+                    help=messages.CLI_API_SHOW_PROGRESS,
+                    action="store_true",
+                ),
+                ProArgument(
+                    "--args",
+                    help=messages.CLI_API_ARGS,
+                    dest="options",
+                    default=[],
+                    nargs="*",
+                ),
+                ProArgument(
+                    "--data",
+                    help=messages.CLI_API_DATA,
+                    dest="data",
+                    default="",
+                ),
+            ]
+        )
     ],
 )
