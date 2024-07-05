@@ -65,7 +65,7 @@ class TestMainConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.contract.get_available_resources")
+    @mock.patch("uaclient.contract.get_available_resources")
     def test_set_error_with_help_on_invalid_key_value_pair(
         self,
         _m_resources,
@@ -92,7 +92,7 @@ class TestMainConfigSet:
 
 
 @mock.patch("uaclient.config.user_config_file.user_config.write")
-@mock.patch("uaclient.cli.contract.get_available_resources")
+@mock.patch("uaclient.contract.get_available_resources")
 class TestActionConfigSet:
     @mock.patch("uaclient.util.we_are_currently_root", return_value=False)
     def test_set_error_on_non_root_user(
