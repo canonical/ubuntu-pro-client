@@ -47,7 +47,7 @@ class TestDisable:
     @mock.patch("uaclient.cli.disable._enabled_services")
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))
     @mock.patch(
-        "uaclient.cli.contract.UAContractClient.update_activity_token",
+        "uaclient.cli.disable.contract.UAContractClient.update_activity_token",
     )
     @mock.patch("uaclient.cli.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements.valid_services")

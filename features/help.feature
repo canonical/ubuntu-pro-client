@@ -224,6 +224,28 @@ Feature: Pro Client help text
                               simulate the output status using a provided token
         --all                 Include unavailable and beta services
       """
+    When I run `pro refresh --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro refresh \[flags\]
+
+      Refresh three distinct Ubuntu Pro related artifacts in the system:
+
+      \* contract: Update contract details from the server.
+      \* config:   Reload the config file.
+      \* messages: Update APT and MOTD messages related to UA.
+
+      You can individually target any of the three specific actions,
+      by passing the target name to the command.  If no `target`
+      is specified, all targets are refreshed.
+
+      positional arguments:
+        \{contract,config,messages\}
+                              Target to refresh.
+
+      (optional arguments|options):
+        -h, --help            show this help message and exit
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
