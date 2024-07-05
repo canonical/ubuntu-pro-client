@@ -21,7 +21,6 @@ from uaclient import (
     lock,
     log,
     messages,
-    security_status,
     status,
     util,
     version,
@@ -39,11 +38,11 @@ from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
+from uaclient.cli.security_status import security_status_command
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
 from uaclient.log import get_user_or_root_log_file_path
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
-from uaclient.yaml import safe_dump
 
 UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
@@ -60,6 +59,7 @@ COMMANDS = [
     detach_command,
     disable_command,
     enable_command,
+    security_status_command,
 ]
 
 
@@ -167,44 +167,6 @@ def config_parser(parser):
     return parser
 
 
-def security_status_parser(parser):
-    """Build or extend an arg parser for security-status subcommand."""
-    parser.prog = "security-status"
-    parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = messages.CLI_SS_DESC
-
-    parser.add_argument(
-        "--format",
-        help=messages.CLI_FORMAT_DESC.format(default="text"),
-        choices=("json", "yaml", "text"),
-        default="text",
-    )
-
-    group = parser.add_mutually_exclusive_group()
-
-    group.add_argument(
-        "--thirdparty",
-        help=messages.CLI_SS_THIRDPARTY,
-        action="store_true",
-    )
-    group.add_argument(
-        "--unavailable",
-        help=messages.CLI_SS_UNAVAILABLE,
-        action="store_true",
-    )
-    group.add_argument(
-        "--esm-infra",
-        help=messages.CLI_SS_ESM_INFRA,
-        action="store_true",
-    )
-    group.add_argument(
-        "--esm-apps",
-        help=messages.CLI_SS_ESM_APPS,
-        action="store_true",
-    )
-    return parser
-
-
 def refresh_parser(parser):
     """Build or extend an arg parser for refresh subcommand."""
     parser.prog = "refresh"
@@ -223,36 +185,6 @@ def refresh_parser(parser):
         help=messages.CLI_REFRESH_TARGET,
     )
     return parser
-
-
-def action_security_status(args, *, cfg, **kwargs):
-    if args.format == "text":
-        if args.thirdparty:
-            security_status.list_third_party_packages()
-        elif args.unavailable:
-            security_status.list_unavailable_packages()
-        elif args.esm_infra:
-            security_status.list_esm_infra_packages(cfg)
-        elif args.esm_apps:
-            security_status.list_esm_apps_packages(cfg)
-        else:
-            security_status.security_status(cfg)
-    elif args.format == "json":
-        print(
-            json.dumps(
-                security_status.security_status_dict(cfg),
-                sort_keys=True,
-                cls=util.DatetimeAwareJSONEncoder,
-            )
-        )
-    else:
-        print(
-            safe_dump(
-                security_status.security_status_dict(cfg),
-                default_flow_style=False,
-            )
-        )
-    return 0
 
 
 def help_parser(parser, cfg: config.UAConfig):
@@ -608,12 +540,6 @@ def get_parser(cfg: config.UAConfig):
     parser_config.set_defaults(action=action_config)
 
     fix.add_parser(subparsers)
-
-    parser_security_status = subparsers.add_parser(
-        "security-status", help=messages.CLI_ROOT_SECURITY_STATUS
-    )
-    security_status_parser(parser_security_status)
-    parser_security_status.set_defaults(action=action_security_status)
 
     parser_help = subparsers.add_parser("help", help=messages.CLI_ROOT_HELP)
     help_parser(parser_help, cfg=cfg)
