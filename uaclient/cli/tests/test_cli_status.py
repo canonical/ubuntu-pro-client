@@ -5,20 +5,19 @@ import json
 import os
 import socket
 import sys
-import textwrap
 
 import mock
 import pytest
 
 from uaclient import exceptions, lock, messages, status, util
-from uaclient.cli import action_status, get_parser, main, status_parser
+from uaclient.cli.status import status_command
 from uaclient.conftest import FakeNotice
 from uaclient.event_logger import EventLoggerMode
 from uaclient.files.notices import Notice, NoticesManager
 from uaclient.files.user_config_file import UserConfigData
 from uaclient.yaml import safe_load
 
-M_PATH = "uaclient.cli."
+M_PATH = "uaclient.cli.status."
 
 
 RESPONSE_AVAILABLE_SERVICES = [
@@ -281,54 +280,6 @@ SERVICES_JSON = [
     },
 ]
 
-HELP_OUTPUT = textwrap.dedent(
-    """\
-usage: pro status [flags]
-
-Report current status of Ubuntu Pro services on system.
-
-This shows whether this machine is attached to an Ubuntu Advantage
-support contract. When attached, the report includes the specific
-support contract details including contract name, expiry dates, and the
-status of each service on this system.
-
-The attached status output has four columns:
-
-* SERVICE: name of the service
-* ENTITLED: whether the contract to which this machine is attached
-  entitles use of this service. Possible values are: yes or no
-* STATUS: whether the service is enabled on this machine. Possible
-  values are: enabled, disabled, n/a (if your contract entitles
-  you to the service, but it isn't available for this machine) or — (if
-  you aren't entitled to this service)
-* DESCRIPTION: a brief description of the service
-
-The unattached status output instead has three columns. SERVICE
-and DESCRIPTION are the same as above, and there is the addition
-of:
-
-* AVAILABLE: whether this service would be available if this machine
-  were attached. The possible values are yes or no.
-
-If --simulate-with-token is used, then the output has five
-columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
-as mentioned above, and AUTO_ENABLED shows whether the service is set
-to be enabled when that token is attached.
-
-If the --all flag is set, beta and unavailable services are also
-listed in the output.
-
-Flags:
-  -h, --help            show this help message and exit
-  --wait                Block waiting on pro to complete
-  --format {tabular,json,yaml}
-                        output in the specified format (default: tabular)
-  --simulate-with-token TOKEN
-                        simulate the output status using a provided token
-  --all                 Include unavailable and beta services
-"""
-)
-
 
 @mock.patch("uaclient.livepatch.on_supported_kernel", return_value=None)
 @mock.patch("uaclient.system.should_reboot", return_value=False)
@@ -346,29 +297,6 @@ Flags:
     return_value=UserConfigData(),
 )
 class TestActionStatus:
-    @mock.patch(M_PATH + "log.setup_cli_logging")
-    def test_status_help(
-        self,
-        _m_setup_logging,
-        _m_public_config,
-        _m_get_contract_information,
-        _m_get_available_resources,
-        _m_should_reboot,
-        _m_on_supported_kernel,
-        capsys,
-        FakeConfig,
-        event,
-    ):
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
-
     @pytest.mark.parametrize("use_all", (True, False))
     @pytest.mark.parametrize(
         "notices,notice_status",
@@ -422,7 +350,7 @@ class TestActionStatus:
             new_callable=mock.PropertyMock,
             return_value=features,
         ):
-            assert 0 == action_status(
+            assert 0 == status_command.action(
                 mock.MagicMock(all=use_all, simulate_with_token=None), cfg=None
             )
         # capsys already converts colorized non-printable chars to space
@@ -472,7 +400,7 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         expected = UNATTACHED_STATUS_ALL if use_all else UNATTACHED_STATUS
-        assert 0 == action_status(
+        assert 0 == status_command.action(
             mock.MagicMock(all=use_all, simulate_with_token=None), cfg=cfg
         )
         assert expected == capsys.readouterr()[0]
@@ -499,7 +427,7 @@ class TestActionStatus:
         cfg = FakeConfig()
         expected = SIMULATED_STATUS_ALL if use_all else SIMULATED_STATUS
 
-        assert 0 == action_status(
+        assert 0 == status_command.action(
             mock.MagicMock(all=use_all, simulate_with_token="some_token"),
             cfg=cfg,
         )
@@ -538,7 +466,7 @@ class TestActionStatus:
         m_sleep.side_effect = fake_sleep
 
         with mock.patch.object(lock, "lock_data_file"):
-            assert 0 == action_status(
+            assert 0 == status_command.action(
                 mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
             )
 
@@ -595,7 +523,7 @@ class TestActionStatus:
             with mock.patch.object(
                 event, "_event_logger_mode", event_logger_mode
             ), mock.patch.object(event, "_command", "status"):
-                assert 0 == action_status(args, cfg=cfg)
+                assert 0 == status_command.action(args, cfg=cfg)
 
         expected_environment = []
         if environ:
@@ -712,7 +640,7 @@ class TestActionStatus:
                 with mock.patch(
                     "uaclient.status._get_blocked_by_services", return_value=[]
                 ):
-                    assert 0 == action_status(args, cfg=FakeConfig())
+                    assert 0 == status_command.action(args, cfg=FakeConfig())
 
         expected_environment = []
         if environ:
@@ -840,7 +768,7 @@ class TestActionStatus:
         with mock.patch.object(
             event, "_event_logger_mode", event_logger_mode
         ), mock.patch.object(event, "_command", "status"):
-            assert 0 == action_status(args, cfg=cfg)
+            assert 0 == status_command.action(args, cfg=cfg)
 
         services = [
             {
@@ -984,7 +912,7 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         with pytest.raises(exceptions.ConnectivityError):
-            action_status(
+            status_command.action(
                 mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
             )
 
@@ -1017,7 +945,7 @@ class TestActionStatus:
         fake_machine_token_file.attached = True
 
         with mock.patch("sys.stdout", fake_stdout):
-            action_status(
+            status_command.action(
                 mock.MagicMock(all=use_all, simulate_with_token=None),
                 cfg=FakeConfig(),
             )
@@ -1083,7 +1011,7 @@ class TestActionStatus:
         )
 
         with pytest.raises(exception_type) as exc:
-            action_status(args, cfg=cfg)
+            status_command.action(args, cfg=cfg)
 
         assert exc.type == exception_type
         assert exception_message in getattr(exc.value, "msg", exc.value.args)
@@ -1154,7 +1082,7 @@ class TestActionStatus:
         with mock.patch.object(
             event, "_event_logger_mode", event_logger_mode
         ), mock.patch.object(event, "_command", "status"):
-            assert 1 == action_status(args, cfg=cfg)
+            assert 1 == status_command.action(args, cfg=cfg)
 
         if format_type == "json":
             output = json.loads(capsys.readouterr()[0])
@@ -1162,33 +1090,3 @@ class TestActionStatus:
             output = safe_load(capsys.readouterr()[0])
 
         assert output["errors"][0]["message"] == warning_message
-
-
-class TestStatusParser:
-    @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_status_parser_updates_parser_config(
-        self, _m_resources, FakeConfig
-    ):
-        """Update the parser configuration for 'status'."""
-        m_parser = status_parser(mock.Mock())
-        assert "status" == m_parser.prog
-
-        full_parser = get_parser(FakeConfig())
-        with mock.patch(
-            "sys.argv",
-            [
-                "pro",
-                "status",
-                "--format",
-                "json",
-                "--simulate-with-token",
-                "some_token",
-                "--all",
-            ],
-        ):
-            args = full_parser.parse_args()
-        assert "status" == args.command
-        assert True is args.all
-        assert "json" == args.format
-        assert "some_token" == args.simulate_with_token
-        assert "action_status" == args.action.__name__
