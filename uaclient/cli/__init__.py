@@ -11,7 +11,6 @@ from uaclient import (
     apt,
     apt_news,
     config,
-    contract,
     defaults,
     entitlements,
     event_logger,
@@ -37,12 +36,12 @@ from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
 from uaclient.cli.fix import fix_command
+from uaclient.cli.refresh import refresh_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.cli.status import status_command
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
 from uaclient.log import get_user_or_root_log_file_path
-from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 
 UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
@@ -60,6 +59,7 @@ COMMANDS = [
     disable_command,
     enable_command,
     fix_command,
+    refresh_command,
     security_status_command,
     status_command,
 ]
@@ -166,26 +166,6 @@ def config_parser(parser):
     )
     parser_unset.set_defaults(action=action_config_unset)
     config_unset_parser(parser_unset, parent_command=command)
-    return parser
-
-
-def refresh_parser(parser):
-    """Build or extend an arg parser for refresh subcommand."""
-    parser.prog = "refresh"
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="refresh [contract|config|messages]"
-    )
-
-    parser._optionals.title = messages.CLI_FLAGS
-    parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = messages.CLI_REFRESH_DESC
-    parser.add_argument(
-        "target",
-        choices=["contract", "config", "messages"],
-        nargs="?",
-        default=None,
-        help=messages.CLI_REFRESH_TARGET,
-    )
     return parser
 
 
@@ -510,12 +490,6 @@ def get_parser(cfg: config.UAConfig):
     help_parser(parser_help, cfg=cfg)
     parser_help.set_defaults(action=action_help)
 
-    parser_refresh = subparsers.add_parser(
-        "refresh", help=messages.CLI_ROOT_REFRESH
-    )
-    parser_refresh.set_defaults(action=action_refresh)
-    refresh_parser(parser_refresh)
-
     parser_version = subparsers.add_parser(
         "version", help=messages.CLI_ROOT_VERSION.format(name=NAME)
     )
@@ -549,55 +523,6 @@ def action_system_reboot_required(args, *, cfg: config.UAConfig, **kwargs):
 
 def print_version(_args=None, cfg=None, **kwargs):
     print(version.get_version())
-
-
-def _action_refresh_config(args, cfg: config.UAConfig):
-    try:
-        cfg.process_config()
-    except RuntimeError as exc:
-        LOG.exception(exc)
-        raise exceptions.RefreshConfigFailure()
-    print(messages.REFRESH_CONFIG_SUCCESS)
-
-
-@cli_util.assert_attached()
-def _action_refresh_contract(_args, cfg: config.UAConfig):
-    try:
-        contract.refresh(cfg)
-    except exceptions.ConnectivityError:
-        raise exceptions.RefreshContractFailure()
-    print(messages.REFRESH_CONTRACT_SUCCESS)
-
-
-def _action_refresh_messages(_args, cfg: config.UAConfig):
-    # Not performing any exception handling here since both of these
-    # functions should raise UbuntuProError exceptions, which are
-    # covered by the main_error_handler decorator
-    try:
-        update_motd_messages(cfg)
-        refresh_motd()
-        if cfg.apt_news:
-            apt_news.update_apt_news(cfg)
-    except Exception as exc:
-        LOG.exception(exc)
-        raise exceptions.RefreshMessagesFailure()
-    else:
-        print(messages.REFRESH_MESSAGES_SUCCESS)
-
-
-@cli_util.assert_root
-@cli_util.assert_lock_file("pro refresh")
-def action_refresh(args, *, cfg: config.UAConfig, **kwargs):
-    if args.target is None or args.target == "config":
-        _action_refresh_config(args, cfg)
-
-    if args.target is None or args.target == "contract":
-        _action_refresh_contract(args, cfg)
-
-    if args.target is None or args.target == "messages":
-        _action_refresh_messages(args, cfg)
-
-    return 0
 
 
 def configure_apt_proxy(

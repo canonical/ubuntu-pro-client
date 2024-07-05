@@ -25,7 +25,7 @@ M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
 
 @mock.patch("uaclient.log.setup_cli_logging")
-@mock.patch("uaclient.cli.contract.get_available_resources")
+@mock.patch("uaclient.contract.get_available_resources")
 class TestMainConfigUnSet:
     @pytest.mark.parametrize(
         "kv_pair,err_msg",
