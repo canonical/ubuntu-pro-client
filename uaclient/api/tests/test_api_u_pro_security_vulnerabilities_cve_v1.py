@@ -237,14 +237,12 @@ class TestCVEVulnerabilities:
         ),
     )
     @mock.patch(M_PATH + "get_apt_cache_datetime")
-    @mock.patch(M_PATH + "get_release_info")
-    @mock.patch(M_PATH + "fetch_vulnerabilities_data")
+    @mock.patch(M_PATH + "VulnerabilityData.get")
     @mock.patch(M_PATH + "query_installed_source_pkg_versions")
     def test_parse_data(
         self,
         m_query_installed_source_pkg,
-        m_fetch_vulnerabilities_data,
-        m_get_release_info,
+        m_vulnerability_data_get,
         m_get_apt_cache_datetime,
         vulnerabilities_data,
         installed_pkgs_by_source,
@@ -252,8 +250,7 @@ class TestCVEVulnerabilities:
         expected_result,
     ):
         m_query_installed_source_pkg.return_value = installed_pkgs_by_source
-        m_fetch_vulnerabilities_data.return_value = vulnerabilities_data
-        m_get_release_info.return_value = mock.MagicMock(series="test")
+        m_vulnerability_data_get.return_value = vulnerabilities_data
         m_get_apt_cache_datetime.return_value = datetime.datetime(
             2024, 6, 24, 13, 19, 16
         )
