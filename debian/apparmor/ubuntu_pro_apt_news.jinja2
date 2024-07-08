@@ -43,7 +43,16 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /run/ubuntu-advantage/ rw,
   /run/ubuntu-advantage/* rw,
 
-  /tmp/** r,
+  # LP: #2072489
+  # the apt-news package selector needs access to packaging information
+  # this is a good candidate for a child profile
+  owner /tmp/** rw,
+  /etc/machine-id r,
+  /etc/dpkg/** r,
+  /{,usr/}bin/dpkg mrix,
+  /var/lib/apt/** r,
+  /var/lib/dpkg/** r,
+  /var/cache/apt/** rw,
 
   owner @{PROC}/@{pid}/fd/ r,
   @{PROC}/@{pid}/status r,
