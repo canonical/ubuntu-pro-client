@@ -1,4 +1,5 @@
 import datetime
+import glob
 import hashlib
 import hmac
 import json
@@ -302,13 +303,28 @@ def build_debs(
     sbuild_out = subprocess.DEVNULL  # type: Optional[int]
     if sbuild_output_to_terminal:
         sbuild_out = sys.stderr.fileno()
-    subprocess.run(
-        sbuild_cmd,
-        env=env,
-        stdout=sbuild_out,
-        stderr=sbuild_out,
-        check=True,
-    )
+
+    try:
+        subprocess.run(
+            sbuild_cmd,
+            env=env,
+            stdout=sbuild_out,
+            stderr=sbuild_out,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.info("--- Error running sbuild")
+        pattern = os.path.join(
+            SBUILD_DIR, "ubuntu-advantage-tools_*_amd64.build"
+        )
+        sbuild_log = [f for f in glob.glob(pattern)]
+
+        if sbuild_log:
+            with open(sbuild_log[0], "r") as sbuild_log_file:
+                logging.error("%s", sbuild_log_file.read())
+
+        raise e
+
     logging.info("--- Successfully ran sbuild")
 
     for f in os.listdir(SBUILD_DIR):
