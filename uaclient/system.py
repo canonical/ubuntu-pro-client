@@ -633,12 +633,11 @@ def _subp(
         stdout = subprocess.PIPE
         stderr = subprocess.PIPE
 
-    # If env is None, subprocess.Popen will use the process environment
-    # variables by default, as stated here:
-    # https://docs.python.org/3.5/library/subprocess.html?highlight=subprocess#popen-constructor
-    merged_env = None
-    if override_env_vars:
-        merged_env = {**os.environ, **override_env_vars}
+    # Set LANG to avoid non-utf8 when possible and merge env overrides
+    set_lang = {"LANG": "C.UTF8", "LC_ALL": "C.UTF8"}
+    if override_env_vars is None:
+        override_env_vars = {}
+    merged_env = {**os.environ, **set_lang, **override_env_vars}
 
     if rcs is None:
         rcs = [0]
