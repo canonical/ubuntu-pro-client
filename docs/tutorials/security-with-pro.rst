@@ -1,22 +1,14 @@
-.. NOTES
-.. Need to test these steps in the next session due to livepatch reporting
-.. "upgrade required on 24/6" - need to check what the warning message will be. 
-
-.. AIM
-.. - Demonstrate the value of Ubuntu Pro for all users (free or paid).
-.. - Encourage people to use/explore it.
-.. - Help them understand how it benefits them.
 
 Exploring your system's security with Pro
 *****************************************
 
-Whether you're running a newer Ubuntu LTS release, or you're on a version at
-the end of its standard support period, you are probably curious about the
-security support that Ubuntu Pro can provide.
+Whether you're running the latest Ubuntu LTS release, or a release at the end
+of its standard support period, you are probably curious about the security
+services that Ubuntu Pro provides.
 
 In this tutorial, we will set up a virtual machine (VM) and use it to explore
-some of the security-related services and commands available to all users.
-We will see how you can use them to keep your system safer and more secure.
+some of the security-related services and commands available to all users, and
+see how they can be used to keep your system safer and more secure.
 
 .. Why we use Multipass + command to install it
 .. include:: ./common/install-multipass.txt
@@ -56,8 +48,9 @@ Notice that when we run this command, our terminal username and hostname
 change to ``ubuntu@test-vm``, which tells us we are now operating inside the
 VM. 
 
-We then see a welcome message that looks similar to this (truncated for
-brevity, removed sections indicated with ``[...]``):
+We then see a welcome message that looks similar to this (throughout this
+tutorial, we will truncate the output for brevity -- removed sections will be
+indicated with ``[...]``):
 
 .. code-block:: text
 
@@ -75,7 +68,7 @@ brevity, removed sections indicated with ``[...]``):
     11 of these updates are standard security updates.
     To see these additional updates run: apt list --upgradable
 
-    103 additional security updates can be applied with ESM Infra.
+    109 additional security updates can be applied with ESM Infra.
     Learn more about enabling ESM Infra service for Ubuntu 18.04 at
     https://ubuntu.com/18-04
 
@@ -84,15 +77,14 @@ brevity, removed sections indicated with ``[...]``):
 We can see immediately that our virtual machine is not fully up-to-date, with
 16 software updates that can be applied, and 103 additional security updates
 (available with ESM-Infra). Let's first see which software updates we can
-apply by running the following command:
+apply by running the command that was suggested in the output:
 
 .. code-block:: bash
 
    $ apt list --upgradable
 
 This will show us a list of all the packages with available updates, the
-current version, and the version we can upgrade to (once again truncated for
-brevity):
+current version, and the version we can upgrade to:
 
 .. code-block:: bash
 
@@ -110,16 +102,17 @@ software up-to-date, so let's upgrade all of these packages in our VM:
 
 .. code-block::
 
-   $ sudo apt update && sudo apt upgrade
+   $ sudo apt update && sudo apt upgrade -y
 
-This will install the 16 software updates, but not the 103 security updates.
+This will install the 16 pending software updates. In the next step, we'll
+tackle the 103 security updates.
 
 Check the machine's security status
 ===================================
 
-Since we know from our previous step that the Pro Client is already installed,
-and that it's up-to-date. So, let's now check on the security status of our
-machine.
+We know, since we just updated it, that the package providing the Pro Client
+is already installed and up-to-date. So now, let's check on the security status
+of our machine:
 
 .. code-block:: bash
 
@@ -133,43 +126,65 @@ this in our terminal output:
     518 packages installed:
         518 packages from Ubuntu Main/Restricted repository
 
-    To get more information about the packages, run
-        pro security-status --help
-    for a list of available options.
+    [...]
 
     This machine is NOT receiving security patches because the LTS period has ended
     and esm-infra is not enabled.
     This machine is NOT attached to an Ubuntu Pro subscription.
 
     Ubuntu Pro with 'esm-infra' enabled provides security updates for
-    Main/Restricted packages until 2028. There are 104 pending security updates.
+    Main/Restricted packages until 2028. There are 110 pending security updates.
 
-    Try Ubuntu Pro with a free personal subscription on up to 5 machines.
-    Learn more at https://ubuntu.com/pro
+    [...]
+
+Let's break this down a bit.
 
 The security-status output
 --------------------------
 
+.. code-block:: text
+
+    518 packages installed:
+        518 packages from Ubuntu Main/Restricted repository
+
 Here, we learn that all 518 installed packages on our system come from the
-Ubuntu Main or Restricted repositories. This is not surprising; this is a
-"fresh" VM and we haven't installed any packages ourselves yet! The only
-packages on the system are those that shipped with the default Bionic image.
+Ubuntu Main or Restricted repositories. This is not surprising -- we haven't
+installed any of our own packages yet! The only packages on the system are
+those that shipped with the default Bionic image.
 
-The message also lets us know that ``esm-infra is not enabled``. ESM-Infra is
+.. code-block:: text
+
+    This machine is NOT receiving security patches because the LTS period has ended
+    and esm-infra is not enabled.
+    This machine is NOT attached to an Ubuntu Pro subscription.
+
+The message also lets us know that 'esm-infra' is not enabled. **ESM-Infra** is
 the Ubuntu Pro service that provides security coverage for packages in Main
-and Restricted (after the 5 years standard support for an LTS).
+and Restricted **after** the initial 5 years of standard support for an LTS. 
 
-However, most users also install software from the Universe repository, which
-is not covered by Canonical except through a Pro subscription (even during the
-LTS period). So let's see what happens if we install a popular package that
-comes from Universe, such as Ansible:
+.. code-block:: text
+
+    Ubuntu Pro with 'esm-infra' enabled provides security updates for
+    Main/Restricted packages until 2028. There are 110 pending security updates.
+
+With ESM-Infra, an LTS system gets a total of 10 years of security coverage for
+packages in Main and Restricted. So, although LTS support for Bionic ended in
+2023, ``esm-infra`` would cover us until 2028 on this machine -- and we would
+get 110 security updates as soon as we enabled it.
+
+What about packages in Universe?
+--------------------------------
+
+It's fair to assume that most people will go beyond the default distribution
+and also install software from the Universe and Multiverse repositories. We
+don't have any of those yet, so let's see what happens if we install a popular
+package that comes from Universe, such as Ansible:
 
 .. code-block:: bash
    
-   $ sudo apt install ansible
+   $ sudo apt install ansible -y
 
-And now let's run ``pro security-status`` again to see how the output changes
-(truncated to only show the parts that changed):
+We can run ``pro security-status`` again to see what happened:
 
 .. code-block:: text
 
@@ -180,7 +195,7 @@ And now let's run ``pro security-status`` again to see how the output changes
     [...]
 
     Ubuntu Pro with 'esm-infra' enabled provides security updates for
-    Main/Restricted packages until 2028. There are 113 pending security updates.
+    Main/Restricted packages until 2028. There are 119 pending security updates.
 
     Ubuntu Pro with 'esm-apps' enabled provides security updates for
     Universe/Multiverse packages until 2028. There is 1 pending security update.
@@ -188,23 +203,27 @@ And now let's run ``pro security-status`` again to see how the output changes
     [...]
 
 We now have 5 packages listed as coming from Universe/Multiverse -- this is
-the Ansible package and its dependencies.
+the Ansible package and its dependencies. There are also now 119 security
+updates available through ``esm-infra``, so some of the Ansible dependencies
+also had security updates.
 
-We can also see that ESM-Apps would give us 1 additional security update for
-this package. ESM-Apps provides security updates from Canonical for packages
-in Universe/Multiverse -- even during the LTS period. This means that on your
-live system, you can still benefit from ESM-Apps coverage even if your system
-is still covered by LTS support. These updates are additional to patches
-you would receive for Universe packages from the Ubuntu Community.
+We can see that ``esm-apps`` has 1 additional security update for Ansible
+itself. **ESM-Apps** provides security updates from Canonical for packages in
+Universe and Multiverse -- even during the LTS period. This means that newer
+Ubuntu releases like 24.04 Noble **also** benefit from Ubuntu Pro coverage.
+
+The updates we get from ``esm-apps`` address critical and high severity
+vulnerabilities, and this support is in addition to updates provided by the
+Ubuntu Community.
+
+So now we've seen that if we enabled ``esm-infra`` and ``esm-apps``, we would
+receive quite a few additional security updates. To enable these services, we
+first need to attach to an Ubuntu Pro subscription. 
 
 Attach to a subscription
 ========================
 
-So, as we've seen, if we enable ``esm-infra`` and ``esm-apps``, we would
-receive a number of additional security updates. To enable these services, we
-first need to attach to an Ubuntu Pro subscription. 
-
-To attach the VM to a subscription, let's run the following command in our
+To attach our VM to a subscription, let's run the following command in our
 terminal:
 
 .. code-block:: bash
@@ -223,15 +242,15 @@ We should see output like this, giving us a link and a code:
     And provide the following code: H31JIV
 
 Let's first copy the code (``H31JIV`` in this example, but yours will be
-different), then open the link in our browser (without closing the terminal
-window). Paste the code into the "Enter your code" field.
+different), then open the link in our browser without closing the terminal
+window. Paste or type the code into the "Enter your code" field.
 
 By default, the "Free Personal Token" will be selected in the "Choose a
 subscription to attach" field, and we can click on "Submit" to accept this. 
 
 .. note::
    You can safely use one of your free personal tokens for this -- after we
-   close down this VM the token can be re-used.
+   destroy this VM the token can be re-used.
 
 The attach process will then continue in the terminal window, and after the
 authentication is complete we will be presented with the following message:
@@ -269,169 +288,59 @@ command to check on the status of the different Ubuntu Pro services:
     ros              yes       disabled     Security Updates for the Robot Operating System
     ros-updates      yes       disabled     All Updates for the Robot Operating System
 
-We might notice that there are three services that are not disabled by default:
-``esm-apps``, ``esm-infra``, and ``livepatch``. These three services are
-considered useful for everyone, and so they are enabled by default when you
-attach.
+There are three services NOT disabled by default: ``esm-apps``, ``esm-infra``,
+and ``livepatch``. These three services are considered useful for everyone,
+and so they are enabled by default when you attach your machine to a
+subscription.
 
 Enabling ``esm-apps`` and ``esm-infra`` provides us with access to the
 repositories containing the additional security updates we saw earlier.
 
-There is also a warning beside ``livepatch`` with the following notice:
-
-.. code-block:: text
-
-    NOTICES
-    Operation in progress: pro attach
-    The running kernel has reached the end of its active livepatch window.
-    Please upgrade the kernel with apt and reboot for continued livepatch support.
-
-This is because the kernel in the default Bionic image is older and needs to be
-upgraded before we can run Livepatch. Luckily, we can apply the ESM security
-updates **and** upgrade our kernel just by running our upgrade command once
-more:
-
-.. code-block:: bash
-
-   sudo apt update && sudo apt upgrade
-
-This may take a few minutes!
-
-Restart the VM
---------------
-
-After this update has been completed, we will need to restart our VM to boot
-into the newly upgraded kernel. To do this, press :kbd:`Ctrl` + :kbd:`D`
-together to exit the VM, and then run:
-
-.. code-block:: bash
-
-   multipass restart test-vm
-
-Then, once Multipass has restarted our VM, we can log back into it:
-
-.. code-block:: bash
-
-   multipass shell test-vm
-
-Now if we run ``pro status`` again, we will see that Livepatch no longer has a
-warning, and its status is listed as ``enabled``. 
-
-What happens when Livepatch is enabled
-======================================
+What about Livepatch?
+---------------------
 
 `Livepatch`_ is a service that patches vulnerabilities in the Linux kernel
 while the system runs, meaning that we don't need to immediately reboot the
 machine to apply these patches.
 
-.. tip::
-   Common Vulnerabilities and Exposures (CVEs) are a way to publicly track
-   and catalogue security vulnerabilities in software. Each is given a unique
-   identifier in the format ``CVE-XXXX-XXXX``. To learn more about CVEs, check
-   out our :ref:`explanation of CVEs and USNs <expl-cve-usn>`.
+When Livepatch is enabled, the Livepatch client, ``canonical-livepatch``, is
+automatically installed, but what happens next depends on which kernel you are
+running. You will either:
 
-When Livepatch was enabled, the Livepatch client was installed automatically,
-and all available patches for high and critical severity CVEs were
-seamlessly applied -- and crucially, we didn't need to restart or reboot
-anything!
+* Get all available patches applied to your system automatically, or
+* Need to update your kernel before Livepatch can be fully activated.
 
-We can see what fixes Livepatch applied for us using the following command:
-
-.. code-block:: bash
-
-   canonical-livepatch status --format yaml
-
-Specifying the ``yaml`` format lets us see the details of exactly which CVEs
-have been automatically patched.
-
-.. code-block:: yaml
-
-    client-version: 10.8.3
-    machine-id: [...]
-    architecture: amd64
-    cpu-model: [...]
-    last-check: 2024-06-20T09:05:18+01:00
-    boot-time: 2024-06-19T13:14:30Z
-    uptime: 19h19m56s
-    status:
-    - kernel: 4.15.0-212.223-generic
-      running: true
-      livepatch:
-        checkState: checked
-        patchState: applied
-        version: "102.1"
-        fixes: |-
-          * CVE-2023-31436
-          * CVE-2023-34319
-          * CVE-2023-3611
-          * CVE-2023-3776
-          * CVE-2023-40283
-          * CVE-2023-42752
-          * CVE-2023-42753
-          * CVE-2023-4622
-          * CVE-2023-4623
-          * CVE-2023-4881
-          * CVE-2023-51781
-          * CVE-2023-6932
-          * CVE-2023-7192
-          * CVE-2024-1086
-      supported: supported
-      upgradeRequiredDate: "2024-06-23"
-    tier: updates
-    cloud-enabled:
-      cloud-enabled: true
-      cloud: multipass
-      region: ""
-      az: ""
-
-.. note::
-   When you are running Livepatch on a newer machine, such as your live system,
-   you may not receive as many updates in one go. Bionic runs on an old kernel
-   so we had more patches available to our new VM.
-
-If we would like more information about these CVEs, we can use the ``verbose``
-flag instead:
-
-.. code-block:: bash
-
-   $ canonical-livepatch status --verbose
-
-And we will see a text summary of what each of them is about (output
-truncated):
+In our case, the default Bionic image contains an old kernel, so we have a
+warning beside ``livepatch`` and the following notice shown below the table:
 
 .. code-block:: text
 
-    [...]
-    fixes:
-      * cve-2023-31436
-        Gwangun Jung discovered that the Quick Fair Queueing scheduler 
-        implementation in the Linux kernel contained an out-of-bounds write 
-        vulnerability. A local attacker could use this to cause a denial of 
-        service (system crash) or possibly execute arbitrary code.
-      * cve-2023-34319
-        Ross Lagerwall discovered that the Xen netback backend driver in the 
-        Linux kernel did not properly handle certain unusual packets from a 
-        paravirtualized network frontend, leading to a buffer overflow. An 
-        attacker in a guest VM could use this to cause a denial of service 
-        (host system crash) or possibly execute arbitrary code.
-      * cve-2023-3611
-        It was discovered that the Quick Fair Queueing network scheduler 
-        implementation in the Linux kernel contained an out-of-bounds write 
-        vulnerability. A local attacker could use this to cause a denial of 
-        service (system crash) or possibly execute arbitrary code.
-      [...] 
+    NOTICES
+    The running kernel has reached the end of its active livepatch window.
+    Please upgrade the kernel with apt and reboot for continued livepatch support.
 
-So, simply by attaching to a subscription, we have immediate, automatic
-security coverage for our kernel. We didn't need to apply the patches, or
-reboot the system for the fixes to be applied.
+We therefore need to update the kernel before we can feel the benefit of
+Livepatch.
 
-Now we can check on the security status of our machine once more by running
-``pro security-status`` again:
+Apply our new updates
+=====================
+
+Applying the newly available updates is as simple as running the ``update``
+and ``upgrade`` commands again:
+
+.. code-block:: bash
+
+   sudo apt update && sudo apt upgrade -y
+
+This may take a few minutes -- we have quite a few updates to install!
+
+Now we can run ``pro security-status`` once more to see a summary of the
+results of attaching to our subscription and updating the software:
 
 .. code-block:: text
 
-    555 packages installed:
-        550 packages from Ubuntu Main/Restricted repository
+    559 packages installed:
+        554 packages from Ubuntu Main/Restricted repository
         5 packages from Ubuntu Universe/Multiverse repository
 
     [...]
@@ -439,27 +348,76 @@ Now we can check on the security status of our machine once more by running
     This machine is attached to an Ubuntu Pro subscription.
 
     Main/Restricted packages are receiving security updates from
-    Ubuntu Pro with 'esm-infra' enabled until 2028. You have received 115 security
+    Ubuntu Pro with 'esm-infra' enabled until 2028. You have received 121 security
     updates.
 
     Universe/Multiverse packages are receiving security updates from
     Ubuntu Pro with 'esm-apps' enabled until 2028. You have received 1 security
     update.
 
-We are now fully up-to-date with all of the software and security updates for
-the packages on our VM, and Livepatch has taken care of the kernel CVE fixes
-for us.
+The update we did after attaching also updates our kernel to the newer version
+(where Livepatch can be used). To boot into the new kernel, we need to restart
+the VM. 
 
-But what about the case where we are not using a fresh VM? Let's now consider
-a scenario that might affect our live system.
+To do this, press :kbd:`Ctrl` + :kbd:`D` together to exit the VM, and then
+run:
 
-CVEs, USNs, and pro fix
-=======================
+.. code-block:: bash
+
+   multipass restart test-vm
+
+After Multipass has restarted our VM, we can log back into it:
+
+.. code-block:: bash
+
+   multipass shell test-vm
+
+Now if we run ``pro status`` again, we will see that Livepatch no longer has a
+warning, and its status is listed as ``enabled``:
+
+.. code-block:: text
+
+    SERVICE          ENTITLED  STATUS       DESCRIPTION
+    cc-eal           yes       disabled     Common Criteria EAL2 Provisioning Packages
+    cis              yes       disabled     Security compliance and audit tools
+    esm-apps         yes       enabled      Expanded Security Maintenance for Applications
+    esm-infra        yes       enabled      Expanded Security Maintenance for Infrastructure
+    fips             yes       disabled     NIST-certified FIPS crypto packages
+    fips-updates     yes       disabled     FIPS compliant crypto packages with stable security updates
+    livepatch        yes       enabled      Canonical Livepatch service
+    ros              yes       disabled     Security Updates for the Robot Operating System
+    ros-updates      yes       disabled     All Updates for the Robot Operating System
+
+When Livepatch is enabled, the Livepatch client automatically installs any
+available fixes for high and critical severity vulnerabilities in the kernel
+without us needing to specifically ask it to.
+
+If we want to know which vulnerabilities have been patched by the Livepatch
+client, we can run:
+
+.. code-block:: bash
+
+   canonical-livepatch status --format yaml
+
+If the kernel is very new, there may not be any patches to apply yet, but we
+can always use this command to see what Livepatch has fixed for us.
+
+So, we are now fully up-to-date with all of the software and security updates
+for the packages on our VM. But what if we were not using a fresh VM? Let's
+consider a scenario that might affect us on our live system.
+
+Checking for vulnerabilities
+============================
 
 There are two types of vulnerabilities that could affect a system:
 `Common Vulnerabilities and Exposures <cve_>`_ (CVEs) and
 `Ubuntu Security Notices <usn_>`_ (USNs).
 
+CVEs are a way to publicly track and catalogue security vulnerabilities in
+software. Each is given a unique identifier in the format ``CVE-XXXX-XXXX``.
+To learn more about CVEs, check out our
+:ref:`explanation of CVEs and USNs <expl-cve-usn>`.
+   
 We've seen how, just by attaching our Pro subscription and upgrading our
 machine, the Pro Client services have taken care of applying the available
 fixes for the CVEs that affected our VM. In fact, as long as we upgrade
@@ -467,23 +425,23 @@ our machine periodically, these fixes will always be applied after they are
 released. The default configuration of ``unattended-upgrades`` runs upgrades
 for you daily and includes Pro security updates.
 
-However, there is always a period of time between a CVE or USN being reported,
-and a fix being released. In this case, we might reasonably want some way to
+However, there is always a period of time between a CVE or USN being reported
+and the fix being released. In this case, we might reasonably want some way to
 find out if a vulnerability is affecting our system.
 
-In an upcoming release of the Pro Client, we will have a command that will show
-us a list of all CVEs that affect our system, and their status. For now, we can
+In an upcoming release of the Pro Client, we will have a command that shows us
+a list of all CVEs that affect our system, and their status. For now, we can
 use the ``pro fix`` command to manually inspect and resolve both CVEs and USNs.
 
 .. note::
-   This may be especially of interest to users running airgapped setups, or
-   those who otherwise need more control over their updates!
+   This may be especially of interest to users who need more control over
+   their updates!
 
 Now, we have a bit of a problem. We know that our machine is fully up-to-date
 and all available fixes have been applied! But, using our VM we can simulate
 having a package affected by a known CVE using the Ansible package we installed
-earlier. `CVE-2023-5764`_ affected the free Bionic version of Ansible, so let's
-use this as our test case. We can run the ``pro fix`` command with the
+earlier. `CVE-2023-5764`_ affected the LTS Bionic version of Ansible, so
+let's use this as our test case. We can run the ``pro fix`` command with the
 ``--dry-run`` flag to inspect the CVE without actually fixing anything, so let
 us do just that:
 
@@ -511,9 +469,9 @@ version that **was** affected by it:
 
 .. code-block:: bash
 
-   sudo apt install ansible/bionic-updates
+   sudo apt install ansible/bionic-updates -y
 
-This command will install the latest free update for Ansible in Bionic, which
+This command will install the last LTS update for Ansible in Bionic, which
 doesn't have the updates we got from Pro. Now, we can use this command again
 to see what happened:
 
@@ -544,9 +502,9 @@ The pro fix output
 The output of the ``pro fix`` command has the same structure, whether we are
 only inspecting a CVE using ``--dry-run``, or resolving a CVE. It:
 
-* describes the CVE/USN;
+* describes the CVE/USN (with a link to its database entry);
 * displays the affected package(s);
-* fixes the affected package(s); and
+* the location of a fix (if one is available); and
 * at the end, shows if the CVE/USN is fully fixed in the machine.
 
 This is best demonstrated in a ``pro fix`` call that *does* fix a package.
@@ -555,9 +513,7 @@ Manually resolve the CVE
 ------------------------
 
 Now that we've found a package that has a vulnerability, we can fix it using
-the ``pro fix`` command on the CVE:
-
-Now, let's run ``pro fix`` on the CVE:
+the ``pro fix`` command on the CVE (without the ``--dry-run`` option):
 
 .. code-block:: bash
 
@@ -581,14 +537,6 @@ You will then see the following output:
     We need to run the command with ``sudo`` because it will be installing a
     package on the system.
 
-Whenever ``pro fix`` has a package to upgrade, it follows a consistent
-structure and displays the following, in this order:
-
-1. The affected package
-2. The availability of a fix
-3. The location of the fix, if one is available
-4. The command that will fix the issue
-
 Also, at the end of the output you can see confirmation that the CVE was fixed
 by the command. Just to confirm that the fix was successfully applied, let's
 run the ``pro fix`` command again, and we should now see the following:
@@ -611,13 +559,16 @@ Success!
 In this tutorial, we have successfully run a Multipass VM and used it to:
 
 - Check on the machine's security status with ``pro security-status``
-- Update the software with ``sudo apt update && sudo apt upgrade``
-- Access ESM-Apps, ESM-Infra, and Livepatch using ``sudo pro attach``
-- Applied security updates by running ``sudo apt update && sudo apt upgrade``
-  with ESM-Apps and ESM-Infra enabled
-- Checked the status of the Pro services on the machine with ``pro status``
-- And we've used ``pro fix --dry-run`` to check the status of a CVE and used
-  ``pro fix`` to resolve it.
+- Update the software with ``sudo apt update && sudo apt upgrade -y``
+- Attach our subscription so we can access ESM-Apps, ESM-Infra, and Livepatch
+  using ``sudo pro attach``
+- Apply security updates by running ``sudo apt update && sudo apt upgrade -y``
+  again (after attaching to our subscription)
+- Check the status of the Pro services on the machine with ``pro status``
+- Check the fixes applied by Livepatch using
+  ``canonical-livepatch status --format yaml``
+- Check the status of a CVE using ``pro fix --dry-run``
+- And we used ``pro fix`` to resolve it.
 
 Close down the VM
 -----------------
@@ -631,19 +582,23 @@ following commands to delete the VM completely:
    multipass delete test-vm
    multipass purge
 
+We don't need to detach our subscription first. When the VM is deleted and
+purged, the token is released and can be used again.
 
 Further reading
 ---------------
 
-* ESM explained
-* CVES/USNs explained
-* What services are for me?
-* all the pro fix stuff
+* :ref:`ESM explained <expl-ESM>`: to find out more about ESM-Infra, ESM-Apps
+  and the different repositories.
+* :ref:`CVES/USNs explained <expl-cve-usn>`: to find out more about CVEs, USNs
+  and related USNs.
+* :ref:`Which services are for me? <which-services>`: Ubuntu Pro includes a
+  wide range of services. Although in this tutorial we've covered the three
+  services that are likely to be of interest to most people, you might be
+  curious about what else you might find useful. 
 
-
-* In :ref:`Understanding scenarios encountered when using pro fix to solve a CVE/USN <pro-fix-howto>` you can continue using the test environment you created here to explore different scenarios you might encounter and understand the different outputs you will find.
-* :ref:`How do I know what the pro fix command would change? <pro-fix-dry-run>` will show you how to use ``pro fix`` in ``--dry-run`` mode to safely simulate the changes before they're applied.
-* :ref:`How to skip fixing related USNs <pro-fix-skip-related>` will show you how to only fix a single USN, even if other fixes are available.
+Get help
+--------
 
 .. Instructions for how to connect with us
 .. include:: ../includes/contact.txt
