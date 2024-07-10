@@ -1,9 +1,9 @@
 import mock
 import pytest
 
-from uaclient.timer.update_contract_info import validate_release_series
+from uaclient.update_contract_info import validate_release_series
 
-M_PATH = "uaclient.timer.update_contract_info."
+M_PATH = "uaclient.update_contract_info."
 
 
 class TestValidateReleaseSeries:
