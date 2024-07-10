@@ -2682,3 +2682,8 @@ E_INVALID_URL = FormattedNamedMessage(
     "invalid-url",
     t.gettext("Invalid URL: {url}"),
 )
+
+E_UNSUPPORTED_MANIFEST_FILE = FormattedNamedMessage(
+    "unsupported-manifest-file",
+    t.gettext("Unsupported manifest file format: {manifest_file}"),
+)
