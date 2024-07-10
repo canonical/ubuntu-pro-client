@@ -114,18 +114,15 @@ class AllTimerJobsState(DataObject):
     fields = [
         Field("metering", TimerJobState, required=False),
         Field("update_messaging", TimerJobState, required=False),
-        Field("validate_release_series", TimerJobState, required=False),
     ]
 
     def __init__(
         self,
         metering: Optional[TimerJobState],
         update_messaging: Optional[TimerJobState],
-        validate_release_series: Optional[TimerJobState],
     ):
         self.metering = metering
         self.update_messaging = update_messaging
-        self.validate_release_series = validate_release_series
 
 
 timer_jobs_state_file = DataObjectFile(
