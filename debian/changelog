@@ -1,3 +1,12 @@
+ubuntu-advantage-tools (33.1) oracular; urgency=medium
+
+  * New upstream release 33.1: (LP: #2060769)
+    - system:
+      + always pass C.UTF8 as the language when calling a subprocess
+      + ignore utf-8 decode errors on subprocess output
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Wed, 10 Jul 2024 16:43:02 -0300
+
 ubuntu-advantage-tools (33) oracular; urgency=medium
 
   * d/apparmor: adjust the esm_cache apparmor profile to allow reading of dpkg
