@@ -227,3 +227,60 @@ Feature: Pro supports multiple languages
       | xenial  | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Pro client's commands run successfully in a non-utf8 locale
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    # # Change the locale
+    When I apt install `language-pack-fr`
+    And I run `locale-gen fr_FR` with sudo
+    And I run `update-locale LANG=fr_FR` with sudo
+    And I reboot the machine
+    And I run `cat /etc/default/locale` as non-root
+    Then stdout matches regexp:
+      """
+      LANG=fr_FR
+      """
+    # Attach
+    When I attach `contract_token` with sudo
+    # Refresh command
+    When I run `pro refresh` with sudo
+    Then I will see the following on stdout:
+      """
+      Successfully processed your pro configuration.
+      Successfully refreshed your subscription.
+      Successfully updated Ubuntu Pro related APT and MOTD messages.
+      """
+    # status command
+    When I run `pro status --format json` as non-root
+    Then stdout is a json matching the `ua_status` schema
+    When I run `pro status --format yaml` as non-root
+    Then stdout is a yaml matching the `ua_status` schema
+    When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
+      """
+      {
+          "machineTokenInfo": {
+              "contractInfo": {
+                  "effectiveTo": null
+              }
+          }
+      }
+      """
+    And I append the following on uaclient config:
+      """
+      features:
+        machine_token_overlay: "/var/lib/ubuntu-advantage/machine-token-overlay.json"
+      """
+    And I run `pro status` with sudo
+    Then stdout contains substring:
+      """
+      Valid until: Unknown/Expired
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | mantic  | lxd-container |
