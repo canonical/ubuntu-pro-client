@@ -2759,3 +2759,8 @@ E_UNKNOWN_PROCESSOR_TYPE = FormattedNamedMessage(
     "unknown-processor-type",
     t.gettext("Unknown processor type: {processor_type}"),
 )
+
+E_UNSUPPORTED_MANIFEST_FILE = FormattedNamedMessage(
+    "unsupported-manifest-file",
+    t.gettext("Unsupported manifest file format: {manifest_file}"),
+)

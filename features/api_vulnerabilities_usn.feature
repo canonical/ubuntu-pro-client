@@ -52,6 +52,63 @@ Feature: Client behaviour for USN vulnerabilities API
       "type": "USNVulnerabilities"
     }
     """
+    When I create the file `/tmp/manifest` with the following:
+    """
+    libzstd1:amd634     1.3.1+dfsg-1~ubuntu0.16.04.1
+    """
+    And I run `pro api u.pro.security.vulnerabilities.usn.v1 --args data_file=/tmp/security_issues_xenial manifest_file=/tmp/manifest` as non-root
+    Then API data field output matches regexp:
+    """
+    {
+      "attributes": {
+        "apt_updated_at": ".*",
+        "usns": [
+          {
+            "affected_packages": [
+              {
+                "current_version": ".*",
+                "fix_available_from": "esm-infra",
+                "fix_version": "1.3.1\+dfsg\-1~ubuntu0.16.04.1\+esm2",
+                "name": "libzstd1"
+              }
+            ],
+            "description": ".*",
+            "fixable": "yes",
+            "name": "USN-5593-1",
+            "published_at": ".*",
+            "related_cves": [
+              "CVE-2019-11922"
+            ],
+            "related_launchpad_bugs": []
+          },
+          {
+            "affected_packages": [
+              {
+                "current_version": ".*",
+                "fix_available_from": "esm-infra",
+                "fix_version": "1.3.1\+dfsg\-1~ubuntu0.16.04.1\+esm3",
+                "name": "libzstd1"
+              }
+            ],
+            "description": ".*",
+            "fixable": "yes",
+            "name": "USN-5720-1",
+            "published_at": ".*",
+            "related_cves": [
+              "CVE-2021-24031",
+              "CVE-2021-24032"
+            ],
+            "related_launchpad_bugs": []
+          }
+        ],
+        "vulnerability_data_published_at": ".*"
+      },
+      "meta": {
+        "environment_vars": []
+      },
+      "type": "USNVulnerabilities"
+    }
+    """
 
     Examples: ubuntu release
       | release | machine_type  |

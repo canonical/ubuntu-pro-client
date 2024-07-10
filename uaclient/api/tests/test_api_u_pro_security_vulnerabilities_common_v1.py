@@ -1,6 +1,8 @@
 import pytest
 
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
+    ProManifestSourcePackage,
+    SourcePackages,
     VulnerabilityParser,
     VulnerabilityStatus,
     _get_source_package_from_vulnerabilities_data,
@@ -37,7 +39,23 @@ VULNERABILITIES_DATA = {
                     "status": "not-vulnerable",
                 },
             },
-        }
+        },
+        "test2": {
+            "source_versions": {
+                "1.1.2": {
+                    "binary_packages": {
+                        "test2-bin2-1": "1.1.2",
+                    },
+                    "pocket": "esm-infra",
+                }
+            },
+            "cves": {
+                "CVE-2022-12345": {
+                    "source_fixed_version": None,
+                    "status": "vulnerable",
+                },
+            },
+        },
     },
     "security_issues": {
         "cves": {
@@ -228,4 +246,104 @@ class TestGetSourcePackageFromVulnerabilitiesData:
                 vulnerabilities_data, bin_pkg
             )
             == expected_source_pkg
+        )
+
+
+class TestProManifestSourcePackage:
+    @pytest.mark.parametrize(
+        "manifest_content,expected_value",
+        (
+            (
+                (
+                    "pkg1\t1.1.2\n"
+                    "pkg2-2:amd64\t3.2+1git1\n"
+                    "pkg3.1.0\t1.1\n"
+                    "pkg4++:amd64\t1.2\n"
+                    "snap:pkg5\tlatest/stable\t1725\n"
+                    "snap:pkg6\tlatest/stable\t1113"
+                ),
+                True,
+            ),
+            (
+                ("pkg1\t1.1.2\n" "pkg2-2:amd64\t3.2+1git1\n" "invalid"),
+                False,
+            ),
+        ),
+    )
+    def test_valid(self, manifest_content, expected_value, tmpdir):
+        manifest_file = tmpdir.join("manifest")
+        manifest_file.write(manifest_content)
+
+        assert (
+            ProManifestSourcePackage.valid(manifest_file.strpath)
+            is expected_value
+        )
+
+    @pytest.mark.parametrize(
+        "manifest_content,expected_value",
+        (
+            (
+                (
+                    "pkg1\t1.1.2\n"
+                    "pkg2-2:amd64\t3.2+1git1\n"
+                    "pkg3.1.0\t1.1\n"
+                    "pkg4++:amd64\t1.2\n"
+                    "snap:pkg5\tlatest/stable\t1725\n"
+                    "snap:pkg6\tlatest/stable\t1113"
+                ),
+                {
+                    "pkg1": "1.1.2",
+                    "pkg2-2": "3.2+1git1",
+                    "pkg3.1.0": "1.1",
+                    "pkg4++": "1.2",
+                },
+            ),
+        ),
+    )
+    def test_parse(self, manifest_content, expected_value, tmpdir):
+        manifest_file = tmpdir.join("manifest")
+        manifest_file.write(manifest_content)
+
+        assert (
+            ProManifestSourcePackage.parse(manifest_file.strpath)
+            == expected_value
+        )
+
+
+class TestSourcePackages:
+
+    @pytest.mark.parametrize(
+        "manifest_content,vulnerabilities_data,expected_data",
+        (
+            (
+                (
+                    "test1-bin\t1.1.2\n"
+                    "test1-bin1:amd64\t3.2+1git1\n"
+                    "test2-bin2-1\t1.1\n"
+                    "snap:pkg5\tlatest/stable\t1725\n"
+                    "snap:pkg6\tlatest/stable\t1113"
+                ),
+                VULNERABILITIES_DATA,
+                {
+                    "test1": {
+                        "test1-bin": "1.1.2",
+                        "test1-bin1": "3.2+1git1",
+                    },
+                    "test2": {"test2-bin2-1": "1.1"},
+                },
+            ),
+        ),
+    )
+    def test_parse_manifest_file(
+        self, manifest_content, vulnerabilities_data, expected_data, tmpdir
+    ):
+        manifest_file = tmpdir.join("manifest")
+        manifest_file.write(manifest_content)
+
+        assert (
+            expected_data
+            == SourcePackages(
+                manifest_file=manifest_file.strpath,
+                vulnerabilities_data=vulnerabilities_data,
+            ).get()
         )
