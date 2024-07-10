@@ -1275,14 +1275,36 @@ class TestSubp:
             "expected_env_arg",
         ],
         (
-            (None, {}, None),
-            (None, {"test": "val"}, None),
-            ({}, {"test": "val"}, None),
-            ({"set": "new"}, {"test": "val"}, {"test": "val", "set": "new"}),
+            (None, {}, {"LANG": "C.UTF8", "LC_ALL": "C.UTF8"}),
+            (
+                None,
+                {"test": "val"},
+                {"test": "val", "LANG": "C.UTF8", "LC_ALL": "C.UTF8"},
+            ),
+            (
+                {},
+                {"test": "val"},
+                {"test": "val", "LANG": "C.UTF8", "LC_ALL": "C.UTF8"},
+            ),
+            (
+                {"set": "new"},
+                {"test": "val"},
+                {
+                    "test": "val",
+                    "LANG": "C.UTF8",
+                    "LC_ALL": "C.UTF8",
+                    "set": "new",
+                },
+            ),
             (
                 {"set": "new", "test": "newval"},
                 {"test": "val"},
-                {"test": "newval", "set": "new"},
+                {
+                    "LANG": "C.UTF8",
+                    "LC_ALL": "C.UTF8",
+                    "test": "newval",
+                    "set": "new",
+                },
             ),
         ),
     )
@@ -1328,7 +1350,7 @@ class TestSubp:
                 [b"fake"],
                 stdout=None,
                 stderr=None,
-                env=None,
+                env=mock.ANY,
             )
         ] == m_popen.call_args_list
 
