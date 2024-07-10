@@ -32,9 +32,11 @@ class VulnerabilityData:
         self,
         cfg: UAConfig,
         data_file: Optional[str] = None,
+        series: Optional[str] = None,
     ):
         self.cfg = cfg
         self.data_file = data_file
+        self.series = series
 
     def _load_json_file(self, data_file):
         with open(data_file, "r") as vuln_data:
@@ -44,7 +46,7 @@ class VulnerabilityData:
         if self.data_file:
             return self._load_json_file(self.data_file)
 
-        series = get_release_info().series
+        series = self.series or get_release_info().series
 
         data_file = "com.ubuntu.{}.pkg.json.bz2".format(series)
         data_url = urljoin(self.cfg.vulnerability_data_url_prefix, data_file)

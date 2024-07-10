@@ -28,6 +28,7 @@ class USNVulnerabilitiesOptions(DataObject):
         Field("unfixable", BoolDataValue, False),
         Field("data_file", StringDataValue, False),
         Field("manifest_file", StringDataValue, False),
+        Field("series", StringDataValue, False),
     ]
 
     def __init__(
@@ -36,12 +37,14 @@ class USNVulnerabilitiesOptions(DataObject):
         all: Optional[bool] = False,
         unfixable: Optional[bool] = False,
         data_file: Optional[str] = None,
-        manifest_file: Optional[str] = None
+        manifest_file: Optional[str] = None,
+        series: Optional[str] = None,
     ):
         self.all = all
         self.unfixable = unfixable
         self.data_file = data_file
         self.manifest_file = manifest_file
+        self.series = series
 
 
 class USNAffectedPackage(DataObject):
@@ -137,7 +140,7 @@ def _vulnerabilities(
     cfg: UAConfig,
 ) -> USNVulnerabilitiesResult:
     vulnerabilities_json_data = VulnerabilityData(
-        cfg=cfg, data_file=options.data_file
+        cfg=cfg, data_file=options.data_file, series=options.series
     ).get()
 
     installed_pkgs_by_source = SourcePackages(
