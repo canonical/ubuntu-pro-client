@@ -1,10 +1,15 @@
 import bz2
 import enum
 import json
+import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
 from uaclient import apt
+from uaclient.api.exceptions import UnsupportedManifestFile
+from uaclient.api.u.pro.security.fix._common import (
+    query_installed_source_pkg_versions,
+)
 from uaclient.config import UAConfig
 from uaclient.http import download_file_from_url
 from uaclient.system import get_release_info
@@ -63,6 +68,84 @@ def _get_source_package_from_vulnerabilities_data(
                 break
 
     return ""
+
+
+class ProManifestSourcePackage:
+    # This pkg part of this regex was created accordingly to the debian
+    # name pattern defined here:
+    # https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-source
+    PKG_RE = re.compile(r"^(?P<pkg>[\w\-\.\+]+)(:\w+)?\s+(?P<version>.+)$")
+
+    @staticmethod
+    def valid(manifest_file: str):
+        with open(manifest_file, "r") as f:
+            for line in f.readlines():
+                if not ProManifestSourcePackage.PKG_RE.match(line):
+                    return False
+
+        return True
+
+    @staticmethod
+    def parse(manifest_file: str):
+        pkgs = {}
+
+        with open(manifest_file, "r") as f:
+            for line in f.readlines():
+                re_match = ProManifestSourcePackage.PKG_RE.match(line)
+                if re_match:
+                    match_groups = re_match.groupdict()
+                    pkg = match_groups["pkg"]
+
+                    if pkg == "snap":
+                        continue
+
+                    pkgs[pkg] = match_groups["version"]
+
+        return pkgs
+
+
+class SourcePackages:
+    SUPPORTED_MANIFESTS = [ProManifestSourcePackage]
+
+    def __init__(
+        self,
+        vulnerabilities_data: Dict[str, Any],
+        manifest_file: Optional[str] = None,
+    ):
+        self.manifest_file = manifest_file
+        self.vulnerabilities_data = vulnerabilities_data
+
+    def get(self):
+        if not self.manifest_file:
+            return query_installed_source_pkg_versions()
+        else:
+            return self.parse_manifest_file()
+
+    def parse_manifest_file(self) -> Dict[str, Dict[str, str]]:
+        if not self.manifest_file:
+            return {}
+
+        manifest_pkgs = None
+
+        for manifest_parser_cls in self.SUPPORTED_MANIFESTS:
+            if manifest_parser_cls.valid(self.manifest_file):
+                manifest_pkgs = manifest_parser_cls.parse(self.manifest_file)
+                break
+
+        if not manifest_pkgs:
+            raise UnsupportedManifestFile
+
+        source_pkgs = {}  # type: Dict[str, Dict[str, str]]
+        for pkg, version in manifest_pkgs.items():
+            source_pkg = _get_source_package_from_vulnerabilities_data(
+                self.vulnerabilities_data, pkg
+            )
+            if source_pkg in source_pkgs:
+                source_pkgs[source_pkg][pkg] = version
+            else:
+                source_pkgs[source_pkg] = {pkg: version}
+
+        return source_pkgs
 
 
 def _get_vulnerability_fix_status(

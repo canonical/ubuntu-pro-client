@@ -274,10 +274,10 @@ class TestUSNVulnerabilities:
     )
     @mock.patch(M_PATH + "get_apt_cache_datetime")
     @mock.patch(M_PATH + "VulnerabilityData.get")
-    @mock.patch(M_PATH + "query_installed_source_pkg_versions")
+    @mock.patch(M_PATH + "SourcePackages.get")
     def test_parse_data(
         self,
-        m_query_installed_source_pkg,
+        m_get_source_pkgs,
         m_vulnerability_data_get,
         m_get_apt_cache_datetime,
         vulnerabilities_data,
@@ -285,7 +285,7 @@ class TestUSNVulnerabilities:
         usn_options,
         expected_result,
     ):
-        m_query_installed_source_pkg.return_value = installed_pkgs_by_source
+        m_get_source_pkgs.return_value = installed_pkgs_by_source
         m_vulnerability_data_get.return_value = vulnerabilities_data
         m_get_apt_cache_datetime.return_value = datetime.datetime(
             2024, 6, 24, 13, 19, 16

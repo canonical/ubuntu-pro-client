@@ -546,6 +546,10 @@ class MissingSeriesInDistroInfoFile(UbuntuProError):
     _formatted_msg = messages.E_MISSING_SERIES_IN_DISTRO_INFO_FILE
 
 
+class UnsupportedManifestFile(UbuntuProError):
+    _formatted_msg = messages.E_UNSUPPORTED_MANIFEST_FILE
+
+
 ###############################################################################
 #                              CLI                                            #
 ###############################################################################
