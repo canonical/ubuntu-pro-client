@@ -67,8 +67,8 @@ tox -e behave
 or, if you just want to run a specific file, or a test within a file:
 
 ```shell
-tox -e behave features/unattached_commands.feature
-tox -e behave features/unattached_commands.feature:28
+tox -e behave -- features/unattached_commands.feature
+tox -e behave -- features/unattached_commands.feature:28
 ```
 
 or, if you want to run a specific file for a specific release and machine type, or a specific test:
