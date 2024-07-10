@@ -1354,6 +1354,20 @@ class TestSubp:
             )
         ] == m_popen.call_args_list
 
+    @mock.patch("subprocess.Popen")
+    def test_subp_ignores_non_utf8(
+        self,
+        m_popen,
+        _subp,
+    ):
+        mock_process = mock.MagicMock(returncode=0)
+        mock_process.communicate.return_value = (b"T\x8fE\xacS\x93T\x87!", b"")
+        m_popen.return_value = mock_process
+
+        out, _ = _subp(["fake"], pipe_stdouterr=False)
+
+        assert "TEST!" == out
+
 
 class TestIsSystemdServiceActive:
     @pytest.mark.parametrize(

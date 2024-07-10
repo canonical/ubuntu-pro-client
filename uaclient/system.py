@@ -652,8 +652,8 @@ def _subp(
         (out, err) = proc.communicate(timeout=timeout)
     except OSError:
         try:
-            out_result = out.decode("utf-8") if out else ""
-            err_result = err.decode("utf-8") if err else ""
+            out_result = out.decode("utf-8", errors="ignore") if out else ""
+            err_result = err.decode("utf-8", errors="ignore") if err else ""
             raise exceptions.ProcessExecutionError(
                 cmd=redacted_cmd,
                 exit_code=proc.returncode,
@@ -663,8 +663,8 @@ def _subp(
         except UnboundLocalError:
             raise exceptions.ProcessExecutionError(cmd=redacted_cmd)
 
-    out_result = out.decode("utf-8") if out else ""
-    err_result = err.decode("utf-8") if err else ""
+    out_result = out.decode("utf-8", errors="ignore") if out else ""
+    err_result = err.decode("utf-8", errors="ignore") if err else ""
     if proc.returncode not in rcs:
         raise exceptions.ProcessExecutionError(
             cmd=redacted_cmd,
