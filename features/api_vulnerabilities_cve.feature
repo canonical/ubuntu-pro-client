@@ -113,6 +113,45 @@ Feature: Client behaviour for CVE vulnerabilities API
     """
     "fixable": "yes"
     """
+    When I create the file `/tmp/manifest` with the following:
+    """
+    libzstd1:amd634     1.3.1+dfsg-1~ubuntu0.16.04.1
+    """
+    And I run `pro api u.pro.security.vulnerabilities.cve.v1 --args data_file=/tmp/security_issues_xenial manifest_file=/tmp/manifest` as non-root
+    Then API data field output matches regexp:
+    """
+    {
+      "attributes": {
+        "apt_updated_at": ".*",
+        "cves": [
+          {
+            "affected_packages": [
+              {
+                "current_version": "1.3.1\+dfsg\-1~ubuntu0.16.04.1",
+                "fix_available_from": "esm-infra",
+                "fix_status": "fixed",
+                "fix_version": ".*",
+                "name": "libzstd1"
+              }
+            ],
+            "cvss_score": 8.1,
+            "cvss_severity": "high",
+            "description": ".*",
+            "fixable": "yes",
+            "name": "CVE-2019-11922",
+            "notes": [],
+            "published_at": ".*",
+            "ubuntu_priority": "medium"
+          }
+        ],
+        "vulnerability_data_published_at": ".*"
+      },
+      "meta": {
+        "environment_vars": []
+      },
+      "type": "CVEVulnerabilities"
+    }
+    """
 
     Examples: ubuntu release
       | release | machine_type  |

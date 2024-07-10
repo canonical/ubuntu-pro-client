@@ -3,10 +3,8 @@ from typing import Any, Dict, List, Optional
 
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.security.fix._common import (
-    query_installed_source_pkg_versions,
-)
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
+    SourcePackages,
     VulnerabilityData,
     VulnerabilityParser,
     VulnerabilityStatus,
@@ -30,6 +28,7 @@ class CVEVulnerabilitiesOptions(DataObject):
         Field("all", BoolDataValue, False),
         Field("unfixable", BoolDataValue, False),
         Field("data_file", StringDataValue, False),
+        Field("manifest_file", StringDataValue, False),
     ]
 
     def __init__(
@@ -37,11 +36,13 @@ class CVEVulnerabilitiesOptions(DataObject):
         *,
         all: Optional[bool] = False,
         unfixable: Optional[bool] = False,
-        data_file: Optional[str] = None
+        data_file: Optional[str] = None,
+        manifest_file: Optional[str] = None
     ):
         self.all = all
         self.unfixable = unfixable
         self.data_file = data_file
+        self.manifest_file = manifest_file
 
 
 class CVEAffectedPackage(DataObject):
@@ -146,7 +147,11 @@ def _vulnerabilities(
     vulnerabilities_json_data = VulnerabilityData(
         cfg=cfg, data_file=options.data_file
     ).get()
-    installed_pkgs_by_source = query_installed_source_pkg_versions()
+
+    installed_pkgs_by_source = SourcePackages(
+        vulnerabilities_data=vulnerabilities_json_data,
+        manifest_file=options.manifest_file,
+    ).get()
 
     cve_parser = CVEParser()
     cve_parser.parse_data(
