@@ -172,6 +172,7 @@ livepatch_support_cache = DataObjectFile(
 )
 
 reboot_cmd_marker_file = UAFile("marker-reboot-cmds-required")
+only_series_check_marker_file = UAFile("marker-only-series-check")
 
 
 class AnboxCloudData(DataObject):
@@ -242,4 +243,5 @@ def delete_state_files():
     attachment_data_file.delete()
     anbox_cloud_credentials_file.delete()
     reboot_cmd_marker_file.delete()
+    only_series_check_marker_file.delete()
     status_cache_file.delete()

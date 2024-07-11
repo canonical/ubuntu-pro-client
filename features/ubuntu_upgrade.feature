@@ -121,3 +121,76 @@ Feature: Upgrade between releases when uaclient is attached
       | release | machine_type | next_release | fips-service | fips-name    | source-file         |
       | xenial  | lxd-vm       | bionic       | fips         | FIPS         | ubuntu-fips         |
       | xenial  | lxd-vm       | bionic       | fips-updates | FIPS Updates | ubuntu-fips-updates |
+
+  @slow @upgrade
+  Scenario Outline: Check onlySeries on reboot after upgrade
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/tmp/response-overlay.json` with the following:
+      """
+      {
+          "https://contracts.canonical.com/v1/context/machines/token": [
+          {
+            "code": 200,
+            "response": {
+              "machineTokenInfo": {
+                "accountInfo": {
+                  "name": "testName",
+                  "id": "testAccID"
+                },
+                "contractInfo": {
+                  "id": "testCID",
+                  "name": "testName",
+                  "resourceEntitlements": [
+                    {
+                      "type": "support",
+                      "affordances": {
+                        "onlySeries": "<onlyseries>"
+                      }
+                    }
+                  ]
+                },
+                "machineId": "testMID"
+              }
+            }
+        }],
+        "https://contracts.canonical.com/v1/contracts/testCID/context/machines/testMID": [
+          {
+            "code": 200,
+            "response": {
+              "activityToken": "test-activity-token",
+              "activityID": "test-activity-id",
+              "activityPingInterval": 123456789
+            }
+          }],
+          "https://contracts.canonical.com/v1/contracts/testCID/machine-activity/testMID": [
+          {
+            "code": 200,
+            "response": {
+              "activityToken": "test-activity-token",
+              "activityID": "test-activity-id",
+              "activityPingInterval": 123456789
+            }
+          }]
+      }
+      """
+    And I append the following on uaclient config:
+      """
+      features:
+        serviceclient_url_responses: "/tmp/response-overlay.json"
+      """
+    When I attach `contract_token` with sudo
+    Then the machine is attached
+    Then I verify that running `do-release-upgrade --frontend DistUpgradeViewNonInteractive` `with sudo` exits `0`
+    When I reboot the machine
+    And I run `lsb_release -cs` as non-root
+    Then I will see the following on stdout:
+      """
+      <next_release>
+      """
+    And the machine is unattached
+
+    Examples: ubuntu release
+      | release | machine_type  | next_release | onlyseries |
+      | xenial  | lxd-container | bionic       | xenial     |
+      | bionic  | lxd-container | focal        | bionic     |
+      | focal   | lxd-container | jammy        | focal      |
