@@ -1,9 +1,14 @@
 import datetime
+import json
 from typing import List, Optional
 
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.u.pro.packages.updates.v1 import UpdateSummary, _updates
+from uaclient.api.u.pro.packages.updates.v1 import (
+    PackageUpdatesResult,
+    UpdateSummary,
+    _updates,
+)
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     VulnerabilityData,
     _get_source_package_from_vulnerabilities_data,
@@ -25,13 +30,19 @@ class UpdateInfoWithCVESOptions(DataObject):
     fields = [
         Field("data_file", StringDataValue, False),
         Field("series", StringDataValue, False),
+        Field("updates_data", StringDataValue, False),
     ]
 
     def __init__(
-        self, *, data_file: Optional[str] = None, series: Optional[str] = None
+        self,
+        *,
+        data_file: Optional[str] = None,
+        series: Optional[str] = None,
+        updates_data: Optional[str] = None
     ):
         self.data_file = data_file
         self.series = series
+        self.updates_data = updates_data
 
 
 class UpdateInfoWithCVES(DataObject):
@@ -125,11 +136,22 @@ def _get_pkg_current_version(cache, pkg: str):
     return cache[pkg].current_ver.ver_str
 
 
+def _get_pkg_updates(cfg: UAConfig, updates_data: Optional[str]):
+    if not updates_data:
+        return _updates(cfg)
+
+    with open(updates_data, "r") as f:
+        package_updates = json.loads(f.read())
+        return PackageUpdatesResult.from_dict(
+            package_updates["data"]["attributes"]
+        )
+
+
 def _updates_with_cves(
     options: UpdateInfoWithCVESOptions, cfg: UAConfig
 ) -> PackageUpdatesWithCVEResult:
-    package_updates = _updates(cfg)
 
+    package_updates = _get_pkg_updates(cfg, options.updates_data)
     vulnerabilities_json_data = VulnerabilityData(
         cfg=cfg, data_file=options.data_file, series=options.series
     ).get()
