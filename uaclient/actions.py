@@ -32,6 +32,7 @@ from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
     machine_id_file,
+    only_series_check_marker_file,
     timer_jobs_state_file,
 )
 
@@ -184,6 +185,7 @@ def attach_with_token(
             release=allowed_release.release,
             series_codename=allowed_release.series_codename,
         )
+        only_series_check_marker_file.write(only_series)
 
     machine_token_file.write(new_machine_token)
     try:

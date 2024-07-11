@@ -78,30 +78,30 @@ def refresh_contract(cfg: config.UAConfig):
 
 
 def main(cfg: config.UAConfig) -> int:
-    # TODO
-    # Move this chheck down in the function under the try block
-    #   we need to check for the onlySeries regardless of there being a marker file
-    if not state_files.reboot_cmd_marker_file.is_present:
-        LOG.info("Skipping reboot_cmds. Marker file not present")
-        notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
-        return 0
-
     if not _is_attached(cfg).is_attached:
         LOG.info("Skipping reboot_cmds. Machine is unattached")
-        state_files.reboot_cmd_marker_file.delete()
+        if state_files.reboot_cmd_marker_file.is_present:
+            state_files.reboot_cmd_marker_file.delete()
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
 
     LOG.info("Running reboot commands...")
     try:
         with lock.RetryLock(lock_holder="pro-reboot-cmds"):
-            # Check test dependency for the functions
-            fix_pro_pkg_holds(cfg)
-            refresh_contract(cfg)
-            upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
-            # cleanup state after a succesful run
-            state_files.reboot_cmd_marker_file.delete()
-            notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+            if state_files.only_series_check_marker_file.is_present:
+                update_contract_info.validate_release_series(cfg)
+            if state_files.reboot_cmd_marker_file.is_present:
+                # Check test dependency for the functions
+                fix_pro_pkg_holds(cfg)
+                refresh_contract(cfg)
+                upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
+                # cleanup state after a succesful run
+                state_files.reboot_cmd_marker_file.delete()
+                notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+            else:
+                LOG.info("Skipping reboot_cmds. Marker file not present")
+                notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+                return 0
 
     except exceptions.LockHeldError as e:
         LOG.warning("Lock not released. %s", str(e.msg))
