@@ -38,7 +38,7 @@ class USNVulnerabilitiesOptions(DataObject):
         unfixable: Optional[bool] = False,
         data_file: Optional[str] = None,
         manifest_file: Optional[str] = None,
-        series: Optional[str] = None,
+        series: Optional[str] = None
     ):
         self.all = all
         self.unfixable = unfixable

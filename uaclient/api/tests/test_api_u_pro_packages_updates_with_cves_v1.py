@@ -124,15 +124,15 @@ class TestPackagesWithCVEs:
 
     @mock.patch(M_PATH + "VulnerabilityData.get")
     @mock.patch(M_PATH + "_get_pkg_current_version")
-    @mock.patch(M_PATH + "_updates")
+    @mock.patch(M_PATH + "_get_pkg_updates")
     def test_packages_with_cves(
         self,
-        m_updates,
+        m_get_pkg_updates,
         m_get_pkg_curr_version,
         m_vulnerability_data_get,
     ):
         m_vulnerability_data_get.return_value = VULNERABILITIES_DATA
-        m_updates.return_value = PACKAGE_UPDATES
+        m_get_pkg_updates.return_value = PACKAGE_UPDATES
         m_get_pkg_curr_version.side_effect = ["1.1", "1.0.12", "1.3"]
 
         assert _updates_with_cves(
