@@ -1,12 +1,10 @@
 """Client to manage Ubuntu Pro services on a machine."""
 
 import argparse
-import json
 import logging
 import sys
 from typing import Optional
 
-# This will be fixed when the help command goes away
 from uaclient import (
     apt,
     apt_news,
@@ -19,9 +17,9 @@ from uaclient import (
     lock,
     log,
     messages,
+    util,
+    version,
 )
-from uaclient import status as status_module
-from uaclient import util, version
 from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
@@ -36,16 +34,13 @@ from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
 from uaclient.cli.fix import fix_command
+from uaclient.cli.help import help_command
 from uaclient.cli.refresh import refresh_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.cli.status import status_command
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
 from uaclient.log import get_user_or_root_log_file_path
-
-UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
-
-STATUS_FORMATS = ["tabular", "json", "yaml"]
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -59,6 +54,7 @@ COMMANDS = [
     disable_command,
     enable_command,
     fix_command,
+    help_command,
     refresh_command,
     security_status_command,
     status_command,
@@ -166,37 +162,6 @@ def config_parser(parser):
     )
     parser_unset.set_defaults(action=action_config_unset)
     config_unset_parser(parser_unset, parent_command=command)
-    return parser
-
-
-def help_parser(parser, cfg: config.UAConfig):
-    """Build or extend an arg parser for help subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="help [service]")
-    parser.usage = usage
-    parser.prog = "help"
-    parser.description = messages.CLI_HELP_DESC
-    parser._positionals.title = messages.CLI_ARGS
-    parser.add_argument(
-        "service",
-        action="store",
-        nargs="?",
-        help=messages.CLI_HELP_SERVICE.format(
-            options=", ".join(entitlements.valid_services(cfg=cfg))
-        ),
-    )
-
-    parser.add_argument(
-        "--format",
-        action="store",
-        choices=STATUS_FORMATS,
-        default=STATUS_FORMATS[0],
-        help=(messages.CLI_FORMAT_DESC.format(default=STATUS_FORMATS[0])),
-    )
-
-    parser.add_argument(
-        "--all", action="store_true", help=messages.CLI_HELP_ALL
-    )
-
     return parser
 
 
@@ -486,10 +451,6 @@ def get_parser(cfg: config.UAConfig):
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
 
-    parser_help = subparsers.add_parser("help", help=messages.CLI_ROOT_HELP)
-    help_parser(parser_help, cfg=cfg)
-    parser_help.set_defaults(action=action_help)
-
     parser_version = subparsers.add_parser(
         "version", help=messages.CLI_ROOT_VERSION.format(name=NAME)
     )
@@ -547,27 +508,6 @@ def configure_apt_proxy(
     setup_apt_proxy(
         http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
     )
-
-
-def action_help(args, *, cfg, **kwargs):
-    service = args.service
-
-    if not service:
-        get_parser(cfg=cfg).print_help()
-        return 0
-
-    if not cfg:
-        cfg = config.UAConfig()
-
-    help_response = status_module.help(cfg, service)
-
-    if args.format == "json":
-        print(json.dumps(help_response))
-    else:
-        for key, value in help_response.items():
-            print("{}:\n{}\n".format(key.title(), value))
-
-    return 0
 
 
 def _warn_about_new_version(cmd_args=None) -> None:
