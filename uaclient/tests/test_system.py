@@ -1343,14 +1343,15 @@ class TestSubp:
         mock_process.communicate.return_value = (b"", b"")
         m_popen.return_value = mock_process
 
-        _subp(["fake"], pipe_stdouterr=False)
+        with mock.patch("os.environ", {}):
+            _subp(["fake"], pipe_stdouterr=False)
 
         assert [
             mock.call(
                 [b"fake"],
                 stdout=None,
                 stderr=None,
-                env=mock.ANY,
+                env={},
             )
         ] == m_popen.call_args_list
 
