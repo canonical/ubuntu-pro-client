@@ -629,12 +629,14 @@ def _subp(
 
     stdout = None
     stderr = None
+    set_lang = {}
+
     if pipe_stdouterr:
         stdout = subprocess.PIPE
         stderr = subprocess.PIPE
+        # Set LANG to avoid non-utf8 when we pipe the handlers
+        set_lang = {"LANG": "C.UTF8", "LC_ALL": "C.UTF8"}
 
-    # Set LANG to avoid non-utf8 when possible and merge env overrides
-    set_lang = {"LANG": "C.UTF8", "LC_ALL": "C.UTF8"}
     if override_env_vars is None:
         override_env_vars = {}
     merged_env = {**os.environ, **set_lang, **override_env_vars}
