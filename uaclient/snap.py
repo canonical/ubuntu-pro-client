@@ -191,7 +191,9 @@ def get_snap_info(snap: str) -> SnapPackage:
     try:
         conn.request("GET", SNAPD_SNAPS_API.format(snap))
         response = conn.getresponse()
-        out = response.read().decode("utf-8")
+        # We don't expect the snapd API to return non-utf8,
+        # but better safe than sorry
+        out = response.read().decode("utf-8", errors="ignore")
 
         try:
             data = json.loads(out)
