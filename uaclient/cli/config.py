@@ -25,9 +25,7 @@ def action_config(args, *, cfg, **kwargs):
     # Avoiding a circular import
     from uaclient.cli import get_parser
 
-    # Pretty sure there will be some method to do this soon
-    # so we don't repeat it all over the place
-    get_parser(cfg).parse_args(["config", "--help"])
+    get_parser(cfg).print_help_for_command("config")
     return 0
 
 
@@ -74,29 +72,17 @@ def action_config_set(args, *, cfg, **kwargs):
     try:
         set_key, set_value = args.key_value_pair.split("=")
     except ValueError:
-        try:
-            parser.parse_args(["config", "set", "--help"])
-        # Excepting SystemExit so we can raise our own exception
-        except SystemExit:
-            pass
+        parser.print_help_for_command("config set")
         raise exceptions.GenericInvalidFormat(
             expected="<key>=<value>", actual=args.key_value_pair
         )
     if set_key not in config.UA_CONFIGURABLE_KEYS:
-        try:
-            parser.parse_args(["config", "set", "--help"])
-        # Excepting SystemExit so we can raise our own exception
-        except SystemExit:
-            pass
+        parser.print_help_for_command("config set")
         raise exceptions.InvalidArgChoice(
             arg="<key>", choices=", ".join(config.UA_CONFIGURABLE_KEYS)
         )
     if not set_value.strip():
-        try:
-            parser.parse_args(["config", "set", "--help"])
-        # Excepting SystemExit so we can raise our own exception
-        except SystemExit:
-            pass
+        parser.print_help_for_command("config set")
         raise exceptions.EmptyConfigValue(arg=set_key)
     if set_key in ("http_proxy", "https_proxy"):
         protocol_type = set_key.split("_")[0]
@@ -182,11 +168,7 @@ def action_config_set(args, *, cfg, **kwargs):
             if set_value < 0:
                 raise ValueError("Invalid interval for {}".format(set_key))
         except ValueError:
-            try:
-                parser.parse_args(["config", "set", "--help"])
-            # Excepting SystemExit so we can raise our own exception
-            except SystemExit:
-                pass
+            parser.print_help_for_command("config set")
             # More readable in the CLI, without breaking the line in the logs
             print("")
             raise exceptions.InvalidPosIntConfigValue(
@@ -212,11 +194,7 @@ def action_config_unset(args, *, cfg, **kwargs):
 
     if args.key not in config.UA_CONFIGURABLE_KEYS:
         parser = get_parser(cfg=cfg)
-        try:
-            parser.parse_args(["config", "unset", "--help"])
-        # Excepting SystemExit so we can raise our own exception
-        except SystemExit:
-            pass
+        parser.print_help_for_command("config unset")
         raise exceptions.InvalidArgChoice(
             arg="<key>", choices=", ".join(config.UA_CONFIGURABLE_KEYS)
         )
