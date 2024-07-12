@@ -25,6 +25,9 @@ MESSAGES_SUBDIR = "messages"
 USER_CACHE_SUBDIR = "ubuntu-pro"
 NOTICES_SUBDIR = "notices"
 PRIVATE_ESM_CACHE_SUBDIR = "apt-esm"
+VULNERABILITY_SUBDIR = "vulnerability-data"
+VULNERABILITY_DATA_CACHE = "vulnerability-cache.json"
+VULNERABILITY_PUBLISH_DATE_CACHE = "vulnerability-publish-date"
 
 DEFAULT_PRIVATE_MACHINE_TOKEN_PATH = os.path.join(
     DEFAULT_DATA_DIR, PRIVATE_SUBDIR, MACHINE_TOKEN_FILE
@@ -48,6 +51,10 @@ BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_LIVEPATCH_URL = "https://livepatch.canonical.com"
 BASE_VULNERABILITY_DATA_URL = "https://security-metadata.canonical.com/oval/"
 APT_NEWS_URL = "https://motd.ubuntu.com/aptnews.json"
+
+# VULNERABILITY DATA
+VULNERABILITY_DATA_TMPL = "com.ubuntu.{series}.pkg.json.bz2"
+VULNERABILITY_CACHE_PATH = os.path.join(DEFAULT_DATA_DIR, VULNERABILITY_SUBDIR)
 
 PRINT_WRAP_WIDTH = 80
 CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14
