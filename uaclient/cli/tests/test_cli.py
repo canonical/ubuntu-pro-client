@@ -7,7 +7,6 @@ import pytest
 
 from uaclient import defaults, exceptions, messages
 from uaclient.cli import _warn_about_output_redirection, main
-from uaclient.entitlements import get_valid_entitlement_names
 from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
@@ -230,7 +229,7 @@ class TestMain:
 
     @mock.patch("uaclient.log.setup_cli_logging")
     @mock.patch("uaclient.cli.get_parser")
-    @mock.patch("uaclient.cli.config.UAConfig")
+    @mock.patch("uaclient.cli.UAConfig")
     @pytest.mark.parametrize("config_error", [True, False])
     def test_setup_logging_with_defaults(
         self,
@@ -320,24 +319,6 @@ class TestMain:
                 "Not in a tty and human-readable command called"
                 not in caplog_text()
             )
-
-
-class TestGetValidEntitlementNames:
-    @mock.patch(
-        "uaclient.cli.entitlements.valid_services",
-        return_value=["ent1", "ent2", "ent3"],
-    )
-    def test_get_valid_entitlements(self, _m_valid_services, FakeConfig):
-        service = ["ent1", "ent3", "ent4"]
-        expected_ents_found = ["ent1", "ent3"]
-        expected_ents_not_found = ["ent4"]
-
-        actual_ents_found, actual_ents_not_found = get_valid_entitlement_names(
-            service, cfg=FakeConfig()
-        )
-
-        assert expected_ents_found == actual_ents_found
-        assert expected_ents_not_found == actual_ents_not_found
 
 
 # There is a fixture for this function to avoid leaking, as it is called in
