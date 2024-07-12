@@ -1,7 +1,9 @@
 import bz2
 import enum
 import json
+import os
 import re
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
@@ -11,8 +13,14 @@ from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
 from uaclient.config import UAConfig
-from uaclient.http import download_file_from_url
-from uaclient.system import get_release_info
+from uaclient.defaults import (
+    VULNERABILITY_CACHE_PATH,
+    VULNERABILITY_DATA_CACHE,
+    VULNERABILITY_DATA_TMPL,
+    VULNERABILITY_PUBLISH_DATE_CACHE,
+)
+from uaclient.http import download_file_from_url, readurl
+from uaclient.system import get_release_info, load_file, write_file
 
 
 @enum.unique
@@ -38,25 +46,72 @@ class VulnerabilityData:
         self.data_file = data_file
         self.series = series
 
-    def _load_json_file(self, data_file):
-        with open(data_file, "r") as vuln_data:
-            return json.loads(vuln_data.read())
+    def _get_cache_data_path(self, series: str):
+        return os.path.join(
+            VULNERABILITY_CACHE_PATH, series, VULNERABILITY_DATA_CACHE
+        )
+
+    def _get_cache_published_date_path(self, series: str):
+        return os.path.join(
+            VULNERABILITY_CACHE_PATH, series, VULNERABILITY_PUBLISH_DATE_CACHE
+        )
+
+    def _save_cache(
+        self, series: str, json_data: Dict[str, Any], last_published_date
+    ):
+        write_file(self._get_cache_data_path(series), json.dumps(json_data))
+        write_file(
+            self._get_cache_published_date_path(series), last_published_date
+        )
+
+    def _parse_published_date(self, published_date: str):
+        format_str = "%a, %d %b %Y %H:%M:%S GMT"
+        return datetime.strptime(published_date, format_str)
+
+    def _get_published_date(self, data_url):
+        resp = readurl(url=data_url, method="HEAD")
+        return resp.headers["last-modified"]
+
+    def _is_cache_valid(self, series: str, last_published_date: str) -> bool:
+        last_published_datetime = self._parse_published_date(
+            last_published_date
+        )
+
+        try:
+            cache_published_datetime = self._parse_published_date(
+                load_file(self._get_cache_published_date_path(series))
+            )
+        except FileNotFoundError:
+            return False
+
+        return cache_published_datetime >= last_published_datetime
+
+    def _get_cache_data(self, series: str):
+        return json.loads(load_file(self._get_cache_data_path(series)))
 
     def get(self):
         if self.data_file:
-            return self._load_json_file(self.data_file)
+            return json.loads(load_file(self.data_file))
 
         series = self.series or get_release_info().series
 
-        data_file = "com.ubuntu.{}.pkg.json.bz2".format(series)
+        data_file = VULNERABILITY_DATA_TMPL.format(series=series)
         data_url = urljoin(self.cfg.vulnerability_data_url_prefix, data_file)
+
+        last_published_date = self._get_published_date(data_url)
+
+        if self._is_cache_valid(series, last_published_date):
+            return self._get_cache_data(series)
 
         resp = download_file_from_url(url=data_url)
 
         decompressor = bz2.BZ2Decompressor()
         raw_json_data = decompressor.decompress(resp.body)  # type: ignore
 
-        return json.loads(raw_json_data.decode("utf-8"))
+        json_data = json.loads(raw_json_data.decode("utf-8"))
+        self._save_cache(series, json_data, last_published_date)
+
+        return json_data
 
 
 def _get_source_package_from_vulnerabilities_data(
