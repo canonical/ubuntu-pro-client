@@ -20,9 +20,6 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api.u.pro.security.status.reboot_required.v1 import (
-    _reboot_required,
-)
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.cli import cli_util
 from uaclient.cli.api import api_command
@@ -38,6 +35,7 @@ from uaclient.cli.help import help_command
 from uaclient.cli.refresh import refresh_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.cli.status import status_command
+from uaclient.cli.system import system_command
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
 from uaclient.log import get_user_or_root_log_file_path
@@ -58,6 +56,7 @@ COMMANDS = [
     refresh_command,
     security_status_command,
     status_command,
+    system_command,
 ]
 
 
@@ -162,35 +161,6 @@ def config_parser(parser):
     )
     parser_unset.set_defaults(action=action_config_unset)
     config_unset_parser(parser_unset, parent_command=command)
-    return parser
-
-
-def system_parser(parser):
-    """Build or extend an arg parser for system subcommand."""
-    parser.usage = USAGE_TMPL.format(name=NAME, command="system <command>")
-    parser.description = messages.CLI_SYSTEM_DESC
-    parser.prog = "system"
-    parser._optionals.title = messages.CLI_FLAGS
-    subparsers = parser.add_subparsers(
-        title=messages.CLI_AVAILABLE_COMMANDS, dest="command", metavar=""
-    )
-    parser_reboot_required = subparsers.add_parser(
-        "reboot-required", help=messages.CLI_SYSTEM_REBOOT_REQUIRED
-    )
-    parser_reboot_required.set_defaults(action=action_system_reboot_required)
-    reboot_required_parser(parser_reboot_required)
-
-    return parser
-
-
-def reboot_required_parser(parser):
-    # This formatter_class ensures that our formatting below isn't lost
-    parser.usage = USAGE_TMPL.format(
-        name=NAME, command="system reboot-required"
-    )
-    parser.pro = "reboot-required"
-    parser.formatter_class = argparse.RawDescriptionHelpFormatter
-    parser.description = messages.CLI_SYSTEM_REBOOT_REQUIRED_DESC
     return parser
 
 
@@ -451,30 +421,7 @@ def get_parser(cfg: config.UAConfig):
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
 
-    parser_system = subparsers.add_parser(
-        "system", help=messages.CLI_ROOT_SYSTEM
-    )
-    parser_system.set_defaults(action=action_system)
-    system_parser(parser_system)
-
     return parser
-
-
-def action_system(args, *, cfg, **kwargs):
-    """Perform the system action.
-
-    :return: 0 on success, 1 otherwise
-    """
-    _print_help_for_subcommand(
-        cfg, cmd_name="system", subcmd_name=args.command
-    )
-    return 0
-
-
-def action_system_reboot_required(args, *, cfg: config.UAConfig, **kwargs):
-    result = _reboot_required(cfg)
-    event.info(result.reboot_required)
-    return 0
 
 
 def configure_apt_proxy(
