@@ -49,8 +49,8 @@ class TestDisable:
     @mock.patch(
         "uaclient.cli.disable.contract.UAContractClient.update_activity_token",
     )
-    @mock.patch("uaclient.cli.entitlements.entitlement_factory")
-    @mock.patch("uaclient.cli.entitlements.valid_services")
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("uaclient.entitlements.valid_services")
     @mock.patch("uaclient.status.status")
     def test_entitlement_instantiated_and_disabled(
         self,

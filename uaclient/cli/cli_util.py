@@ -14,6 +14,7 @@ from uaclient import (
     util,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.config import UAConfig
 from uaclient.files import machine_token
 
@@ -185,3 +186,27 @@ def post_cli_attach(cfg: UAConfig) -> None:
     output = status.format_tabular(status_dict)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
+
+
+def configure_apt_proxy(
+    cfg: UAConfig,
+    scope: AptProxyScope,
+    set_key: str,
+    set_value: Optional[str],
+) -> None:
+    """
+    Handles setting part the apt proxies - global and uaclient scoped proxies
+    """
+    if scope == AptProxyScope.GLOBAL:
+        http_proxy = cfg.global_apt_http_proxy
+        https_proxy = cfg.global_apt_https_proxy
+    elif scope == AptProxyScope.UACLIENT:
+        http_proxy = cfg.ua_apt_http_proxy
+        https_proxy = cfg.ua_apt_https_proxy
+    if "https" in set_key:
+        https_proxy = set_value
+    else:
+        http_proxy = set_value
+    setup_apt_proxy(
+        http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
+    )

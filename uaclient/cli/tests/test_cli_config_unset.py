@@ -1,25 +1,10 @@
 import mock
 import pytest
 
-from uaclient.cli import action_config_unset, main
+from uaclient.cli import main
+from uaclient.cli.config import unset_subcommand
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError
-
-HELP_OUTPUT = """\
-usage: pro config unset <key> [flags]
-
-Unset Ubuntu Pro configuration setting
-
-positional arguments:
-  key         configuration key to unset from Ubuntu Pro services. One of:
-              http_proxy, https_proxy, apt_http_proxy, apt_https_proxy,
-              ua_apt_http_proxy, ua_apt_https_proxy, global_apt_http_proxy,
-              global_apt_https_proxy, update_messaging_timer, metering_timer,
-              apt_news, apt_news_url
-
-Flags:
-  -h, --help  show this help message and exit
-"""
 
 M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
@@ -69,7 +54,6 @@ class TestMainConfigUnSet:
                 ):
                     main()
         out, err = capsys.readouterr()
-        assert HELP_OUTPUT == out
         assert err_msg in err
 
 
@@ -83,7 +67,7 @@ class TestActionConfigUnSet:
         args = mock.MagicMock(key="https_proxy")
         cfg = FakeConfig()
         with pytest.raises(NonRootUserError):
-            action_config_unset(args, cfg=cfg)
+            unset_subcommand.action(args, cfg=cfg)
 
     @pytest.mark.parametrize(
         "key,livepatch_enabled",
@@ -94,9 +78,9 @@ class TestActionConfigUnSet:
             ("https_proxy", True),
         ),
     )
-    @mock.patch("uaclient.livepatch.unconfigure_livepatch_proxy")
+    @mock.patch("uaclient.cli.config.unconfigure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
-    @mock.patch("uaclient.snap.unconfigure_snap_proxy")
+    @mock.patch("uaclient.cli.config.unconfigure_snap_proxy")
     def test_set_http_proxy_and_https_proxy_affects_snap_and_maybe_livepatch(
         self,
         unconfigure_snap_proxy,
@@ -123,7 +107,7 @@ class TestActionConfigUnSet:
             )
         args = mock.MagicMock(key=key)
         cfg = FakeConfig()
-        action_config_unset(args, cfg=cfg)
+        unset_subcommand.action(args, cfg=cfg)
         assert [
             mock.call(protocol_type=key.split("_")[0])
         ] == unconfigure_snap_proxy.call_args_list

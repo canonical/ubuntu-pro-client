@@ -279,6 +279,67 @@ Feature: Pro Client help text
         reboot, but you can assess if the reboot can be performed in the
         nearest maintenance window.
       """
+    When I run `pro config --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro config \[flags\]
+
+      Manage Ubuntu Pro configuration
+
+      (optional arguments|options):
+        -h, --help  show this help message and exit
+
+      Available Commands:
+       *
+          show      Show customizable configuration settings
+          set       Set and apply Ubuntu Pro configuration settings
+          unset     Unset Ubuntu Pro configuration setting
+      """
+    When I run `pro config show --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro show \[flags\]
+
+      Show customizable configuration settings
+
+      positional arguments:
+        key         Optional key or key\(s\) to show configuration settings.
+      """
+    When I run `pro config set --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro set \[flags\]
+
+      Set and apply Ubuntu Pro configuration settings
+
+      positional arguments:
+        key_value_pair  key=value pair to configure for Ubuntu Pro services. Key
+                        must be one of: http_proxy, https_proxy, apt_http_proxy,
+                        apt_https_proxy, ua_apt_http_proxy, ua_apt_https_proxy,
+                        global_apt_http_proxy, global_apt_https_proxy,
+                        update_messaging_timer, metering_timer, apt_news,
+                        apt_news_url
+
+      (optional arguments|options):
+        -h, --help      show this help message and exit
+      """
+    When I run `pro config unset --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro unset \[flags\]
+
+      Unset Ubuntu Pro configuration setting
+
+      positional arguments:
+        key         configuration key to unset from Ubuntu Pro services. One of:
+                    http_proxy, https_proxy, apt_http_proxy, apt_https_proxy,
+                    ua_apt_http_proxy, ua_apt_https_proxy, global_apt_http_proxy,
+                    global_apt_https_proxy, update_messaging_timer, metering_timer,
+                    apt_news, apt_news_url
+
+      (optional arguments|options):
+        -h, --help  show this help message and exit
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
