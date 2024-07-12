@@ -535,6 +535,7 @@ def load_file(filename: str, decode: bool = True) -> str:
     with open(filename, "rb") as stream:
         LOG.debug("Reading file: %s", filename)
         content = stream.read()
+
     return content.decode("utf-8")
 
 
