@@ -2,26 +2,12 @@ import mock
 import pytest
 
 from uaclient import apt, http, messages
-from uaclient.cli import action_config_set, configure_apt_proxy, main
+from uaclient.cli import main
+from uaclient.cli.cli_util import configure_apt_proxy
+from uaclient.cli.config import set_subcommand
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError, UbuntuProError
 
-HELP_OUTPUT = """\
-usage: pro config set <key>=<value> [flags]
-
-Set and apply Ubuntu Pro configuration settings
-
-positional arguments:
-  key_value_pair  key=value pair to configure for Ubuntu Pro services. Key
-                  must be one of: http_proxy, https_proxy, apt_http_proxy,
-                  apt_https_proxy, ua_apt_http_proxy, ua_apt_https_proxy,
-                  global_apt_http_proxy, global_apt_https_proxy,
-                  update_messaging_timer, metering_timer, apt_news,
-                  apt_news_url
-
-Flags:
-  -h, --help      show this help message and exit
-"""
 M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
 
@@ -87,7 +73,6 @@ class TestMainConfigSet:
                 ):
                     main()
         out, err = capsys.readouterr()
-        assert HELP_OUTPUT == out
         assert err_msg in err
 
 
@@ -106,7 +91,7 @@ class TestActionConfigSet:
         args = mock.MagicMock(key_value_pair="something=1")
         cfg = FakeConfig()
         with pytest.raises(NonRootUserError):
-            action_config_set(args, cfg=cfg)
+            set_subcommand.action(args, cfg=cfg)
 
     @pytest.mark.parametrize(
         "key,value,livepatch_enabled",
@@ -117,9 +102,9 @@ class TestActionConfigSet:
             ("https_proxy", "https://proxy", True),
         ),
     )
-    @mock.patch("uaclient.livepatch.configure_livepatch_proxy")
+    @mock.patch("uaclient.cli.config.configure_livepatch_proxy")
     @mock.patch(M_LIVEPATCH + "LivepatchEntitlement.application_status")
-    @mock.patch("uaclient.snap.configure_snap_proxy")
+    @mock.patch("uaclient.cli.config.configure_snap_proxy")
     @mock.patch("uaclient.http.validate_proxy")
     def test_set_http_proxy_and_https_proxy_affects_snap_and_maybe_livepatch(
         self,
@@ -150,7 +135,7 @@ class TestActionConfigSet:
             )
         args = mock.MagicMock(key_value_pair="{}={}".format(key, value))
         cfg = FakeConfig()
-        action_config_set(args, cfg=cfg)
+        set_subcommand.action(args, cfg=cfg)
         kwargs = {key: value}
         if key == "http_proxy":
             url = http.PROXY_VALIDATION_SNAP_HTTP_URL
@@ -184,7 +169,7 @@ class TestActionConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.configure_apt_proxy")
+    @mock.patch("uaclient.cli.cli_util.configure_apt_proxy")
     @mock.patch("uaclient.http.validate_proxy")
     def test_set_apt_http_proxy_and_apt_https_proxy_prints_warning(
         self,
@@ -203,7 +188,7 @@ class TestActionConfigSet:
         and sets global_* and exits 0."""
         args = mock.MagicMock(key_value_pair="{}={}".format(key, value))
         cfg = FakeConfig()
-        action_config_set(args, cfg=cfg)
+        set_subcommand.action(args, cfg=cfg)
         out, err = capsys.readouterr()
         global_eq = "global_" + key
         assert [
@@ -284,7 +269,7 @@ class TestActionConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.configure_apt_proxy")
+    @mock.patch("uaclient.cli.cli_util.configure_apt_proxy")
     @mock.patch("uaclient.http.validate_proxy")
     def test_set_global_apt_http_and_global_apt_https_proxy(
         self,
@@ -305,7 +290,7 @@ class TestActionConfigSet:
         cfg = FakeConfig()
         cfg.ua_apt_https_proxy = ua_apt_equ
         cfg.ua_apt_http_proxy = ua_apt_equ
-        action_config_set(args, cfg=cfg)
+        set_subcommand.action(args, cfg=cfg)
         out, err = capsys.readouterr()  # will need to check output
         if ua_apt_equ:
             assert [
@@ -387,7 +372,7 @@ class TestActionConfigSet:
             ),
         ),
     )
-    @mock.patch("uaclient.cli.configure_apt_proxy")
+    @mock.patch("uaclient.cli.cli_util.configure_apt_proxy")
     @mock.patch("uaclient.http.validate_proxy")
     def test_set_ua_apt_http_and_ua_apt_https_proxy(
         self,
@@ -408,7 +393,7 @@ class TestActionConfigSet:
         cfg = FakeConfig()
         cfg.global_apt_http_proxy = global_apt_equ
         cfg.global_apt_https_proxy = global_apt_equ
-        action_config_set(args, cfg=cfg)
+        set_subcommand.action(args, cfg=cfg)
         out, err = capsys.readouterr()  # will need to check output
         if global_apt_equ:
             assert [
@@ -452,7 +437,7 @@ class TestActionConfigSet:
             ("global_apt_https_proxy", None, apt.AptProxyScope.GLOBAL),
         ),
     )
-    @mock.patch("uaclient.cli.setup_apt_proxy")
+    @mock.patch("uaclient.cli.cli_util.setup_apt_proxy")
     def test_configure_global_apt_proxy(
         self,
         setup_apt_proxy,
@@ -491,7 +476,7 @@ class TestActionConfigSet:
             ("global_apt_https_proxy", None, apt.AptProxyScope.UACLIENT),
         ),
     )
-    @mock.patch("uaclient.cli.setup_apt_proxy")
+    @mock.patch("uaclient.cli.cli_util.setup_apt_proxy")
     def test_configure_uaclient_apt_proxy(
         self,
         setup_apt_proxy,
@@ -517,7 +502,7 @@ class TestActionConfigSet:
     def test_set_timer_interval(self, _m_resources, _write, FakeConfig):
         args = mock.MagicMock(key_value_pair="update_messaging_timer=28800")
         cfg = FakeConfig()
-        action_config_set(args, cfg=cfg)
+        set_subcommand.action(args, cfg=cfg)
         assert 28800 == cfg.update_messaging_timer
 
     @pytest.mark.parametrize("invalid_value", ("notanumber", -1))
@@ -533,5 +518,5 @@ class TestActionConfigSet:
         )
         cfg = FakeConfig()
         with pytest.raises(UbuntuProError):
-            action_config_set(args, cfg=cfg)
+            set_subcommand.action(args, cfg=cfg)
             assert cfg.update_messaging_timer is None

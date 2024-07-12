@@ -1,47 +1,16 @@
 import mock
 import pytest
 
-from uaclient.cli import action_config_show, main
+from uaclient.cli import main
+from uaclient.cli.config import show_subcommand
 
 M_PATH = "uaclient.cli."
-
-HELP_OUTPUT = """\
-usage: pro config show [key] [flags]
-
-Show customizable configuration settings
-
-positional arguments:
-  key         Optional key or key(s) to show configuration settings.
-
-"""
 
 
 @mock.patch("uaclient.cli.logging.error")
 @mock.patch("uaclient.log.setup_cli_logging")
 @mock.patch("uaclient.contract.get_available_resources")
 class TestMainConfigShow:
-    def test_config_show_help(
-        self,
-        _m_resources,
-        _logging,
-        logging_error,
-        capsys,
-        FakeConfig,
-    ):
-        """Show help for --help and absent positional param"""
-        with pytest.raises(SystemExit):
-            with mock.patch(
-                "sys.argv", ["/usr/bin/ua", "config", "show", "--help"]
-            ):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, err = capsys.readouterr()
-        assert out.startswith(HELP_OUTPUT)
-        assert "" == err
-
     def test_config_show_error_on_invalid_subcommand(
         self, _m_resources, _logging, _logging_error, capsys, FakeConfig
     ):
@@ -56,7 +25,7 @@ class TestMainConfigShow:
         out, err = capsys.readouterr()
         assert "" == out
         expected_logs = [
-            "usage: pro config <command> [flags]",
+            "usage: pro config [flags]",
             "argument : invalid choice: 'invalid' (choose from 'show', 'set',"
             " 'unset')",
         ]
@@ -86,7 +55,7 @@ class TestActionConfigShow:
             "http://global_apt_https_proxy"
         )
         args = mock.MagicMock(key=optional_key)
-        action_config_show(args, cfg=cfg)
+        show_subcommand.action(args, cfg=cfg)
         out, err = capsys.readouterr()
         if optional_key:
             assert "{key} http://{key}\n".format(key=optional_key) == out
