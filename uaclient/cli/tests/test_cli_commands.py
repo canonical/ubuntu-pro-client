@@ -66,6 +66,29 @@ class TestProCommand:
             mock.call(action=example_command.action)
         ] == example_command.parser.set_defaults.call_args_list
 
+    def test_has_subcommands(self):
+        mock_subparsers = mock.MagicMock()
+
+        example_subcommand1 = mock.MagicMock()
+        example_subcommand2 = mock.MagicMock()
+
+        example_command = ProCommand(
+            "example",
+            help="help",
+            description="description",
+            subcommands=[example_subcommand1, example_subcommand2],
+        )
+
+        example_command.register(mock_subparsers)
+
+        inner_subparsers = example_command.parser.add_subparsers.return_value
+        assert [
+            mock.call(inner_subparsers)
+        ] == example_subcommand1.register.call_args_list
+        assert [
+            mock.call(inner_subparsers)
+        ] == example_subcommand2.register.call_args_list
+
 
 class TestProArgument:
     def test_argument_register(self):
