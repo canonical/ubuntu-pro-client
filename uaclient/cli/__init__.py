@@ -55,7 +55,7 @@ COMMANDS = [
 ]
 
 
-class UAArgumentParser(argparse.ArgumentParser):
+class ProArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         self.print_usage(sys.stderr)
         # In some cases (e.g. `pro --wrong-flag`) argparse errors out asking
@@ -72,9 +72,19 @@ class UAArgumentParser(argparse.ArgumentParser):
             message = messages.CLI_TRY_HELP
         self.exit(2, message + "\n")
 
+    def print_help_for_command(self, command: str):
+        args_list = command.split()
+        args_list.append("--help")
+        try:
+            self.parse_args(args_list)
+        # We want help for any specific command,
+        # but without exiting right after
+        except SystemExit:
+            pass
+
 
 def get_parser(cfg: UAConfig):
-    parser = UAArgumentParser(
+    parser = ProArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         usage=USAGE_TMPL.format(name=NAME, command="<command>"),
