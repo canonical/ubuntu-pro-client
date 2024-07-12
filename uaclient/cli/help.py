@@ -8,7 +8,7 @@ def action_help(args, *, cfg, **kwargs):
     service = args.service
 
     if not service:
-        # inserting it here to avoid circular imports
+        # Avoiding a circular import
         from uaclient.cli import get_parser
 
         get_parser(cfg=cfg).print_help()
