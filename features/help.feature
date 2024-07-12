@@ -246,6 +246,39 @@ Feature: Pro Client help text
       (optional arguments|options):
         -h, --help            show this help message and exit
       """
+    When I run `pro system --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro system \[flags\]
+
+      Output system related information related to Pro services
+
+      (optional arguments|options):
+        -h, --help       show this help message and exit
+
+      Available Commands:
+       *
+          reboot-required
+                         does the system need to be rebooted
+      """
+    When I run `pro system reboot-required --help` as non-root
+    Then stdout matches regexp:
+      """
+      usage: pro reboot-required \[flags\]
+
+      Report the current reboot-required status for the machine.
+
+      This command will output one of the three following states
+      for the machine regarding reboot:
+
+      \* no: The machine doesn't require a reboot
+      \* yes: The machine requires a reboot
+      \* yes-kernel-livepatches-applied: There are only kernel related
+        packages that require a reboot, but Livepatch has already provided
+        patches for the current running kernel. The machine still needs a
+        reboot, but you can assess if the reboot can be performed in the
+        nearest maintenance window.
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
