@@ -1,6 +1,7 @@
 import argparse
 from typing import Callable, Iterable, Optional, Union
 
+from uaclient import messages
 from uaclient.cli.constants import NAME, USAGE_TMPL
 
 
@@ -79,6 +80,7 @@ class ProCommand:
         action: Callable = lambda *args, **kwargs: None,
         preserve_description: bool = False,
         argument_groups: Iterable[ProArgumentGroup] = (),
+        subcommands: Iterable["ProCommand"] = (),
     ):
         self.name = name
         self.help = help
@@ -87,6 +89,7 @@ class ProCommand:
         self.action = action
         self.preserve_description = preserve_description
         self.argument_groups = argument_groups
+        self.subcommands = subcommands
 
     def register(self, subparsers: argparse._SubParsersAction):
         self.parser = subparsers.add_parser(
@@ -102,3 +105,12 @@ class ProCommand:
             argument_group.register(self.parser)
 
         self.parser.set_defaults(action=self.action)
+
+        if self.subcommands:
+            subparsers = self.parser.add_subparsers(
+                title=messages.CLI_AVAILABLE_COMMANDS,
+                dest="command",
+                metavar="",
+            )
+            for command in self.subcommands:
+                command.register(subparsers)
