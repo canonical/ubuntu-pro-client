@@ -451,11 +451,6 @@ def get_parser(cfg: config.UAConfig):
     config_parser(parser_config)
     parser_config.set_defaults(action=action_config)
 
-    parser_version = subparsers.add_parser(
-        "version", help=messages.CLI_ROOT_VERSION.format(name=NAME)
-    )
-    parser_version.set_defaults(action=print_version)
-
     parser_system = subparsers.add_parser(
         "system", help=messages.CLI_ROOT_SYSTEM
     )
@@ -480,10 +475,6 @@ def action_system_reboot_required(args, *, cfg: config.UAConfig, **kwargs):
     result = _reboot_required(cfg)
     event.info(result.reboot_required)
     return 0
-
-
-def print_version(_args=None, cfg=None, **kwargs):
-    print(version.get_version())
 
 
 def configure_apt_proxy(
@@ -664,6 +655,10 @@ def main(sys_argv=None):
     if not cli_arguments:
         parser.print_help()
         sys.exit(0)
+
+    # Version is --version
+    if cli_arguments[0] == "version":
+        cli_arguments[0] = "--version"
 
     # Grab everything after a "--" if present and handle separately
     if "--" in cli_arguments:
