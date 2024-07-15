@@ -121,8 +121,6 @@ def _get_source_package_from_vulnerabilities_data(
         for _, source_info in pkg_info.get("source_versions", {}).items():
             if bin_pkg_name in source_info["binary_packages"].keys():
                 return pkg_name
-            else:
-                break
 
     return ""
 

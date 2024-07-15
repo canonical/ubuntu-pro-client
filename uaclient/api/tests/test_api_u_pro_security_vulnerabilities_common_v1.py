@@ -19,7 +19,15 @@ VULNERABILITIES_DATA = {
                         "test1-bin1": "1.1.2",
                     },
                     "pocket": "esm-infra",
-                }
+                },
+                "1.1.3": {
+                    "binary_packages": {
+                        "test1-bin": "1.1.2",
+                        "test1-bin1": "1.1.2",
+                        "test1-bin2": "1.1.3",
+                    },
+                    "pocket": "esm-infra",
+                },
             },
             "cves": {
                 "CVE-2022-12345": {
@@ -226,6 +234,11 @@ class TestGetSourcePackageFromVulnerabilitiesData:
             (
                 VULNERABILITIES_DATA,
                 "test1-bin",
+                "test1",
+            ),
+            (
+                VULNERABILITIES_DATA,
+                "test1-bin2",
                 "test1",
             ),
             (
