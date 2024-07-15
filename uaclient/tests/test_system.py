@@ -1275,24 +1275,24 @@ class TestSubp:
             "expected_env_arg",
         ],
         (
-            (None, {}, {"LANG": "C.UTF8", "LC_ALL": "C.UTF8"}),
+            (None, {}, {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}),
             (
                 None,
                 {"test": "val"},
-                {"test": "val", "LANG": "C.UTF8", "LC_ALL": "C.UTF8"},
+                {"test": "val", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
             ),
             (
                 {},
                 {"test": "val"},
-                {"test": "val", "LANG": "C.UTF8", "LC_ALL": "C.UTF8"},
+                {"test": "val", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
             ),
             (
                 {"set": "new"},
                 {"test": "val"},
                 {
                     "test": "val",
-                    "LANG": "C.UTF8",
-                    "LC_ALL": "C.UTF8",
+                    "LANG": "C.UTF-8",
+                    "LC_ALL": "C.UTF-8",
                     "set": "new",
                 },
             ),
@@ -1300,8 +1300,8 @@ class TestSubp:
                 {"set": "new", "test": "newval"},
                 {"test": "val"},
                 {
-                    "LANG": "C.UTF8",
-                    "LC_ALL": "C.UTF8",
+                    "LANG": "C.UTF-8",
+                    "LC_ALL": "C.UTF-8",
                     "test": "newval",
                     "set": "new",
                 },

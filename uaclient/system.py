@@ -635,7 +635,7 @@ def _subp(
         stdout = subprocess.PIPE
         stderr = subprocess.PIPE
         # Set LANG to avoid non-utf8 when we pipe the handlers
-        set_lang = {"LANG": "C.UTF8", "LC_ALL": "C.UTF8"}
+        set_lang = {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}
 
     if override_env_vars is None:
         override_env_vars = {}

@@ -284,3 +284,4 @@ Feature: Pro supports multiple languages
       | xenial  | lxd-container |
       | jammy   | lxd-container |
       | mantic  | lxd-container |
+      | noble   | lxd-container |
