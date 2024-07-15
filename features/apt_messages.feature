@@ -720,7 +720,9 @@ Feature: APT Messages
         ]
       }
       """
-    When I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     When I apt upgrade
     Then I will see the following on stdout
       """
@@ -747,7 +749,9 @@ Feature: APT Messages
         ]
       }
       """
-    When I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     When I apt upgrade
     Then I will see the following on stdout
       """
@@ -779,7 +783,9 @@ Feature: APT Messages
         ]
       }
       """
-    When I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     When I apt upgrade
     Then I will see the following on stdout:
       """
@@ -810,7 +816,9 @@ Feature: APT Messages
         ]
       }
       """
-    When I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     When I apt upgrade
     Then I will see the following on stdout:
       """
@@ -837,7 +845,9 @@ Feature: APT Messages
         ]
       }
       """
-    When I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     When I apt upgrade
     Then I will see the following on stdout:
       """
@@ -871,7 +881,9 @@ Feature: APT Messages
         ]
       }
       """
-    And I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     And I apt upgrade
     Then I will see the following on stdout:
       """
@@ -901,7 +913,9 @@ Feature: APT Messages
       """
     And I apt install `<package>=<installed_version>`
     And I run `apt-mark hold <package>` with sudo
-    And I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     And I apt upgrade
     Then stdout contains substring:
       """
@@ -927,7 +941,9 @@ Feature: APT Messages
         ]
       }
       """
-    And I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     And I apt upgrade
     Then stdout contains substring:
       """
@@ -955,7 +971,9 @@ Feature: APT Messages
         ]
       }
       """
-    And I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     And I apt upgrade
     Then stdout contains substring:
       """
@@ -985,7 +1003,9 @@ Feature: APT Messages
         ]
       }
       """
-    And I run `pro refresh messages` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
     And I apt upgrade
     Then stdout contains substring:
       """
@@ -1014,7 +1034,9 @@ Feature: APT Messages
         ]
       }
       """
-    And I run `pro refresh messages` with sudo
+    And I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    And I run `systemctl start apt-news.service` with sudo
+    And I wait `5` seconds
     And I apt upgrade
     Then I will see the following on stdout:
       """
@@ -1045,7 +1067,9 @@ Feature: APT Messages
         ]
       }
       """
-    And I run `pro refresh messages` with sudo
+    And I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    And I run `systemctl start apt-news.service` with sudo
+    And I wait `5` seconds
     And I apt upgrade
     Then I will see the following on stdout:
       """

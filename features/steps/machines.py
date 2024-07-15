@@ -107,6 +107,13 @@ def given_a_machine(
             machine_name=machine_name,
         )
 
+    when_i_run_command(
+        context,
+        "systemctl mask apt-news.service",
+        "with sudo",
+        machine_name=machine_name,
+    )
+
     # make sure the machine has up-to-date apt data
     when_i_apt_update(context, machine_name=machine_name)
 
@@ -115,6 +122,13 @@ def given_a_machine(
         when_i_apt_install(
             context, "python3-coverage", machine_name=machine_name
         )
+
+    when_i_run_command(
+        context,
+        "systemctl unmask apt-news.service",
+        "with sudo",
+        machine_name=machine_name,
+    )
 
     if cleanup:
 
@@ -232,8 +246,19 @@ def given_a_sut_machine(context, series, machine_type):
         )
     else:
         given_a_machine(context, series, machine_type=machine_type)
+        when_i_run_command(
+            context,
+            "systemctl mask apt-news.service",
+            "with sudo",
+        )
         _update_distro_info_data(context)
         when_i_install_uat(context)
+
+        when_i_run_command(
+            context,
+            "systemctl unmask apt-news.service",
+            "with sudo",
+        )
 
     # trigger GH: #3137 on all machines
     when_i_run_command(
