@@ -864,7 +864,7 @@ Feature: Security status command behavior
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # Get the system up to date
     When I apt update
-    And I apt upgrade
+    And I apt upgrade including phased updates
     # Install older versions of packages which have alternatives in -updates and -security
     # This will mess up a little with the system but all should be fine for the test purpose
     And I apt install `<pkg_in_updates> <pkg_in_security>`
