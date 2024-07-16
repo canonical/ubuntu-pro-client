@@ -21,6 +21,7 @@ from uaclient.defaults import (
 )
 from uaclient.http import download_file_from_url, readurl
 from uaclient.system import get_release_info, load_file, write_file
+from uaclient.util import we_are_currently_root
 
 
 @enum.unique
@@ -109,7 +110,8 @@ class VulnerabilityData:
         raw_json_data = decompressor.decompress(resp.body)  # type: ignore
 
         json_data = json.loads(raw_json_data.decode("utf-8"))
-        self._save_cache(series, json_data, last_published_date)
+        if we_are_currently_root():
+            self._save_cache(series, json_data, last_published_date)
 
         return json_data
 
