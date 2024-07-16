@@ -15,14 +15,14 @@ VULNERABILITIES_DATA = {
             "source_versions": {
                 "1.1.2": {
                     "binary_packages": {
-                        "test1-bin": "1.1.2",
+                        "test1-bin": "1.1.5",
                         "test1-bin1": "1.1.2",
                     },
                     "pocket": "esm-infra",
                 },
                 "1.1.3": {
                     "binary_packages": {
-                        "test1-bin": "1.1.2",
+                        "test1-bin": "1.1.5",
                         "test1-bin1": "1.1.2",
                         "test1-bin2": "1.1.3",
                     },
@@ -105,7 +105,7 @@ class TestVulnerabilityParser:
                 {
                     "test1": {
                         "test1-bin1": "1.1.1",
-                        "test1-bin": "1.1.1",
+                        "test1-bin": "1.1.4",
                     }
                 },
                 {
@@ -113,7 +113,7 @@ class TestVulnerabilityParser:
                         "affected_packages": [
                             {
                                 "name": "test1-bin",
-                                "current_version": "1.1.1",
+                                "current_version": "1.1.4",
                                 "fix_version": None,
                                 "status": "vulnerable",
                                 "fix_available_from": None,
@@ -137,8 +137,8 @@ class TestVulnerabilityParser:
                         "affected_packages": [
                             {
                                 "name": "test1-bin",
-                                "current_version": "1.1.1",
-                                "fix_version": "1.1.2",
+                                "current_version": "1.1.4",
+                                "fix_version": "1.1.5",
                                 "status": "fixed",
                                 "fix_available_from": "esm-infra",
                             },
