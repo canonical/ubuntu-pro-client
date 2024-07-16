@@ -281,25 +281,22 @@ class VulnerabilityParser:
                     continue
 
                 for pkg_name, pkg_version in sorted(binary_pkgs.items()):
-                    if (
-                        apt.version_compare(vuln_fixed_version, pkg_version)
-                        > 0
-                    ):
-                        try:
-                            pocket = source_version[vuln_fixed_version].get(
-                                "pocket"
-                            )
-                            fix_version = (
-                                source_version[vuln_fixed_version]
-                                .get("binary_packages", {})
-                                .get(pkg_name, "")
-                            )
-                        except KeyError:
-                            # There is bug in the data where some sources are
-                            # not present. The Security team is already aware
-                            # of this issue and they are handling it
-                            continue
+                    try:
+                        pocket = source_version[vuln_fixed_version].get(
+                            "pocket"
+                        )
+                        fix_version = (
+                            source_version[vuln_fixed_version]
+                            .get("binary_packages", {})
+                            .get(pkg_name, "")
+                        )
+                    except KeyError:
+                        # There is bug in the data where some sources are
+                        # not present. The Security team is already aware
+                        # of this issue and they are handling it
+                        continue
 
+                    if apt.version_compare(fix_version, pkg_version) > 0:
                         if vuln_name not in self.vulnerabilities:
                             self.vulnerabilities[vuln_name] = vuln_info
                             self.vulnerabilities[vuln_name][
