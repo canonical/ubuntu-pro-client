@@ -333,7 +333,7 @@ Next steps
 ----------
 
 If you would now like to see some more advanced options to configure ``pro``,
-we recommending taking a look at our
+we recommend taking a look at our
 :ref:`how-to guides<how-to>`.
 
 If you have any questions or need some help, please feel free to reach out to
