@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (33.2) oracular; urgency=medium
+
+  * d/apparmor: add apt-news access to package information on the system
+    (LP: #2072489) (GH: #3193)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Wed, 17 Jul 2024 09:50:56 -0300
+
 ubuntu-advantage-tools (33.1) oracular; urgency=medium
 
   * New upstream release 33.1: (LP: #2060769)
