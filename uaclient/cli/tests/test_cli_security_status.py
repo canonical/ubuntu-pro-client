@@ -85,8 +85,10 @@ class TestActionSecurityStatus:
                     main()
 
         _, err = capsys.readouterr()
-
-        assert "usage: pro security-status [flags]" in err
+        assert (
+            "usage: pro security-status [-h] [--format {json,yaml,text}]"
+            in err
+        )
         assert (
             "argument --format: invalid choice: 'unsupported'"
             " (choose from 'json', 'yaml', 'text')"

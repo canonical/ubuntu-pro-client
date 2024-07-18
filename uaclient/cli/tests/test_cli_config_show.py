@@ -25,7 +25,7 @@ class TestMainConfigShow:
         out, err = capsys.readouterr()
         assert "" == out
         expected_logs = [
-            "usage: pro config [flags]",
+            "usage: pro config [-h]  ...",
             "argument : invalid choice: 'invalid' (choose from 'show', 'set',"
             " 'unset')",
         ]
