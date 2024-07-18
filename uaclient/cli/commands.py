@@ -2,7 +2,6 @@ import argparse
 from typing import Callable, Iterable, Optional, Union
 
 from uaclient import messages
-from uaclient.cli.constants import NAME, USAGE_TMPL
 
 
 class ProArgument:
@@ -76,7 +75,6 @@ class ProCommand:
         name: str,
         help: str,
         description: str,
-        usage: Optional[str] = None,
         action: Callable = lambda *args, **kwargs: None,
         preserve_description: bool = False,
         argument_groups: Iterable[ProArgumentGroup] = (),
@@ -85,7 +83,6 @@ class ProCommand:
         self.name = name
         self.help = help
         self.description = description
-        self.usage = usage or USAGE_TMPL.format(name=NAME, command=name)
         self.action = action
         self.preserve_description = preserve_description
         self.argument_groups = argument_groups
@@ -96,7 +93,6 @@ class ProCommand:
             self.name,
             help=self.help,
             description=self.description,
-            usage=self.usage,
         )
         if self.preserve_description:
             self.parser.formatter_class = argparse.RawDescriptionHelpFormatter
