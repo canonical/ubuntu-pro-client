@@ -5,7 +5,7 @@ Feature: Pro Client help text
     When I run `pro collect-logs --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro collect-logs \[flags\]
+      usage: pro collect-logs \[-h\] \[-o OUTPUT\]
 
       Collect logs and relevant system information into a tarball.
 
@@ -18,7 +18,8 @@ Feature: Pro Client help text
     When I run `pro api --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro api \[flags\]
+      usage: pro api \[-h\] \[--show-progress\] \[--args \[OPTIONS ...\]\] \[--data DATA\]
+                     endpoint
 
       Calls the Client API endpoints.
 
@@ -36,7 +37,8 @@ Feature: Pro Client help text
     When I run `pro disable --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro disable \[flags\]
+      usage: pro disable \[-h\] \[--assume-yes\] \[--format \{cli,json\}\] \[--purge\]
+                         service \[service ...\]
 
       Disable an Ubuntu Pro service.
 
@@ -57,7 +59,9 @@ Feature: Pro Client help text
     When I run `pro enable --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro enable \[flags\]
+      usage: pro enable \[-h\] \[--assume-yes\] \[--access-only\] \[--beta\]
+                        \[--format \{cli,json\}\] \[--variant VARIANT\]
+                        service \[service ...\]
 
       Enable an Ubuntu Pro service.
 
@@ -81,7 +85,9 @@ Feature: Pro Client help text
     When I run `pro attach --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro attach \[flags\]
+      usage: pro attach \[-h\] \[--no-auto-enable\] \[--attach-config ATTACH_CONFIG\]
+                        \[--format \{cli,json\}\]
+                        \[token\]
 
       Attach this machine to an Ubuntu Pro subscription with a token obtained from:
       https://ubuntu.com/pro/dashboard
@@ -104,7 +110,7 @@ Feature: Pro Client help text
     When I run `pro auto-attach --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro auto-attach \[flags\]
+      usage: pro auto-attach \[-h\]
 
       Automatically attach on an Ubuntu Pro cloud instance.
 
@@ -114,7 +120,7 @@ Feature: Pro Client help text
     When I run `pro detach --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro detach \[flags\]
+      usage: pro detach \[-h\] \[--assume-yes\] \[--format \{cli,json\}\]
 
       Detach this machine from an Ubuntu Pro subscription.
 
@@ -127,7 +133,8 @@ Feature: Pro Client help text
     When I run `pro security-status --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro security-status \[flags\]
+      usage: pro security-status \[-h\] \[--format \{json,yaml,text\}\]
+                                 \[--thirdparty \| --unavailable \| --esm-infra \| --esm-apps\]
 
       Show security updates for packages in the system, including all
       available Expanded Security Maintenance \(ESM\) related content.
@@ -160,7 +167,7 @@ Feature: Pro Client help text
     When I run `pro fix --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro fix \[flags\]
+      usage: pro fix \[-h\] \[--dry-run\] \[--no-related\] security_issue
 
       Inspect and resolve CVEs and USNs \(Ubuntu Security Notices\) on this machine.
 
@@ -180,7 +187,8 @@ Feature: Pro Client help text
     When I run `pro status --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro status \[flags\]
+      usage: pro status \[-h\] \[--wait\] \[--format \{tabular,json,yaml\}\]
+                        \[--simulate-with-token TOKEN\] \[--all\]
 
       Report current status of Ubuntu Pro services on system.
 
@@ -227,7 +235,7 @@ Feature: Pro Client help text
     When I run `pro refresh --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro refresh \[flags\]
+      usage: pro refresh \[-h\] \[\{contract,config,messages\}\]
 
       Refresh three distinct Ubuntu Pro related artifacts in the system:
 
@@ -249,7 +257,7 @@ Feature: Pro Client help text
     When I run `pro system --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro system \[flags\]
+      usage: pro system \[-h\]  ...
 
       Output system related information related to Pro services
 
@@ -264,7 +272,7 @@ Feature: Pro Client help text
     When I run `pro system reboot-required --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro reboot-required \[flags\]
+      usage: pro system reboot-required \[-h\]
 
       Report the current reboot-required status for the machine.
 
@@ -282,7 +290,7 @@ Feature: Pro Client help text
     When I run `pro config --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro config \[flags\]
+      usage: pro config \[-h\]  ...
 
       Manage Ubuntu Pro configuration
 
@@ -298,7 +306,7 @@ Feature: Pro Client help text
     When I run `pro config show --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro show \[flags\]
+      usage: pro config show \[-h\] \[key\]
 
       Show customizable configuration settings
 
@@ -308,7 +316,7 @@ Feature: Pro Client help text
     When I run `pro config set --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro set \[flags\]
+      usage: pro config set \[-h\] key_value_pair
 
       Set and apply Ubuntu Pro configuration settings
 
@@ -326,7 +334,7 @@ Feature: Pro Client help text
     When I run `pro config unset --help` as non-root
     Then stdout matches regexp:
       """
-      usage: pro unset \[flags\]
+      usage: pro config unset \[-h\] key
 
       Unset Ubuntu Pro configuration setting
 

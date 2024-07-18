@@ -39,7 +39,6 @@ class TestProCommand:
             "example",
             help="help",
             description="description",
-            usage="usage",
             argument_groups=[mock_argument_group1, mock_argument_group2],
         )
 
@@ -50,7 +49,6 @@ class TestProCommand:
                 "example",
                 help="help",
                 description="description",
-                usage="usage",
             )
         ] == mock_subparsers.add_parser.call_args_list
         assert (
