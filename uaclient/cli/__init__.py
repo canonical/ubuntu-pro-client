@@ -21,7 +21,6 @@ from uaclient.cli.attach import attach_command
 from uaclient.cli.auto_attach import auto_attach_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.config import config_command
-from uaclient.cli.constants import NAME, USAGE_TMPL
 from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
@@ -36,6 +35,8 @@ from uaclient.log import get_user_or_root_log_file_path
 
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
+NAME = "pro"
 
 COMMANDS = [
     api_command,
@@ -87,7 +88,6 @@ def get_parser(cfg: UAConfig):
     parser = ProArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        usage=USAGE_TMPL.format(name=NAME, command="<command>"),
         epilog=messages.CLI_HELP_EPILOG.format(name=NAME, command="<command>"),
     )
     parser.add_argument(
