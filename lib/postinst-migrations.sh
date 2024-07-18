@@ -71,4 +71,24 @@ except Exception as e:
     print('Error while creating public user-config file: {}'.format(e))
 "
     fi
+    # Create an only series marker file if not present
+    # This is to ensure that the only-series contract check runs correctly
+    if [ ! -f "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
+        /usr/bin/python3 -c "
+import json
+with open('/var/lib/ubuntu-advantage/private/machine-token.json') as machine_token_file:
+    content = json.load(machine_token_file)
+    ents = content.get('machineTokenInfo', {}).get('contractInfo', {}).get('resourceEntitlements', [])
+    support = next((e for e in ents if e.get('type') == 'support'), {})
+    only_series = (
+        support.get('affordances', {})
+        .get('onlySeries', None)
+    )
+    if only_series:
+        print(only_series)
+"
+        if [ -n "$only_series" ]; then
+            touch "/var/lib/ubuntu-advantage/only-series-marker"
+        fi
+    fi
 fi
