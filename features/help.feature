@@ -2,6 +2,37 @@ Feature: Pro Client help text
 
   Scenario Outline: Help text for the Pro Client commands
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `pro --help` as non-root
+    Then stdout matches regexp:
+    """
+    usage: pro \[-h\] \[--debug\] \[--version\]  ...
+
+    Flags:
+      -h, --help       show this help message and exit
+      --debug          show all debug log messages to console
+      --version        show version of pro
+
+    Available Commands:
+     *
+        api            Calls the Client API endpoints.
+        attach         attach this machine to an Ubuntu Pro subscription
+        auto-attach    automatically attach on supported platforms
+        collect-logs   collect Pro logs and debug information
+        config         manage Ubuntu Pro configuration on this machine
+        detach         remove this machine from an Ubuntu Pro subscription
+        disable        disable a specific Ubuntu Pro service on this machine
+        enable         enable a specific Ubuntu Pro service on this machine
+        fix            check for and mitigate the impact of a CVE/USN on this
+                       system
+        help           show detailed information about Ubuntu Pro services
+        refresh        refresh Ubuntu Pro services
+        security-status
+                       list available security updates for the system
+        status         current status of all Ubuntu Pro services
+        system         show system information related to Pro services
+
+    Use pro \<command\> --help for more information about a command.
+    """
     When I run `pro collect-logs --help` as non-root
     Then stdout matches regexp:
       """
