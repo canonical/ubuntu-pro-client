@@ -1,3 +1,4 @@
+import bz2
 import io
 import json
 import logging
@@ -329,30 +330,25 @@ def _parse_https_proxy(https_proxy) -> Optional[ParseResult]:
     return urlparse(https_proxy) if https_proxy else None
 
 
-def _get_http_reponse(request_obj, url, timeout):
-    https_proxy = get_configured_web_proxy().get("https")
-    if should_use_pycurl(https_proxy, url):
-        return _readurl_pycurl_https_in_https(
-            request_obj,
-            timeout=timeout,
-            https_proxy=https_proxy,
-        )
-    else:
-        return _readurl_urllib(request_obj, timeout=timeout)
-
-
-def download_file_from_url(
+def download_bz2_file_from_url(
     url: str, timeout: Optional[int] = None
-) -> UnparsedHTTPResponse:
+) -> bytes:
     if not is_service_url(url):
         raise exceptions.InvalidUrl(url=url)
 
-    req = request.Request(url)
     LOG.debug("URL [GET]: {}".format(url))
-    resp = _get_http_reponse(req, url, timeout)
-    LOG.debug("URL [GET]: {} response: {}".format(url, str(resp.code)))
 
-    return resp
+    https_proxy = get_configured_web_proxy().get("https")
+    if should_use_pycurl(https_proxy, url):
+        resp = _readurl_pycurl_https_in_https(
+            request.Request(url),
+            timeout=timeout,
+            https_proxy=https_proxy,
+        )
+        decompressor = bz2.BZ2Decompressor()
+        return decompressor.decompress(resp.body)  # type: ignore
+    else:
+        return bz2.BZ2File(request.urlopen(url)).read()
 
 
 def readurl(
@@ -382,7 +378,14 @@ def readurl(
         )
     )
 
-    resp = _get_http_reponse(req, url, timeout)
+    https_proxy = get_configured_web_proxy().get("https")
+    if should_use_pycurl(https_proxy, url):
+        resp = _readurl_pycurl_https_in_https(
+            req, timeout=timeout, https_proxy=https_proxy
+        )
+    else:
+        resp = _readurl_urllib(req, timeout=timeout)
+
     decoded_body = resp.body.decode("utf-8")
 
     json_dict = {}
