@@ -1,4 +1,3 @@
-import bz2
 import enum
 import json
 import os
@@ -19,7 +18,7 @@ from uaclient.defaults import (
     VULNERABILITY_DATA_TMPL,
     VULNERABILITY_PUBLISH_DATE_CACHE,
 )
-from uaclient.http import download_file_from_url, readurl
+from uaclient.http import download_bz2_file_from_url, readurl
 from uaclient.system import get_release_info, load_file, write_file
 from uaclient.util import we_are_currently_root
 
@@ -104,10 +103,7 @@ class VulnerabilityData:
         if self._is_cache_valid(series, last_published_date):
             return self._get_cache_data(series)
 
-        resp = download_file_from_url(url=data_url)
-
-        decompressor = bz2.BZ2Decompressor()
-        raw_json_data = decompressor.decompress(resp.body)  # type: ignore
+        raw_json_data = download_bz2_file_from_url(data_url)
 
         json_data = json.loads(raw_json_data.decode("utf-8"))
         if we_are_currently_root():
