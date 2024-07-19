@@ -5,15 +5,35 @@ Feature: FIPS enablement in lxd VMs
   Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    When I run `pro status --format json` with sudo
-    Then stdout contains substring
+    And I apt install `jq`
+    And I run shell command `pro status --format json` with sudo
+    And I apply this jq filter `'.services[] | select(.name == "livepatch") | .available'` to the output
+    Then I will see the following on stdout
       """
-      {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "disabled", "status_details": "FIPS is not configured", "warning": null}
+      "yes"
       """
     When I run `pro disable livepatch` with sudo
     And I apt install `openssh-client openssh-server strongswan`
-    And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-    And I run `pro enable <fips-service>` `with sudo` and stdin `y`
+    And I run `pro enable fips` `with sudo` and stdin `y\ny`
+    Then stdout contains substring:
+      """
+      This will install the FIPS packages. The Livepatch service will be unavailable.
+      Warning: This action can take some time and cannot be undone.
+      Are you sure? (y/N) The "generic" variant of fips is based on the "generic" Ubuntu
+      kernel but this machine is running the "kvm" kernel.
+      The "kvm" kernel may have significant hardware support
+      differences from "generic" fips.
+
+      Warning: Installing generic fips may result in lost hardware support
+               and may prevent the system from booting.
+
+      Do you accept the risk and wish to continue? (y/N) Configuring APT access to FIPS
+      Updating FIPS package lists
+      Updating standard Ubuntu package lists
+      Installing FIPS packages
+      FIPS enabled
+      A reboot is required to complete install.
+      """
     Then stdout matches regexp:
       """
       This will install the FIPS packages. The Livepatch service will be unavailable.
@@ -21,10 +41,10 @@ Feature: FIPS enablement in lxd VMs
       """
     And stdout contains substring:
       """
-      Updating <fips-name> package lists
+      Updating FIPS package lists
       Updating standard Ubuntu package lists
-      Installing <fips-name> packages
-      <fips-name> enabled
+      Installing FIPS packages
+      FIPS enabled
       A reboot is required to complete install.
       """
     When I run `pro status --all` with sudo
@@ -33,16 +53,18 @@ Feature: FIPS enablement in lxd VMs
       FIPS support requires system reboot to complete configuration
       """
     And I ensure apt update runs without errors
-    And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I run `pro status --format json --all` with sudo
-    Then stdout contains substring:
+    And I verify that `<fips-packages>` are installed from apt source `<fips-apt-source>`
+    When I run shell command `pro status --format json --all` with sudo
+    And I apply this jq filter `'.services[] | select(.name == "livepatch") | .available'` to the output
+    Then I will see the following on stdout
       """
-      {"available": "no", "blocked_by": [{"name": "fips", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "Canonical Livepatch service", "description_override": null, "entitled": "yes", "name": "livepatch", "status": "n/a", "status_details": "Cannot enable Livepatch when FIPS is enabled.", "warning": null}
+      "no"
+      """
+    When I run shell command `pro status --format json --all` with sudo
+    And I apply this jq filter `'.services[] | select(.name == "livepatch") | .blocked_by[0].reason'` to the output
+    Then I will see the following on stdout
+      """
+      "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch."
       """
     When I reboot the machine
     And I run `uname -r` as non-root
@@ -60,7 +82,7 @@ Feature: FIPS enablement in lxd VMs
       """
       FIPS support requires system reboot to complete configuration
       """
-    When I run `pro disable <fips-service>` `with sudo` and stdin `y`
+    When I run `pro disable fips` `with sudo` and stdin `y`
     Then stdout matches regexp:
       """
       This will disable the FIPS entitlement but the FIPS packages will remain installed.
@@ -81,52 +103,40 @@ Feature: FIPS enablement in lxd VMs
       .*Installed: \(none\)
       """
     When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `fips`
-    And I verify that `openssh-client` installed version matches regexp `fips`
-    And I verify that `strongswan` installed version matches regexp `fips`
-    And I verify that `openssh-server-hmac` installed version matches regexp `fips`
-    And I verify that `openssh-client-hmac` installed version matches regexp `fips`
-    And I verify that `strongswan-hmac` installed version matches regexp `fips`
-    When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then I will see the following on stdout:
-      """
-      openssh-client was already not hold.
-      openssh-server was already not hold.
-      strongswan was already not hold.
-      """
-    And I verify that `<fips-service>` is disabled
+    Then I verify that packages `<fips-packages>` installed versions match regexp `fips`
+    And I verify that `fips` is disabled
     When I run `pro status --all` with sudo
     Then stdout does not match regexp:
       """
       Disabling FIPS requires system reboot to complete operation
       """
-    When I run `pro enable <fips-service> --assume-yes --format json --assume-yes` with sudo
+    When I run `pro enable fips --assume-yes --format json --assume-yes` with sudo
     Then stdout is a json matching the `ua_operation` schema
     And I will see the following on stdout:
       """
-      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
+      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["fips"], "result": "success", "warnings": []}
       """
     When I reboot the machine
-    And I run `pro disable <fips-service> --assume-yes --format json` with sudo
+    And I run `pro disable fips --assume-yes --format json` with sudo
     Then stdout is a json matching the `ua_operation` schema
     And I will see the following on stdout:
       """
-      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
+      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["fips"], "result": "success", "warnings": []}
       """
-    And I verify that `<fips-service>` is disabled
+    And I verify that `fips` is disabled
 
     Examples: ubuntu release
-      | release | machine_type | fips-name | fips-service | fips-apt-source                                |
-      | xenial  | lxd-vm       | FIPS      | fips         | https://esm.ubuntu.com/fips/ubuntu xenial/main |
-      | bionic  | lxd-vm       | FIPS      | fips         | https://esm.ubuntu.com/fips/ubuntu bionic/main |
+      | release | machine_type | fips-apt-source                                | fips-packages                                                                                    |
+      | xenial  | lxd-vm       | https://esm.ubuntu.com/fips/ubuntu xenial/main | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | bionic  | lxd-vm       | https://esm.ubuntu.com/fips/ubuntu bionic/main | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | focal   | lxd-vm       | https://esm.ubuntu.com/fips/ubuntu focal/main  | openssh-server openssh-client strongswan strongswan-hmac                                         |
 
   @slow
   Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    And I run `pro disable livepatch` with sudo
     And I apt install `openssh-client openssh-server strongswan`
-    When I run `pro enable <fips-service>` `with sudo` and stdin `y`
+    And I run `pro enable fips-updates` `with sudo` and stdin `y\ny`
     Then stdout matches regexp:
       """
       This will install the FIPS packages including security updates.
@@ -134,24 +144,27 @@ Feature: FIPS enablement in lxd VMs
       """
     And stdout contains substring:
       """
-      Updating <fips-name> package lists
+      Updating FIPS Updates package lists
       Updating standard Ubuntu package lists
-      Installing <fips-name> packages
-      <fips-name> enabled
+      Installing FIPS Updates packages
+      """
+    And if `<release>` in `jammy` and stdout contains substring:
+      """
+      Installing libcharon-extauth-plugins libstrongswan libstrongswan-standard-plugins openssh-client openssh-server openssh-sftp-server strongswan strongswan-charon strongswan-libcharon strongswan-starter
+      """
+    And stdout contains substring:
+      """
+      FIPS Updates enabled
       A reboot is required to complete install.
       """
-    And I verify that `<fips-service>` is enabled
+    And I verify that `fips-updates` is enabled
+    And I verify that `livepatch` is enabled
     And I ensure apt update runs without errors
-    And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I run `pro status --all --format json` with sudo
+    And I verify that `<fips-packages>` are installed from apt source `https://esm.ubuntu.com/fips-updates/ubuntu <release>-updates/main`
+    When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
     Then stdout contains substring:
       """
-      {"available": "no", "blocked_by": [{"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled.", "warning": null}
+      Cannot enable FIPS when FIPS Updates is enabled
       """
     When I reboot the machine
     And I run `uname -r` as non-root
@@ -164,7 +177,9 @@ Feature: FIPS enablement in lxd VMs
       """
       1
       """
-    When I run `pro disable <fips-service>` `with sudo` and stdin `y`
+    And I verify that `fips-updates` is enabled
+    And I verify that `livepatch` is enabled
+    When I run `pro disable fips-updates` `with sudo` and stdin `y`
     Then stdout matches regexp:
       """
       This will disable the FIPS Updates entitlement but the FIPS Updates packages will remain installed.
@@ -175,266 +190,44 @@ Feature: FIPS enablement in lxd VMs
       A reboot is required to complete disable operation
       """
     When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `fips`
-    And I verify that `openssh-client` installed version matches regexp `fips`
-    And I verify that `strongswan` installed version matches regexp `fips`
-    And I verify that `openssh-server-hmac` installed version matches regexp `fips`
-    And I verify that `openssh-client-hmac` installed version matches regexp `fips`
-    And I verify that `strongswan-hmac` installed version matches regexp `fips`
-    When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then I will see the following on stdout:
-      """
-      openssh-client was already not hold.
-      openssh-server was already not hold.
-      strongswan was already not hold.
-      """
-    And I verify that `<fips-service>` is disabled
+    Then I verify that packages `<fips-packages>` installed versions match regexp `<fips-regex>`
+    And I verify that `fips-updates` is disabled
     When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
     Then stdout matches regexp:
       """
       Cannot enable FIPS because FIPS Updates was once enabled.
       """
     And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
-    When I run `pro enable <fips-service> --assume-yes` with sudo
-    And I reboot the machine
-    Then I verify that `<fips-service>` is enabled
-    And I verify that `livepatch` is disabled
-    When I run `pro enable livepatch --assume-yes` with sudo
-    Then I verify that `<fips-service>` is enabled
-    And I verify that `livepatch` is enabled
-    When I run `pro status --all --format json` with sudo
-    Then stdout contains substring:
-      """
-      {"available": "no", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}, {"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified FIPS crypto packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled.", "warning": null}
-      """
-    When I run `pro disable <fips-service> --assume-yes` with sudo
-    And I run `pro enable <fips-service> --assume-yes --format json --assume-yes` with sudo
-    Then stdout is a json matching the `ua_operation` schema
-    And I will see the following on stdout:
-      """
-      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
-      """
-    When I reboot the machine
-    And I run `pro disable <fips-service> --assume-yes --format json` with sudo
-    Then stdout is a json matching the `ua_operation` schema
-    And I will see the following on stdout:
-      """
-      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
-      """
-    And I verify that `<fips-service>` is disabled
-
-    Examples: ubuntu release
-      | release | machine_type | fips-name    | fips-service | fips-apt-source                                                |
-      | xenial  | lxd-vm       | FIPS Updates | fips-updates | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
-      | bionic  | lxd-vm       | FIPS Updates | fips-updates | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
-
-  @slow
-  Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    Then I verify that `fips-updates` is disabled
-    And I verify that `livepatch` is enabled
     When I run `pro enable fips-updates --assume-yes` with sudo
-    Then stdout contains substring:
-      """
-      Configuring APT access to FIPS Updates
-      Updating FIPS Updates package lists
-      Updating standard Ubuntu package lists
-      Installing FIPS Updates packages
-      FIPS Updates enabled
-      A reboot is required to complete install.
-      """
-    And I verify that `fips-updates` is enabled
+    And I reboot the machine
+    Then I verify that `fips-updates` is enabled
+    When I run `pro disable livepatch` with sudo
+    Then I verify that `livepatch` is disabled
+    When I run `pro enable livepatch --assume-yes` with sudo
+    Then I verify that `fips-updates` is enabled
     And I verify that `livepatch` is enabled
+    When I run `pro disable fips-updates --assume-yes` with sudo
+    And I run `pro enable fips-updates --assume-yes --format json --assume-yes` with sudo
+    Then stdout is a json matching the `ua_operation` schema
+    And I will see the following on stdout:
+      """
+      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["fips-updates"], "result": "success", "warnings": []}
+      """
     When I reboot the machine
-    And I run `uname -r` as non-root
-    Then stdout matches regexp:
+    And I run `pro disable fips-updates --assume-yes --format json` with sudo
+    Then stdout is a json matching the `ua_operation` schema
+    And I will see the following on stdout:
       """
-      fips
+      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["fips-updates"], "result": "success", "warnings": []}
       """
-    When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-    Then I will see the following on stdout:
-      """
-      1
-      """
-    And I verify that `fips-updates` is enabled
-    And I verify that `livepatch` is enabled
+    And I verify that `fips-updates` is disabled
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | lxd-vm       |
-      | bionic  | lxd-vm       |
-
-  @slow
-  Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo and options `--no-auto-enable`
-    And I apt install `openssh-client openssh-server strongswan`
-    When I run `pro enable <fips-service>` `with sudo` and stdin `y\ny`
-    Then stdout contains substring:
-      """
-      This will install the FIPS packages. The Livepatch service will be unavailable.
-      Warning: This action can take some time and cannot be undone.
-      Are you sure? (y/N) The "generic" variant of fips is based on the "generic" Ubuntu
-      kernel but this machine is running the "kvm" kernel.
-      The "kvm" kernel may have significant hardware support
-      differences from "generic" fips.
-
-      Warning: Installing generic fips may result in lost hardware support
-               and may prevent the system from booting.
-
-      Do you accept the risk and wish to continue? (y/N) Configuring APT access to <fips-name>
-      Updating <fips-name> package lists
-      Updating standard Ubuntu package lists
-      Installing <fips-name> packages
-      <fips-name> enabled
-      A reboot is required to complete install.
-      """
-    And I verify that `<fips-service>` is enabled
-    And I ensure apt update runs without errors
-    And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I reboot the machine
-    And I run `uname -r` as non-root
-    Then stdout matches regexp:
-      """
-      fips
-      """
-    When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-    Then I will see the following on stdout:
-      """
-      1
-      """
-    When I run `pro disable <fips-service> --assume-yes` with sudo
-    Then stdout matches regexp:
-      """
-      Updating package lists
-      A reboot is required to complete disable operation
-      """
-    When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `fips`
-    And I verify that `openssh-client` installed version matches regexp `fips`
-    And I verify that `strongswan` installed version matches regexp `fips`
-    And I verify that `strongswan-hmac` installed version matches regexp `fips`
-    When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then I will see the following on stdout:
-      """
-      openssh-client was already not hold.
-      openssh-server was already not hold.
-      strongswan was already not hold.
-      """
-    And I verify that `<fips-service>` is disabled
-
-    Examples: ubuntu release
-      | release | machine_type | fips-name | fips-service | fips-apt-source                               |
-      | focal   | lxd-vm       | FIPS      | fips         | https://esm.ubuntu.com/fips/ubuntu focal/main |
-
-  @slow
-  Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I apt install `openssh-client openssh-server strongswan`
-    When I run `pro enable <fips-service> --assume-yes` with sudo
-    Then stdout contains substring:
-      """
-      Updating <fips-name> package lists
-      Updating standard Ubuntu package lists
-      Installing <fips-name> packages
-      <fips-name> enabled
-      A reboot is required to complete install.
-      """
-    And I verify that `<fips-service>` is enabled
-    And I ensure apt update runs without errors
-    And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I reboot the machine
-    And I run `uname -r` as non-root
-    Then stdout matches regexp:
-      """
-      fips
-      """
-    When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-    Then I will see the following on stdout:
-      """
-      1
-      """
-    When I run `pro disable <fips-service> --assume-yes` with sudo
-    Then stdout matches regexp:
-      """
-      Updating package lists
-      A reboot is required to complete disable operation
-      """
-    When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `<fips-package-str>`
-    And I verify that `openssh-client` installed version matches regexp `<fips-package-str>`
-    And I verify that `strongswan` installed version matches regexp `<fips-package-str>`
-    And I verify that `strongswan-hmac` installed version matches regexp `<fips-package-str>`
-    When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then stdout matches regexp:
-      """
-      openssh-client was already (not|not on) hold.
-      openssh-server was already (not|not on) hold.
-      strongswan was already (not|not on) hold.
-      """
-    And I verify that `<fips-service>` is disabled
-    When I verify that running `pro enable fips --assume-yes` `with sudo` exits `1`
-    Then stdout matches regexp:
-      """
-      Cannot enable FIPS because FIPS Updates was once enabled.
-      """
-    And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
-
-    Examples: ubuntu release
-      | release | machine_type | fips-name    | fips-service | fips-package-str | fips-apt-source                                               | installing-line |
-      | focal   | lxd-vm       | FIPS Updates | fips-updates | fips             | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |                 |
-
-  @slow
-  Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm with auto-upgrade
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I apt install `openssh-client openssh-server strongswan`
-    When I run `pro enable <fips-service> --assume-yes` with sudo
-    Then stdout contains substring:
-      """
-      Updating <fips-name> package lists
-      Updating standard Ubuntu package lists
-      Installing <fips-name> packages
-      Installing libcharon-extauth-plugins libstrongswan libstrongswan-standard-plugins openssh-client openssh-server openssh-sftp-server strongswan strongswan-charon strongswan-libcharon strongswan-starter
-      <fips-name> enabled
-      A reboot is required to complete install.
-      """
-    And I verify that `<fips-service>` is enabled
-    And I ensure apt update runs without errors
-    And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I reboot the machine
-    And I run `uname -r` as non-root
-    Then stdout contains substring:
-      """
-      fips
-      """
-    When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-    Then I will see the following on stdout:
-      """
-      1
-      """
-    When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then stdout contains substring:
-      """
-      openssh-client was already not on hold.
-      openssh-server was already not on hold.
-      strongswan was already not on hold.
-      """
-
-    Examples: ubuntu release
-      | release | machine_type | fips-name    | fips-service | fips-apt-source                                               |
-      | jammy   | lxd-vm       | FIPS Updates | fips-updates | https://esm.ubuntu.com/fips-updates/ubuntu jammy-updates/main |
+      | release | machine_type | fips-packages                                                                                    | fips-regex |
+      | xenial  | lxd-vm       | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac | fips       |
+      | bionic  | lxd-vm       | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac | fips       |
+      | focal   | lxd-vm       | openssh-server openssh-client strongswan strongswan-hmac                                         | fips       |
+      | jammy   | lxd-vm       | openssh-server openssh-client strongswan strongswan-hmac                                         | Fips       |
 
   @slow
   Scenario Outline: Attached enable fips-updates on fips enabled vm
