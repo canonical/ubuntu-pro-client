@@ -1,4 +1,5 @@
 import logging
+import os
 import shlex
 import subprocess
 import time
@@ -49,6 +50,12 @@ def when_i_retry_run_command(
 def when_i_run_command_with_long_stdin(context, command, user_spec):
     text = process_template_vars(context, context.text)
     when_i_run_command(context, command, user_spec, stdin=text)
+
+
+@when("I run `{command}` {user_spec} `{times}` times")
+def when_i_run_command_times(context, command, user_spec, times):
+    for i in range(int(times)):
+        when_i_run_command(context, command, user_spec)
 
 
 @when("I run `{command}` {user_spec}")
@@ -164,6 +171,19 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
                 expected_codes, context.process.returncode
             )
         )
+
+
+@step("I set up parca-agent")
+def i_set_up_parca_agent(context):
+    when_i_run_command(
+        context, "snap install parca-agent --edge --classic", "with sudo"
+    )
+    token = os.getenv("PARCA_TOKEN")
+    when_i_run_command(
+        context,
+        f"snap set parca-agent remote-store-bearer-token={token}",
+        "with sudo",
+    )
 
 
 def get_command_prefix_for_user_spec(user_spec):
