@@ -63,6 +63,8 @@ def when_i_run_command(
     machine_name=SUT,
 ):
     command = process_template_vars(context, command)
+    if stdin:
+        stdin = process_template_vars(context, stdin)
     prefix = get_command_prefix_for_user_spec(user_spec)
 
     if context.pro_config.collect_coverage:

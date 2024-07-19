@@ -274,6 +274,7 @@ Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
 
 
 # ATTACH
+ATTACH_TOKEN_GETPASS_PROMPT = t.gettext("Ubuntu Pro Token: ")
 AUTO_ATTACH_RUNNING = t.gettext(
     "Currently attempting to automatically attach this machine to "
     "an Ubuntu Pro subscription"
@@ -947,6 +948,7 @@ and prompt you to attach the machine to your Ubuntu Pro account using
 a web browser."""
 ).format(url=urls.PRO_DASHBOARD)
 CLI_ATTACH_TOKEN = t.gettext("token obtained for Ubuntu Pro authentication")
+CLI_ATTACH_GETPASS_TOKEN = t.gettext("enter the Ubuntu Pro token with a password prompt")
 CLI_ATTACH_NO_AUTO_ENABLE = t.gettext(
     "do not enable any recommended services automatically"
 )

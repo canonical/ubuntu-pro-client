@@ -1,4 +1,5 @@
 import argparse
+import getpass
 import sys
 
 from uaclient import (
@@ -70,11 +71,24 @@ def _magic_attach(args, *, cfg, **kwargs):
 def action_attach(args, *, cfg, **kwargs):
     if args.token and args.attach_config:
         raise exceptions.CLIAttachTokenArgXORConfig()
-    elif not args.token and not args.attach_config:
+    elif args.token and args.getpass_token:
+        raise exceptions.InvalidOptionCombination(
+            option1="<token>", option2="--token"
+        )
+    elif args.attach_config and args.getpass_token:
+        raise exceptions.InvalidOptionCombination(
+            option1="--attach-config", option2="--token"
+        )
+
+    if not args.token and not args.attach_config and not args.getpass_token:
         token = _magic_attach(args, cfg=cfg)
         enable_services_override = None
     elif args.token:
         token = args.token
+        secret_manager.secrets.add_secret(token)
+        enable_services_override = None
+    elif args.getpass_token:
+        token = getpass.getpass(messages.ATTACH_TOKEN_GETPASS_PROMPT)  # TODO gettext
         secret_manager.secrets.add_secret(token)
         enable_services_override = None
     else:
@@ -146,6 +160,12 @@ attach_command = ProCommand(
             arguments=[
                 ProArgument(
                     "token", help=messages.CLI_ATTACH_TOKEN, nargs="?"
+                ),
+                ProArgument(
+                    "--token",
+                    help=messages.CLI_ATTACH_GETPASS_TOKEN,
+                    action="store_true",
+                    dest="getpass_token",
                 ),
                 ProArgument(
                     "--no-auto-enable",

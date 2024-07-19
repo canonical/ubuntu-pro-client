@@ -167,6 +167,31 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | bionic  | lxd-container | cis        |
       | focal   | lxd-container | usg        |
 
+  Scenario Outline: Attach command with getpass
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `pro attach --token` `with sudo` and stdin `$behave_var{contract_token}`
+    Then stderr contains substring:
+      """
+      Ubuntu Pro Token:
+      """
+    Then I verify that `esm-apps` is enabled
+    And I verify that `esm-infra` is enabled
+    When I run `pro detach --assume-yes` with sudo
+    # don't allow both token arg and --token flag
+    Then I verify that running `pro attach TOKEN --token` `with sudo` exits `1`
+    Then stderr matches regexp:
+      """
+      Error: Cannot use <token> together with --token.
+      """
+
+    Examples: ubuntu
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+
   Scenario Outline: Auto enable by default and attached disable of livepatch in a lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
