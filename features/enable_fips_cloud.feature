@@ -21,12 +21,7 @@ Feature: FIPS enablement in cloud based machines
     And I apt install `openssh-client openssh-server strongswan`
     And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
     And I run `pro enable fips --assume-yes` with sudo
-    Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+    Then I verify that `<fips-packages>` are installed from apt source `https://esm.ubuntu.com/fips/ubuntu <release>/main`
     When I run `pro disable fips --assume-yes` with sudo
     And I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
     Then I will see the following on stdout:
@@ -36,81 +31,18 @@ Feature: FIPS enablement in cloud based machines
       strongswan was already not hold.
       """
     When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `fips`
-    And I verify that `openssh-client` installed version matches regexp `fips`
-    And I verify that `strongswan` installed version matches regexp `fips`
-    And I verify that `openssh-server-hmac` installed version matches regexp `fips`
-    And I verify that `openssh-client-hmac` installed version matches regexp `fips`
-    And I verify that `strongswan-hmac` installed version matches regexp `fips`
+    Then I verify that packages `<fips-packages>` installed versions match regexp `fips`
 
     Examples: ubuntu release
-      | release | machine_type  | fips-apt-source                                |
-      | xenial  | aws.generic   | https://esm.ubuntu.com/fips/ubuntu xenial/main |
-      | xenial  | azure.generic | https://esm.ubuntu.com/fips/ubuntu xenial/main |
-
-  Scenario Outline: FIPS unholds packages
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I apt install `openssh-client openssh-server strongswan`
-    And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-    And I run `pro enable fips --assume-yes` with sudo
-    Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I run `pro disable fips --assume-yes` with sudo
-    And I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then I will see the following on stdout:
-      """
-      openssh-client was already not hold.
-      openssh-server was already not hold.
-      strongswan was already not hold.
-      """
-    When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `fips`
-    And I verify that `openssh-client` installed version matches regexp `fips`
-    And I verify that `strongswan` installed version matches regexp `fips`
-    And I verify that `openssh-server-hmac` installed version matches regexp `fips`
-    And I verify that `openssh-client-hmac` installed version matches regexp `fips`
-    And I verify that `strongswan-hmac` installed version matches regexp `fips`
-
-    Examples: ubuntu release
-      | release | machine_type  | fips-apt-source                                |
-      | bionic  | aws.generic   | https://esm.ubuntu.com/fips/ubuntu bionic/main |
-      | bionic  | azure.generic | https://esm.ubuntu.com/fips/ubuntu bionic/main |
-      | bionic  | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu bionic/main |
-
-  Scenario Outline: FIPS unholds packages
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I apt install `openssh-client openssh-server strongswan`
-    And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-    And I run `pro enable fips --assume-yes` with sudo
-    Then I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-    And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-    And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-    When I run `pro disable fips --assume-yes` with sudo
-    And I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-    Then I will see the following on stdout:
-      """
-      openssh-client was already not hold.
-      openssh-server was already not hold.
-      strongswan was already not hold.
-      """
-    When I reboot the machine
-    Then I verify that `openssh-server` installed version matches regexp `fips`
-    And I verify that `openssh-client` installed version matches regexp `fips`
-    And I verify that `strongswan` installed version matches regexp `fips`
-    And I verify that `strongswan-hmac` installed version matches regexp `fips`
-
-    Examples: ubuntu release
-      | release | machine_type  | fips-apt-source                               |
-      | focal   | aws.generic   | https://esm.ubuntu.com/fips/ubuntu focal/main |
-      | focal   | azure.generic | https://esm.ubuntu.com/fips/ubuntu focal/main |
-      | focal   | gcp.generic   | https://esm.ubuntu.com/fips/ubuntu focal/main |
+      | release | machine_type  | fips-packages                                                                                    |
+      | xenial  | aws.generic   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | xenial  | azure.generic | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | bionic  | aws.generic   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | bionic  | azure.generic | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | bionic  | gcp.generic   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
+      | focal   | aws.generic   | openssh-server openssh-client strongswan strongswan-hmac                                         |
+      | focal   | azure.generic | openssh-server openssh-client strongswan strongswan-hmac                                         |
+      | focal   | gcp.generic   | openssh-server openssh-client strongswan strongswan-hmac                                         |
 
   @slow
   Scenario Outline: Enable FIPS in a cloud VM
@@ -179,10 +111,14 @@ Feature: FIPS enablement in cloud based machines
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `touch /etc/cloud/cloud-init.disabled` with sudo
     And I reboot the machine
-    And I verify that running `cloud-id` `with sudo` exits `1`
-    Then stderr matches regexp:
+    And I verify that running `cloud-id` `with sudo` exits `<cloud-id-exit>`
+    Then if `<release>` in `xenial` and stderr matches regexp:
       """
-      File not found '/run/cloud-init/instance-data.json'. Provide a path to instance data json file using --instance-data
+      <cloud-id-msg>
+      """
+    And if `<release>` in `bionic or focal` and stdout matches regexp:
+      """
+      <cloud-id-msg>
       """
     When I attach `contract_token` with sudo
     And I run `pro enable fips --assume-yes` with sudo
@@ -219,57 +155,10 @@ Feature: FIPS enablement in cloud based machines
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.generic  |
-
-  @slow
-  Scenario Outline: Attached enable of FIPS in an ubuntu image with cloud-init disabled
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `touch /etc/cloud/cloud-init.disabled` with sudo
-    And I reboot the machine
-    And I verify that running `cloud-id` `with sudo` exits `2`
-    Then I will see the following on stdout:
-      """
-      disabled
-      """
-    When I attach `contract_token` with sudo
-    And I run `pro enable fips --assume-yes` with sudo
-    Then stdout contains substring:
-      """
-      Could not determine cloud, defaulting to generic FIPS package.
-      """
-    Then stdout contains substring:
-      """
-      Updating standard Ubuntu package lists
-      Installing FIPS packages
-      FIPS enabled
-      A reboot is required to complete install.
-      """
-    When I run `apt-cache policy ubuntu-fips` as non-root
-    Then stdout does not match regexp:
-      """
-      .*Installed: \(none\)
-      """
-    When I reboot the machine
-    And I run `uname -r` as non-root
-    Then stdout does not match regexp:
-      """
-      aws-fips
-      """
-    And stdout matches regexp:
-      """
-      fips
-      """
-    When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-    Then I will see the following on stdout:
-      """
-      1
-      """
-
-    Examples: ubuntu release
-      | release | machine_type |
-      | bionic  | aws.generic  |
-      | focal   | aws.generic  |
+      | release | machine_type | cloud-id-exit | cloud-id-msg                                        |
+      | xenial  | aws.generic  | 1             | File not found '/run/cloud-init/instance-data.json' |
+      | bionic  | aws.generic  | 2             | disabled                                            |
+      | focal   | aws.generic  | 2             | disabled                                            |
 
   Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

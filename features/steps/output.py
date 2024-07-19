@@ -8,7 +8,8 @@ import yaml
 from behave import then, when
 from hamcrest import assert_that, contains_string, equal_to, not_
 
-from features.steps.shell import when_i_run_command
+from features.steps.files import when_i_create_file_with_content
+from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from features.util import SafeLoaderWithoutDatetime, process_template_vars
 
 
@@ -31,6 +32,13 @@ def then_conditional_stdout_matches_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_stream_matches_regexp(context, "stdout")
+
+
+@then("if `{value1}` in `{value2}` and stderr matches regexp")
+def then_conditional_stdout_matches_regexp(context, value1, value2):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 in value2.split(" or "):
+        then_stream_matches_regexp(context, "stderr")
 
 
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
@@ -237,3 +245,20 @@ def i_verify_field_is_redacted_in_the_logs(context, field):
     )
     context.text = field + "<REDACTED>"
     then_stream_contains_substring(context, "stdout")
+
+
+@when("I apply this jq filter `{jq_filter}` to the output")
+def i_apply_jq_filter(context, jq_filter):
+    file_path = "/tmp/json-output"
+    when_i_create_file_with_content(
+        context, file_path, text=context.process.stdout.strip()
+    )
+    cmd = "cat {} | jq {}".format(
+        file_path,
+        jq_filter.replace('"', '\\"'),
+    )
+    when_i_run_shell_command(
+        context,
+        cmd,
+        "with sudo",
+    )
