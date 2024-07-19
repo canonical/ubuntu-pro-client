@@ -11,6 +11,7 @@ from uaclient.api.exceptions import UnsupportedManifestFile
 from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
+from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
 from uaclient.defaults import (
     VULNERABILITY_CACHE_PATH,
@@ -18,6 +19,7 @@ from uaclient.defaults import (
     VULNERABILITY_DATA_TMPL,
     VULNERABILITY_PUBLISH_DATE_CACHE,
 )
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient.http import download_bz2_file_from_url, readurl
 from uaclient.system import get_release_info, load_file, write_file
 from uaclient.util import we_are_currently_root
@@ -89,14 +91,26 @@ class VulnerabilityData:
     def _get_cache_data(self, series: str):
         return json.loads(load_file(self._get_cache_data_path(series)))
 
+    def _get_data_url(self, series):
+        data_name = series
+
+        enabled_services_names = [
+            s.name for s in _enabled_services(self.cfg).enabled_services
+        ]
+        if FIPSEntitlement.name in enabled_services_names:
+            data_name = "fips_{}".format(series)
+        elif FIPSUpdatesEntitlement.name in enabled_services_names:
+            data_name = "fips-updates_{}".format(series)
+
+        data_file = VULNERABILITY_DATA_TMPL.format(series=data_name)
+        return urljoin(self.cfg.vulnerability_data_url_prefix, data_file)
+
     def get(self):
         if self.data_file:
             return json.loads(load_file(self.data_file))
 
         series = self.series or get_release_info().series
-
-        data_file = VULNERABILITY_DATA_TMPL.format(series=series)
-        data_url = urljoin(self.cfg.vulnerability_data_url_prefix, data_file)
+        data_url = self._get_data_url(series)
 
         last_published_date = self._get_published_date(data_url)
 
