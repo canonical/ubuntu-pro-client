@@ -698,7 +698,7 @@ Feature: APT Messages
     # We are doing this because ESM pin might prevent some packages to be upgraded (i.e.
     # distro-info-data)
     When I apt upgrade
-    Given a `mantic` `<machine_type>` machine named `apt-news-server`
+    Given a `jammy` `<machine_type>` machine named `apt-news-server`
     When I apt install `nginx` on the `apt-news-server` machine
     When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
     When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
