@@ -111,7 +111,9 @@ def when_i_install_uat(context, machine_name=SUT):
         )
     else:
         when_i_apt_install(
-            context, "ubuntu-pro-client", machine_name=machine_name
+            context,
+            "ubuntu-pro-client ubuntu-advantage-tools",
+            machine_name=machine_name,
         )
         if is_pro:
             when_i_apt_install(
