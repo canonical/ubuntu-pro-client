@@ -862,6 +862,7 @@ Feature: Security status command behavior
 
   Scenario Outline: Pass custom APT configuration to the Client for updates information
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I ensure -proposed is not enabled anymore
     # Get the system up to date
     When I apt update
     And I apt upgrade including phased updates
@@ -870,94 +871,95 @@ Feature: Security status command behavior
     And I apt install `<pkg_in_updates> <pkg_in_security>`
     And I apt update
     Then stdout contains substring:
-    """
-    2 packages can be upgraded
-    """
+      """
+      2 packages can be upgraded
+      """
     When I run `apt list --upgradable` with sudo
     Then stdout contains substring:
-    """
-    <release>-updates
-    """
+      """
+      <release>-updates
+      """
     And stdout contains substring:
-    """
-    <release>-security
-    """
+      """
+      <release>-security
+      """
     When I run `pro api u.pro.packages.updates.v1` with sudo
     Then stdout contains substring:
-    """
-    "num_standard_security_updates": 1
-    """
+      """
+      "num_standard_security_updates": 1
+      """
     And stdout contains substring:
-    """
-    "num_standard_updates": 1
-    """
+      """
+      "num_standard_updates": 1
+      """
     # Create custom configuration (lists file) for APT
     When I create the file `/tmp/custom.list` with the following:
-    """
-    deb http://security.ubuntu.com/ubuntu <release>-security main restricted universe multiverse
-    """
+      """
+      deb http://security.ubuntu.com/ubuntu <release>-security main restricted universe multiverse
+      """
     And I create the file `/tmp/custom.conf` with the following:
-    """
-    Dir::Etc::Sourcelist "/tmp/custom.list";
-    Dir::Etc::Sourceparts "nonexisting";
-    """
+      """
+      Dir::Etc::Sourcelist "/tmp/custom.list";
+      Dir::Etc::Sourceparts "nonexisting";
+      """
     # Pass the config using the environment
     And I run `APT_CONFIG=/tmp/custom.conf pro api u.pro.packages.updates.v1` with sudo
     Then stdout contains substring:
-    """
-    "num_standard_security_updates": 1
-    """
+      """
+      "num_standard_security_updates": 1
+      """
     And stdout contains substring:
-    """
-    "num_standard_updates": 0
-    """
+      """
+      "num_standard_updates": 0
+      """
     When I run `APT_CONFIG=/tmp/custom.conf apt list --upgradable` with sudo
     Then stdout does not contain substring:
-    """
-    <release>-updates
-    """
+      """
+      <release>-updates
+      """
     And stdout contains substring:
-    """
-    <release>-security
-    """
+      """
+      <release>-security
+      """
     When I run `APT_CONFIG=/tmp/custom.conf apt update` with sudo
     Then stdout contains substring:
-    """
-    1 package can be upgraded
-    """
+      """
+      1 package can be upgraded
+      """
     # Update the APT lists again after the past customized update
     When I apt update
     # Pass the config in a proper APT config file
     And I create the file `/etc/apt/apt.conf.d/50-custom` with the following:
-    """
-    Dir::Etc::Sourcelist "/tmp/custom.list";
-    Dir::Etc::Sourceparts "nonexisting";
-    """
+      """
+      Dir::Etc::Sourcelist "/tmp/custom.list";
+      Dir::Etc::Sourceparts "nonexisting";
+      """
     # Check it works the same
     And I run `pro api u.pro.packages.updates.v1` with sudo
     Then stdout contains substring:
-    """
-    "num_standard_security_updates": 1
-    """
+      """
+      "num_standard_security_updates": 1
+      """
     And stdout contains substring:
-    """
-    "num_standard_updates": 0
-    """
+      """
+      "num_standard_updates": 0
+      """
     When I run `apt list --upgradable` with sudo
     Then stdout does not contain substring:
-    """
-    <release>-updates
-    """
+      """
+      <release>-updates
+      """
     And stdout contains substring:
-    """
-    <release>-security
-    """
+      """
+      <release>-security
+      """
     When I apt update
     Then stdout contains substring:
-    """
-    1 package can be upgraded
-    """
+      """
+      1 package can be upgraded
+      """
+
     Examples: ubuntu release
-        | release | machine_type  | pkg_in_updates          | pkg_in_security         |
-        | xenial  | lxd-container | base-files=9.4ubuntu4   | wget=1.17.1-1ubuntu1    |
-        | noble   | lxd-container | xxd=2:9.1.0016-1ubuntu7 | less=590-2ubuntu2       |
+      | release | machine_type  | pkg_in_updates          | pkg_in_security      |
+      | xenial  | lxd-container | base-files=9.4ubuntu4   | wget=1.17.1-1ubuntu1 |
+      | noble   | lxd-container | xxd=2:9.1.0016-1ubuntu7 | less=590-2ubuntu2    |

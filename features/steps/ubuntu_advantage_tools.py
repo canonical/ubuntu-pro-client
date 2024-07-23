@@ -123,6 +123,17 @@ def when_i_install_uat(context, machine_name=SUT):
             )
 
 
+@when("I ensure -proposed is not enabled anymore")
+def when_i_ensure_proposed_not_enabled(context, machine_name=SUT):
+    if context.pro_config.install_from is InstallationSource.PROPOSED:
+        when_i_run_command(
+            context,
+            "rm /etc/apt/sources.list.d/uaclient-proposed.list",
+            "with sudo",
+            machine_name=machine_name,
+        )
+
+
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
     if context.pro_config.install_from is InstallationSource.LOCAL:
