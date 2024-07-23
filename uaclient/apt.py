@@ -419,7 +419,8 @@ def update_sources_list(sources_list_path: str):
             with lock:
                 cache.update(fetch_progress, sources_list, 0)
         # No apt_pkg.Error on Xenial
-        except getattr(apt_pkg, "Error", ()):
+        except getattr(apt_pkg, "Error", ()) as e:
+            LOG.debug(str(e))
             raise exceptions.APTProcessConflictError()
         except SystemError as e:
             raise exceptions.APTUpdateFailed(detail=str(e))
