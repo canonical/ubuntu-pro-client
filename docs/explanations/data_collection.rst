@@ -1,10 +1,10 @@
 What data does Canonical collect from Ubuntu Pro machines?
 **********************************************************
 
-For the purposes of delivering Ubuntu Pro services to customers in compliance
-with the terms of the Ubuntu Pro subscription, some system data is sent to
-Canonical servers. This data is sent via a few different methods, depending
-on the service and the purpose of that particular data element.
+Some system data is sent to Canonical servers for the purpose of delivering
+Ubuntu Pro services in compliance with the terms of the Ubuntu Pro subscriptio
+. This data is sent via a few different methods, depending on the service and
+the purpose of that particular data element.
 
 This document categorises data collection by method of collection.
 
