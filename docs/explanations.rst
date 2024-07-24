@@ -74,3 +74,5 @@ Other Pro features explained
     explanations/errors_explained.md
     explanations/deprecation_policy.rst
     explanations/data_collection.rst
+    explanations/pro_token_and_machine_usage.rst
+
