@@ -108,6 +108,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "29",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.security.fix.usn.plan.v1 import plan, USNFixPlanOptions
 

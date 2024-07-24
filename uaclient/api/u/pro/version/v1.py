@@ -48,6 +48,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.11",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.pro.version.v1 import version
 

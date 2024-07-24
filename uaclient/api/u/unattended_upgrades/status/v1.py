@@ -292,6 +292,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.14",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.unattended_upgrades.status.v1 import status
 
