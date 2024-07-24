@@ -1,3 +1,5 @@
+.. _custom_apt_config:
+
 How to use custom APT configuration
 ***********************************
 

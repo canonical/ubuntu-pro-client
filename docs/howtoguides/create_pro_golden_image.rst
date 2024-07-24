@@ -1,3 +1,5 @@
+.. _create_pro_golden_image:
+
 How to create a customised Cloud Ubuntu Pro image
 *************************************************
 

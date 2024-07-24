@@ -3,7 +3,7 @@
 How to attach with a configuration file
 ***************************************
 
-To attach with a configuration file, you must run ``pro attach`` with the
+To attach with a configuration file, you can run ``pro attach`` with the
 ``--attach-config`` flag, passing the path of the configuration file you intend
 to use.
 

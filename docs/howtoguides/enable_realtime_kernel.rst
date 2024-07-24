@@ -4,8 +4,8 @@ How to enable Real-time Ubuntu
 ******************************
 
 `Real-time Ubuntu <realtime_>`_ is supported on specific Ubuntu releases. To
- find out more about the supported Ubuntu versions and what kernel variants
- are available, refer to `the supported releases page <rt_releases_>`_.
+find out more about the supported Ubuntu versions and what kernel variants
+are available, refer to `the supported releases page <rt_releases_>`_.
 
 Attach your subscription
 ========================
@@ -19,8 +19,7 @@ running the following command:
     sudo pro attach
 
 And follow the instructions in your terminal window. For a more complete guide
-to the attach process, refer to our
-:ref:`how to attach <get_token_and_attach>` guide.
+to the attach process, refer to our :ref:`how to attach <attach>` guide.
 
 .. Make sure Pro is up to date
 .. include:: ./enable-disable/update-pro.txt

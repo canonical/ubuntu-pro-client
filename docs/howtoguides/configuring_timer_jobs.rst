@@ -1,3 +1,5 @@
+.. _configuring_timer_jobs:
+
 How to configure a timer job
 ****************************
 

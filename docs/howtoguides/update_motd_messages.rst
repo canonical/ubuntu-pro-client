@@ -1,3 +1,5 @@
+.. _update_motd_apt:
+
 How to update MOTD and APT messages
 ***********************************
 
