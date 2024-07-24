@@ -73,4 +73,4 @@ Other Pro features explained
     explanations/what_is_the_daemon.md
     explanations/errors_explained.md
     explanations/deprecation_policy.rst
-
+    explanations/data_collection.rst
