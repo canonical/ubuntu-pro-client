@@ -11,8 +11,8 @@ This document categorises data collection by method of collection.
 APT package downloads
 =====================
 
-If you have any of the following services enabled, then the following data
-collection method will be in use whenever downloading packages for one of
+If you have any of the following services enabled, then the data collection
+method described below will be in use whenever downloading packages for one of
 these services.
 
 - ``anbox-cloud``
@@ -40,17 +40,17 @@ a request that looks something like this:
 
    https://bearer:$resource_token@esm.ubuntu.com/apps/ubuntu/pool/main/h/hello/hello_2.10-2ubuntu4+esm1_amd64.deb
 
-This request is necessary to download the Pro update and it necessarily
-includes the following data.
+This request is necessary to download the Pro update and includes the
+following data.
 
 - Ubuntu codename (e.g. "Jammy")
 - Package name (e.g. "hello")
 - Package version (e.g. "2.10-2ubuntu4+esm1")
 - Package architecture (e.g. "amd64")
 
-Because this request is necessarily authenticated and the authentication token
-is tied to a particular Ubuntu Pro subscription, this data is inherently tied
-to the Ubuntu Pro subscription that authenticated access to the package.
+Because this request needs to be authenticated and the authentication token is
+tied to a particular Ubuntu Pro subscription, this data is inherently tied to
+the Ubuntu Pro subscription that authenticated access to the package.
 
 Livepatch downloads
 ===================
@@ -61,16 +61,18 @@ download the correct kernel patches:
 - Kernel version (e.g. "6.8.0-38.38-generic")
 - Machine architecture (e.g. "amd64")
 
-Because this request is necessarily authenticated and the authentication token
-is tied to a particular Ubuntu Pro subscription, this data is inherently tied
-to the Ubuntu Pro subscription that authenticated access to the package.
+Similarly to APT package downloads, because this request needs to be
+authenticated and the authentication token is tied to a particular Ubuntu Pro
+subscription, this data is inherently tied to the Ubuntu Pro subscription that
+authenticated access to the package.
 
 
 Machine activity checks
 =======================
 
 Regardless of which services you have enabled, if a machine is attached to an
-Ubuntu Pro subscription, the following data is collected and updated regularly.
+Ubuntu Pro subscription, the following data is collected and updated regularly
+(default: every 6 hours).
 
 - Distribution (e.g. "Ubuntu")
 - Release codename (e.g. "Noble")
