@@ -12,7 +12,8 @@ from the architecture of the project to how you should test any code changes.
 ### How to Guides
 
 * [How to run the code formatting tools](./dev-docs/howtoguides/code_formatting.md)
-* [How to run the tests](./dev-docs/howtoguides/testing.md)
+* [How to run unit tests](./dev-docs/howtoguides/unit_testing.md)
+* [How to run integration tests](./dev-docs/howtoguides/integration_testing.md)
 * [How to release a new version](./dev-docs/howtoguides/release_a_new_version.md)
 * [How to release a hotfix](./dev-docs/howtoguides/release_a_hotfix.md)
 * [How to use the contract staging environment](./dev-docs/howtoguides/use_staging_environment.md)
