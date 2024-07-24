@@ -144,6 +144,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "30",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.security.fix.usn.execute.v1 import execute, USNFixExecuteOptions
 

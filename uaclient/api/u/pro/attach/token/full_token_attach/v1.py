@@ -155,6 +155,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "32",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.attach.token.full_token_attach.v1 import full_token_attach, FullTokenAttachOptions
 

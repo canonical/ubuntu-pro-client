@@ -153,6 +153,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "32",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.pro.services.dependencies.v1 import dependencies
 result = dependencies()

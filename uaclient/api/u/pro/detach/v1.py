@@ -139,6 +139,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "32",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.detach.v1 import detach
 

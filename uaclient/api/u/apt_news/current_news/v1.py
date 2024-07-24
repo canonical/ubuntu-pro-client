@@ -47,6 +47,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "29",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.apt_news.current_news.v1 import current_news
 

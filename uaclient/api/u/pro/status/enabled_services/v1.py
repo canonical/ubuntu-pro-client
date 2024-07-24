@@ -117,6 +117,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "28",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services
 

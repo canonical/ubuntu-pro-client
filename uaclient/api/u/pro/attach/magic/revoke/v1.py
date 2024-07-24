@@ -48,6 +48,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.11",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.attach.magic.revoke.v1 import MagicAttachRevokeOptions, revoke
 

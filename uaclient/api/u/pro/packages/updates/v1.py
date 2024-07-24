@@ -177,6 +177,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.12",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.pro.packages.updates.v1 import updates
 
