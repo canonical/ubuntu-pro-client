@@ -41,3 +41,5 @@ ua
 UI
 VM
 YAML
+http
+https

@@ -10,6 +10,12 @@ addition, the Ubuntu Pro Client will automatically set up proxies for all
 programs required for enabling Ubuntu Pro services. This includes APT, snaps,
 and Livepatch.
 
+.. note::
+
+    Throughout this guide, we will set the HTTPS proxy with an http prefix.
+    However, depending on your proxy setup, you might need to configure the
+    Pro HTTPS proxy with a https prefix.
+
 HTTP/HTTPS proxies
 ==================
 
@@ -18,7 +24,7 @@ To configure standard HTTP and/or HTTPS proxies, run the following commands:
 .. code-block:: bash
 
    $ sudo pro config set http_proxy=http://host:port
-   $ sudo pro config set https_proxy=https://host:port
+   $ sudo pro config set https_proxy=http://host:port
 
 After running the above commands, Ubuntu Pro Client will:
 
@@ -50,7 +56,7 @@ your global APT proxy configuration, run the following commands:
 .. code-block:: bash
 
    $ sudo pro config set global_apt_http_proxy=http://host:port
-   $ sudo pro config set global_apt_https_proxy=https://host:port
+   $ sudo pro config set global_apt_https_proxy=http://host:port
 
 After running the above commands, Ubuntu Pro Client will:
 
@@ -87,7 +93,7 @@ following commands instead:
 .. code-block:: bash
 
    $ sudo pro config set ua_apt_http_proxy=http://host:port
-   $ sudo pro config set ua_apt_https_proxy=https://host:port
+   $ sudo pro config set ua_apt_https_proxy=http://host:port
 
 Authenticate your proxy server
 ==============================
@@ -115,9 +121,9 @@ proxies set:
 .. code-block:: text
 
    http_proxy             http://proxy
-   https_proxy            https://proxy
+   https_proxy            http://proxy
    global_apt_http_proxy  http://aptproxy
-   global_apt_https_proxy https://aptproxy
+   global_apt_https_proxy http://aptproxy
 
 Or it may look like this if there are no proxies set:
 
