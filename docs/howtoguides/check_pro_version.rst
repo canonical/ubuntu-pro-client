@@ -1,3 +1,5 @@
+.. _check_pro_version:
+
 How to check your Ubuntu Pro Client version
 *******************************************
 
