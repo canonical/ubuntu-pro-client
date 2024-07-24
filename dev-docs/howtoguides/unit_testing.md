@@ -2,18 +2,21 @@
 
 Before proceeding with the unit tests, please ensure you have completed the setup instructions in the [Getting Started Tutorial](../tutorials/getting-started.md). This guide covers essential setup information required to run the tests.
 
-All unit and lint tests are run using `tox`, with different versions of Python with specific constraints. We also use `tox-setuptools-version` to specify the correct setuptools version based on what is present in each release, and `tox-pyenv` to recognize the different local [pyenv interpreters](https://github.com/pyenv/pyenv).
-
-First, run the script to install and configure `pyenv`, and the `tox` dependencies:
+All unit and lint tests are run using `tox`. However, before we can run our tests, we need to
+install some package dependencies. This can be achieved through our Makefile script. To install those
+dependencies, first install this package:
 
 ```shell
-./tools/setup_pyenv.sh
+sudo apt install make
 ```
 
-After that you need to [set up your shell environment](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv), according to the pyenv documentation.
-The guide has quick snippets to configure `bash`, `zsh` and `fish` shells.
+Once that package is installed, just run the command which will install all of the necessary dependencies.
 
-Refresh your terminal to make sure pyenv is working. Then you can run the unit and lint tests:
+```shell
+sudo make deps
+```
+
+After that, you can run the unit and lint tests:
 
 ```shell
 tox
