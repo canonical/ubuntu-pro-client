@@ -86,6 +86,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.11",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.attach.magic.initiate.v1 import initiate
 

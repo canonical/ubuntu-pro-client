@@ -147,6 +147,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "32",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.services.disable.v1 import disable, DisableOptions
 result = disable(DisableOptions(service="usg"))

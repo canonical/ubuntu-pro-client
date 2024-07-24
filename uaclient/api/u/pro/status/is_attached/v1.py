@@ -135,6 +135,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "28",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.pro.status.is_attached.v1 import is_attached
 

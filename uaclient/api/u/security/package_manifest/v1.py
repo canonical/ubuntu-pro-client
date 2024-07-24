@@ -61,6 +61,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.12",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.security.package_manifest.v1 import package_manifest
 
