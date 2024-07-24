@@ -288,6 +288,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "32",
+    "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.services.enable.v1 import enable, EnableOptions
 result = enable(EnableOptions(service="usg"))

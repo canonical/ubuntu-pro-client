@@ -161,6 +161,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.11",
+    "requires_network": True,
     "extra_args_content": """
 .. note::
 

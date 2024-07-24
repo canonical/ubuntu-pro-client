@@ -27,6 +27,7 @@ ENDPOINT_TEMPLATE = """\
 {description}
 
 - Introduced in Ubuntu Pro Client Version: ``{introduced_in}~``
+- Requires network access: {requires_network}
 
 Arguments:
 
@@ -200,6 +201,7 @@ def print_endpoint_docs(endpoint_name):
         "underline": "=" * len(endpoint_name),
         "description": textwrap.dedent(module.endpoint.fn.__doc__).strip(),
         "introduced_in": module._doc.get("introduced_in"),
+        "requires_network": "Yes" if module._doc["requires_network"] else "No",
         "args_section": args_section,
         "example_python": textwrap.indent(
             module._doc.get("example_python").strip(),
@@ -259,4 +261,10 @@ if __name__ == "__main__":
             print(f"- `{e}`_")
         print()
         for e in VALID_ENDPOINTS:
-            print_endpoint_docs(e)
+            try:
+                print_endpoint_docs(e)
+            except Exception:
+                msg = f"Failed generating docs for {e}"
+                print(msg)
+                print("^" * len(msg))
+                raise

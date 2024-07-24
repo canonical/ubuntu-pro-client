@@ -65,6 +65,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.12",
+    "requires_network": False,
     "example_python": """
 from uaclient.api.u.pro.security.status.livepatch_cves.v1 import livepatch_cves
 

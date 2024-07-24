@@ -58,6 +58,7 @@ endpoint = APIEndpoint(
 
 _doc = {
     "introduced_in": "27.12",
+    "requires_network": False,
     "extra_args_content": """
 .. note::
 
