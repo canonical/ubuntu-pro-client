@@ -48,5 +48,8 @@
 .. _fips_Azure: https://ubuntu.com/azure/fips
 .. _fips_GCP: https://ubuntu.com/gcp/fips
 
+.. _custom_image_AWS: https://documentation.ubuntu.com/aws/en/latest/aws-how-to/instances/build-pro-ami-using-packer/
+.. _custom_image_Azure: https://documentation.ubuntu.com/azure/en/latest/azure-how-to/instances/create-pro-fips-golden-image/
+.. _custom_image_GCP: https://documentation.ubuntu.com/gcp/en/latest/google-how-to/gce/build-ubuntu-pro-golden-image/
 
 
