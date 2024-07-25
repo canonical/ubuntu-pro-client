@@ -18,8 +18,8 @@ These data elements are collected to ensure machines that are attached to a
 particular Ubuntu Pro contract are compliant with the terms of that particular
 contract.
 
-Data sent in order to provide service
-=====================================
+Data sent to provide service
+============================
 
 The following data is not purposefully collected, but is sent to Canonical
 servers in order to provide Ubuntu Pro services.
