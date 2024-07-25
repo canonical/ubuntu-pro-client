@@ -47,7 +47,7 @@ these services.
 Whenever you ``apt install`` a package from a Pro service (or ``apt upgrade``
 to a version of a package from a Pro service), ``apt`` will make a GET request
 to ``esm.ubuntu.com`` that includes the package name and version, and HTTP
-basic auth credentials that are tied to the Ubuntu Pro subscription.
+basic authentication credentials that are tied to the Ubuntu Pro subscription.
 
 For example, installing the ``hello`` package from ``esm-apps`` will result in
 a request that looks something like this:

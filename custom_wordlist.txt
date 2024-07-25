@@ -16,6 +16,7 @@ Center
 cis
 CIS
 cli
+codename
 conf
 conffile
 config
