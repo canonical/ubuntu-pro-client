@@ -38,7 +38,7 @@ Public Cloud Ubuntu Pro
 =======================
 
 Here we talk about Ubuntu Pro images for AWS, Azure and GCP, and the related
-tooling: the ``ubuntu-advantage-pro`` package.
+tooling: the ``ubuntu-pro-auto-attach`` package.
 
 ..  toctree::
     :maxdepth: 1
