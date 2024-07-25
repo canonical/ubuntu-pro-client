@@ -3,6 +3,7 @@ Airgapping
 amd
 anbox
 Anbox
+Ansible
 aptnews
 Args
 armhf
@@ -21,6 +22,7 @@ conf
 conffile
 config
 cron
+Ctrl
 CTRL
 cve
 CVE
