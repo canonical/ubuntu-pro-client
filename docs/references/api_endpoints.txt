@@ -46,6 +46,7 @@ u.pro.version.v1
 This endpoint shows the installed Pro Client version.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Requires network access: No
 
 Arguments:
 
@@ -123,6 +124,7 @@ retry auto-attach functionality to actually start, you'll need to call
 something like ``systemctl start ubuntu-advantage.service``.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Requires network access: No
 
 Arguments:
 
@@ -197,6 +199,7 @@ u.pro.attach.auto.full_auto_attach.v1
 This endpoint runs the whole auto-attach process on the system.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -278,6 +281,7 @@ u.pro.attach.auto.should_auto_attach.v1
 This endpoint checks if a given system should run auto-attach on boot.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Requires network access: No
 
 Arguments:
 
@@ -343,6 +347,7 @@ This endpoint initiates the Magic Attach flow, retrieving the User Code to
 confirm the operation and the Token used to proceed.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -422,6 +427,7 @@ u.pro.attach.magic.revoke.v1
 This endpoint revokes a Magic Attach Token.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -491,6 +497,7 @@ This endpoint polls the contracts service waiting for the user to confirm
 the Magic Attach.
 
 - Introduced in Ubuntu Pro Client Version: ``27.11~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -589,6 +596,7 @@ This endpoint allows the user to attach to a Pro subscription using a
 token.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -693,6 +701,7 @@ This endpoint allows the user to detach the machine from a Pro
 subscription.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -763,6 +772,7 @@ This endpoint shows a summary of installed packages in the system,
 categorised by origin.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Requires network access: No
 
 Arguments:
 
@@ -874,6 +884,7 @@ This endpoint shows available updates for packages in a system, categorised
 by where they can be obtained.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Requires network access: No
 
 Arguments:
 
@@ -1008,6 +1019,7 @@ u.pro.security.fix.cve.execute.v1
 This endpoint fixes the specified CVEs on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``30~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -1282,6 +1294,7 @@ This endpoint shows the necessary steps required to fix CVEs in the system
 without executing any of those steps.
 
 - Introduced in Ubuntu Pro Client Version: ``29~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -1622,6 +1635,7 @@ u.pro.security.fix.usn.execute.v1
 This endpoint fixes the specified USNs on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``30~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -1911,6 +1925,7 @@ This endpoint shows the necessary steps required to fix USNs in the system
 without executing any of those steps.
 
 - Introduced in Ubuntu Pro Client Version: ``29~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -2276,6 +2291,7 @@ u.pro.security.status.livepatch_cves.v1
 This endpoint lists Livepatch patches for the currently-running kernel.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Requires network access: No
 
 Arguments:
 
@@ -2371,6 +2387,7 @@ outputs are:
    place. This reboot can wait until the next maintenance window.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Requires network access: No
 
 Arguments:
 
@@ -2468,6 +2485,7 @@ the same thing until new services are added, or until we add/remove
 dependencies between services.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
+- Requires network access: No
 
 Arguments:
 
@@ -2605,6 +2623,7 @@ Disable a Pro service. This will automatically disable any services that
 depend on the target service.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -2687,6 +2706,7 @@ Enable a Pro service. This will automatically disable incompatible services
 and enable required services that that target service depends on.
 
 - Introduced in Ubuntu Pro Client Version: ``32~``
+- Requires network access: Yes
 
 Arguments:
 
@@ -2784,6 +2804,7 @@ u.pro.status.enabled_services.v1
 This endpoint shows the Pro services that are enabled on the machine.
 
 - Introduced in Ubuntu Pro Client Version: ``28~``
+- Requires network access: No
 
 Arguments:
 
@@ -2882,6 +2903,7 @@ u.pro.status.is_attached.v1
 This endpoint shows if the machine is attached to a Pro subscription.
 
 - Introduced in Ubuntu Pro Client Version: ``28~``
+- Requires network access: No
 
 Arguments:
 
@@ -2970,6 +2992,7 @@ This endpoint returns the current APT News that gets displayed in
 `apt upgrade`.
 
 - Introduced in Ubuntu Pro Client Version: ``29~``
+- Requires network access: No
 
 Arguments:
 
@@ -3035,6 +3058,7 @@ This endpoint returns the status of installed packages (``apt`` and
 ``snap``), formatted as a manifest file (i.e., ``package_name\tversion``).
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
+- Requires network access: No
 
 Arguments:
 
@@ -3108,6 +3132,7 @@ configured on the machine.
     original name and values for those configurations.
 
 - Introduced in Ubuntu Pro Client Version: ``27.14~``
+- Requires network access: No
 
 Arguments:
 
