@@ -1,15 +1,31 @@
-What data does Canonical collect from Ubuntu Pro machines?
-**********************************************************
+What data is collected from active Ubuntu Pro machines?
+*******************************************************
 
-Some system data is sent to Canonical servers for the purpose of delivering
-Ubuntu Pro services in compliance with the terms of the Ubuntu Pro subscriptio
-. This data is sent via a few different methods, depending on the service and
-the purpose of that particular data element.
+If a machine is attached to an Ubuntu Pro subscription, the following data is
+collected and updated regularly (default: every 6 hours).
 
-This document categorises data collection by method of collection.
+- Distribution (e.g. "Ubuntu")
+- Release codename (e.g. "Noble")
+- Kernel version (e.g. "6.8.0-38.38-generic")
+- Machine architecture (e.g. "amd64")
+- Is the machine a desktop? (e.g. "true")
+- Virtualisation type (e.g. "Docker")
+- Services enabled (e.g. "ros" and "realtime-kernel generic variant")
+- When the machine was attached (e.g. "2024-07-24T13:54:07+00:00")
+- Version of ``ubuntu-pro-client`` (e.g. "33.2~24.04")
+
+These data elements are collected to ensure machines that are attached to a
+particular Ubuntu Pro contract are compliant with the terms of that particular
+contract.
+
+Data sent in order to provide service
+=====================================
+
+The following data is not purposefully collected, but is sent to Canonical
+servers in order to provide Ubuntu Pro services.
 
 APT package downloads
-=====================
+---------------------
 
 If you have any of the following services enabled, then the data collection
 method described below will be in use whenever downloading packages for one of
@@ -53,7 +69,7 @@ tied to a particular Ubuntu Pro subscription, this data is inherently tied to
 the Ubuntu Pro subscription that authenticated access to the package.
 
 Livepatch downloads
-===================
+-------------------
 
 If you have ``livepatch`` enabled, then the following data is sent in order to
 download the correct kernel patches:
@@ -65,25 +81,3 @@ Similarly to APT package downloads, because this request needs to be
 authenticated and the authentication token is tied to a particular Ubuntu Pro
 subscription, this data is inherently tied to the Ubuntu Pro subscription that
 authenticated access to the package.
-
-
-Machine activity checks
-=======================
-
-Regardless of which services you have enabled, if a machine is attached to an
-Ubuntu Pro subscription, the following data is collected and updated regularly
-(default: every 6 hours).
-
-- Distribution (e.g. "Ubuntu")
-- Release codename (e.g. "Noble")
-- Kernel version (e.g. "6.8.0-38.38-generic")
-- Machine architecture (e.g. "amd64")
-- Is the machine a desktop? (e.g. "true")
-- Virtualisation type (e.g. "Docker")
-- Services enabled (e.g. "ros" and "realtime-kernel generic variant")
-- When the machine was attached (e.g. "2024-07-24T13:54:07+00:00")
-- Version of ``ubuntu-pro-client`` (e.g. "33.2~24.04")
-
-These data elements are collected to ensure machines that are attached to a
-particular Ubuntu Pro contract are compliant with the terms of that particular
-contract.
