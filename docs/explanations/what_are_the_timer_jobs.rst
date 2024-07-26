@@ -31,3 +31,5 @@ It informs Canonical which services are enabled on the machine.
 .. note::
 
     The ``metering`` job only runs when attached to an Ubuntu Pro subscription.
+
+If you want to learn more about configuring the timer jobs, you can check our guide on :ref:`how to configure the timer jobs <configuring_timer_jobs>`.
