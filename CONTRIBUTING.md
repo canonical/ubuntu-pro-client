@@ -21,6 +21,7 @@ This section contains developer documentation for the Ubuntu Pro Client project.
 * [Set up a Windows machine for WSL testing](dev-docs/wsl_testing_setup.md)
 * [Run unit tests](dev-docs/unit_testing.md)
 * [Run integration tests](dev-docs/integration_testing.md)
+* [Run dep8 tests](dev-docs/how-to/run_dep8_tests.md)
 
 ## Reference
 
@@ -36,4 +37,3 @@ This section contains developer documentation for the Ubuntu Pro Client project.
 * [Auto-attach mechanisms](dev-docs/explanation/autoattach_mechanisms.md)
 * [How auto-attach works](dev-docs/explanation/how_auto_attach_works.md)
 * [What happens during attach](dev-docs/explanation/what_happens_during_attach.md)
-
