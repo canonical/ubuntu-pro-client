@@ -56,6 +56,7 @@ honor
 honored
 hostname
 html
+http
 https
 init
 internetless
