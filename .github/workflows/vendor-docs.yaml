@@ -1,0 +1,26 @@
+---
+name: Experiment
+
+on:
+  push:
+    branches: [vendor-docs]
+  schedule:
+    # Every Monday at 6AM UTC
+    - cron: "0 6 * * 1"
+
+jobs:
+  vendor-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Update external-docs
+        run: |
+          git fetch
+          git switch external-docs
+          wget https://raw.githubusercontent.com/canonical/real-time-ubuntu-docs/main/docs/how-to/enable-real-time-ubuntu.rst -O docs/howtoguides/enable_realtime_kernel.rst
+          git config --global user.name 'orndorffgrant'
+          git config --global user.email 'orndorffgrant@users.noreply.github.com'
+          git commit -am "new external docs"
+          git rebase origin/docs
+          git push origin external-docs --force-with-lease
