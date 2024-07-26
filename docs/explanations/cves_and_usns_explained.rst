@@ -3,6 +3,8 @@
 CVEs and USNs explained
 ***********************
 
+.. _what-is-a-cve:
+
 What is a CVE
 =============
 
@@ -24,7 +26,7 @@ What is a USN?
 
 An Ubuntu Security Notice (USN) is the way that Canonical publicly catalogues
 and displays security vulnerabilities for Ubuntu packages. Usually, a USN is
-composed of one or more [CVEs](#what-is-a-cve) and it also contains update
+composed of one or more :ref:`CVEs <what-is-a-cve>` and it also contains update
 instructions to fix the issue, if a fix is already available.
 
 USNs follow a naming convention of the format `USN-5963-1`_.
