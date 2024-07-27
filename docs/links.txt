@@ -15,6 +15,7 @@
 .. _pro_IRC: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
 .. _tox: https://tox.readthedocs.io/en/latest/
 .. _Ubuntu One: https://login.ubuntu.com/
+.. _pro_sales_form: https://ubuntu.com/contact-us/form?product=pro
 
 .. SERVICES - security
 

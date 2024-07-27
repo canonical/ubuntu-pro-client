@@ -27,6 +27,7 @@ CVE
 CVEAPIFixExecuteResult
 cves
 CVEs
+CSV
 devel
 DISA
 Dockerfile
@@ -60,6 +61,7 @@ http
 https
 init
 internetless
+IaaS
 IOTG
 json
 latencies
