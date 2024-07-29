@@ -23,6 +23,7 @@ from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.defaults import (
     APPARMOR_PROFILES,
+    APT_UPGRADE_HOOK_ERR,
     CLOUD_BUILD_INFO,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
@@ -324,11 +325,13 @@ def _write_command_output_to_file(
 ) -> None:
     """Helper which runs a command and writes output or error to filename."""
     try:
-        out, _ = system.subp(cmd.split(), rcs=return_codes)
+        out, err = system.subp(cmd.split(), rcs=return_codes)
     except exceptions.ProcessExecutionError as e:
         system.write_file("{}-error".format(filename), str(e))
     else:
-        system.write_file(filename, out)
+        system.write_file(
+            filename, "stdout:\n{}\n\nstderr:\n{}".format(out, err)
+        )
 
 
 def _get_state_files(cfg: config.UAConfig):
@@ -337,6 +340,7 @@ def _get_state_files(cfg: config.UAConfig):
         cfg.cfg_path or DEFAULT_CONFIG_FILE,
         cfg.log_file,
         timer_jobs_state_file.ua_file.path,
+        APT_UPGRADE_HOOK_ERR,
         CLOUD_BUILD_INFO,
         *(
             entitlement_cls(cfg).repo_file
