@@ -106,7 +106,6 @@ class ProCommand:
             subparsers = self.parser.add_subparsers(
                 title=messages.CLI_AVAILABLE_COMMANDS,
                 dest="command",
-                metavar="",
             )
             for command in self.subcommands:
                 command.register(subparsers)
