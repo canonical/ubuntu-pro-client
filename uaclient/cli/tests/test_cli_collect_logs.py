@@ -67,7 +67,7 @@ class TestActionCollectLogs:
             tmpdir.join("user1-log").strpath,
             tmpdir.join("user2-log").strpath,
         ]
-        is_file_calls = 17 + len(APPARMOR_PROFILES)
+        is_file_calls = 18 + len(APPARMOR_PROFILES)
         user_log_files = [mock.call(m_get_user())]
         if util_we_are_currently_root():
             user_log_files = [
@@ -143,6 +143,7 @@ class TestActionCollectLogs:
             mock.call("/etc/ubuntu-advantage/uaclient.conf"),
             mock.call(cfg.log_file),
             mock.call("/var/lib/ubuntu-advantage/jobs-status.json"),
+            mock.call("/var/lib/ubuntu-advantage/apt-upgrade-hook-err.txt"),
             mock.call("/etc/cloud/build.info"),
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-anbox-cloud.{}".format(
