@@ -288,7 +288,7 @@ Feature: Pro Client help text
     When I run `pro system --help` as non-root
     Then I will see the following on stdout
       """
-      usage: pro system [-h]  ...
+      usage: pro system [-h] {reboot-required} ...
 
       Output system related information related to Pro services
 
@@ -296,7 +296,7 @@ Feature: Pro Client help text
         -h, --help       show this help message and exit
 
       Available Commands:
-        
+        {reboot-required}
           reboot-required
                          does the system need to be rebooted
       """
@@ -324,7 +324,7 @@ Feature: Pro Client help text
     When I run `pro config --help` as non-root
     Then I will see the following on stdout
       """
-      usage: pro config [-h]  ...
+      usage: pro config [-h] {show,set,unset} ...
 
       Manage Ubuntu Pro configuration
 
@@ -332,7 +332,7 @@ Feature: Pro Client help text
         -h, --help  show this help message and exit
 
       Available Commands:
-        
+        {show,set,unset}
           show      Show customizable configuration settings
           set       Set and apply Ubuntu Pro configuration settings
           unset     Unset Ubuntu Pro configuration setting
