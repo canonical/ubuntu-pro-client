@@ -4,7 +4,7 @@ import re
 from behave import then, when
 
 from features.steps.files import when_i_create_file_with_content
-from features.steps.packages import when_i_apt_install
+from features.steps.packages import when_i_apt_install, when_i_apt_update
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from features.util import (
     ALL_BINARY_PACKAGE_NAMES,
@@ -132,6 +132,7 @@ def when_i_ensure_proposed_not_enabled(context, machine_name=SUT):
             "with sudo",
             machine_name=machine_name,
         )
+        when_i_apt_update(context, machine_name=machine_name)
 
 
 @when("I have the `{series}` debs under test in `{dest}`")
