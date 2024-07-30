@@ -79,6 +79,8 @@ class ProCommand:
         preserve_description: bool = False,
         argument_groups: Iterable[ProArgumentGroup] = (),
         subcommands: Iterable["ProCommand"] = (),
+        help_category: Optional[str] = None,
+        help_position: int = 0,
     ):
         self.name = name
         self.help = help
@@ -87,6 +89,8 @@ class ProCommand:
         self.preserve_description = preserve_description
         self.argument_groups = argument_groups
         self.subcommands = subcommands
+        self.help_category = help_category
+        self.help_position = help_position
 
     def register(self, subparsers: argparse._SubParsersAction):
         self.parser = subparsers.add_parser(
@@ -96,6 +100,14 @@ class ProCommand:
         )
         if self.preserve_description:
             self.parser.formatter_class = argparse.RawDescriptionHelpFormatter
+
+        if self.help_category:
+            self.parser.add_help_entry(
+                category=self.help_category,
+                name=self.name,
+                help_string=self.help,
+                position=self.help_position,
+            )
 
         for argument_group in self.argument_groups:
             argument_group.register(self.parser)

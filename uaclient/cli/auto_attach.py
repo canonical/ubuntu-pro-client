@@ -30,4 +30,5 @@ auto_attach_command = ProCommand(
     help=messages.CLI_ROOT_AUTO_ATTACH,
     description=messages.CLI_AUTO_ATTACH_DESC,
     action=action_auto_attach,
+    help_category=messages.CLI_HELP_HEADER_OTHER,
 )

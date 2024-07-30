@@ -46,6 +46,8 @@ security_status_command = ProCommand(
     description=messages.CLI_SS_DESC,
     preserve_description=True,
     action=action_security_status,
+    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_position=5,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

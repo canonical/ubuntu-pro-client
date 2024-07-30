@@ -41,6 +41,8 @@ status_command = ProCommand(
     description=messages.CLI_STATUS_DESC,
     action=action_status,
     preserve_description=True,
+    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_position=1,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

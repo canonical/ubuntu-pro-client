@@ -63,6 +63,7 @@ refresh_command = ProCommand(
     description=messages.CLI_REFRESH_DESC,
     action=action_refresh,
     preserve_description=True,
+    help_category=messages.CLI_HELP_HEADER_OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[
