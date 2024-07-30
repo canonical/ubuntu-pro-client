@@ -24,11 +24,39 @@ from uaclient.data_types import (
 
 class USNVulnerabilitiesOptions(DataObject):
     fields = [
-        Field("all", BoolDataValue, False),
-        Field("unfixable", BoolDataValue, False),
-        Field("data_file", StringDataValue, False),
-        Field("manifest_file", StringDataValue, False),
-        Field("series", StringDataValue, False),
+        Field(
+            "all",
+            BoolDataValue,
+            False,
+            doc="Show all USN vulnerabilities, even unfixable ones.",
+        ),
+        Field(
+            "unfixable",
+            BoolDataValue,
+            False,
+            doc="Show only unfixable USNs.",
+        ),
+        Field(
+            "data_file",
+            StringDataValue,
+            False,
+            doc="Path for a local vulnerabilities JSON data.",
+        ),
+        Field(
+            "manifest_file",
+            StringDataValue,
+            False,
+            doc="Path for manifest file to be used instead of locally installed packages.",  # noqa
+        ),
+        Field(
+            "series",
+            StringDataValue,
+            False,
+            doc=(
+                "When provided, the API will download the JSON "
+                "vulnerabilities data for the given series."
+            ),
+        ),
     ]
 
     def __init__(
@@ -49,10 +77,27 @@ class USNVulnerabilitiesOptions(DataObject):
 
 class USNAffectedPackage(DataObject):
     fields = [
-        Field("name", StringDataValue),
-        Field("current_version", StringDataValue),
-        Field("fix_version", StringDataValue, False),
-        Field("fix_available_from", StringDataValue),
+        Field(
+            "name",
+            StringDataValue,
+            doc="The name of the package",
+        ),
+        Field(
+            "current_version",
+            StringDataValue,
+            doc="The current version of the package",
+        ),
+        Field(
+            "fix_version",
+            StringDataValue,
+            False,
+            doc="The version that fixes the CVE for the package",
+        ),
+        Field(
+            "fix_available_from",
+            StringDataValue,
+            doc="The pocket where the fix is available from",
+        ),
     ]
 
     def __init__(
@@ -71,13 +116,41 @@ class USNAffectedPackage(DataObject):
 
 class USNVulnerabilityResult(DataObject):
     fields = [
-        Field("name", StringDataValue),
-        Field("description", StringDataValue),
-        Field("published_at", DatetimeDataValue),
-        Field("affected_packages", data_list(USNAffectedPackage)),
-        Field("fixable", StringDataValue),
-        Field("related_cves", data_list(StringDataValue)),
-        Field("related_launchpad_bugs", data_list(StringDataValue)),
+        Field(
+            "name",
+            StringDataValue,
+            doc="The name of the CVE",
+        ),
+        Field(
+            "description",
+            StringDataValue,
+            doc="The CVE description",
+        ),
+        Field(
+            "published_at",
+            DatetimeDataValue,
+            doc="The CVE published date",
+        ),
+        Field(
+            "affected_packages",
+            data_list(USNAffectedPackage),
+            doc="A list of affected packages for this USN",
+        ),
+        Field(
+            "fixable",
+            StringDataValue,
+            doc="The fixable status of the CVE",
+        ),
+        Field(
+            "related_cves",
+            data_list(StringDataValue),
+            doc="A list of CVEs related to this USN",
+        ),
+        Field(
+            "related_launchpad_bugs",
+            data_list(StringDataValue),
+            doc="A list of Launchpad bugs related to this USN",
+        ),
     ]
 
     def __init__(
@@ -102,9 +175,22 @@ class USNVulnerabilityResult(DataObject):
 
 class USNVulnerabilitiesResult(DataObject, AdditionalInfo):
     fields = [
-        Field("usns", data_list(USNVulnerabilityResult)),
-        Field("vulnerability_data_published_at", DatetimeDataValue),
-        Field("apt_updated_at", DatetimeDataValue, False),
+        Field(
+            "usns",
+            data_list(USNVulnerabilityResult),
+            doc="A list of USNs that affect the system",
+        ),
+        Field(
+            "vulnerability_data_published_at",
+            DatetimeDataValue,
+            doc="The date the JSON vulnerability data was published at",
+        ),
+        Field(
+            "apt_updated_at",
+            DatetimeDataValue,
+            False,
+            doc="The date of the last apt update operation in the system",
+        ),
     ]
 
     def __init__(
@@ -139,6 +225,10 @@ def _vulnerabilities(
     options: USNVulnerabilitiesOptions,
     cfg: UAConfig,
 ) -> USNVulnerabilitiesResult:
+    """
+    This endpoint shows the USN vulnerabilites in the system.
+    By default, this API will only show fixable USNs in the system.
+    """
     vulnerabilities_json_data = VulnerabilityData(
         cfg=cfg, data_file=options.data_file, series=options.series
     ).get()
@@ -218,3 +308,45 @@ endpoint = APIEndpoint(
     fn=_vulnerabilities,
     options_cls=USNVulnerabilitiesOptions,
 )
+
+_doc = {
+    "introduced_in": "34",
+    "requires_network": True,
+    "example_python": """
+from uaclient.api.u.pro.security.vulnerabilities.usn.v1 import vulnerabilites,
+USNVulnerabilitesOptions
+
+options = USNVulnerabilitiesOptions()
+result = vulnerabilities(options)
+""",  # noqa: E501
+    "result_class": USNVulnerabilitiesResult,
+    "ignore_result_classes": [DataObject],
+    "extra_result_classes": [
+        USNAffectedPackage,
+        USNVulnerabilityResult,
+    ],
+    "exceptions": [],
+    "example_cli": "pro api u.pro.security.vulnerabilities.usn.v1",
+    "example_json": """
+{
+    "apt_updated_at": "2024-07-26T20:53:55.708438+00:00",
+    "cves": [
+      {
+        "affected_packages": [
+          {
+            "current_version": "1.3.1+dfsg-1~ubuntu0.16.04.1",
+            "fix_available_from": "esm-infra",
+            "fix_version": ".*",
+            "name": "libzstd1"
+          }
+        ],
+        "description": "USN description",
+        "fixable": "yes",
+        "name": "USN-4822-1",
+        "published_at": "2024-07-23T20:53:55.708438+00:00"
+      }
+    ],
+    "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
+}
+""",
+}
