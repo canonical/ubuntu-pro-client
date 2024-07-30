@@ -119,6 +119,8 @@ class FloatDataValue(DataValue):
     the float itself if it is a float.
     """
 
+    python_type_name = "float"
+
     @staticmethod
     def from_value(val: Any) -> float:
         if not isinstance(val, float):
