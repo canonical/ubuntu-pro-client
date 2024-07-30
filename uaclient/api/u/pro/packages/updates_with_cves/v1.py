@@ -6,6 +6,7 @@ from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.u.pro.packages.updates.v1 import (
     PackageUpdatesResult,
+    UpdateInfo,
     UpdateSummary,
     _updates,
 )
@@ -20,7 +21,6 @@ from uaclient.data_types import (
     DatetimeDataValue,
     Field,
     FloatDataValue,
-    IntDataValue,
     StringDataValue,
     data_list,
 )
@@ -28,9 +28,31 @@ from uaclient.data_types import (
 
 class UpdateInfoWithCVESOptions(DataObject):
     fields = [
-        Field("data_file", StringDataValue, False),
-        Field("series", StringDataValue, False),
-        Field("updates_data", StringDataValue, False),
+        Field(
+            "data_file",
+            StringDataValue,
+            False,
+            doc="Path for a local vulnerabilities JSON data.",
+        ),
+        Field(
+            "series",
+            StringDataValue,
+            False,
+            doc=(
+                "When provided, the API will download the JSON "
+                "vulnerabilities data for the given series."
+            ),
+        ),
+        Field(
+            "updates_data",
+            StringDataValue,
+            False,
+            doc=(
+                "The updates data collected from u.pro.packages.updates.v1."
+                "When used, the API will not collect local available updates,"
+                " but instead rely on the updates data for this information"
+            ),
+        ),
     ]
 
     def __init__(
@@ -45,15 +67,13 @@ class UpdateInfoWithCVESOptions(DataObject):
         self.updates_data = updates_data
 
 
-class UpdateInfoWithCVES(DataObject):
-    fields = [
-        Field("download_size", IntDataValue),
-        Field("origin", StringDataValue),
-        Field("package", StringDataValue),
-        Field("provided_by", StringDataValue),
-        Field("status", StringDataValue),
-        Field("version", StringDataValue),
-        Field("related_cves", data_list(StringDataValue)),
+class UpdateInfoWithCVES(UpdateInfo):
+    fields = UpdateInfo.fields + [
+        Field(
+            "related_cves",
+            data_list(StringDataValue),
+            doc="A list of CVEs that are tied to this package update",
+        )
     ]
 
     def __init__(
@@ -66,24 +86,57 @@ class UpdateInfoWithCVES(DataObject):
         version: str,
         related_cves: List[str],
     ):
-        self.download_size = download_size
-        self.origin = origin
-        self.package = package
-        self.provided_by = provided_by
-        self.status = status
-        self.version = version
+        super().__init__(
+            download_size=download_size,
+            origin=origin,
+            package=package,
+            provided_by=provided_by,
+            status=status,
+            version=version,
+        )
         self.related_cves = related_cves
 
 
 class CVEInfo(DataObject):
     fields = [
-        Field("name", StringDataValue),
-        Field("description", StringDataValue),
-        Field("published_at", DatetimeDataValue),
-        Field("ubuntu_priority", StringDataValue),
-        Field("notes", data_list(StringDataValue)),
-        Field("cvss_score", FloatDataValue),
-        Field("cvss_severity", StringDataValue),
+        Field(
+            "name",
+            StringDataValue,
+            doc="The name of the CVE",
+        ),
+        Field(
+            "description",
+            StringDataValue,
+            doc="The CVE description",
+        ),
+        Field(
+            "published_at",
+            DatetimeDataValue,
+            doc="The CVE published date",
+        ),
+        Field(
+            "ubuntu_priority",
+            StringDataValue,
+            doc="The ubuntu priority for the CVE",
+        ),
+        Field(
+            "notes",
+            data_list(StringDataValue),
+            False,
+            doc="A list of notes for the CVE",
+        ),
+        Field(
+            "cvss_score",
+            FloatDataValue,
+            False,
+            doc="The CVE cvss score",
+        ),
+        Field(
+            "cvss_severity",
+            StringDataValue,
+            False,
+            doc="The CVE cvss severity",
+        ),
     ]
 
     def __init__(
@@ -107,10 +160,24 @@ class CVEInfo(DataObject):
 
 class PackageUpdatesWithCVEResult(DataObject, AdditionalInfo):
     fields = [
-        Field("summary", UpdateSummary),
-        Field("updates", data_list(UpdateInfoWithCVES)),
-        Field("cves", data_list(CVEInfo)),
-        Field("vulnerability_data_published_at", DatetimeDataValue),
+        Field(
+            "summary", UpdateSummary, doc="Summary of all available updates"
+        ),
+        Field(
+            "updates",
+            data_list(UpdateInfoWithCVES),
+            doc="Detailed list of all available updates",
+        ),
+        Field(
+            "cves",
+            data_list(CVEInfo),
+            doc="A list of CVEs that affect the system",
+        ),
+        Field(
+            "vulnerability_data_published_at",
+            DatetimeDataValue,
+            doc="The date the JSON vulnerability data was published at",
+        ),
     ]
 
     def __init__(
@@ -150,6 +217,10 @@ def _get_pkg_updates(cfg: UAConfig, updates_data: Optional[str]):
 def _updates_with_cves(
     options: UpdateInfoWithCVESOptions, cfg: UAConfig
 ) -> PackageUpdatesWithCVEResult:
+    """
+    This endpoint shows available updates for packages in a system including
+    the CVEs that are tied to each update.
+    """
 
     package_updates = _get_pkg_updates(cfg, options.updates_data)
     vulnerabilities_json_data = VulnerabilityData(
@@ -232,3 +303,51 @@ endpoint = APIEndpoint(
     fn=_updates_with_cves,
     options_cls=UpdateInfoWithCVESOptions,
 )
+
+_doc = {
+    "introduced_in": "34",
+    "requires_network": True,
+    "example_python": """
+from uaclient.api.u.pro.packages.updates_with_cves.v1 import updates, UpdatesInfoWithCVEOptions
+
+options = UpdatesInfoWithCVEOptions
+result = updates(options)
+""",  # noqa: E501
+    "result_class": PackageUpdatesWithCVEResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.packages.updates_with_cves.v1",
+    "example_json": """
+{
+    "summary": {
+        "num_updates": 1,
+        "num_esm_apps_updates": 2,
+        "num_esm_infra_updates": 3,
+        "num_standard_security_updates": 4,
+        "num_standard_updates": 5,
+    },
+    "updates": [
+        {
+            "download_size": 6,
+            "origin": "<some site>",
+            "package": "<package name>",
+            "provided_by": "<service name>",
+            "status": "<update status>",
+            "version": "<updated version>",
+            related_cves=["CVE-5678-123"],
+        },
+    ],
+    "cves": [
+      {
+        "name": "CVE-5678-123",
+        "cvss_score": 8.1,
+        "cvss_severity": "high",
+        "description": "CVE description",
+        "notes": [],
+        "published_at": "2024-07-23T20:53:55.708438+00:00",
+        "ubuntu_priority": "medium"
+      }
+    ],
+    "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
+}
+""",
+}
