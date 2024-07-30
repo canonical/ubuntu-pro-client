@@ -79,8 +79,9 @@ Feature: Security status command behavior
     When I verify that running `pro security-status --format unsupported` `as non-root` exits `2`
     Then I will see the following on stderr:
       """
-      usage: pro security-status [flags]
-      argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml', 'text')
+      usage: pro security-status [-h] [--format {json,yaml,text}]
+                                 [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+      pro security-status: error: argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml', 'text')
       """
 
     Examples: ubuntu release
@@ -379,8 +380,9 @@ Feature: Security status command behavior
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
     Then I will see the following on stderr
       """
-      usage: pro security-status [flags]
-      argument --unavailable: not allowed with argument --thirdparty
+      usage: pro security-status [-h] [--format {json,yaml,text}]
+                                 [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+      pro security-status: error: argument --unavailable: not allowed with argument --thirdparty
       """
     When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
     And I run `pro security-status` as non-root
@@ -695,8 +697,9 @@ Feature: Security status command behavior
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
     Then I will see the following on stderr
       """
-      usage: pro security-status [flags]
-      argument --unavailable: not allowed with argument --thirdparty
+      usage: pro security-status [-h] [--format {json,yaml,text}]
+                                 [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+      pro security-status: error: argument --unavailable: not allowed with argument --thirdparty
       """
     When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
     And I run `pro security-status` as non-root
