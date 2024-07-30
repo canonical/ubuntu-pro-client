@@ -266,7 +266,7 @@ def _updates_with_cves(
                     provided_by=pkg.provided_by,
                     status=pkg.status,
                     version=update_version,
-                    related_cves=related_cves,
+                    related_cves=sorted(related_cves),
                 )
             )
 
