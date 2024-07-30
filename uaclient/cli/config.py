@@ -25,7 +25,7 @@ def action_config(args, *, cfg, **kwargs):
     # Avoiding a circular import
     from uaclient.cli import get_parser
 
-    get_parser(cfg).print_help_for_command("config")
+    get_parser().print_help_for_command("config")
     return 0
 
 
@@ -68,7 +68,7 @@ def action_config_set(args, *, cfg, **kwargs):
     """
     from uaclient.cli import get_parser
 
-    parser = get_parser(cfg=cfg)
+    parser = get_parser()
     try:
         set_key, set_value = args.key_value_pair.split("=")
     except ValueError:
@@ -193,7 +193,7 @@ def action_config_unset(args, *, cfg, **kwargs):
     from uaclient.cli import get_parser
 
     if args.key not in config.UA_CONFIGURABLE_KEYS:
-        parser = get_parser(cfg=cfg)
+        parser = get_parser()
         parser.print_help_for_command("config unset")
         raise exceptions.InvalidArgChoice(
             arg="<key>", choices=", ".join(config.UA_CONFIGURABLE_KEYS)

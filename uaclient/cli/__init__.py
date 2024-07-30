@@ -68,7 +68,7 @@ class ProArgumentParser(argparse.ArgumentParser):
             pass
 
 
-def get_parser(cfg: UAConfig):
+def get_parser():
     parser = ProArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -247,7 +247,7 @@ def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
 
-    parser = get_parser(cfg=cfg)
+    parser = get_parser()
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_help()
