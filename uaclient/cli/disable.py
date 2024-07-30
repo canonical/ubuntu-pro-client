@@ -294,6 +294,7 @@ disable_command = ProCommand(
     help=messages.CLI_ROOT_DISABLE,
     description=messages.CLI_DISABLE_DESC,
     action=action_disable,
+    help_category=messages.CLI_HELP_HEADER_OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[
