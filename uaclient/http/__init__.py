@@ -1,7 +1,7 @@
-import bz2
 import io
 import json
 import logging
+import lzma
 import os
 import socket
 from typing import Any, Dict, List, NamedTuple, Optional
@@ -330,7 +330,7 @@ def _parse_https_proxy(https_proxy) -> Optional[ParseResult]:
     return urlparse(https_proxy) if https_proxy else None
 
 
-def download_bz2_file_from_url(
+def download_xz_file_from_url(
     url: str, timeout: Optional[int] = None
 ) -> bytes:
     if not is_service_url(url):
@@ -345,10 +345,10 @@ def download_bz2_file_from_url(
             timeout=timeout,
             https_proxy=https_proxy,
         )
-        decompressor = bz2.BZ2Decompressor()
+        decompressor = lzma.LZMADecompressor()
         return decompressor.decompress(resp.body)  # type: ignore
     else:
-        return bz2.BZ2File(request.urlopen(url)).read()
+        return lzma.open(request.urlopen(url)).read()
 
 
 def readurl(
