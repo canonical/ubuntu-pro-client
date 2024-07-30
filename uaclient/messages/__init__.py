@@ -887,7 +887,6 @@ CLI_HELP_EPILOG = t.gettext(
 )
 
 CLI_HELP_VARIANTS_HEADER = t.gettext("Variants:")
-CLI_ARGS = t.gettext("Arguments")
 CLI_FLAGS = t.gettext("Flags")
 CLI_AVAILABLE_COMMANDS = t.gettext("Available Commands")
 CLI_FORMAT_DESC = t.gettext(
