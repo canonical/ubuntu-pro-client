@@ -5,7 +5,7 @@ Feature: Pro Client help text
     When I run `pro --help` as non-root
     Then I will see the following on stdout
       """
-      usage: pro [-h] [--debug] [--version]  ...
+      usage: pro [-h] [--debug] [--version] <command> ...
 
     Flags:
       -h, --help       show this help message and exit
@@ -13,7 +13,7 @@ Feature: Pro Client help text
       --version        show version of pro
 
       Available Commands:
-        
+        <command>
           api            Calls the Client API endpoints.
           attach         attach this machine to an Ubuntu Pro subscription
           auto-attach    automatically attach on supported platforms

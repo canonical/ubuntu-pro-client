@@ -882,7 +882,6 @@ Please run `sudo pro refresh`."""
 # Also, any generic strings about the CLI itself go here.
 
 
-CLI_TRY_HELP = t.gettext("Try 'pro --help' for more information.")
 CLI_HELP_EPILOG = t.gettext(
     "Use {name} {command} --help for more information about a command."
 )

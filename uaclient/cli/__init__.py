@@ -57,22 +57,6 @@ COMMANDS = [
 
 
 class ProArgumentParser(argparse.ArgumentParser):
-    def error(self, message):
-        self.print_usage(sys.stderr)
-        # In some cases (e.g. `pro --wrong-flag`) argparse errors out asking
-        # for required arguments, but the error message it gives us doesn't
-        # include any info about what required args it expects.
-        # In python versions prior to 3.9 there is no `exit_on_error` param
-        # to ArgumentParser, and as a result, there is no built-in way of
-        # catching the ArgumentError exception and handling it ourselves.
-        # Instead we just look for the buggy error message.
-        # Rather than try to fill in what arguments argparse was hoping for,
-        # we just suggest the user runs `--help` which should cover most
-        # use cases.
-        if message == "the following arguments are required: ":
-            message = messages.CLI_TRY_HELP
-        self.exit(2, message + "\n")
-
     def print_help_for_command(self, command: str):
         args_list = command.split()
         args_list.append("--help")
@@ -102,7 +86,9 @@ def get_parser(cfg: UAConfig):
     parser._optionals.title = messages.CLI_FLAGS
 
     subparsers = parser.add_subparsers(
-        title=messages.CLI_AVAILABLE_COMMANDS, dest="command", metavar=""
+        title=messages.CLI_AVAILABLE_COMMANDS,
+        dest="command",
+        metavar="<command>",
     )
     subparsers.required = True
 
