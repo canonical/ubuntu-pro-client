@@ -17,7 +17,7 @@ def action_system(args, *, cfg, **kwargs):
     # Avoiding a circular import
     from uaclient.cli import get_parser
 
-    get_parser(cfg).print_help_for_command("system")
+    get_parser().print_help_for_command("system")
 
 
 reboot_required_subcommand = ProCommand(
