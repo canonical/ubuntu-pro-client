@@ -56,7 +56,7 @@ BASE_VULNERABILITY_DATA_URL = "https://security-metadata.canonical.com/oval/"
 APT_NEWS_URL = "https://motd.ubuntu.com/aptnews.json"
 
 # VULNERABILITY DATA
-VULNERABILITY_DATA_TMPL = "com.ubuntu.{series}.pkg.json.bz2"
+VULNERABILITY_DATA_TMPL = "com.ubuntu.{series}.pkg.json.xz"
 VULNERABILITY_CACHE_PATH = os.path.join(DEFAULT_DATA_DIR, VULNERABILITY_SUBDIR)
 
 PRINT_WRAP_WIDTH = 80
