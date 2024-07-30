@@ -511,6 +511,8 @@ enable_command = ProCommand(
     help=messages.CLI_ROOT_ENABLE,
     description=messages.CLI_ENABLE_DESC,
     action=action_enable,
+    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_position=3,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

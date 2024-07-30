@@ -92,6 +92,7 @@ detach_command = ProCommand(
     help=messages.CLI_ROOT_DETACH,
     description=messages.CLI_DETACH_DESC,
     action=action_detach,
+    help_category=messages.CLI_HELP_HEADER_OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

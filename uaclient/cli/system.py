@@ -33,5 +33,7 @@ system_command = ProCommand(
     help=messages.CLI_ROOT_SYSTEM,
     description=messages.CLI_SYSTEM_DESC,
     action=action_system,
+    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_position=4,
     subcommands=[reboot_required_subcommand],
 )

@@ -141,6 +141,8 @@ attach_command = ProCommand(
     description=messages.CLI_ATTACH_DESC,
     action=action_attach,
     preserve_description=True,
+    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_position=2,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

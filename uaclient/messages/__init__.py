@@ -886,6 +886,16 @@ CLI_HELP_EPILOG = t.gettext(
     "Use {name} {command} --help for more information about a command."
 )
 
+CLI_HELP_FLAG_DESC = t.gettext(
+    "Displays help on {name} and command line options"
+)
+
+CLI_HELP_HEADER_QUICK_START = t.gettext("Quick start commands")
+CLI_HELP_HEADER_SECURITY = t.gettext("Security-related commands")
+CLI_HELP_HEADER_TROUBLESHOOT = t.gettext("Troubleshooting-related commands")
+CLI_HELP_HEADER_OTHER = t.gettext("Other commands")
+
+
 CLI_HELP_VARIANTS_HEADER = t.gettext("Variants:")
 CLI_FLAGS = t.gettext("Flags")
 CLI_AVAILABLE_COMMANDS = t.gettext("Available Commands")
