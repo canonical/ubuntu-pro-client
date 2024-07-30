@@ -11,7 +11,7 @@ def action_help(args, *, cfg, **kwargs):
         # Avoiding a circular import
         from uaclient.cli import get_parser
 
-        get_parser(cfg=cfg).print_help()
+        get_parser().print_help()
         return 0
 
     if not cfg:
