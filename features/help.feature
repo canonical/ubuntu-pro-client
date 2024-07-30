@@ -7,10 +7,10 @@ Feature: Pro Client help text
       """
       usage: pro [-h] [--debug] [--version] <command> ...
 
-    Flags:
-      -h, --help       show this help message and exit
-      --debug          show all debug log messages to console
-      --version        show version of pro
+      Flags:
+        -h, --help       show this help message and exit
+        --debug          show all debug log messages to console
+        --version        show version of pro
 
       Available Commands:
         <command>
@@ -293,12 +293,11 @@ Feature: Pro Client help text
       Output system related information related to Pro services
 
       <options_string>:
-        -h, --help       show this help message and exit
+        -h, --help         show this help message and exit
 
       Available Commands:
         {reboot-required}
-          reboot-required
-                         does the system need to be rebooted
+          reboot-required  does the system need to be rebooted
       """
     When I run `pro system reboot-required --help` as non-root
     Then I will see the following on stdout
@@ -329,13 +328,13 @@ Feature: Pro Client help text
       Manage Ubuntu Pro configuration
 
       <options_string>:
-        -h, --help  show this help message and exit
+        -h, --help        show this help message and exit
 
       Available Commands:
         {show,set,unset}
-          show      Show customizable configuration settings
-          set       Set and apply Ubuntu Pro configuration settings
-          unset     Unset Ubuntu Pro configuration setting
+          show            Show customizable configuration settings
+          set             Set and apply Ubuntu Pro configuration settings
+          unset           Unset Ubuntu Pro configuration setting
       """
     When I run `pro config show --help` as non-root
     Then I will see the following on stdout
