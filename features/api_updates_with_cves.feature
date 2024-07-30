@@ -119,8 +119,8 @@ Feature: Client behaviour for updates with CVEs API
               "package": "busybox-initramfs",
               "provided_by": "esm-infra",
               "related_cves": [
-                "CVE-2022-48174",
-                "CVE-2021-28831"
+                "CVE-2021-28831",
+                "CVE-2022-48174"
               ],
               "status": "pending_attach",
               "version": ".*"
