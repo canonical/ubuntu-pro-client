@@ -7,8 +7,8 @@ Feature: Client behaviour for USN vulnerabilities API
     # Check we can download and parse the JSON data
     And I run `pro api u.pro.security.vulnerabilities.usn.v1` as non-root
     And I apt install `jq`
-    And I push static file `security_issues_xenial.bz2` to machine
-    And I run `bzip2 -d /tmp/security_issues_xenial.bz2` as non-root
+    And I push static file `security_issues_xenial.xz` to machine
+    And I run `unxz -d /tmp/security_issues_xenial.xz` as non-root
     And I run shell command `pro api u.pro.security.vulnerabilities.usn.v1 --args data_file=/tmp/security_issues_xenial | jq '.data.attributes.usns[] | select (.name == \"USN-4976-2\")'` as non-root
     Then stdout matches regexp:
       """
