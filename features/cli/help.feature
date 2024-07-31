@@ -308,7 +308,7 @@ Feature: Pro Client help text
             entitles use of this service. Possible values are: yes or no.
           * STATUS: Whether the service is enabled on this machine. Possible
             values are: enabled, disabled, n/a (if your contract entitles
-            you to the service, but it isn't available for this machine) or — (if
+            you to the service, but it isn't available for this machine) or - (if
             you aren't entitled to this service).
           * DESCRIPTION: A brief description of the service.
 
