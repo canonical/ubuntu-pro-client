@@ -30,7 +30,7 @@ import time
 from uaclient import contract, defaults, messages, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
-from uaclient.files.machine_token import get_machine_token_file
+from uaclient.files import machine_token
 
 # We consider the past release for LTSs to be the last LTS,
 # because we don't have any services available on non-LTS.
@@ -60,7 +60,7 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
         print(messages.RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT)
 
     current_release = system.get_release_info().series
-    machine_token_file = get_machine_token_file(cfg)
+    machine_token_file = machine_token.get_machine_token_file(cfg)
 
     past_release = current_codename_to_past_codename.get(current_release)
     if past_release is None:
