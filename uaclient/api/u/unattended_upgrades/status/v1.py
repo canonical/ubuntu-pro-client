@@ -160,7 +160,8 @@ def _is_unattended_upgrades_running(
     if not systemd_apt_timer_enabled:
         return (False, messages.UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED)
 
-    for key, value in unattended_upgrades_cfg.items():
+    for key in UNATTENDED_UPGRADES_CONFIG_KEYS:
+        value = unattended_upgrades_cfg.get(key)
         if not value:
             return (
                 False,
