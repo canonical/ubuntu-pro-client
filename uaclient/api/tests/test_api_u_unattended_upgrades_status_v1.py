@@ -45,23 +45,63 @@ class TestIsUnattendedUpgradesRunning:
             (False, {}, False, UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED),
             (
                 True,
-                {"test": []},
+                {
+                    "APT::Periodic::Enable": "1",
+                    "APT::Periodic::Update-Package-Lists": "1",
+                    "APT::Periodic::Unattended-Upgrade": "1",
+                    "Unattended-Upgrade::Allowed-Origins": [],
+                },
                 False,
                 UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY.format(
-                    cfg_name="test"
+                    cfg_name="Unattended-Upgrade::Allowed-Origins"
                 ),
             ),
             (
                 True,
-                {"test": ["foo"], "test2": "0"},
+                {
+                    "APT::Periodic::Enable": "0",
+                    "APT::Periodic::Update-Package-Lists": "0",
+                    "APT::Periodic::Unattended-Upgrade": "0",
+                    "Unattended-Upgrade::Allowed-Origins": ["foo"],
+                },
                 False,
                 UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF.format(
-                    cfg_name="test2"
+                    cfg_name="APT::Periodic::Enable"
                 ),
             ),
             (
                 True,
-                {"test": ["foo"], "test2": "1"},
+                {
+                    "APT::Periodic::Enable": "1",
+                    "APT::Periodic::Update-Package-Lists": "0",
+                    "APT::Periodic::Unattended-Upgrade": "1",
+                    "Unattended-Upgrade::Allowed-Origins": ["foo"],
+                },
+                False,
+                UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF.format(
+                    cfg_name="APT::Periodic::Update-Package-Lists"
+                ),
+            ),
+            (
+                True,
+                {
+                    "APT::Periodic::Enable": "1",
+                    "APT::Periodic::Update-Package-Lists": "1",
+                    "APT::Periodic::Unattended-Upgrade": "1",
+                    "Unattended-Upgrade::Allowed-Origins": ["foo"],
+                },
+                True,
+                None,
+            ),
+            (
+                True,
+                {
+                    "APT::Periodic::Enable": "1",
+                    "APT::Periodic::Update-Package-Lists": "1",
+                    "APT::Periodic::Unattended-Upgrade": "1",
+                    "Unattended-Upgrade::Allowed-Origins": ["foo"],
+                    "Unattended-Upgrade::OnlyOnACPower": "0",
+                },
                 True,
                 None,
             ),
