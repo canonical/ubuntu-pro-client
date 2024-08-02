@@ -7,6 +7,7 @@ from uaclient import exceptions, messages
 from uaclient.api import AbstractProgress
 from uaclient.api.api import call_api
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 
 
 class CLIAPIProgress(AbstractProgress):
@@ -51,7 +52,7 @@ api_command = ProCommand(
     help=messages.CLI_ROOT_API,
     description=messages.CLI_API_DESC,
     action=action_api,
-    help_category=messages.CLI_HELP_HEADER_OTHER,
+    help_category=HelpCategory.OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

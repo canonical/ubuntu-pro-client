@@ -10,6 +10,7 @@ from uaclient import (
 from uaclient.apt import AptProxyScope
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
 from uaclient.livepatch import (
@@ -293,6 +294,6 @@ config_command = ProCommand(
     help=messages.CLI_ROOT_CONFIG,
     description=messages.CLI_CONFIG_DESC,
     action=action_config,
-    help_category=messages.CLI_HELP_HEADER_OTHER,
+    help_category=HelpCategory.OTHER,
     subcommands=[show_subcommand, set_subcommand, unset_subcommand],
 )

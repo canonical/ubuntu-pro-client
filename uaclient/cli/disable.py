@@ -21,6 +21,7 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 from uaclient.entitlements.entitlement_status import CanDisableFailure
 
 event = event_logger.get_event_logger()
@@ -294,7 +295,7 @@ disable_command = ProCommand(
     help=messages.CLI_ROOT_DISABLE,
     description=messages.CLI_DISABLE_DESC,
     action=action_disable,
-    help_category=messages.CLI_HELP_HEADER_OTHER,
+    help_category=HelpCategory.OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

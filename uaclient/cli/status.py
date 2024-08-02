@@ -2,6 +2,7 @@ import time
 
 from uaclient import actions, config, event_logger, messages, status, util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 
 event = event_logger.get_event_logger()
 
@@ -41,7 +42,7 @@ status_command = ProCommand(
     description=messages.CLI_STATUS_DESC,
     action=action_status,
     preserve_description=True,
-    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_category=HelpCategory.QUICKSTART,
     help_position=1,
     argument_groups=[
         ProArgumentGroup(

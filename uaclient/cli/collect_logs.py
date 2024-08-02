@@ -5,6 +5,7 @@ import tempfile
 from uaclient import messages
 from uaclient.actions import collect_logs
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 from uaclient.util import replace_top_level_logger_name
 
 PRO_COLLECT_LOGS_FILE = "pro_logs.tar.gz"
@@ -29,7 +30,7 @@ collect_logs_command = ProCommand(
     help=messages.CLI_ROOT_COLLECT_LOGS,
     description=messages.CLI_COLLECT_LOGS_DESC,
     action=action_collect_logs,
-    help_category=messages.CLI_HELP_HEADER_TROUBLESHOOT,
+    help_category=HelpCategory.TROUBLESHOOT,
     argument_groups=[
         ProArgumentGroup(
             arguments=[
