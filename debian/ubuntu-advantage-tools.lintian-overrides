@@ -10,5 +10,5 @@ ubuntu-advantage-tools: python3-script-but-no-python3-dep
 ubuntu-advantage-tools: possibly-insecure-handling-of-tmp-files-in-maintainer-script /tmp [postinst:61]
 
 # systemctl is the only way to do these calls, and we do the required check before calling it
-ubuntu-advantage-tools: maintainer-script-calls-systemctl [postinst:260]
-ubuntu-advantage-tools: maintainer-script-calls-systemctl [postinst:263]
+ubuntu-advantage-tools: maintainer-script-calls-systemctl [postinst:261]
+ubuntu-advantage-tools: maintainer-script-calls-systemctl [postinst:264]
