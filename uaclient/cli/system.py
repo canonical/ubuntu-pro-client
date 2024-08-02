@@ -3,6 +3,7 @@ from uaclient.api.u.pro.security.status.reboot_required.v1 import (
     _reboot_required,
 )
 from uaclient.cli.commands import ProCommand
+from uaclient.cli.parser import HelpCategory
 
 event = event_logger.get_event_logger()
 
@@ -33,7 +34,7 @@ system_command = ProCommand(
     help=messages.CLI_ROOT_SYSTEM,
     description=messages.CLI_SYSTEM_DESC,
     action=action_system,
-    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_category=HelpCategory.QUICKSTART,
     help_position=4,
     subcommands=[reboot_required_subcommand],
 )

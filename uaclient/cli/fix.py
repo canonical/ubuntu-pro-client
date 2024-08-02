@@ -59,6 +59,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
 )
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.detach import action_detach
+from uaclient.cli.parser import HelpCategory
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUD_URLS,
@@ -915,7 +916,7 @@ fix_command = ProCommand(
     help=messages.CLI_ROOT_FIX,
     description=messages.CLI_FIX_DESC,
     action=action_fix,
-    help_category=messages.CLI_HELP_HEADER_SECURITY,
+    help_category=HelpCategory.SECURITY,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

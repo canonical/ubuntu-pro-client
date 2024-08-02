@@ -30,6 +30,7 @@ from uaclient.api.u.pro.status.enabled_services.v1 import (
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -511,7 +512,7 @@ enable_command = ProCommand(
     help=messages.CLI_ROOT_ENABLE,
     description=messages.CLI_ENABLE_DESC,
     action=action_enable,
-    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_category=HelpCategory.QUICKSTART,
     help_position=3,
     argument_groups=[
         ProArgumentGroup(

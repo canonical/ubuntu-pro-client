@@ -2,6 +2,7 @@ import argparse
 from typing import Callable, Iterable, Optional, Union
 
 from uaclient import messages
+from uaclient.cli.parser import HelpCategory
 
 
 class ProArgument:
@@ -79,7 +80,7 @@ class ProCommand:
         preserve_description: bool = False,
         argument_groups: Iterable[ProArgumentGroup] = (),
         subcommands: Iterable["ProCommand"] = (),
-        help_category: Optional[str] = None,
+        help_category: Optional[HelpCategory] = None,
         help_position: int = 0,
     ):
         self.name = name

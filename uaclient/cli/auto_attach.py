@@ -5,6 +5,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
 )
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProCommand
+from uaclient.cli.parser import HelpCategory
 
 event = event_logger.get_event_logger()
 
@@ -30,5 +31,5 @@ auto_attach_command = ProCommand(
     help=messages.CLI_ROOT_AUTO_ATTACH,
     description=messages.CLI_AUTO_ATTACH_DESC,
     action=action_auto_attach,
-    help_category=messages.CLI_HELP_HEADER_OTHER,
+    help_category=HelpCategory.OTHER,
 )

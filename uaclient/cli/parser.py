@@ -1,5 +1,6 @@
 import argparse
 from collections import OrderedDict
+from enum import Enum
 from typing import List, NamedTuple  # noqa: F401
 
 from uaclient import messages
@@ -9,20 +10,35 @@ HelpEntry = NamedTuple(
 )
 
 
+class HelpCategory(Enum):
+    QUICKSTART = messages.CLI_HELP_HEADER_QUICK_START
+    SECURITY = messages.CLI_HELP_HEADER_SECURITY
+    TROUBLESHOOT = messages.CLI_HELP_HEADER_TROUBLESHOOT
+    OTHER = messages.CLI_HELP_HEADER_OTHER
+    FLAGS = messages.CLI_FLAGS
+
+    def __str__(self):
+        return str(self.value)
+
+
 class ProArgumentParser(argparse.ArgumentParser):
     help_entries = OrderedDict(
         [
-            (messages.CLI_HELP_HEADER_QUICK_START, []),
-            (messages.CLI_HELP_HEADER_SECURITY, []),
-            (messages.CLI_HELP_HEADER_TROUBLESHOOT, []),
-            (messages.CLI_HELP_HEADER_OTHER, []),
-            (messages.CLI_FLAGS, []),
+            (HelpCategory.QUICKSTART, []),
+            (HelpCategory.SECURITY, []),
+            (HelpCategory.TROUBLESHOOT, []),
+            (HelpCategory.OTHER, []),
+            (HelpCategory.FLAGS, []),
         ]
-    )  # type: OrderedDict[str, List[HelpEntry]]
+    )  # type: OrderedDict[HelpCategory, List[HelpEntry]]
 
     @classmethod
     def add_help_entry(
-        cls, category: str, name: str, help_string: str, position: int = 0
+        cls,
+        category: HelpCategory,
+        name: str,
+        help_string: str,
+        position: int = 0,
     ):
         cls.help_entries[category].append(
             HelpEntry(position=position, name=name, help_string=help_string)

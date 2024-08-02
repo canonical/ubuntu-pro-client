@@ -20,6 +20,7 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
 )
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.entitlements import (
     create_enable_entitlements_not_found_error,
@@ -141,7 +142,7 @@ attach_command = ProCommand(
     description=messages.CLI_ATTACH_DESC,
     action=action_attach,
     preserve_description=True,
-    help_category=messages.CLI_HELP_HEADER_QUICK_START,
+    help_category=HelpCategory.QUICKSTART,
     help_position=2,
     argument_groups=[
         ProArgumentGroup(

@@ -25,7 +25,7 @@ from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
 from uaclient.cli.fix import fix_command
 from uaclient.cli.help import help_command
-from uaclient.cli.parser import ProArgumentParser
+from uaclient.cli.parser import HelpCategory, ProArgumentParser
 from uaclient.cli.refresh import refresh_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.cli.status import status_command
@@ -63,7 +63,7 @@ def get_parser():
         epilog=messages.CLI_HELP_EPILOG.format(name=NAME, command="<command>"),
     )
     parser.add_help_entry(
-        messages.CLI_FLAGS,
+        HelpCategory.FLAGS,
         "-h, --help",
         messages.CLI_HELP_FLAG_DESC.format(name=NAME),
     )
@@ -72,7 +72,7 @@ def get_parser():
         "--debug", action="store_true", help=messages.CLI_ROOT_DEBUG
     )
     parser.add_help_entry(
-        messages.CLI_FLAGS, "--debug", messages.CLI_ROOT_DEBUG
+        HelpCategory.FLAGS, "--debug", messages.CLI_ROOT_DEBUG
     )
 
     parser.add_argument(
@@ -82,7 +82,7 @@ def get_parser():
         help=messages.CLI_ROOT_VERSION.format(name=NAME),
     )
     parser.add_help_entry(
-        messages.CLI_FLAGS,
+        HelpCategory.FLAGS,
         "--version",
         messages.CLI_ROOT_VERSION.format(name=NAME),
     )

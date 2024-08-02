@@ -3,6 +3,7 @@ import logging
 from uaclient import apt_news, config, contract, exceptions, messages, util
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
+from uaclient.cli.parser import HelpCategory
 from uaclient.timer.update_messaging import refresh_motd, update_motd_messages
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -63,7 +64,7 @@ refresh_command = ProCommand(
     description=messages.CLI_REFRESH_DESC,
     action=action_refresh,
     preserve_description=True,
-    help_category=messages.CLI_HELP_HEADER_OTHER,
+    help_category=HelpCategory.OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

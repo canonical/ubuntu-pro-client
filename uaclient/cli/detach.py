@@ -11,6 +11,7 @@ from uaclient import (
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.disable import perform_disable
+from uaclient.cli.parser import HelpCategory
 from uaclient.files import machine_token, state_files
 from uaclient.timer.update_messaging import update_motd_messages
 
@@ -92,7 +93,7 @@ detach_command = ProCommand(
     help=messages.CLI_ROOT_DETACH,
     description=messages.CLI_DETACH_DESC,
     action=action_detach,
-    help_category=messages.CLI_HELP_HEADER_OTHER,
+    help_category=HelpCategory.OTHER,
     argument_groups=[
         ProArgumentGroup(
             arguments=[
