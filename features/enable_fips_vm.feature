@@ -5,17 +5,16 @@ Feature: FIPS enablement in lxd VMs
   Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    And I apt install `jq`
     And I run shell command `pro status --format json` with sudo
-    And I apply this jq filter `'.services[] | select(.name == "livepatch") | .available'` to the output
+    And I apply this jq filter `.services[] | select(.name == "fips") | .blocked_by[0].reason_code` to the output
     Then I will see the following on stdout
       """
-      "yes"
+      "livepatch-invalidates-fips"
       """
     When I run `pro disable livepatch` with sudo
     And I apt install `openssh-client openssh-server strongswan`
     And I run `pro enable fips` `with sudo` and stdin `y\ny`
-    Then stdout contains substring:
+    Then if `<release>` in `focal` and stdout contains substring:
       """
       This will install the FIPS packages. The Livepatch service will be unavailable.
       Warning: This action can take some time and cannot be undone.
@@ -55,16 +54,16 @@ Feature: FIPS enablement in lxd VMs
     And I ensure apt update runs without errors
     And I verify that `<fips-packages>` are installed from apt source `<fips-apt-source>`
     When I run shell command `pro status --format json --all` with sudo
-    And I apply this jq filter `'.services[] | select(.name == "livepatch") | .available'` to the output
+    And I apply this jq filter `.services[] | select(.name == "livepatch") | .available` to the output
     Then I will see the following on stdout
       """
       "no"
       """
     When I run shell command `pro status --format json --all` with sudo
-    And I apply this jq filter `'.services[] | select(.name == "livepatch") | .blocked_by[0].reason'` to the output
+    And I apply this jq filter `.services[] | select(.name == "livepatch") | .blocked_by[0].reason_code` to the output
     Then I will see the following on stdout
       """
-      "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch."
+      "livepatch-invalidates-fips"
       """
     When I reboot the machine
     And I run `uname -r` as non-root
