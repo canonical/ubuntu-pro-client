@@ -11,14 +11,26 @@ HelpEntry = NamedTuple(
 
 
 class HelpCategory(Enum):
-    QUICKSTART = messages.CLI_HELP_HEADER_QUICK_START
-    SECURITY = messages.CLI_HELP_HEADER_SECURITY
-    TROUBLESHOOT = messages.CLI_HELP_HEADER_TROUBLESHOOT
-    OTHER = messages.CLI_HELP_HEADER_OTHER
-    FLAGS = messages.CLI_FLAGS
+
+    class _Value:
+        def __init__(self, code: str, msg: str):
+            self.code = code
+            self.msg = msg
+
+    QUICKSTART = _Value("quickstart", messages.CLI_HELP_HEADER_QUICK_START)
+    SECURITY = _Value("security", messages.CLI_HELP_HEADER_SECURITY)
+    TROUBLESHOOT = _Value(
+        "troubleshoot", messages.CLI_HELP_HEADER_TROUBLESHOOT
+    )
+    OTHER = _Value("other", messages.CLI_HELP_HEADER_OTHER)
+    FLAGS = _Value("flags", messages.CLI_FLAGS)
 
     def __str__(self):
-        return str(self.value)
+        return self.value.code
+
+    @property
+    def header(self):
+        return self.value.msg
 
 
 class ProArgumentParser(argparse.ArgumentParser):
@@ -65,7 +77,7 @@ class ProArgumentParser(argparse.ArgumentParser):
 
         for category, items in self.help_entries.items():
             help_output += "\n"
-            help_output += "{}:".format(category)
+            help_output += "{}:".format(category.header)
             help_output += "\n"
             for item in sorted(items, key=lambda item: item.position):
                 help_output += "\n"
