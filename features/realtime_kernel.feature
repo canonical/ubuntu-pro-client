@@ -51,7 +51,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       This command must be run as root (try using sudo).
       """
-    When I run `pro enable realtime-kernel` `with sudo` and stdin `y\ny`
+    When I run `pro enable realtime-kernel` `with sudo` and stdin `y\ny\ny`
     Then stdout matches regexp:
       """
       One moment, checking your subscription first
@@ -61,12 +61,20 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       .*This will change your kernel. To revert to your original kernel, you will need
       to make the change manually..*
 
-      Do you want to continue\? \[ default = Yes \]: \(Y/n\) Configuring APT access to Real-time kernel
+      Do you want to continue\? \[ default = Yes \]: \(Y/n\) The "generic" variant of realtime-kernel is based on the "generic" Ubuntu
+      kernel but this machine is running the "kvm" kernel.
+      The "kvm" kernel may have significant hardware support
+      differences from "generic" realtime-kernel.
+
+      Warning: Installing generic realtime-kernel may result in lost hardware support
+               and may prevent the system from booting.
+
+      Do you accept the risk and wish to continue\? \(y/N\) Configuring APT access to Real-time kernel
       Updating Real-time kernel package lists
       Updating standard Ubuntu package lists
       Installing Real-time kernel packages
       Real-time kernel enabled
-      A reboot is required to complete install\.
+      A reboot is required to complete install.
       """
     When I run `apt-cache policy ubuntu-realtime` as non-root
     Then stdout does not match regexp:
@@ -168,7 +176,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       intel
       """
-    When I run `pro enable realtime-kernel --variant generic` `with sudo` and stdin `y\ny\ny`
+    When I run `pro enable realtime-kernel --variant generic --assume-yes` with sudo
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
