@@ -84,7 +84,7 @@ def when_i_install_uat(context, machine_name=SUT):
             instance.push_file(deb_path, instance_tmp_path)
             to_install.append(instance_tmp_path)
         if is_pro:
-            for deb_name, deb_path in debs.cloud_pro_image_debs(series):
+            for deb_name, deb_path in debs.cloud_pro_image_debs():
                 instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
                 instance.push_file(deb_path, instance_tmp_path)
                 to_install.append(instance_tmp_path)
@@ -151,7 +151,7 @@ def when_i_have_the_debs_under_test(context, series, dest):
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
 
-        for deb_name, deb_path in debs.all_debs():
+        for deb_name, deb_path in debs.all_debs(series):
             context.machines[SUT].instance.push_file(
                 deb_path, "{}/{}.deb".format(dest, deb_name)
             )
@@ -239,7 +239,7 @@ def create_local_ppa(context, release):
         release,
         sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,
     )
-    for deb_name, deb_path in debs.all_debs():
+    for deb_name, deb_path in debs.all_debs(release):
         deb_destination = "/tmp/{}.deb".format(deb_name)
         context.machines["ppa"].instance.push_file(deb_path, deb_destination)
         when_i_run_command(
