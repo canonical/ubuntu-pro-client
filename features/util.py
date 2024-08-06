@@ -74,8 +74,10 @@ class ProDebPaths:
             ("ubuntu-advantage-pro", self.ubuntu_advantage_pro),
         ]
 
-    def all_debs(self) -> List[Tuple[str, str]]:
-        return self.non_cloud_pro_image_debs() + self.cloud_pro_image_debs()
+    def all_debs(self, series: str) -> List[Tuple[str, str]]:
+        return (
+            self.non_cloud_pro_image_debs(series) + self.cloud_pro_image_debs()
+        )
 
 
 class InstallationSource(Enum):
