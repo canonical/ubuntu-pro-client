@@ -261,13 +261,15 @@ def _status(cfg: UAConfig) -> UnattendedUpgradesStatusResult:
         == "1",
         package_lists_refresh_frequency_days=int(
             unattended_upgrades_cfg.get(  # type: ignore
-                "APT::Periodic::Update-Package-Lists", 0
+                "APT::Periodic::Update-Package-Lists"
             )
+            or 0
         ),
         unattended_upgrades_frequency_days=int(
             unattended_upgrades_cfg.get(  # type: ignore
-                "APT::Periodic::Unattended-Upgrade", 0
+                "APT::Periodic::Unattended-Upgrade"
             )
+            or 0
         ),
         unattended_upgrades_allowed_origins=list(
             unattended_upgrades_cfg.get("Unattended-Upgrade::Allowed-Origins")
