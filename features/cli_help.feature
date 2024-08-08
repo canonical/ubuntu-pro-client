@@ -392,3 +392,99 @@ Feature: Pro Client help text
       | focal   | lxd-container | optional arguments |
       | jammy   | lxd-container | options            |
       | noble   | lxd-container | options            |
+
+  Scenario Outline: Help command on an attached machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I run `pro help esm-infra` with sudo
+    Then I will see the following on stdout:
+      """
+      Name:
+      esm-infra
+
+      Entitled:
+      yes
+
+      Status:
+      <infra-status>
+
+      Help:
+      Expanded Security Maintenance for Infrastructure provides access to a private
+      PPA which includes available high and critical CVE fixes for Ubuntu LTS
+      packages in the Ubuntu Main repository between the end of the standard Ubuntu
+      LTS security maintenance and its end of life. It is enabled by default with
+      Ubuntu Pro. You can find out more about the service at
+      https://ubuntu.com/security/esm
+      """
+    When I run `pro help esm-infra --format json` with sudo
+    Then API full output matches regexp:
+      """
+      {
+        "name": "esm-infra",
+        "entitled": "yes",
+        "status": "enabled",
+        "help": "Expanded Security Maintenance for Infrastructure provides access to a private\nPPA which includes available high and critical CVE fixes for Ubuntu LTS\npackages in the Ubuntu Main repository between the end of the standard Ubuntu\nLTS security maintenance and its end of life. It is enabled by default with\nUbuntu Pro. You can find out more about the service at\nhttps://ubuntu.com/security/esm"
+      }
+      """
+    And I verify that running `pro help invalid-service` `with sudo` exits `1`
+    And I will see the following on stderr:
+      """
+      No help available for 'invalid-service'
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  | infra-status |
+      | bionic  | lxd-container | enabled      |
+      | xenial  | lxd-container | enabled      |
+      | focal   | lxd-container | enabled      |
+      | jammy   | lxd-container | enabled      |
+      | mantic  | lxd-container | n/a          |
+      | noble   | lxd-container | enabled      |
+
+  Scenario Outline: Help command on an unattached machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `pro help esm-infra` as non-root
+    Then I will see the following on stdout:
+      """
+      Name:
+      esm-infra
+
+      Available:
+      <infra-available>
+
+      Help:
+      Expanded Security Maintenance for Infrastructure provides access to a private
+      PPA which includes available high and critical CVE fixes for Ubuntu LTS
+      packages in the Ubuntu Main repository between the end of the standard Ubuntu
+      LTS security maintenance and its end of life. It is enabled by default with
+      Ubuntu Pro. You can find out more about the service at
+      https://ubuntu.com/security/esm
+      """
+    When I run `pro help esm-infra --format json` with sudo
+    Then I will see the following on stdout:
+      """
+      {"name": "esm-infra", "available": "<infra-available>", "help": "Expanded Security Maintenance for Infrastructure provides access to a private\nPPA which includes available high and critical CVE fixes for Ubuntu LTS\npackages in the Ubuntu Main repository between the end of the standard Ubuntu\nLTS security maintenance and its end of life. It is enabled by default with\nUbuntu Pro. You can find out more about the service at\nhttps://ubuntu.com/security/esm"}
+      """
+    When I verify that running `pro help invalid-service` `with sudo` exits `1`
+    Then I will see the following on stderr:
+      """
+      No help available for 'invalid-service'
+      """
+    When I verify that running `pro --no-command` `with sudo` exits `2`
+    Then I will see the following on stderr:
+      """
+      usage: pro [-h] [--debug] [--version] <command> ...
+      pro: error: the following arguments are required: <command>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  | infra-available |
+      | xenial  | lxd-container | yes             |
+      | bionic  | lxd-container | yes             |
+      | bionic  | wsl           | yes             |
+      | focal   | lxd-container | yes             |
+      | focal   | wsl           | yes             |
+      | jammy   | lxd-container | yes             |
+      | jammy   | wsl           | yes             |
+      | mantic  | lxd-container | no              |
+      | noble   | lxd-container | yes             |
