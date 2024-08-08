@@ -1,17 +1,15 @@
-Host your own APT News
+Host your own APT news
 **********************
+
+APT news is used to deliver messages related to APT updates. However, it can also be used to display custom messages within the ``apt upgrade`` command to your users.
 
 In this tutorial, you will learn how to host your own APT news and how to
 configure your Ubuntu machines to use it.
 
-APT news is used to display custom messages within the ``apt upgrade`` command,
-and can be a good way of delivering messages that are related to APT updates
-to users.
-
 .. Why we use Multipass + command to install it
 .. include:: ./common/install-multipass.txt
 
-Tutorial Architecture
+Tutorial overview
 =====================
 
 To demonstrate how APT news works, we will create three containers inside a
@@ -45,13 +43,13 @@ it clear on which machine the command will be executed.
 Create the local VM and containers
 ==================================
 
-Begin by launching an Ubuntu 24.04 Multipass VM with the following command:
+Let's begin by launching an Ubuntu 24.04 Multipass VM with the following command:
 
 .. code-block:: console
 
    you@yourcomputer:~$ multipass launch noble --disk 10G --name tutorial
 
-Access the VM using the ``multipass shell`` subcommand.
+Then we can access the VM using the ``multipass shell`` subcommand:
 
 .. code-block:: console
 
@@ -64,14 +62,14 @@ following, you know that you've entered the VM.
 
    ubuntu@tutorial:~$
 
-Inside the VM, set up `LXD`_:
+We're going to use `LXD`_ to set up our server and clients, so once we're inside the VM, we can set up LXD with the default parameters:
 
 .. code-block:: console
 
    ubuntu@tutorial:~$ lxd init --minimal
 
 
-Launch three containers inside the VM with the following commands. This may
+Now we will launch three containers inside the VM with the following commands. This may
 take a while since it will need to download the appropriate Ubuntu images.
 
 .. code-block:: console
@@ -80,10 +78,10 @@ take a while since it will need to download the appropriate Ubuntu images.
    ubuntu@tutorial:~$ lxc launch ubuntu-daily:jammy client-jammy
    ubuntu@tutorial:~$ lxc launch ubuntu-daily:focal client-focal
 
-Set up the APT news server
+Configure the APT news server
 ==========================
 
-Now, let's setup the ``apt-news-server`` container to serve APT news content.
+Now, let's set up the ``apt-news-server`` container to serve APT news content.
 APT news content is formatted as a JSON file and served over HTTP(S). We can
 accomplish this by installing and configuring `nginx`_ to serve a properly
 formatted JSON file.
@@ -95,7 +93,7 @@ First, enter the ``apt-news-server`` container:
    ubuntu@tutorial:~$ lxc shell apt-news-server
    root@apt-news-server:~#
 
-In ``apt-news-server``, install ``nginx`` via ``apt``. This will also start the HTTP server on port 80.
+Inside ``apt-news-server``, install ``nginx`` via ``apt``. This will also start the HTTP server on port 80.
 
 .. code-block:: console
 
@@ -133,10 +131,10 @@ and add the following content:
      ]
    }
 
-In ``nano``, use CTRL-S and CTRL-X to save and exit, respectively.
+In ``nano``, use :kbd:`CTRL`+:kbd:`S` and :kbd:`CTRL`+:kbd:`X` to save and exit, respectively.
 
 That apt news configuration will show one message to systems running Ubuntu
-22.04 (Codename "jammy") and will show another message to all other systems.
+22.04 (codename "jammy") and will show a different message to all other systems.
 
 The value of ``"begin"`` actually needs to be an ISO8601 formatted datetime
 string, and the message won't be shown before the ``begin`` date or more than 30
@@ -162,7 +160,7 @@ You can double check that the command worked by verifying the ``begin`` field ha
            "codenames": ["jammy"]
    ...
 
-We're done configuring ``apt-news-server`` for now, so you can exit that container
+Now that our ``apt-news-server`` is configured, we can exit that container:
 
 .. code-block:: console
 
@@ -189,16 +187,14 @@ Normally, the containers would fetch the latest APT news whenever an
 ``pro refresh messages`` to force the containers to fetch the latest news
 right away.
 
-In the Jammy container we expect to see the special message for systems on
-Ubuntu 22.04.
-
-First enter the Jammy container.
+In the Jammy container we expect to see the special message we set up for systems on
+Ubuntu 22.04. Let's check this is working correctly by first entering the Jammy container:
 
 .. code-block:: console
 
    ubuntu@tutorial:~$ lxc shell client-jammy
 
-Then run these commands to see the APT news.
+Then we can run these commands to see the custom APT news message:
 
 .. code-block:: console
 
@@ -219,22 +215,21 @@ The output of ``apt upgrade`` should look like this.
    #
    0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
 
-Now you can exit the container.
+Since this is what we expected, we can now exit the container:
 
 .. code-block:: console
 
    root@client-jammy:~# exit
    ubuntu@tutorial:~$
 
-And in the Focal container we expect to see the other message.
-
-Enter the Focal container.
+In the Focal client container we expect to see the other message. Let's check that
+by entering the Focal container:
 
 .. code-block:: console
 
    ubuntu@tutorial:~$ lxc shell client-focal
 
-Then run these commands to see the APT news.
+Then run these commands again to see the APT news message:
 
 .. code-block:: console
 
@@ -255,7 +250,7 @@ The output of ``apt upgrade`` should look like this.
    #
    0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
 
-Now you can exit the container.
+Once again, this is exactly what we expected to see, so everything is working correctly! Now we can exit this container:
 
 .. code-block:: console
 
