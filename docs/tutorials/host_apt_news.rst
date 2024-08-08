@@ -82,7 +82,7 @@ take a while since it will need to download the appropriate Ubuntu images.
    ubuntu@tutorial:~$ lxc launch ubuntu-daily:focal client-focal
 
 Configure the APT news server
-==========================
+=============================
 
 Now, let's set up the ``apt-news-server`` container to serve APT news content.
 APT news content is formatted as a JSON file and served over HTTP(S). We can
