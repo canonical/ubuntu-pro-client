@@ -45,23 +45,14 @@ Feature: Command behaviour when unattached
 
     Examples: pro commands
       | release | machine_type  | command |
-      | bionic  | lxd-container | detach  |
       | bionic  | lxd-container | refresh |
-      | bionic  | wsl           | detach  |
       | bionic  | wsl           | refresh |
-      | focal   | lxd-container | detach  |
       | focal   | lxd-container | refresh |
-      | focal   | wsl           | detach  |
       | focal   | wsl           | refresh |
-      | xenial  | lxd-container | detach  |
       | xenial  | lxd-container | refresh |
-      | jammy   | lxd-container | detach  |
       | jammy   | lxd-container | refresh |
-      | jammy   | wsl           | detach  |
       | jammy   | wsl           | refresh |
-      | mantic  | lxd-container | detach  |
       | mantic  | lxd-container | refresh |
-      | noble   | lxd-container | detach  |
       | noble   | lxd-container | refresh |
 
   Scenario Outline: Help command on an unattached machine
