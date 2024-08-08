@@ -114,18 +114,15 @@ class AllTimerJobsState(DataObject):
     fields = [
         Field("metering", TimerJobState, required=False),
         Field("update_messaging", TimerJobState, required=False),
-        Field("validate_release_series", TimerJobState, required=False),
     ]
 
     def __init__(
         self,
         metering: Optional[TimerJobState],
         update_messaging: Optional[TimerJobState],
-        validate_release_series: Optional[TimerJobState],
     ):
         self.metering = metering
         self.update_messaging = update_messaging
-        self.validate_release_series = validate_release_series
 
 
 timer_jobs_state_file = DataObjectFile(
@@ -175,6 +172,7 @@ livepatch_support_cache = DataObjectFile(
 )
 
 reboot_cmd_marker_file = UAFile("marker-reboot-cmds-required")
+only_series_check_marker_file = UAFile("marker-only-series-check")
 
 
 class AnboxCloudData(DataObject):
@@ -245,4 +243,5 @@ def delete_state_files():
     attachment_data_file.delete()
     anbox_cloud_credentials_file.delete()
     reboot_cmd_marker_file.delete()
+    only_series_check_marker_file.delete()
     status_cache_file.delete()
