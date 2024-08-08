@@ -1,34 +1,5 @@
 Feature: Command behaviour when unattached
 
-  Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    # Validate systemd unit/timer syntax
-    When I run `systemd-analyze verify /lib/systemd/system/ua-timer.timer` with sudo
-    Then stderr does not match regexp:
-      """
-      .*\/lib\/systemd/system\/ua.*
-      """
-    When I verify that running `pro auto-attach` `as non-root` exits `1`
-    Then stderr matches regexp:
-      """
-      This command must be run as root \(try using sudo\).
-      """
-    When I run `pro auto-attach` with sudo
-    Then stderr matches regexp:
-      """
-      Auto-attach image support is not available on lxd
-      See: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances.html
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
-
   Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro <command>` `as non-root` exits `1`

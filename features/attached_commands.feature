@@ -1,30 +1,6 @@
 @uses.config.contract_token
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
-  Scenario Outline: Attached auto-attach in a ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    Then I verify that running `pro auto-attach` `as non-root` exits `1`
-    And stderr matches regexp:
-      """
-      This command must be run as root \(try using sudo\).
-      """
-    When I verify that running `pro auto-attach` `with sudo` exits `2`
-    Then stderr matches regexp:
-      """
-      This machine is already attached to '.+'
-      To use a different subscription first run: sudo pro detach.
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
-
   Scenario Outline: Attached show version in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -67,7 +43,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       """
       features:
         machine_token_overlay: "/var/lib/ubuntu-advantage/machine-token-overlay.json"
-        disable_auto_attach: true
         other: false
       """
     And I attach `contract_token` with sudo
@@ -81,7 +56,6 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     And stdout matches regexp:
       """
       FEATURES
-      disable_auto_attach: True
       machine_token_overlay: /var/lib/ubuntu-advantage/machine-token-overlay.json
       other: False
       """
@@ -95,15 +69,8 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
     And stdout matches regexp:
       """
       FEATURES
-      disable_auto_attach: True
       machine_token_overlay: /var/lib/ubuntu-advantage/machine-token-overlay.json
       other: False
-      """
-    When I run `pro detach --assume-yes` with sudo
-    Then I verify that running `pro auto-attach` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      features.disable_auto_attach set in config
       """
 
     Examples: ubuntu release
