@@ -222,7 +222,7 @@ class TestReadurl:
                 http.UnparsedHTTPResponse(
                     code=200,
                     headers={"something": "here"},
-                    body="body",
+                    body=b"body",
                 ),
                 http.HTTPResponse(
                     code=200,
@@ -253,7 +253,7 @@ class TestReadurl:
                 http.UnparsedHTTPResponse(
                     code=200,
                     headers={"something": "here"},
-                    body="body",
+                    body=b"body",
                 ),
                 http.HTTPResponse(
                     code=200,
@@ -284,7 +284,7 @@ class TestReadurl:
                 http.UnparsedHTTPResponse(
                     code=200,
                     headers={"something": "here"},
-                    body="body",
+                    body=b"body",
                 ),
                 http.HTTPResponse(
                     code=200,
@@ -315,7 +315,7 @@ class TestReadurl:
                 http.UnparsedHTTPResponse(
                     code=200,
                     headers={"something": "here"},
-                    body="body",
+                    body=b"body",
                 ),
                 http.HTTPResponse(
                     code=200,
@@ -346,7 +346,7 @@ class TestReadurl:
                 http.UnparsedHTTPResponse(
                     code=200,
                     headers={"content-type": "application/json"},
-                    body='{"hello": "hello"}',
+                    body=b'{"hello": "hello"}',
                 ),
                 http.HTTPResponse(
                     code=200,
@@ -377,7 +377,7 @@ class TestReadurl:
                 http.UnparsedHTTPResponse(
                     code=200,
                     headers={"content-type": "application/json"},
-                    body='["hello"]',
+                    body=b'["hello"]',
                 ),
                 http.HTTPResponse(
                     code=200,

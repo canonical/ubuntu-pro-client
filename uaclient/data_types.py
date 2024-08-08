@@ -112,6 +112,24 @@ class IntDataValue(DataValue):
         return val
 
 
+class FloatDataValue(DataValue):
+    """
+    To be used for parsing float values
+    from_value raises an error if the value is not a float and returns
+    the float itself if it is a float.
+    """
+
+    python_type_name = "float"
+
+    @staticmethod
+    def from_value(val: Any) -> float:
+        if not isinstance(val, float):
+            raise IncorrectTypeError(
+                expected_type="float", got_type=type(val).__name__
+            )
+        return val
+
+
 class BoolDataValue(DataValue):
     """
     To be used for parsing bool values

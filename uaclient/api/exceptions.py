@@ -19,6 +19,7 @@ from uaclient.exceptions import (
     RequiredServiceStopsEnable,
     UbuntuProError,
     UnattachedError,
+    UnsupportedManifestFile,
     UrlError,
     UserFacingError,
 )
@@ -44,6 +45,7 @@ __all__ = [
     "EntitlementNotDisabledError",
     "IncompatibleServiceStopsEnable",
     "RequiredServiceStopsEnable",
+    "UnsupportedManifestFile",
 ]
 
 

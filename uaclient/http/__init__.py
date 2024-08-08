@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+import lzma
 import os
 import socket
 from typing import Any, Dict, List, NamedTuple, Optional
@@ -22,7 +23,7 @@ UnparsedHTTPResponse = NamedTuple(
     [
         ("code", int),
         ("headers", Dict[str, str]),
-        ("body", str),
+        ("body", bytes),
     ],
 )
 HTTPResponse = NamedTuple(
@@ -161,7 +162,8 @@ def get_configured_web_proxy() -> Dict[str, str]:
 
 
 def _readurl_urllib(
-    req: request.Request, timeout: Optional[int] = None
+    req: request.Request,
+    timeout: Optional[int] = None,
 ) -> UnparsedHTTPResponse:
     try:
         resp = request.urlopen(req, timeout=timeout)  # nosec B310
@@ -171,7 +173,7 @@ def _readurl_urllib(
         LOG.exception(str(e.reason))
         raise exceptions.ConnectivityError(cause=e, url=req.full_url)
 
-    body = resp.read().decode("utf-8")
+    body = resp.read()
 
     # convert EmailMessage header object to dict with lowercase keys
     headers = {k.lower(): v for k, v, in resp.headers.items()}
@@ -230,6 +232,7 @@ def _readurl_pycurl_https_in_https(
     req: request.Request,
     timeout: Optional[int] = None,
     https_proxy: Optional[str] = None,
+    decode_response: bool = True,
 ) -> UnparsedHTTPResponse:
     try:
         import pycurl
@@ -310,7 +313,7 @@ def _readurl_pycurl_https_in_https(
         )
 
     code = int(c.getinfo(pycurl.RESPONSE_CODE))
-    body = body_output.getvalue().decode("utf-8")
+    body = body_output.getvalue()
 
     c.close()
 
@@ -325,6 +328,27 @@ def _parse_https_proxy(https_proxy) -> Optional[ParseResult]:
     if not https_proxy:
         https_proxy = request.getproxies().get("https")
     return urlparse(https_proxy) if https_proxy else None
+
+
+def download_xz_file_from_url(
+    url: str, timeout: Optional[int] = None
+) -> bytes:
+    if not is_service_url(url):
+        raise exceptions.InvalidUrl(url=url)
+
+    LOG.debug("URL [GET]: {}".format(url))
+
+    https_proxy = get_configured_web_proxy().get("https")
+    if should_use_pycurl(https_proxy, url):
+        resp = _readurl_pycurl_https_in_https(
+            request.Request(url),
+            timeout=timeout,
+            https_proxy=https_proxy,
+        )
+        decompressor = lzma.LZMADecompressor()
+        return decompressor.decompress(resp.body)  # type: ignore
+    else:
+        return lzma.open(request.urlopen(url)).read()
 
 
 def readurl(
@@ -362,10 +386,12 @@ def readurl(
     else:
         resp = _readurl_urllib(req, timeout=timeout)
 
+    decoded_body = resp.body.decode("utf-8")
+
     json_dict = {}
     json_list = []
     if "application/json" in resp.headers.get("content-type", ""):
-        json_body = json.loads(resp.body, cls=util.DatetimeAwareJSONDecoder)
+        json_body = json.loads(decoded_body, cls=util.DatetimeAwareJSONDecoder)
         if isinstance(json_body, dict):
             json_dict = json_body
         elif isinstance(json_body, list):
@@ -390,7 +416,7 @@ def readurl(
     return HTTPResponse(
         code=resp.code,
         headers=resp.headers,
-        body=resp.body,
+        body=decoded_body,
         json_dict=json_dict,
         json_list=json_list,
     )
