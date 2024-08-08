@@ -121,3 +121,107 @@ Feature: Pro is expected version
       | jammy   | lxd-container |
       | mantic  | lxd-container |
       | noble   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Attached show version in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I run `pro version` as non-root
+    Then I will see the uaclient version on stdout
+    When I run `pro version` with sudo
+    Then I will see the uaclient version on stdout
+    When I run `pro --version` as non-root
+    Then I will see the uaclient version on stdout
+    When I run `pro --version` with sudo
+    Then I will see the uaclient version on stdout
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
+
+  Scenario Outline: Check for newer versions of the client in an ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    # Make sure we have a fresh, just rebooted, environment
+    When I reboot the machine
+    Then I verify that no files exist matching `/run/ubuntu-advantage/candidate-version`
+    When I run `pro status` with sudo
+    Then stderr does not match regexp:
+      """
+      .*\[info\].* A new version is available: 2:99.9.9
+      Please run:
+          sudo apt install ubuntu-pro-client
+      to get the latest bug fixes and new features.
+      """
+    And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
+    # We forge a candidate to see results
+    When I delete the file `/run/ubuntu-advantage/candidate-version`
+    And I create the file `/run/ubuntu-advantage/candidate-version` with the following
+      """
+      2:99.9.9
+      """
+    And I run `pro status` as non-root
+    Then stderr matches regexp:
+      """
+      .*\[info\].* A new version is available: 2:99.9.9
+      Please run:
+          sudo apt install ubuntu-pro-client
+      to get the latest bug fixes and new features.
+      """
+    When I run `pro status --format json` as non-root
+    Then stderr does not match regexp:
+      """
+      .*\[info\].* A new version is available: 2:99.9.9
+      Please run:
+          sudo apt install ubuntu-pro-client
+      to get the latest bug fixes and new features.
+      """
+    When I run `pro config show` as non-root
+    Then stderr matches regexp:
+      """
+      .*\[info\].* A new version is available: 2:99.9.9
+      Please run:
+          sudo apt install ubuntu-pro-client
+      to get the latest bug fixes and new features.
+      """
+    When I run `pro api u.pro.version.v1` as non-root
+    Then stdout matches regexp
+      """
+      \"code\": \"new-version-available\"
+      """
+    When I verify that running `pro api u.pro.version.inexistent` `as non-root` exits `1`
+    Then stdout matches regexp
+      """
+      \"code\": \"new-version-available\"
+      """
+    When I run `pro api u.pro.version.v1` as non-root
+    Then stderr does not match regexp:
+      """
+      .*\[info\].* A new version is available: 2:99.9.9
+      Please run:
+          sudo apt install ubuntu-pro-client
+      to get the latest bug fixes and new features.
+      """
+    When I apt update
+    # The update will bring a new candidate, which is the current installed version
+    And I run `pro status` as non-root
+    Then stderr does not match regexp:
+      """
+      .*\[info\].* A new version is available: 2:99.9.9
+      Please run:
+          sudo apt install ubuntu-pro-client
+      to get the latest bug fixes and new features.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |

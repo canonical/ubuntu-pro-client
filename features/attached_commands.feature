@@ -1,27 +1,6 @@
 @uses.config.contract_token
 Feature: Command behaviour when attached to an Ubuntu Pro subscription
 
-  Scenario Outline: Attached show version in a ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I run `pro version` as non-root
-    Then I will see the uaclient version on stdout
-    When I run `pro version` with sudo
-    Then I will see the uaclient version on stdout
-    When I run `pro --version` as non-root
-    Then I will see the uaclient version on stdout
-    When I run `pro --version` with sudo
-    Then I will see the uaclient version on stdout
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
-
   Scenario Outline: Attached status in a ubuntu machine with feature overrides
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
