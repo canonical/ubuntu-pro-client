@@ -9,7 +9,6 @@ import tarfile
 from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
 import paramiko
-import pycloudlib  # type: ignore  # noqa: F401
 import yaml
 from behave.model import Feature, Scenario
 from behave.model_core import Status

@@ -15,9 +15,18 @@ from uaclient.data_types import (
 
 class EnabledService(DataObject):
     fields = [
-        Field("name", StringDataValue),
-        Field("variant_enabled", BoolDataValue),
-        Field("variant_name", StringDataValue, False),
+        Field("name", StringDataValue, doc="Name of the service"),
+        Field(
+            "variant_enabled",
+            BoolDataValue,
+            doc="If a variant of the service is enabled",
+        ),
+        Field(
+            "variant_name",
+            StringDataValue,
+            False,
+            doc="Name of the variant, if a variant is enabled",
+        ),
     ]
 
     def __init__(
@@ -34,7 +43,11 @@ class EnabledService(DataObject):
 
 class EnabledServicesResult(DataObject, AdditionalInfo):
     fields = [
-        Field("enabled_services", data_list(EnabledService)),
+        Field(
+            "enabled_services",
+            data_list(EnabledService),
+            doc="A list of ``EnabledService`` objects",
+        ),
     ]
 
     def __init__(self, *, enabled_services: List[EnabledService]):
@@ -46,6 +59,9 @@ def enabled_services() -> EnabledServicesResult:
 
 
 def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
+    """
+    This endpoint shows the Pro services that are enabled on the machine.
+    """
     from uaclient.entitlements import ENTITLEMENT_CLASSES
     from uaclient.entitlements.entitlement_status import UserFacingStatus
 
@@ -98,3 +114,37 @@ endpoint = APIEndpoint(
     fn=_enabled_services,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "28",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services
+
+result = enabled_services()
+""",  # noqa: E501
+    "result_class": EnabledServicesResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.status.enabled_services.v1",
+    "example_json": """
+{
+    "enabled_services": [
+        {
+            "name": "esm-apps",
+            "variant_enabled": false,
+            "variant_name": null
+        },
+        {
+            "name": "esm-infra",
+            "variant_enabled": false,
+            "variant_name": null
+        },
+        {
+            "name": "realtime-kernel",
+            "variant_enabled": true,
+            "variant_name": "raspi"
+        }
+    ]
+}
+""",
+}

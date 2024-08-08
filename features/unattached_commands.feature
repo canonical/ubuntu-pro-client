@@ -93,11 +93,11 @@ Feature: Command behaviour when unattached
       """
       No help available for 'invalid-service'
       """
-    When I verify that running `pro --wrong-flag` `with sudo` exits `2`
+    When I verify that running `pro --no-command` `with sudo` exits `2`
     Then I will see the following on stderr:
       """
-      usage: pro <command> [flags]
-      Try 'pro --help' for more information.
+      usage: pro [-h] [--debug] [--version] <command> ...
+      pro: error: the following arguments are required: <command>
       """
 
     Examples: ubuntu release

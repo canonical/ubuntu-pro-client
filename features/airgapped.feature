@@ -1,5 +1,5 @@
 @uses.config.contract_token
-Feature: Performing attach using ua-airgapped
+Feature: Performing attach using pro-airgapped
 
   Scenario Outline: Pro works with the airgapped contract server
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -7,7 +7,7 @@ Feature: Performing attach using ua-airgapped
     Given a `jammy` `<machine_type>` machine named `mirror`
     When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
     And I apt update on the `mirror` machine
-    And I apt install `apt-mirror get-resource-tokens ua-airgapped` on the `mirror` machine
+    And I apt install `apt-mirror get-resource-tokens pro-airgapped` on the `mirror` machine
     And I download the service credentials on the `mirror` machine
     And I extract the `esm-infra` credentials from the `mirror` machine
     And I extract the `esm-apps` credentials from the `mirror` machine
@@ -15,7 +15,7 @@ Feature: Performing attach using ua-airgapped
     And I run `apt-mirror` `with sudo` on the `mirror` machine
     And I serve the `esm-infra` mirror using port `8000` on the `mirror` machine
     And I serve the `esm-apps` mirror using port `9000` on the `mirror` machine
-    # set up the ua-airgapped configuration
+    # set up the pro-airgapped configuration
     And I create the contract config overrides file for `esm-infra,esm-apps` on the `mirror` machine
     And I generate the contracts-airgapped configuration on the `mirror` machine
     # set up the contracts-airgapped configuration
@@ -54,7 +54,7 @@ Feature: Performing attach using ua-airgapped
     Given a `jammy` `<machine_type>` machine named `mirror`
     When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
     And I run `apt-get update` `with sudo` on the `mirror` machine
-    And I run `apt-get install apt-mirror get-resource-tokens ua-airgapped -yq` `with sudo` on the `mirror` machine
+    And I run `apt-get install apt-mirror get-resource-tokens pro-airgapped -yq` `with sudo` on the `mirror` machine
     And I download the service credentials on the `mirror` machine
     And I extract the `esm-infra` credentials from the `mirror` machine
     And I extract the `esm-apps` credentials from the `mirror` machine
@@ -62,7 +62,7 @@ Feature: Performing attach using ua-airgapped
     And I run `apt-mirror` `with sudo` on the `mirror` machine
     And I consolidate `esm-infra,esm-apps` on a single mirror on the `mirror` machine
     And I serve the `all-mirrors` mirror using port `8000` on the `mirror` machine
-    # set up the ua-airgapped configuration
+    # set up the pro-airgapped configuration
     And I create the contract config overrides file for `esm-infra,esm-apps` on the `mirror` machine
     And I generate the contracts-airgapped configuration on the `mirror` machine
     # set up the contracts-airgapped configuration

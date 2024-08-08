@@ -700,7 +700,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then I verify that running `pro enable livepatch --format json --assume-yes` `with sudo` exits `1`
     And I will see the following on stdout
       """
-      {"_schema_version": "0.1", "errors": [{"message": "Cannot enable Livepatch when FIPS is enabled.", "message_code": "livepatch-error-when-fips-enabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+      {"_schema_version": "0.1", "errors": [{"additional_info": null, "message": "Cannot enable Livepatch when FIPS is enabled.", "message_code": "livepatch-error-when-fips-enabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
       """
 
   Scenario: Attached enable fips on a machine with livepatch active
@@ -729,7 +729,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     And stdout is a json matching the `ua_operation` schema
     And I will see the following on stdout:
       """
-      {"_schema_version": "0.1", "errors": [{"message": "Cannot enable FIPS when Livepatch is enabled.", "message_code": "incompatible-service-stops-enable", "service": "fips", "type": "service"}], "failed_services": ["fips"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+      {"_schema_version": "0.1", "errors": [{"additional_info": null, "message": "Cannot enable FIPS when Livepatch is enabled.", "message_code": "incompatible-service-stops-enable", "service": "fips", "type": "service"}], "failed_services": ["fips"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
       """
 
   @slow

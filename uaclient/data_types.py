@@ -83,6 +83,8 @@ class StringDataValue(DataValue):
     the string itself if it is a string.
     """
 
+    python_type_name = "str"
+
     @staticmethod
     def from_value(val: Any) -> str:
         if not isinstance(val, str):
@@ -98,6 +100,8 @@ class IntDataValue(DataValue):
     from_value raises an error if the value is not a int and returns
     the int itself if it is a int.
     """
+
+    python_type_name = "int"
 
     @staticmethod
     def from_value(val: Any) -> int:
@@ -115,6 +119,8 @@ class BoolDataValue(DataValue):
     the bool itself if it is a bool.
     """
 
+    python_type_name = "bool"
+
     @staticmethod
     def from_value(val: Any) -> bool:
         if not isinstance(val, bool):
@@ -130,6 +136,8 @@ class DatetimeDataValue(DataValue):
     from_value raises an error if the value is not a datetime and returns
     the datetime itself if it is a datetime.
     """
+
+    python_type_name = "datetime"
 
     @staticmethod
     def from_value(val: Any) -> datetime.datetime:
@@ -148,6 +156,8 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
     """
 
     class _DataList(DataValue):
+        item_cls = data_cls
+
         @staticmethod
         def from_value(val: Any) -> List:
             if not isinstance(val, list):
@@ -193,6 +203,7 @@ class Field:
         data_cls: Type[DataValue],
         required: bool = True,
         dict_key: Optional[str] = None,
+        doc: Optional[str] = None,
     ):
         self.key = key
         self.data_cls = data_cls
@@ -201,6 +212,7 @@ class Field:
             self.dict_key = dict_key
         else:
             self.dict_key = self.key
+        self.doc = doc
 
 
 T = TypeVar("T", bound="DataObject")

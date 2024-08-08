@@ -114,7 +114,6 @@ class AllTimerJobsState(DataObject):
     fields = [
         Field("metering", TimerJobState, required=False),
         Field("update_messaging", TimerJobState, required=False),
-        Field("update_contract_info", TimerJobState, required=False),
         Field("validate_release_series", TimerJobState, required=False),
     ]
 
@@ -122,12 +121,10 @@ class AllTimerJobsState(DataObject):
         self,
         metering: Optional[TimerJobState],
         update_messaging: Optional[TimerJobState],
-        update_contract_info: Optional[TimerJobState],
         validate_release_series: Optional[TimerJobState],
     ):
         self.metering = metering
         self.update_messaging = update_messaging
-        self.update_contract_info = update_contract_info
         self.validate_release_series = validate_release_series
 
 

@@ -393,3 +393,21 @@ class TestCheckEntitlementAPTDefinitionsAreUnique:
                 entitlements.check_entitlement_apt_directives_are_unique(
                     mock.MagicMock(url="test_url")
                 )
+
+
+class TestGetValidEntitlementNames:
+    @mock.patch(
+        "uaclient.entitlements.valid_services",
+        return_value=["ent1", "ent2", "ent3"],
+    )
+    def test_get_valid_entitlements(self, _m_valid_services, FakeConfig):
+        service = ["ent1", "ent3", "ent4"]
+        expected_ents_found = ["ent1", "ent3"]
+        expected_ents_not_found = ["ent4"]
+
+        actual_ents_found, actual_ents_not_found = (
+            entitlements.get_valid_entitlement_names(service, cfg=FakeConfig())
+        )
+
+        assert expected_ents_found == actual_ents_found
+        assert expected_ents_not_found == actual_ents_not_found

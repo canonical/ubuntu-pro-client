@@ -5,7 +5,7 @@ import socket
 import mock
 import pytest
 
-from uaclient import exceptions, http, messages, system, util
+from uaclient import exceptions, http, messages, system
 from uaclient.api.u.pro.status.is_attached.v1 import IsAttachedResult
 from uaclient.contract import (
     API_V1_AVAILABLE_RESOURCES,
@@ -17,7 +17,6 @@ from uaclient.contract import (
     apply_contract_overrides,
     get_available_resources,
     get_contract_information,
-    is_contract_changed,
     process_entitlement_delta,
     refresh,
 )
@@ -1298,60 +1297,6 @@ class TestRefresh:
                 allow_enable=False,
             )
         ] == m_process_entitlements_deltas.call_args_list
-
-
-@mock.patch("uaclient.contract.UAContractClient.get_contract_machine")
-class TestContractChanged:
-    @pytest.mark.parametrize("has_contract_expired", (False, True))
-    def test_contract_change_with_expiry(
-        self,
-        m_get_contract_machine,
-        has_contract_expired,
-        fake_machine_token_file,
-    ):
-        if has_contract_expired:
-            expiry_date = util.parse_rfc3339_date("2041-05-08T19:02:26Z")
-            ret_val = True
-        else:
-            expiry_date = util.parse_rfc3339_date("2040-05-08T19:02:26Z")
-            ret_val = False
-        m_get_contract_machine.return_value = {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "effectiveTo": expiry_date,
-                },
-            },
-        }
-        fake_machine_token_file.attached = True
-        assert is_contract_changed(None) == ret_val
-
-    @pytest.mark.parametrize("has_contract_changed", (False, True))
-    def test_contract_change_with_entitlements(
-        self,
-        m_get_contract_machine,
-        has_contract_changed,
-        fake_machine_token_file,
-    ):
-        if has_contract_changed:
-            resourceEntitlements = [{"type": "token1", "entitled": True}]
-            resourceTokens = [{"token": "token1", "type": "resource1"}]
-        else:
-            resourceTokens = []
-            resourceEntitlements = []
-        m_get_contract_machine.return_value = {
-            "machineTokenInfo": {
-                "machineId": "test_machine_id",
-                "resourceTokens": resourceTokens,
-                "contractInfo": {
-                    "effectiveTo": util.parse_rfc3339_date(
-                        "2040-05-08T19:02:26Z"
-                    ),
-                    "resourceEntitlements": resourceEntitlements,
-                },
-            },
-        }
-        fake_machine_token_file.attached = True
-        assert is_contract_changed(None) == has_contract_changed
 
 
 class TestApplyContractOverrides:

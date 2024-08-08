@@ -14,7 +14,10 @@ from uaclient.security_status import get_livepatch_fixed_cves
 
 
 class LivepatchCVEObject(DataObject):
-    fields = [Field("name", StringDataValue), Field("patched", BoolDataValue)]
+    fields = [
+        Field("name", StringDataValue, doc="Name (ID) of the CVE"),
+        Field("patched", BoolDataValue, doc="Livepatch has patched the CVE"),
+    ]
 
     def __init__(self, name: str, patched: bool):
         self.name = name
@@ -23,7 +26,11 @@ class LivepatchCVEObject(DataObject):
 
 class LivepatchCVEsResult(DataObject, AdditionalInfo):
     fields = [
-        Field("fixed_cves", data_list(LivepatchCVEObject)),
+        Field(
+            "fixed_cves",
+            data_list(LivepatchCVEObject),
+            doc="List of Livepatch patches for the given system",
+        ),
     ]
 
     def __init__(
@@ -38,6 +45,9 @@ def livepatch_cves() -> LivepatchCVEsResult:
 
 
 def _livepatch_cves(cfg: UAConfig) -> LivepatchCVEsResult:
+    """
+    This endpoint lists Livepatch patches for the currently-running kernel.
+    """
     return LivepatchCVEsResult(
         fixed_cves=[
             LivepatchCVEObject(name=cve["name"], patched=cve["patched"])
@@ -52,3 +62,30 @@ endpoint = APIEndpoint(
     fn=_livepatch_cves,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.12",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.pro.security.status.livepatch_cves.v1 import livepatch_cves
+
+result = livepatch_cves()
+""",  # noqa: E501
+    "result_class": LivepatchCVEsResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.security.status.livepatch_cves.v1",
+    "example_json": """
+{
+    "fixed_cves":[
+        {
+            "name": "<CVE Name>",
+            "patched": true
+        },
+        {
+            "name": "<Other CVE Name>",
+            "patched": false
+        },
+    ]
+}
+""",
+}

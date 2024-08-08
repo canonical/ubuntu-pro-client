@@ -61,8 +61,6 @@ Feature: Upgrade between releases when uaclient is unattached
       | xenial  | lxd-container | bionic       | lts    |               | enabled        |
       | bionic  | lxd-container | focal        | lts    |               | enabled        |
       | focal   | lxd-container | jammy        | lts    |               | enabled        |
-      | jammy   | lxd-container | mantic       | normal |               | n/a            |
-      | mantic  | lxd-container | noble        | normal |               | enabled        |
 
 # No path from Jammy to Noble until .1 is there
 # | jammy   | lxd-container | noble        | lts    |                 | enabled        |

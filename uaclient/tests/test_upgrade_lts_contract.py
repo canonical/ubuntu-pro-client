@@ -80,9 +80,11 @@ class TestUpgradeLTSContract:
         capsys,
         caplog_text,
         FakeConfig,
+        fake_machine_token_file,
     ):
         m_is_attached.return_value = mock.MagicMock(is_attached=True)
         m_get_release_info.return_value = mock.MagicMock(series="focal")
+        fake_machine_token_file.attached = True
 
         m_subp.side_effect = [
             ("apt     146195 root", ""),

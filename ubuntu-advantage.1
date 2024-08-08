@@ -7,10 +7,6 @@ pro \- Manage Ubuntu Pro services from Canonical
 
 .SH SYNOPSIS
 .BR "pro" " <command> [<args>]"
-.br
-.BR "ua" " <command> [<args>]"
-.br
-.BR "ubuntu-advantage" " <command> [<args>]"
 
 
 .SH DESCRIPTION
@@ -23,11 +19,17 @@ described in more detail below.
 
 .SH COMMANDS
 .TP
+.BR "api" " <api-endpoint>"
+Calls the Client API endpoints.
+
+For a list of all of the supported endpoints and their structure,
+please refer to the Pro client API reference guide:
+
+https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/references/api/
+
+.TP
 .BR "attach" " [--no-auto-enable] [--attach-config=/path/to/file.yaml] <token>"
 Connect an Ubuntu Pro support contract to this machine.
-
-The \fItoken\fR parameter can be obtained from
-https://auth.contracts.canonical.com/.
 
 The \fI--attach-config\fR option can be used to provide a file with the token
 and optionally, a list of services to enable after attaching. The \fItoken\fR
@@ -57,46 +59,143 @@ provided, the file is saved as \fBpro_logs.tar.gz\fP in the current
 directory.
 
 .TP
-.B detach
-Remove the Ubuntu Pro support contract from this machine. This
-also disables all enabled services that can be.
+.BR "config set/unset" " <config-name>"
+
+Set/unset one of the available Pro configuration settings:
+
+.BR \fBhttp_proxy\fP
+If set, pro will use the specified http proxy when making any http requests
+
+.BR \fBhttps_proxy\fP
+If set, pro will use the specified https proxy when making any https requests
+
+.BR \fBapt_http_proxy\fP
+\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
+
+.BR \fBapt_https_proxy\fP
+\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
+
+.BR \fBglobal_apt_http_proxy\fP
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+
+.BR \fBglobal_apt_https_proxy\fP
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+
+.BR \fBua_apt_http_proxy\fP
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+
+.BR \fBua_apt_https_proxy\fP
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+
+.BR \fB<job_name>_timer\fP
+Sets the timer running interval for a specific job. Those intervals are checked
+every time the systemd timer runs.
+
+.BR \fBapt_news\fP
+If set to false, the Pro client will no longer display apt news messages on the output
+of apt upgrade.
+
+.BR \fBapt_news_url\fP
+Sets the url where the Pro client will consume apt news information from.
+
+If needed, authentication to the proxy server can be performed by setting
+username and password in the URL itself, as in:
+.nf
+.fam C
+  http_proxy: http://<username>:<password>@<fqdn>:<port>
+.fam T
+.fi
 
 .TP
-.BR "disable" " [cc-eal|cis|esm-apps|esm-infra|fips|fips-updates|"
- livepatch|realtime-kernel|ros|ros-updates]
+.BR "config show" " <config-name>"
+Show customizable configuration settings
+
+If no config is provided, this command will display all of the Pro configuration values
+
+.TP
+.B detach
+Remove the Ubuntu Pro support contract from this machine.
+
+.TP
+.BR "disable" " [anbox-cloud|cc-eal|cis|esm-apps|esm-infra|fips|fips-updates|"
+ landscape|livepatch|realtime-kernel|ros|ros-updates]
 
 Disable this machine's access to an Ubuntu Pro service.
 
 .TP
-.BR "enable" " [cc-eal|cis|esm-apps|esm-infra|fips|fips-updates|"
-livepatch|realtime-kernel|ros|ros-updates]
+.BR "enable" " [anbox-cloud|cc-eal|cis|esm-apps|esm-infra|fips|fips-updates|"
+landscape|livepatch|realtime-kernel|ros|ros-updates]
 
 Activate and configure this machine's access to an Ubuntu Pro
 service.
 
 .TP
-.BR "fix" " <security_issue>"
+.BR "fix" "[--dry-run] [--no-related] <security_issue>"
 Fix a CVE or USN on the system by upgrading the appropriate package(s).
+
+The optional \fI--dry-run\fR flag will display everything that would be executed by the fix command
+without actually making any changes.
+
+The optional \fI--no-related\fR flag will modify how the fix command behaves when handling a USN.
+With this flag, the command will not attempt to fix any USNs related to the target USN.
 
 <security_issue> can be any of the following formats: CVE-yyyy-nnnn,
 CVE-yyyy-nnnnnnn, or USN-nnnn-dd.
 
 The exit code can be 0, 1, or 2.
-    0: the fix was successfully applied
+    0: the fix was successfully applied or the security issue doesn't affect the system
     1: the fix cannot be applied
     2: the fix was applied but requires a reboot before it takes effect
 
 .TP
-.B refresh
-Refresh contract and service details from Canonical.
+.BR "refresh" " [contract|config|messages]"
+Refresh three distinct Ubuntu Pro related artifacts in the system:
+
+.BR "contract" ":"
+Update contract details from the server.
+
+.BR "config" ":"
+Reload the config file.
+
+.BR "messages" ":"
+Update APT and MOTD messages related to UA.
+
+You can individually target any of the three specific actions,
+by passing the target name to the command.
+If no `target` is specified, all targets are refreshed.
 
 .TP
-.B security-status
+.B "security-status" " [--thirdparty | --unavailable | --esm-infra | --esm-apps]"
+
 Show security updates for packages in the system, including all
-available ESM related content.
+available Expanded Security Maintenance (ESM) related content.
+
+Shows counts of how many packages are supported for security updates
+in the system.
+
+The output contains basic information about Ubuntu Pro. For a
+complete status on Ubuntu Pro services, run 'pro status'.
+
+The optional \fI--thirdparty\fR flag will only show information about third party packages
+
+The optional \fI--unavailable\fR flag will only show information about unavailable packages
+
+The optional \fI--esm-infra\fR flag will only show information about esm-infra packages
+
+The optional \fI--esm-apps\fR flag will only show information about esm-apps packages
 
 .TP
-.BR "status" " [--format=tabular|json|yaml] [--simulate-with-token TOKEN] [--all]"
+.BR "status" " [--simulate-with-token TOKEN] [--all]"
 Report current status of Ubuntu Pro services on system.
 
 This shows whether this machine is attached to an Ubuntu Pro
@@ -135,12 +234,17 @@ If --simulate-with-token is used, then the output has five columns.
 same as mentioned above, and \fBAUTO_ENABLED\fR shows whether the service is
 set to be enabled when that token is attached.
 
-If the --all flag is set, beta and unavailable services are also listed in the
+If the \fI--all\fR flag is set, unavailable services are also listed in the
 output.
+
+.TP
+.BR "system reboot-required"
+Tells if the system needs to be rebooted
 
 .TP
 .B version
 Show version of the Ubuntu Pro package.
+
 
 .SH PRO UPGRADE DAEMON
 Ubuntu Pro client sets up a daemon on supported platforms (currently on Azure and GCP) to
@@ -171,176 +275,120 @@ Makes sure that the MOTD and APT messages match the available/enabled services
 on the system, showing information about available packages or security
 updates.
 
-
-.SH CONFIGURATION
-By default, Ubuntu Pro client configuration options are read from
-\fB/etc/ubuntu-advantage/uaclient.conf\fB.
-
-The following configuration options are available:
 .TP
 .B
-\fBcontract_url\fP
-The Ubuntu Pro contract server URL
-.TP
-.B
-\fBsecurity_url\fP
-The Ubuntu Pro security server URL
-.TP
-.B
-\fBdata_dir\fP
-Where Ubuntu Pro client stores its data files
-.TP
-.B
-\fBlog_level\fP
-The logging level used when writing to \fBlog_file\fP
-.TP
-.B
-\fBlog_file\fP
-The log file for the Ubuntu Pro client cli
-
-.P
-\fBThe following options are set using the `pro config set` subcommand:\fP
-
-.TP
-.B
-\fBhttp_proxy\fP
-If set, pro will use the specified http proxy when making any http requests
-.TP
-.B
-\fBhttps_proxy\fP
-If set, pro will use the specified https proxy when making any https requests
-.TP
-.B
-\fBapt_http_proxy\fP
-\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
-.TP
-.B
-\fBapt_https_proxy\fP
-\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
-.TP
-.B
-\fBglobal_apt_http_proxy\fP
-If set, pro will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
-prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
-.TP
-.B
-\fBglobal_apt_https_proxy\fP
-If set, pro will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
-prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
-.TP
-.B
-\fBua_apt_http_proxy\fP
-If set, pro will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
-to accessing resources from \fIesm.ubuntu.com\fB
-.TP
-.B
-\fBua_apt_https_proxy\fP
-If set, pro will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
-to accessing resources from \fIesm.ubuntu.com\fB
-.TP
-.B
-\fB<job_name>_timer\fP
-Sets the timer running interval for a specific job. Those intervals are checked
-every time the systemd timer runs.
-
-.P
-If needed, authentication to the proxy server can be performed by setting
-username and password in the URL itself, as in:
-.PP
-.nf
-.fam C
-  http_proxy: http://<username>:<password>@<fqdn>:<port>
-.fam T
-.fi
-
-.P
-Additionally, some configuration options can be overridden in the environment
-by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
-uppercase and lowercase environment variables are allowed. The configuration
-options that support this are: data_dir, log_file, log_level, 
-and security_url.
-
-For example, the following overrides the log_level found in uaclient.conf:
-.PP
-.nf
-.fam C
-  UA_LOG_LEVEL=info pro attach
-.fam T
-.fi
+\fBmetering\fP
+If attached, this job will ping the Canonical servers telling
+which services are enabled on the machine.
 
 
 .SH SERVICES
 .TP
+.B "Anbox Cloud (anbox-cloud)"
+Anbox Cloud lets you stream mobile apps securely, at any scale, to any device,
+letting you focus on your apps. Run Android in system containers on public or
+private clouds with ultra low streaming latency. When the anbox-cloud service
+is enabled, by default, the Appliance variant is enabled. Enabling this service
+allows orchestration to provision a PPA with the Anbox Cloud resources. This
+step also configures the Anbox Management Service (AMS) with the necessary
+image server credentials.
+
+To learn more about Anbox Cloud, see https://anbox-cloud.io
+
+.TP
 .B "Common Criteria EAL2 Provisioning (cc-eal)"
-Enables and install the Common Criteria artifacts.
-
-The artifacts include a configure script, a tarball with additional
-packages, and post install scripts. The artifacts will be installed in
-/usr/lib/common-criteria directory and the README and configuration
-guide are available in /usr/share/doc/ubuntu-commoncriteria directory.
+Common Criteria is an Information Technology Security Evaluation standard
+(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
+evaluated to assurance level EAL2 through CSEC. The evaluation was performed
+on Intel x86_64, IBM Power8 and IBM Z hardware platforms.
 
 .TP
-.B "CIS Audit (cis)"
-Enables and installs the CIS Audit artifacts.
+.B "CIS Audit (cis)/Ubuntu Security Guide (usg)"
+Ubuntu Security Guide is a tool for hardening and auditing, allowing for
+environment-specific customizations. It enables compliance with profiles such
+as DISA-STIG and the CIS benchmarks.
+
+Find out more at https://ubuntu.com/security/certifications/docs/usg
 
 .TP
-.B "Expanded Security Maintenance (esm)"
-Expanded Security Maintenance ensures the ongoing security and
-integrity of systems running Ubuntu Long Term Support (LTS) releases
-through Ubuntu Pro for Infrastructure.
+.B "Expanded Security Maintenance for Infrastructure (esm-infra)"
+Expanded Security Maintenance for Infrastructure provides access to a private
+PPA which includes available high and critical CVE fixes for Ubuntu LTS
+packages in the Ubuntu Main repository between the end of the standard Ubuntu
+LTS security maintenance and its end of life. It is enabled by default with
+Ubuntu Pro.
 
-See https://ubuntu.com/esm for more information.
+You can find out more about the service at https://ubuntu.com/security/esm
+
+.TP
+.B "Expanded Security Maintenance for Applications (esm-apps)"
+Expanded Security Maintenance for Applications is enabled by default on
+entitled workloads. It provides access to a private PPA which includes
+available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
+Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
+its end of life.
+
+You can find out more about the esm service at https://ubuntu.com/security/esm
 
 .TP
 .B "FIPS 140-2 certified modules (fips)"
-Install, configure, and enable FIPS 140-2 certified modules.
+Installs FIPS 140 crypto packages for FedRAMP, FISMA and compliance use cases.
+Note that "fips" does not provide security patching. For FIPS certified
+modules with security patches please see "fips-updates". If you are unsure,
+choose "fips-updates" for maximum security.
 
-After successfully enabling FIPS, the system MUST be rebooted. Failing
-to reboot will result in the system not running the updated FIPS
-kernel.
+Find out more at https://ubuntu.com/security/fips
 
-Disabling FIPS is not currently supported.
 
 .TP
 .B "FIPS 140-2 certified modules with updates (fips-updates)"
-Install, configure, and enable FIPS 140-2 certified modules with
-updates. Enabling FIPS with updates will take the system out of FIPS
-compliance as the updated modules are not FIPS certified.
+fips-updates installs FIPS 140 crypto packages including all security patches
+for those modules that have been provided since their certification date.
 
-After successfully enabling FIPS with updates, the system MUST be
-rebooted. Failing to reboot will result in the system not running the
-updated FIPS kernel.
+You can find out more at https://ubuntu.com/security/fips
 
-Disabling FIPS with updates is not currently supported.
+.TP
+.B "Landscape (landscape)"
+Landscape Client can be installed on this machine and enrolled in Canonical's
+Landscape SaaS: https://landscape.canonical.com or a self-hosted Landscape:
+https://ubuntu.com/landscape/install
+
+Landscape allows you to manage many machines as easily as one, with an
+intuitive dashboard and API interface for automation, hardening, auditing, and
+more.
+
+Find out more about Landscape at https://ubuntu.com/landscape
 
 .TP
 .B "Livepatch Service (livepatch)"
-Automatically apply critical kernel patches without rebooting. Reduces
-downtime, keeping your Ubuntu LTS systems secure and compliant.
+Livepatch provides selected high and critical kernel CVE fixes and other
+non-security bug fixes as kernel livepatches. Livepatches are applied without
+rebooting a machine which drastically limits the need for unscheduled system
+reboots. Due to the nature of fips compliance, livepatches cannot be enabled
+on fips-enabled systems.
 
-See https://ubuntu.com/livepatch for more information.
+You can find out more about Ubuntu Kernel Livepatch service at https://ubuntu.com/security/livepatch
 
 .TP
 .B "ROS ESM Security Updates (ros)"
-Robot Operating System Expanded Security Maintenance - Only Security Updates
-provides security fixes for ROS packages to ensure the ongoing integrity
-of ROS based applications.
+ros provides access to a private PPA which includes security-related updates
+for available high and critical CVE fixes for Robot Operating System (ROS)
+packages. For access to ROS ESM and security updates, both esm-infra and
+esm-apps services will also be enabled. To get additional non-security updates,
+enable ros-updates.
 
-See https://ubuntu.com/robotics/ros-esm for more information.
+You can find out more about the ROS ESM service at https://ubuntu.com/robotics/ros-esm
+
 
 .TP
 .B "ROS ESM All Updates (ros-updates)"
-Robot Operating System Expanded Security Maintenance - All Updates
-provides additional bug fixes in addition to security fixes for
-ROS packages to ensure the ongoing integrity of ROS based applications.
+ros-updates provides access to a private PPA that includes non-security-related
+updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
+security and non-security updates, the esm-infra, esm-apps, and ros services
+will also be enabled.
 
-See https://ubuntu.com/robotics/ros-esm for more information.
+You can find out more about the ROS ESM service at https://ubuntu.com/robotics/ros-esm
+
 
 .SH REPORTING BUGS
 Please report bugs either by running `ubuntu-bug ubuntu-advantage-tools` or

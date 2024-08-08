@@ -29,7 +29,7 @@ function createBugRefsSection({
 }) {
     const header = commentSectionHeader(BUG_REFS);
     const footer = commentSectionFooter(BUG_REFS);
-    const existingSection = existingBody ? getCommentSection(BUG_REFS, existingBody) : null;
+    const existingSection = existingBody ? getCommentSection(BUG_REFS, existingBody) : "";
     const verified = existingSection ? bugRefsVerified(existingSection) : false;
     
     

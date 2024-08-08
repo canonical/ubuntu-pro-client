@@ -1188,7 +1188,7 @@ Feature: Proxy configuration
     Then I verify that `esm-apps` is enabled
     And I verify that `esm-infra` is enabled
     When I run `pro disable livepatch --assume-yes` with sudo
-    When I run `pro enable realtime-kernel` `with sudo` and stdin `y`
+    When I run `pro enable realtime-kernel --assume-yes` with sudo
     Then stdout contains substring:
       """
       Installing Real-time kernel packages

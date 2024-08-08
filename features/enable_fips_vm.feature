@@ -268,12 +268,22 @@ Feature: FIPS enablement in lxd VMs
   @slow
   Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
     And I apt install `openssh-client openssh-server strongswan`
-    When I run `pro enable <fips-service> --assume-yes` with sudo
+    When I run `pro enable <fips-service>` `with sudo` and stdin `y\ny`
     Then stdout contains substring:
       """
-      Configuring APT access to <fips-name>
+      This will install the FIPS packages. The Livepatch service will be unavailable.
+      Warning: This action can take some time and cannot be undone.
+      Are you sure? (y/N) The "generic" variant of fips is based on the "generic" Ubuntu
+      kernel but this machine is running the "kvm" kernel.
+      The "kvm" kernel may have significant hardware support
+      differences from "generic" fips.
+
+      Warning: Installing generic fips may result in lost hardware support
+               and may prevent the system from booting.
+
+      Do you accept the risk and wish to continue? (y/N) Configuring APT access to <fips-name>
       Updating <fips-name> package lists
       Updating standard Ubuntu package lists
       Installing <fips-name> packages

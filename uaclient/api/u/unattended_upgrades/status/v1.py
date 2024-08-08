@@ -30,8 +30,8 @@ UNATTENDED_UPGRADES_STAMP_PATH = "/var/lib/apt/periodic/upgrade-stamp"
 
 class UnattendedUpgradesDisabledReason(DataObject):
     fields = [
-        Field("msg", StringDataValue),
-        Field("code", StringDataValue),
+        Field("msg", StringDataValue, doc="Human readable reason"),
+        Field("code", StringDataValue, doc="Reason code"),
     ]
 
     def __init__(self, msg: str, code: str):
@@ -41,22 +41,66 @@ class UnattendedUpgradesDisabledReason(DataObject):
 
 class UnattendedUpgradesStatusResult(DataObject, AdditionalInfo):
     fields = [
-        Field("systemd_apt_timer_enabled", BoolDataValue),
-        Field("apt_periodic_job_enabled", BoolDataValue),
-        Field("package_lists_refresh_frequency_days", IntDataValue),
-        Field("unattended_upgrades_frequency_days", IntDataValue),
+        Field(
+            "systemd_apt_timer_enabled",
+            BoolDataValue,
+            doc="Indicate if the ``apt-daily.timer`` jobs are enabled",
+        ),
+        Field(
+            "apt_periodic_job_enabled",
+            BoolDataValue,
+            doc=(
+                "Indicate if the ``APT::Periodic::Enabled`` configuration is"
+                " turned off"
+            ),
+        ),
+        Field(
+            "package_lists_refresh_frequency_days",
+            IntDataValue,
+            doc=(
+                "The value of the ``APT::Periodic::Update-Package-Lists``"
+                " configuration"
+            ),
+        ),
+        Field(
+            "unattended_upgrades_frequency_days",
+            IntDataValue,
+            doc=(
+                "The value of the ``APT::Periodic::Unattended-Upgrade``"
+                " configuration"
+            ),
+        ),
         Field(
             "unattended_upgrades_allowed_origins",
             data_list(StringDataValue),
+            doc=(
+                "The value of the ``Unattended-Upgrade::Allowed-Origins``"
+                " configuration"
+            ),
         ),
-        Field("unattended_upgrades_running", BoolDataValue),
+        Field(
+            "unattended_upgrades_running",
+            BoolDataValue,
+            doc=(
+                "Indicate if the ``unattended-upgrade`` service is correctly"
+                " configured and running"
+            ),
+        ),
         Field(
             "unattended_upgrades_disabled_reason",
             UnattendedUpgradesDisabledReason,
             required=False,
+            doc=(
+                "Object that explains why ``unattended-upgrades`` is not"
+                " running -- if the application is running, the object will be"
+                " null"
+            ),
         ),
         Field(
-            "unattended_upgrades_last_run", DatetimeDataValue, required=False
+            "unattended_upgrades_last_run",
+            DatetimeDataValue,
+            required=False,
+            doc="The last time ``unattended-upgrades`` ran",
         ),
     ]
 
@@ -149,6 +193,18 @@ def status() -> UnattendedUpgradesStatusResult:
 
 
 def _status(cfg: UAConfig) -> UnattendedUpgradesStatusResult:
+    """
+    This endpoint returns the status around ``unattended-upgrades``. The focus
+    of the endpoint is to verify if the application is running and how it is
+    configured on the machine.
+
+    .. important::
+
+        For this endpoint, we deliver a unique key under ``meta`` called
+        ``raw_config``. This field contains all related ``unattended-upgrades``
+        configurations, unparsed. This means that this field will maintain both
+        original name and values for those configurations.
+    """
     if not apt.is_installed("unattended-upgrades"):
         return UnattendedUpgradesStatusResult(
             systemd_apt_timer_enabled=False,
@@ -233,3 +289,61 @@ endpoint = APIEndpoint(
     fn=_status,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.14",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.unattended_upgrades.status.v1 import status
+
+result = status()
+""",
+    "result_class": UnattendedUpgradesStatusResult,
+    "exceptions": [
+        (
+            UnattendedUpgradesError,
+            "Raised if we cannot run a necessary command to show the status of ``unattended-upgrades``",  # noqa: E501
+        )
+    ],
+    "example_cli": "pro api u.unattended_upgrades.status.v1",
+    "example_json": """
+{
+    "apt_periodic_job_enabled": true,
+    "package_lists_refresh_frequency_days": 1,
+    "systemd_apt_timer_enabled": true,
+    "unattended_upgrades_allowed_origins": [
+        "${distro_id}:${distro_codename}",
+        "${distro_id}:${distro_codename}-security",
+        "${distro_id}ESMApps:${distro_codename}-apps-security",
+        "${distro_id}ESM:${distro_codename}-infra-security"
+    ],
+    "unattended_upgrades_disabled_reason": null,
+    "unattended_upgrades_frequency_days": 1,
+    "unattended_upgrades_last_run": null,
+    "unattended_upgrades_running": true
+}
+""",
+    "extra": """
+- Possible attributes in JSON ``meta`` field:
+
+  .. code-block:: json
+
+     {
+         "meta": {
+             "environment_vars": [],
+             "raw_config": {
+                 "APT::Periodic::Enable": "1",
+                 "APT::Periodic::Unattended-Upgrade": "1",
+                 "APT::Periodic::Update-Package-Lists": "1",
+                 "Unattended-Upgrade::Allowed-Origins": [
+                     "${distro_id}:${distro_codename}",
+                     "${distro_id}:${distro_codename}-security",
+                     "${distro_id}ESMApps:${distro_codename}-apps-security",
+                     "${distro_id}ESM:${distro_codename}-infra-security"
+                 ]
+             }
+         }
+     }
+""",
+    "extra_indent": 2,
+}

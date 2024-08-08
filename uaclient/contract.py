@@ -714,51 +714,6 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
     return client.get_contract_using_token(token)
 
 
-def is_contract_changed(
-    cfg: UAConfig,
-) -> bool:
-    contract_client = UAContractClient(cfg)
-    orig_token = contract_client.machine_token_file.machine_token
-    orig_entitlements = contract_client.machine_token_file.entitlements()
-    machine_token = orig_token.get("machineToken", "")
-    contract_id = (
-        orig_token.get("machineTokenInfo", {})
-        .get("contractInfo", {})
-        .get("id", None)
-    )
-    if not contract_id:
-        return False
-
-    resp = contract_client.get_contract_machine(machine_token, contract_id)
-    resp_expiry = (
-        resp.get("machineTokenInfo", {})
-        .get("contractInfo", {})
-        .get("effectiveTo", None)
-    )
-    new_expiry = (
-        resp_expiry
-        if resp_expiry
-        else contract_client.machine_token_file.contract_expiry_datetime
-    )
-    if (
-        contract_client.machine_token_file.contract_expiry_datetime
-        != new_expiry
-    ):
-        return True
-    curr_entitlements = (
-        contract_client.machine_token_file.get_entitlements_from_token(  # noqa
-            resp
-        )
-    )
-    for name, new_entitlement in sorted(curr_entitlements.items()):
-        deltas = util.get_dict_deltas(
-            orig_entitlements.get(name, {}), new_entitlement
-        )
-        if deltas:
-            return True
-    return False
-
-
 def _get_override_weight(
     override_selector: Dict[str, str], selector_values: Dict[str, str]
 ) -> int:

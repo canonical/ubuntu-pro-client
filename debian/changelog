@@ -1,3 +1,21 @@
+ubuntu-advantage-tools (34) oracular; urgency=medium
+
+  * d/rules: check that version.py is consistent with changelog (GH: #3154)
+  * New upstream release 34: (LP: #2075543)
+    - apt-hook: redirect errors away from users (LP: #2074211)
+    - fips-preview: now has same warnings and prompts as fips and fips-updates
+    - fips and realtime-kernel: warn when the new kernel may have different
+      hardware support than the current kernel based on the flavor (GH: #3115)
+    - help:
+      + new help output for base pro command
+      + remove service descriptions from output (GH: #3126)
+      + show help content when run without a subcommand
+      + modernized help generation code
+    - removed some dead code (GH: #3058)
+    - updated manpage
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 29 Jul 2024 15:48:22 -0500
+
 ubuntu-advantage-tools (33.2) oracular; urgency=medium
 
   * d/apparmor: add apt-news access to package information on the system

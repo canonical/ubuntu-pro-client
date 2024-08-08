@@ -20,11 +20,29 @@ from uaclient.security_status import (
 
 class UpdateSummary(DataObject):
     fields = [
-        Field("num_updates", IntDataValue),
-        Field("num_esm_apps_updates", IntDataValue),
-        Field("num_esm_infra_updates", IntDataValue),
-        Field("num_standard_security_updates", IntDataValue),
-        Field("num_standard_updates", IntDataValue),
+        Field(
+            "num_updates", IntDataValue, doc="Total count of available updates"
+        ),
+        Field(
+            "num_esm_apps_updates",
+            IntDataValue,
+            doc="Count of available updates from ``esm-apps``",
+        ),
+        Field(
+            "num_esm_infra_updates",
+            IntDataValue,
+            doc="Count of available updates from ``esm-infra``",
+        ),
+        Field(
+            "num_standard_security_updates",
+            IntDataValue,
+            doc="Count of available updates from the ``-security`` pocket",
+        ),
+        Field(
+            "num_standard_updates",
+            IntDataValue,
+            doc="Count of available updates from the ``-updates`` pocket",
+        ),
     ]
 
     def __init__(
@@ -44,12 +62,30 @@ class UpdateSummary(DataObject):
 
 class UpdateInfo(DataObject):
     fields = [
-        Field("download_size", IntDataValue),
-        Field("origin", StringDataValue),
-        Field("package", StringDataValue),
-        Field("provided_by", StringDataValue),
-        Field("status", StringDataValue),
-        Field("version", StringDataValue),
+        Field(
+            "download_size",
+            IntDataValue,
+            doc="Download size for the update in bytes",
+        ),
+        Field(
+            "origin",
+            StringDataValue,
+            doc="Where the update is downloaded from",
+        ),
+        Field(
+            "package", StringDataValue, doc="Name of the package to be updated"
+        ),
+        Field(
+            "provided_by",
+            StringDataValue,
+            doc="Service which provides the update",
+        ),
+        Field(
+            "status",
+            StringDataValue,
+            doc="Whether this update is ready for download or not",
+        ),
+        Field("version", StringDataValue, doc="Version of the update"),
     ]
 
     def __init__(
@@ -71,8 +107,14 @@ class UpdateInfo(DataObject):
 
 class PackageUpdatesResult(DataObject, AdditionalInfo):
     fields = [
-        Field("summary", UpdateSummary),
-        Field("updates", data_list(UpdateInfo)),
+        Field(
+            "summary", UpdateSummary, doc="Summary of all available updates"
+        ),
+        Field(
+            "updates",
+            data_list(UpdateInfo),
+            doc="Detailed list of all available updates",
+        ),
     ]
 
     def __init__(self, summary: UpdateSummary, updates: List[UpdateInfo]):
@@ -85,6 +127,10 @@ def updates() -> PackageUpdatesResult:
 
 
 def _updates(cfg: UAConfig) -> PackageUpdatesResult:
+    """
+    This endpoint shows available updates for packages in a system, categorised
+    by where they can be obtained.
+    """
     ua_info = get_ua_info(cfg)
     packages = get_installed_packages_by_origin()
     upgradable_versions = filter_updates(packages["all"])
@@ -128,3 +174,37 @@ endpoint = APIEndpoint(
     fn=_updates,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.12",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.pro.packages.updates.v1 import updates
+
+result = updates()
+""",  # noqa: E501
+    "result_class": PackageUpdatesResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.packages.updates.v1",
+    "example_json": """
+{
+    "summary": {
+        "num_updates": 1,
+        "num_esm_apps_updates": 2,
+        "num_esm_infra_updates": 3,
+        "num_standard_security_updates": 4,
+        "num_standard_updates": 5,
+    },
+    "updates": [
+        {
+            "download_size": 6,
+            "origin": "<some site>",
+            "package": "<package name>",
+            "provided_by": "<service name>",
+            "status": "<update status>",
+            "version": "<updated version>",
+        },
+    ]
+}
+""",
+}

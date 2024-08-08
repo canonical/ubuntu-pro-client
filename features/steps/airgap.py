@@ -144,7 +144,7 @@ def create_contract_overrides(context, service_list, machine_name):
 def i_configure_the_ua_airgapped_service(context, machine_name):
     contract_override_path = context.service_mirror_cfg["contract_override"]
     contract_final_cfg_path = "contract-server-ready.yml"
-    cmd = "sh -c 'cat {} | ua-airgapped > {}'".format(
+    cmd = "sh -c 'cat {} | pro-airgapped > {}'".format(
         contract_override_path,
         contract_final_cfg_path,
     )

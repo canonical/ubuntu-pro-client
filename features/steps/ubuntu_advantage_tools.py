@@ -4,7 +4,7 @@ import re
 from behave import then, when
 
 from features.steps.files import when_i_create_file_with_content
-from features.steps.packages import when_i_apt_install
+from features.steps.packages import when_i_apt_install, when_i_apt_update
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from features.util import (
     ALL_BINARY_PACKAGE_NAMES,
@@ -111,7 +111,9 @@ def when_i_install_uat(context, machine_name=SUT):
         )
     else:
         when_i_apt_install(
-            context, "ubuntu-pro-client", machine_name=machine_name
+            context,
+            "ubuntu-pro-client ubuntu-advantage-tools",
+            machine_name=machine_name,
         )
         if is_pro:
             when_i_apt_install(
@@ -119,6 +121,18 @@ def when_i_install_uat(context, machine_name=SUT):
                 "ubuntu-pro-auto-attach",
                 machine_name=machine_name,
             )
+
+
+@when("I ensure -proposed is not enabled anymore")
+def when_i_ensure_proposed_not_enabled(context, machine_name=SUT):
+    if context.pro_config.install_from is InstallationSource.PROPOSED:
+        when_i_run_command(
+            context,
+            "rm /etc/apt/sources.list.d/uaclient-proposed.list",
+            "with sudo",
+            machine_name=machine_name,
+        )
+        when_i_apt_update(context, machine_name=machine_name)
 
 
 @when("I have the `{series}` debs under test in `{dest}`")
@@ -182,7 +196,7 @@ def when_i_create_local_ppas(context, release, next_release):
     from features.steps.machines import given_a_machine
 
     # We need Kinetic or greater to support zstd when creating the PPAs
-    given_a_machine(context, "mantic", "lxd-container", machine_name="ppa")
+    given_a_machine(context, "noble", "lxd-container", machine_name="ppa")
     when_i_run_command(
         context, "apt-get update", "with sudo", machine_name="ppa"
     )

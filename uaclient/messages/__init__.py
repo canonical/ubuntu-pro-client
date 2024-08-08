@@ -1,6 +1,6 @@
 import sys
 from gettext import NullTranslations, translation
-from typing import Callable, Dict, Optional  # noqa: F401
+from typing import Callable, Dict, Optional
 
 from uaclient.messages import urls
 
@@ -882,16 +882,21 @@ Please run `sudo pro refresh`."""
 # Also, any generic strings about the CLI itself go here.
 
 
-CLI_TRY_HELP = t.gettext("Try 'pro --help' for more information.")
 CLI_HELP_EPILOG = t.gettext(
     "Use {name} {command} --help for more information about a command."
 )
-PRO_HELP_SERVICE_INFO = t.gettext(
-    "Use pro help <service> to get more details about each service"
+
+CLI_HELP_FLAG_DESC = t.gettext(
+    "Displays help on {name} and command line options"
 )
 
+CLI_HELP_HEADER_QUICK_START = t.gettext("Quick start commands")
+CLI_HELP_HEADER_SECURITY = t.gettext("Security-related commands")
+CLI_HELP_HEADER_TROUBLESHOOT = t.gettext("Troubleshooting-related commands")
+CLI_HELP_HEADER_OTHER = t.gettext("Other commands")
+
+
 CLI_HELP_VARIANTS_HEADER = t.gettext("Variants:")
-CLI_ARGS = t.gettext("Arguments")
 CLI_FLAGS = t.gettext("Flags")
 CLI_AVAILABLE_COMMANDS = t.gettext("Available Commands")
 CLI_FORMAT_DESC = t.gettext(
@@ -1104,7 +1109,7 @@ The attached status output has four columns:
   entitles use of this service. Possible values are: yes or no
 * STATUS: whether the service is enabled on this machine. Possible
   values are: enabled, disabled, n/a (if your contract entitles
-  you to the service, but it isn't available for this machine) or — (if
+  you to the service, but it isn't available for this machine) or - (if
   you aren't entitled to this service)
 * DESCRIPTION: a brief description of the service
 
@@ -1341,6 +1346,18 @@ This will downgrade the kernel from {current_version} to {new_version}.
 Warning: Downgrading the kernel may cause hardware failures.  Please ensure the
          hardware is compatible with the new kernel version before proceeding.
 """
+)
+KERNEL_FLAVOR_CHANGE_WARNING_PROMPT = t.gettext(
+    """\
+The "{variant}" variant of {service} is based on the "{base_flavor}" Ubuntu
+kernel but this machine is running the "{current_flavor}" kernel.
+The "{current_flavor}" kernel may have significant hardware support
+differences from "{variant}" {service}.
+
+Warning: Installing {variant} {service} may result in lost hardware support
+         and may prevent the system from booting.
+
+Do you accept the risk and wish to continue? (y/N) """
 )
 FIPS_SYSTEM_REBOOT_REQUIRED = t.gettext(
     "FIPS support requires system reboot to complete configuration."

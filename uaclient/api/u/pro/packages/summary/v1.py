@@ -7,15 +7,51 @@ from uaclient.security_status import get_installed_packages_by_origin
 
 class PackageSummary(DataObject):
     fields = [
-        Field("num_installed_packages", IntDataValue),
-        Field("num_esm_apps_packages", IntDataValue),
-        Field("num_esm_infra_packages", IntDataValue),
-        Field("num_main_packages", IntDataValue),
-        Field("num_multiverse_packages", IntDataValue),
-        Field("num_restricted_packages", IntDataValue),
-        Field("num_third_party_packages", IntDataValue),
-        Field("num_universe_packages", IntDataValue),
-        Field("num_unknown_packages", IntDataValue),
+        Field(
+            "num_installed_packages",
+            IntDataValue,
+            doc="Total count of installed packages",
+        ),
+        Field(
+            "num_esm_apps_packages",
+            IntDataValue,
+            doc="Count of packages installed from ``esm-apps``",
+        ),
+        Field(
+            "num_esm_infra_packages",
+            IntDataValue,
+            doc="Count of packages installed from ``esm-infra``",
+        ),
+        Field(
+            "num_main_packages",
+            IntDataValue,
+            doc="Count of packages installed from ``main``",
+        ),
+        Field(
+            "num_multiverse_packages",
+            IntDataValue,
+            doc="Count of packages installed from ``multiverse``",
+        ),
+        Field(
+            "num_restricted_packages",
+            IntDataValue,
+            doc="Count of packages installed from ``restricted``",
+        ),
+        Field(
+            "num_third_party_packages",
+            IntDataValue,
+            doc="Count of packages installed from third party sources",
+        ),
+        Field(
+            "num_universe_packages",
+            IntDataValue,
+            doc="Count of packages installed from ``universe``",
+        ),
+        Field(
+            "num_unknown_packages",
+            IntDataValue,
+            doc="Count of packages installed from unknown sources",
+        ),
     ]
 
     def __init__(
@@ -42,7 +78,13 @@ class PackageSummary(DataObject):
 
 
 class PackageSummaryResult(DataObject, AdditionalInfo):
-    fields = [Field("summary", PackageSummary)]
+    fields = [
+        Field(
+            "summary",
+            PackageSummary,
+            doc=("Summary of all installed packages"),
+        )
+    ]
 
     def __init__(self, summary):
         self.summary = summary
@@ -53,6 +95,10 @@ def summary() -> PackageSummaryResult:
 
 
 def _summary(cfg: UAConfig) -> PackageSummaryResult:
+    """
+    This endpoint shows a summary of installed packages in the system,
+    categorised by origin.
+    """
     packages = get_installed_packages_by_origin()
     summary = PackageSummary(
         num_installed_packages=len(packages["all"]),
@@ -74,3 +120,31 @@ endpoint = APIEndpoint(
     fn=_summary,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.12",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.pro.packages.summary.v1 import summary
+
+result = summary()
+""",  # noqa: E501
+    "result_class": PackageSummaryResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.packages.summary.v1",
+    "example_json": """
+{
+    "summary":{
+        "num_installed_packages": 1,
+        "num_esm_apps_packages": 2,
+        "num_esm_infra_packages": 3,
+        "num_main_packages": 4,
+        "num_multiverse_packages": 5,
+        "num_restricted_packages": 6,
+        "num_third_party_packages": 7,
+        "num_universe_packages": 8,
+        "num_unknown_packages": 9,
+    },
+}
+""",
+}

@@ -13,7 +13,11 @@ class VersionError(APIError):
 
 class VersionResult(DataObject, AdditionalInfo):
     fields = [
-        Field("installed_version", StringDataValue),
+        Field(
+            "installed_version",
+            StringDataValue,
+            doc="The current installed version",
+        ),
     ]
 
     def __init__(self, *, installed_version: str):
@@ -25,6 +29,9 @@ def version() -> VersionResult:
 
 
 def _version(cfg: UAConfig) -> VersionResult:
+    """
+    This endpoint shows the installed Pro Client version.
+    """
     try:
         version = get_version()
     except Exception as e:
@@ -38,3 +45,23 @@ endpoint = APIEndpoint(
     fn=_version,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.11",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.pro.version.v1 import version
+
+result = version()
+""",
+    "result_class": VersionResult,
+    "exceptions": [
+        (VersionError, "Raised if the Client cannot determine the version.")
+    ],
+    "example_cli": "pro api u.pro.version.v1",
+    "example_json": """
+{
+    "installed_version": "32.3~24.04"
+}
+""",
+}

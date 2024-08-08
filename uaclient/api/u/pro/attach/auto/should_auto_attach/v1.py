@@ -9,7 +9,11 @@ from uaclient.data_types import BoolDataValue, DataObject, Field
 
 class ShouldAutoAttachResult(DataObject, AdditionalInfo):
     fields = [
-        Field("should_auto_attach", BoolDataValue),
+        Field(
+            "should_auto_attach",
+            BoolDataValue,
+            doc="True if the system should run auto-attach on boot",
+        ),
     ]
 
     def __init__(self, should_auto_attach: bool):
@@ -21,6 +25,9 @@ def should_auto_attach() -> ShouldAutoAttachResult:
 
 
 def _should_auto_attach(cfg: UAConfig) -> ShouldAutoAttachResult:
+    """
+    This endpoint checks if a given system should run auto-attach on boot.
+    """
     try:
         cloud_instance_factory()
     except exceptions.CloudFactoryError:
@@ -40,3 +47,21 @@ endpoint = APIEndpoint(
     fn=_should_auto_attach,
     options_cls=None,
 )
+
+_doc = {
+    "introduced_in": "27.11",
+    "requires_network": False,
+    "example_python": """
+from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import should_auto_attach
+
+result = should_auto_attach()
+""",  # noqa: E501
+    "result_class": ShouldAutoAttachResult,
+    "exceptions": [],
+    "example_cli": "pro api u.pro.attach.auto.should_auto_attach.v1",
+    "example_json": """
+{
+    "should_auto_attach": false
+}
+""",
+}

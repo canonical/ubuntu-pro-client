@@ -153,8 +153,10 @@ class TestFIPSEntitlementDefaults:
     )
     @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
     @mock.patch(M_PATH + "util.prompt_for_confirmation")
+    @mock.patch(M_PATH + "system.get_kernel_info")
     def test_kernel_downgrade(
         self,
+        m_prompt_kernel_info,
         m_prompt_for_confirmation,
         m_pkg_candidate_version,
         fips_version,
@@ -168,6 +170,9 @@ class TestFIPSEntitlementDefaults:
             m_prompt_for_confirmation.return_value = False
         else:
             m_prompt_for_confirmation.return_value = True
+        m_prompt_kernel_info.return_value.proc_version_signature_version = (
+            "6.8.0-22.22-generic"
+        )
         m_pkg_candidate_version.return_value = fips_version
         install_continues = entitlement.prompt_if_kernel_downgrade(
             assume_yes=assume_yes
@@ -259,6 +264,76 @@ class TestFIPSEntitlementDefaults:
                 )
         else:
             assert False, "Unknown entitlement {}".format(entitlement.name)
+
+    @pytest.mark.parametrize(
+        [
+            "fips_packages",
+            "current_kernel",
+            "expected_pre_enable_messages",
+        ],
+        [
+            ([], None, [(util.prompt_for_confirmation, {"msg": mock.ANY})]),
+            (
+                ["ubuntu-fips"],
+                mock.MagicMock(flavor="generic"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-aws-fips"],
+                mock.MagicMock(flavor="aws"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-azure-fips"],
+                mock.MagicMock(flavor="azure"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-gcp-fips"],
+                mock.MagicMock(flavor="gcp"),
+                [(util.prompt_for_confirmation, {"msg": mock.ANY})],
+            ),
+            (
+                ["ubuntu-fips"],
+                mock.MagicMock(flavor="nonstandard"),
+                [
+                    (util.prompt_for_confirmation, {"msg": mock.ANY}),
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "msg": messages.KERNEL_FLAVOR_CHANGE_WARNING_PROMPT.format(  # noqa: E501
+                                variant="generic",
+                                service="fips",
+                                base_flavor="generic",
+                                current_flavor="nonstandard",
+                            )
+                        },
+                    ),
+                ],
+            ),
+        ],
+    )
+    @mock.patch(
+        "uaclient.entitlements.fips.FIPSCommonEntitlement.packages",
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch("uaclient.system.get_kernel_info")
+    @mock.patch("uaclient.system.is_container", return_value=False)
+    def test_messaging_on_wrong_kernel(
+        self,
+        _m_is_container,
+        m_get_kernel_info,
+        m_fips_packages,
+        fips_packages,
+        current_kernel,
+        expected_pre_enable_messages,
+        FakeConfig,
+    ):
+        m_get_kernel_info.return_value = current_kernel
+        m_fips_packages.return_value = fips_packages
+        assert expected_pre_enable_messages == FIPSEntitlement(
+            FakeConfig()
+        ).messaging.get("pre_enable")
 
 
 class TestFIPSEntitlementEnable:
