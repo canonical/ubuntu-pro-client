@@ -122,6 +122,7 @@ html_css_files = [
     "css/mermaid.css",
     "css/header.css",
     "css/furo_colors.css",
+    "css/highlight.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
@@ -150,3 +151,5 @@ notfound_context = {
     'title': 'Page not found',
     'body': '<h1>Page not found</h1>\n\n<p>Sorry, but the documentation page that you are looking for was not found.</p>\n<p>Documentation changes over time, and pages are moved around. We try to redirect you to the updated content where possible, but unfortunately, that didn\'t work this time (maybe because the content you were looking for does not exist in this version of the documentation).</p>\n<p>You can try to use the navigation to locate the content you\'re looking for, or search for a similar page.</p>\n',
 }
+
+copybutton_exclude = '.linenos, .gp'
