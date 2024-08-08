@@ -53,7 +53,7 @@ Depends: ${misc:Depends},
          python3-pkg-resources,
          ${extra:Depends}
 Recommends: ubuntu-pro-client-l10n
-Breaks: ubuntu-advantage-tools (<<31~)
+Breaks: ubuntu-advantage-tools (<<31~), ${misc:Breaks}
 Replaces: ubuntu-advantage-tools (<<31~)
 # IMPORTANT: ubuntu-pro-client does not "Provide" ubuntu-advantage-tools
 # At the time of the rename, existing releases with ubuntu-advantage-tools
