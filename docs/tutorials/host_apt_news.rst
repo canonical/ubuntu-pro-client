@@ -10,7 +10,7 @@ configure your Ubuntu machines to use it.
 .. include:: ./common/install-multipass.txt
 
 .. note::
-   You will need at least 10 Gb of free space on your machine to launch the Multipass VM used in this tutorial.
+   You will need at least 10 Gigabytes of free space on your machine to launch the Multipass VM used in this tutorial.
 
 Tutorial overview
 =====================
