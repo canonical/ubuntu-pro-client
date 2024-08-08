@@ -9,6 +9,9 @@ configure your Ubuntu machines to use it.
 .. Why we use Multipass + command to install it
 .. include:: ./common/install-multipass.txt
 
+.. note::
+   You will need at least 10 Gb of free space on your machine to launch the Multipass VM used in this tutorial.
+
 Tutorial overview
 =====================
 
@@ -131,7 +134,7 @@ and add the following content:
      ]
    }
 
-In ``nano``, use :kbd:`CTRL`+:kbd:`S` and :kbd:`CTRL`+:kbd:`X` to save and exit, respectively.
+In ``nano``, use :kbd:`CTRL` + :kbd:`S` and :kbd:`CTRL` + :kbd:`X` to save and exit, respectively.
 
 That apt news configuration will show one message to systems running Ubuntu
 22.04 (codename "jammy") and will show a different message to all other systems.
@@ -146,12 +149,19 @@ following command.
 
    root@apt-news-server:~# sed -i "s/TODAY/$(date --iso-8601=seconds)/" /var/www/html/aptnews.json
 
-You can double check that the command worked by verifying the ``begin`` field has an appropriate value.
+You can double check that the command worked by looking at the new contents of the file.
 
 .. code-block:: console
-   :emphasize-lines: 5
 
    root@apt-news-server:~# cat /var/www/html/aptnews.json
+
+You should see that the ``begin`` field now has an appropriate value.
+
+.. code-block:: json
+   :force:
+   :class: ignore-err
+   :emphasize-lines: 4
+
    {
      "messages": [
        {
@@ -203,7 +213,7 @@ Then we can run these commands to see the custom APT news message:
 
 The output of ``apt upgrade`` should look like this.
 
-.. code-block:: console
+.. code-block:: text
 
    Reading package lists... Done
    Building dependency tree... Done
@@ -238,7 +248,7 @@ Then run these commands again to see the APT news message:
 
 The output of ``apt upgrade`` should look like this.
 
-.. code-block:: console
+.. code-block:: text
 
    Reading package lists... Done
    Building dependency tree... Done
@@ -262,11 +272,17 @@ Clean up
 
 Congratulations! This tutorial demonstrated the basics of how an APT news server can be set up and used by other Ubuntu machines.
 
-Now that the tutorial is over, you can exit out of the Multipass VM and delete it.
+Now that the tutorial is over, you can exit out of the Multipass VM:
 
 .. code-block:: console
 
    ubuntu@tutorial:~$ exit
+   you@yourcomputer:~$
+
+and delete it:
+
+.. code-block:: console
+
    you@yourcomputer:~$ multipass delete --purge tutorial
 
 .. LINKS

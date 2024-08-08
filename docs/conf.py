@@ -122,6 +122,7 @@ html_css_files = [
     "css/mermaid.css",
     "css/header.css",
     "css/furo_colors.css",
+    "css/highlight.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
