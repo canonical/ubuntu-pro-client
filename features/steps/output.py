@@ -3,6 +3,7 @@ import logging
 import re
 import textwrap
 
+import jq  # type: ignore
 import jsonschema  # type: ignore
 import yaml
 from behave import then, when
@@ -31,6 +32,19 @@ def then_conditional_stdout_matches_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_stream_matches_regexp(context, "stdout")
+
+
+@then("if `{value1}` in `{value2}` and stdout contains substring")
+def then_conditional_stdout_contains_substring(context, value1, value2):
+    if value1 in value2.split(" or "):
+        then_stream_contains_substring(context, "stdout")
+
+
+@then("if `{value1}` in `{value2}` and stderr matches regexp")
+def then_conditional_stderr_matches_regexp(context, value1, value2):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 in value2.split(" or "):
+        then_stream_matches_regexp(context, "stderr")
 
 
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
@@ -237,3 +251,10 @@ def i_verify_field_is_redacted_in_the_logs(context, field):
     )
     context.text = field + "<REDACTED>"
     then_stream_contains_substring(context, "stdout")
+
+
+@when("I apply this jq filter `{jq_filter}` to the output")
+def i_apply_jq_filter(context, jq_filter):
+    context.process.stdout = (
+        jq.compile(jq_filter).input_text(context.process.stdout.strip()).text()
+    )
