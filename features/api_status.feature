@@ -1,4 +1,3 @@
-@uses.config.contract_token
 Feature: Status behavior when using the api
 
   @uses.config.contract_token
@@ -54,7 +53,6 @@ Feature: Status behavior when using the api
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
-      | mantic  | lxd-container |
       | noble   | lxd-container |
 
   Scenario Outline: Subscription api when unattached
@@ -103,24 +101,24 @@ Feature: Status behavior when using the api
     When I run `pro api u.pro.config.v1` with sudo
     Then API data field output matches regexp:
       """
-      \s*{
-      \s*"attributes":\s*{
-      \s*"apt_news":\s*true,
-      \s*"apt_news_url":\s*"https://motd.ubuntu.com/aptnews.json",
-      \s*"global_apt_http_proxy":\s*null,
-      \s*"global_apt_https_proxy":\s*null,
-      \s*"http_proxy":\s*null,
-      \s*"https_proxy":\s*null,
-      \s*"metering_timer":\s*14400,
-      \s*"ua_apt_http_proxy":\s*null,
-      \s*"ua_apt_https_proxy":\s*null,
-      \s*"update_messaging_timer":\s*21600
-      \s*},
-      \s*"meta":\s*{
-      \s*"environment_vars":\s*[]
-      \s*},
-      \s*"type":\s*"config"
-      \s*}
+      {
+        "attributes": {
+          "apt_news": true,
+          "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+          "global_apt_http_proxy": null,
+          "global_apt_https_proxy": null,
+          "http_proxy": null,
+          "https_proxy": null,
+          "metering_timer": 14400,
+          "ua_apt_http_proxy": null,
+          "ua_apt_https_proxy": null,
+          "update_messaging_timer": 21600
+        },
+        "meta": {
+          "environment_vars": []
+        },
+        "type": "config"
+      }
       """
     When I append the following on uaclient config:
       """
@@ -129,24 +127,24 @@ Feature: Status behavior when using the api
     When I run `pro api u.pro.config.v1` with sudo
     Then API data field output matches regexp:
       """
-      \s*{
-      \s*"attributes":\s*{
-      \s*"apt_news":\s*false,
-      \s*"apt_news_url":\s*"https://motd.ubuntu.com/aptnews.json",
-      \s*"global_apt_http_proxy":\s*null,
-      \s*"global_apt_https_proxy":\s*null,
-      \s*"http_proxy":\s*null,
-      \s*"https_proxy":\s*null,
-      \s*"metering_timer":\s*14400,
-      \s*"ua_apt_http_proxy":\s*null,
-      \s*"ua_apt_https_proxy":\s*null,
-      \s*"update_messaging_timer":\s*21600
-      \s*},
-      \s*"meta":\s*{
-      \s*"environment_vars":\s*[]
-      \s*},
-      \s*"type":\s*"config"
-      \s*}
+      {
+        "attributes": {
+          "apt_news": false,
+          "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+          "global_apt_http_proxy": null,
+          "global_apt_https_proxy": null,
+          "http_proxy": null,
+          "https_proxy": null,
+          "metering_timer": 14400,
+          "ua_apt_http_proxy": null,
+          "ua_apt_https_proxy": null,
+          "update_messaging_timer": 21600
+        },
+        "meta": {
+          "environment_vars": []
+        },
+        "type": "config"
+      }
       """
 
     Examples: ubuntu release
