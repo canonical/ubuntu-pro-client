@@ -7,6 +7,7 @@ from uaclient import (
     http,
     messages,
 )
+from uaclient.api.u.pro.config.v1 import _config
 from uaclient.apt import AptProxyScope
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
@@ -36,6 +37,7 @@ def action_config_show(args, *, cfg, **kwargs):
     :return: 0 on success
     :raise UbuntuProError: on invalid keys
     """
+    pro_config = _config(cfg)
     if args.key:  # limit reporting config to a single config key
         if args.key not in config.UA_CONFIGURABLE_KEYS:
             raise exceptions.InvalidArgChoice(
@@ -44,7 +46,7 @@ def action_config_show(args, *, cfg, **kwargs):
             )
         print(
             "{key} {value}".format(
-                key=args.key, value=getattr(cfg, args.key, None)
+                key=args.key, value=getattr(pro_config, args.key, None)
             )
         )
         return 0
@@ -53,11 +55,11 @@ def action_config_show(args, *, cfg, **kwargs):
     row_tmpl = "{key: <" + col_width + "} {value}"
 
     for key in config.UA_CONFIGURABLE_KEYS:
-        print(row_tmpl.format(key=key, value=getattr(cfg, key, None)))
+        print(row_tmpl.format(key=key, value=getattr(pro_config, key, None)))
 
-    if (cfg.global_apt_http_proxy or cfg.global_apt_https_proxy) and (
-        cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy
-    ):
+    if (
+        pro_config.global_apt_http_proxy or pro_config.global_apt_https_proxy
+    ) and (pro_config.ua_apt_http_proxy or pro_config.ua_apt_https_proxy):
         print(messages.CLI_CONFIG_GLOBAL_XOR_UA_PROXY)
 
 
