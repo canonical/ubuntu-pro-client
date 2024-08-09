@@ -15,8 +15,10 @@ from uaclient import (
     util,
     version,
 )
+from uaclient.api.u.pro.config.v1 import _config
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UA_CONFIGURABLE_KEYS, UAConfig
+from uaclient.api.u.pro.subscription.v1 import _subscription
+from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlement_factory
@@ -26,12 +28,7 @@ from uaclient.entitlements.entitlement_status import (
     UserFacingConfigStatus,
     UserFacingStatus,
 )
-from uaclient.files import (
-    machine_token,
-    notices,
-    state_files,
-    user_config_file,
-)
+from uaclient.files import machine_token, notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.messages import TxtColor
 
@@ -220,36 +217,25 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machine_token_file = machine_token.get_machine_token_file(cfg)
-    machineTokenInfo = machine_token_file.machine_token["machineTokenInfo"]
-    contractInfo = machineTokenInfo["contractInfo"]
-    tech_support_level = UserFacingStatus.INAPPLICABLE.value
+    subscriptionInfo = _subscription(cfg)
     response.update(
         {
-            "machine_id": machineTokenInfo["machineId"],
+            "machine_id": subscriptionInfo.machine_id,
             "attached": True,
-            "origin": contractInfo.get("origin"),
+            "origin": subscriptionInfo.contract.origin,
             "notices": notices.list() or [],
             "contract": {
-                "id": contractInfo["id"],
-                "name": contractInfo["name"],
-                "created_at": contractInfo.get("createdAt", ""),
-                "products": contractInfo.get("products", []),
-                "tech_support_level": tech_support_level,
+                "id": subscriptionInfo.contract.id,
+                "name": subscriptionInfo.contract.name,
+                "created_at": subscriptionInfo.contract.created_at,
+                "products": subscriptionInfo.contract.products,
+                "tech_support_level": subscriptionInfo.contract.tech_support_level,  # noqa
             },
-            "account": {
-                "name": machine_token_file.account["name"],
-                "id": machine_token_file.account["id"],
-                "created_at": machine_token_file.account.get("createdAt", ""),
-                "external_account_ids": machine_token_file.account.get(
-                    "externalAccountIDs", []
-                ),
-            },
+            "account": subscriptionInfo.account.to_dict(),
         }
     )
-    if contractInfo.get("effectiveTo"):
-        response["expires"] = machine_token_file.contract_expiry_datetime
-    if contractInfo.get("effectiveFrom"):
-        response["effective"] = contractInfo["effectiveFrom"]
+    response["expires"] = subscriptionInfo.contract.expires
+    response["effective"] = subscriptionInfo.contract.effective
 
     resources = machine_token_file.machine_token.get("availableResources")
     if not resources:
@@ -271,14 +257,6 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
             _attached_service_status(ent, inapplicable_resources, cfg)
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
-
-    support = (
-        machine_token_file.entitlements().get("support", {}).get("entitlement")
-    )
-    if support:
-        supportLevel = support.get("affordances", {}).get("supportLevel")
-        if supportLevel:
-            response["contract"]["tech_support_level"] = supportLevel
     return response
 
 
@@ -353,6 +331,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         status_desc = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation=operation
         )
+
     ret = {
         "execution_status": status_val,
         "execution_details": status_desc,
@@ -362,11 +341,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         "features": cfg.features,
     }
     # LP: #2004280 maintain backwards compatibility
-    ua_config = user_config_file.user_config.public_config.to_dict()
-    for key in UA_CONFIGURABLE_KEYS:
-        if hasattr(cfg, key) and ua_config[key] is None:
-            ua_config[key] = getattr(cfg, key)
-    ret["config"]["ua_config"] = ua_config
+    ret["config"]["ua_config"] = _config(cfg).to_dict()
 
     return ret
 
