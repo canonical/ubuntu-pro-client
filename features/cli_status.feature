@@ -1,4 +1,478 @@
-Feature: Unattached status
+Feature: CLI status command
+
+  @uses.config.contract_token
+  Scenario Outline: Attached status in a ubuntu machine with feature overrides
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
+      """
+      {
+          "machineTokenInfo": {
+              "contractInfo": {
+                  "resourceEntitlements": [
+                      {
+                          "type": "cc-eal",
+                          "entitled": false
+                      }
+                  ]
+              }
+          }
+      }
+      """
+    And I append the following on uaclient config:
+      """
+      features:
+        machine_token_overlay: "/var/lib/ubuntu-advantage/machine-token-overlay.json"
+        other: false
+      """
+    And I attach `contract_token` with sudo
+    And I run `pro status --all` with sudo
+    Then stdout matches regexp:
+      """
+      SERVICE       +ENTITLED +STATUS +DESCRIPTION
+      anbox-cloud   +.*
+      cc-eal        +no
+      """
+    And stdout matches regexp:
+      """
+      FEATURES
+      machine_token_overlay: /var/lib/ubuntu-advantage/machine-token-overlay.json
+      other: False
+      """
+    When I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE       +ENTITLED +STATUS +DESCRIPTION
+      anbox-cloud   +.*
+      cc-eal        +no
+      """
+    And stdout matches regexp:
+      """
+      FEATURES
+      machine_token_overlay: /var/lib/ubuntu-advantage/machine-token-overlay.json
+      other: False
+      """
+    When I create the file `/var/lib/ubuntu-advantage/machine-token-overlay.json` with the following:
+      """
+      {
+          "machineTokenInfo": {
+              "contractInfo": {
+                  "effectiveTo": null
+              }
+          }
+      }
+      """
+    And I run `pro status` with sudo
+    Then stdout contains substring:
+      """
+      Valid until: Unknown/Expired
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Non-root status can see in-progress operations
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    When I run shell command `sudo pro refresh & pro status` as non-root
+    Then stdout matches regexp:
+      """
+      NOTICES
+      Operation in progress: pro refresh
+      """
+    When I run `pro status --wait` as non-root
+    When I run shell command `sudo pro refresh & pro status --wait` as non-root
+    Then stdout matches regexp:
+      """
+      Successfully processed your pro configuration.
+      Successfully refreshed your subscription.
+      Successfully updated Ubuntu Pro related APT and MOTD messages.
+      \.+
+      SERVICE +ENTITLED +STATUS +DESCRIPTION
+      """
+    Then stdout does not match regexp:
+      """
+      NOTICES
+      Operation in progress: pro refresh
+      """
+    When I apt install `jq`
+    When I run shell command `sudo pro refresh >/dev/null & pro status --format json | jq -r .execution_status` as non-root
+    Then I will see the following on stdout:
+      """
+      active
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+
+  Scenario Outline: Attached status in a Xenial GCP Pro machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+      """
+      contract_url: 'https://contracts.canonical.com'
+      log_level: debug
+      """
+    And I run `pro auto-attach` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +disabled +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
+      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +disabled +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | xenial  | gcp.pro      |
+
+  Scenario Outline: Attached status in a ubuntu Pro machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+      """
+      contract_url: 'https://contracts.canonical.com'
+      log_level: debug
+      """
+    And I run `pro auto-attach` with sudo
+    When I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +disabled +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      livepatch       +yes      +enabled  +Canonical Livepatch service
+      """
+    When I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
+      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +disabled +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +enabled  +Canonical Livepatch service
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | xenial  | aws.pro      |
+      | xenial  | azure.pro    |
+      | bionic  | aws.pro      |
+      | bionic  | azure.pro    |
+      | bionic  | gcp.pro      |
+
+  Scenario Outline: Attached status in a Focal Pro machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+      """
+      contract_url: 'https://contracts.canonical.com'
+      log_level: debug
+      """
+    And I run `pro auto-attach` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      livepatch       +yes      +enabled  +Canonical Livepatch service
+      usg             +yes      +disabled +Security compliance and audit tools
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +enabled  +Canonical Livepatch service
+      usg             +yes      +disabled +Security compliance and audit tools
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | focal   | aws.pro      |
+      | focal   | azure.pro    |
+      | focal   | gcp.pro      |
+
+  Scenario Outline: Attached status in Jammy Pro machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+      """
+      contract_url: 'https://contracts.canonical.com'
+      log_level: debug
+      """
+    And I run `pro auto-attach` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      livepatch       +yes      +enabled  +Canonical Livepatch service
+      usg             +yes      +disabled +Security compliance and audit tools
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +enabled  +Canonical Livepatch service
+      usg             +yes      +disabled +Security compliance and audit tools
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | jammy   | aws.pro      |
+      | jammy   | azure.pro    |
+      | jammy   | gcp.pro      |
+
+  @uses.config.contract_token
+  Scenario Outline: Attached status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +disabled +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      ros             +yes      +disabled +Security Updates for the Robot Operating System
+      ros-updates     +yes      +disabled +All Updates for the Robot Operating System
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +n/a      +.*
+      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +disabled +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +yes      +disabled +Security Updates for the Robot Operating System
+      ros-updates     +yes      +disabled +All Updates for the Robot Operating System
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+
+  @uses.config.contract_token
+  Scenario Outline: Attached status in a Focal ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      ros             +yes      +disabled +Security Updates for the Robot Operating System
+      usg             +yes      +disabled +Security compliance and audit tools
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +yes      +disabled +Security Updates for the Robot Operating System
+      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
+      usg             +yes      +disabled +Security compliance and audit tools
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+
+  @uses.config.contract_token
+  Scenario Outline: Attached status in a Jammy ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      usg             +yes      +disabled +Security compliance and audit tools
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
+      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
+      ros             +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
+      usg             +yes      +disabled +Security compliance and audit tools
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | jammy   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Attached status in the latest LTS ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      landscape       +yes      +disabled +Management and administration tool for Ubuntu
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +disabled +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
+      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
+      ros             +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
+      usg             +yes      +n/a      +Security compliance and audit tools
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | noble   | lxd-container |
 
   Scenario Outline: Unattached status in a ubuntu machine - formatted
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -9,9 +483,22 @@ Feature: Unattached status
     When I run `sed -i 's/contracts.can/invalidurl.notcan/' /etc/ubuntu-advantage/uaclient.conf` with sudo
     And I verify that running `pro status --format json` `as non-root` exits `1`
     Then stdout is a json matching the `ua_status` schema
-    And stdout matches regexp:
+    And API full output matches regexp:
       """
-      {"environment_vars": \[\], "errors": \[{"message": "Failed to connect to .*\\n\[Errno -2\] Name or service not known\\n", "message_code": "connectivity-error", "service": null, "type": "system"}\], "result": "failure", "services": \[\], "warnings": \[\]}
+      {
+        "environment_vars": [],
+        "errors": [
+          {
+            "message": "Failed to connect to .*\n[Errno -2] Name or service not known\n",
+            "message_code": "connectivity-error",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "result": "failure",
+        "services": [],
+        "warnings": []
+      }
       """
     And I verify that running `pro status --format yaml` `as non-root` exits `1`
     Then stdout is a yaml matching the `ua_status` schema
@@ -378,30 +865,6 @@ Feature: Unattached status
       ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
       ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
       """
-    When I do a preflight check for `contract_token` formatted as json
-    Then stdout is a json matching the `ua_status` schema
-    When I do a preflight check for `contract_token` formatted as yaml
-    Then stdout is a yaml matching the `ua_status` schema
-    When I verify that a preflight check for `invalid_token` formatted as json exits 1
-    Then stdout is a json matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-      """
-    When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
-    Then stdout is a yaml matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      environment_vars: []
-      errors:
-      - message: Invalid token. See https://ubuntu.com/pro/dashboard
-        message_code: attach-invalid-token
-        service: null
-        type: system
-      result: failure
-      services: []
-      warnings: []
-      """
 
     Examples: ubuntu release
       | release | machine_type  |
@@ -442,30 +905,6 @@ Feature: Unattached status
       ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
       usg             +yes       +yes       +no           +Security compliance and audit tools
       """
-    When I do a preflight check for `contract_token` formatted as json
-    Then stdout is a json matching the `ua_status` schema
-    When I do a preflight check for `contract_token` formatted as yaml
-    Then stdout is a yaml matching the `ua_status` schema
-    When I verify that a preflight check for `invalid_token` formatted as json exits 1
-    Then stdout is a json matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-      """
-    When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
-    Then stdout is a yaml matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      environment_vars: []
-      errors:
-      - message: Invalid token. See https://ubuntu.com/pro/dashboard
-        message_code: attach-invalid-token
-        service: null
-        type: system
-      result: failure
-      services: []
-      warnings: []
-      """
 
     Examples: ubuntu release
       | release | machine_type  |
@@ -505,30 +944,6 @@ Feature: Unattached status
       ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
       usg             +yes       +yes       +no           +Security compliance and audit tools
       """
-    When I do a preflight check for `contract_token` formatted as json
-    Then stdout is a json matching the `ua_status` schema
-    When I do a preflight check for `contract_token` formatted as yaml
-    Then stdout is a yaml matching the `ua_status` schema
-    When I verify that a preflight check for `invalid_token` formatted as json exits 1
-    Then stdout is a json matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-      """
-    When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
-    Then stdout is a yaml matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      environment_vars: []
-      errors:
-      - message: Invalid token. See https://ubuntu.com/pro/dashboard
-        message_code: attach-invalid-token
-        service: null
-        type: system
-      result: failure
-      services: []
-      warnings: []
-      """
 
     Examples: ubuntu release
       | release | machine_type  |
@@ -565,30 +980,6 @@ Feature: Unattached status
       ros             +no        +yes       +no           +Security Updates for the Robot Operating System
       ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
       usg             +no        +yes       +no           +Security compliance and audit tools
-      """
-    When I do a preflight check for `contract_token` formatted as json
-    Then stdout is a json matching the `ua_status` schema
-    When I do a preflight check for `contract_token` formatted as yaml
-    Then stdout is a yaml matching the `ua_status` schema
-    When I verify that a preflight check for `invalid_token` formatted as json exits 1
-    Then stdout is a json matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/pro/dashboard", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
-      """
-    When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
-    Then stdout is a yaml matching the `ua_status` schema
-    And I will see the following on stdout:
-      """
-      environment_vars: []
-      errors:
-      - message: Invalid token. See https://ubuntu.com/pro/dashboard
-        message_code: attach-invalid-token
-        service: null
-        type: system
-      result: failure
-      services: []
-      warnings: []
       """
 
     Examples: ubuntu release
@@ -734,6 +1125,52 @@ Feature: Unattached status
     Examples: ubuntu release
       | release | machine_type  |
       | jammy   | lxd-container |
+
+  Scenario Outline: Simulate status with invalid token
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I do a preflight check for `contract_token` formatted as json
+    Then stdout is a json matching the `ua_status` schema
+    When I do a preflight check for `contract_token` formatted as yaml
+    Then stdout is a yaml matching the `ua_status` schema
+    When I verify that a preflight check for `invalid_token` formatted as json exits 1
+    Then stdout is a json matching the `ua_status` schema
+    And API full output matches regexp:
+      """
+      {
+        "environment_vars": [],
+        "errors": [
+          {
+            "message": "Invalid token. See https://ubuntu.com/pro/dashboard",
+            "message_code": "attach-invalid-token",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "result": "failure",
+        "services": [],
+        "warnings": []
+      }
+      """
+    When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
+    Then stdout is a yaml matching the `ua_status` schema
+    And I will see the following on stdout:
+      """
+      environment_vars: []
+      errors:
+      - message: Invalid token. See https://ubuntu.com/pro/dashboard
+        message_code: attach-invalid-token
+        service: null
+        type: system
+      result: failure
+      services: []
+      warnings: []
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
 
   Scenario Outline: Check notice file read permission
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
