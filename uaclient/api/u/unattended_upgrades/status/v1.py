@@ -162,14 +162,14 @@ def _is_unattended_upgrades_running(
 
     for key in UNATTENDED_UPGRADES_CONFIG_KEYS:
         value = unattended_upgrades_cfg.get(key)
-        if not value:
+        if isinstance(value, list) and not value:
             return (
                 False,
                 messages.UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY.format(
                     cfg_name=key
                 ),
             )
-        if isinstance(value, str) and value == "0":
+        if value == "0" or not value:
             return (
                 False,
                 messages.UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF.format(
@@ -236,6 +236,11 @@ def _status(cfg: UAConfig) -> UnattendedUpgradesStatusResult:
     # will not be present in APT
     unattended_upgrades_cfg["APT::Periodic::Enable"] = (
         unattended_upgrades_cfg["APT::Periodic::Enable"] or "1"
+    )
+
+    # This should be a list, even if the key is missing.
+    unattended_upgrades_cfg["Unattended-Upgrade::Allowed-Origins"] = (
+        unattended_upgrades_cfg["Unattended-Upgrade::Allowed-Origins"] or []
     )
 
     (
