@@ -42,7 +42,6 @@ do
       bionic) version=${PRO_VERSION}~18.04;;
       focal) version=${PRO_VERSION}~20.04;;
       jammy) version=${PRO_VERSION}~22.04;;
-      mantic) version=${PRO_VERSION}~23.10;;
       noble) version=${PRO_VERSION}~24.04;;
   esac
   dch_cmd=(dch -m -v "${version}" -D "${release}" -b  "Backport $PRO_VERSION to $release (LP: #${SRU_BUG})")

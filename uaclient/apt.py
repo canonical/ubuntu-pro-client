@@ -60,7 +60,7 @@ APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
 
-SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy", "mantic")
+SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy")
 
 DEB822_REPO_FILE_CONTENT = """\
 # Written by ubuntu-pro-client
