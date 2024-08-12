@@ -86,6 +86,19 @@ class TestIsUnattendedUpgradesRunning:
                 True,
                 {
                     "APT::Periodic::Enable": "1",
+                    "APT::Periodic::Update-Package-Lists": None,
+                    "APT::Periodic::Unattended-Upgrade": "1",
+                    "Unattended-Upgrade::Allowed-Origins": ["foo"],
+                },
+                False,
+                UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF.format(
+                    cfg_name="APT::Periodic::Update-Package-Lists"
+                ),
+            ),
+            (
+                True,
+                {
+                    "APT::Periodic::Enable": "1",
                     "APT::Periodic::Update-Package-Lists": "1",
                     "APT::Periodic::Unattended-Upgrade": "1",
                     "Unattended-Upgrade::Allowed-Origins": ["foo"],
