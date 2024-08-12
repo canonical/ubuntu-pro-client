@@ -15,7 +15,6 @@
 [![Released Bionic Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/bionic?label=Bionic&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/bionic/+source/ubuntu-advantage-tools)
 [![Released Focal Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/focal?label=Focal&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/focal/+source/ubuntu-advantage-tools)
 [![Released Jammy Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/jammy?label=Jammy&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/jammy/+source/ubuntu-advantage-tools)
-[![Released Mantic Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/mantic?label=Mantic&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/mantic/+source/ubuntu-advantage-tools)
 [![Released Noble Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/noble?label=Noble&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/noble/+source/ubuntu-advantage-tools)
 [![Released Oracular Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/oracular?label=Oracular&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/oracular/+source/ubuntu-advantage-tools)
 
