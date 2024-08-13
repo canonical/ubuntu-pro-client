@@ -30,7 +30,7 @@ Feature: YAML related interactions with Pro client
       esm-cache.service
       """
     When I apt install `python3-pip`
-    And I run `pip3 install pyyaml==3.10 <suffix>` with sudo
+    And I run `pip3 install pyyaml==3.10` with sudo
     And I run `ls /usr/local/lib/<python_version>/dist-packages/` with sudo
     Then stdout matches regexp:
       """
@@ -64,10 +64,5 @@ Feature: YAML related interactions with Pro client
       """
 
     Examples: ubuntu release
-      | release | machine_type  | python_version | suffix                  |
-      | jammy   | lxd-container | python3.10     |                         |
-      # mantic has a BIG error message explaining why this is a clear user error...
-      | mantic  | lxd-container | python3.11     | --break-system-packages |
-
-# noble doesn't even allow --break-system-packages to work
-# | noble   | lxd-container | python3.11     | --break-system-packages |
+      | release | machine_type  | python_version |
+      | jammy   | lxd-container | python3.10     |

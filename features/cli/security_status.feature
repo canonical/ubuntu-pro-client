@@ -772,8 +772,8 @@ Feature: CLI security-status command
       | focal   | wsl           |
 
   # Latest released non-LTS
-  Scenario: Run security status in an Ubuntu machine
-    Given a `mantic` `lxd-container` machine with ubuntu-advantage-tools installed
+  Scenario Outline: Run security status in an Ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I install third-party / unknown packages in the machine
     # Ansible is in esm-apps
     And I apt install `ansible`
@@ -791,7 +791,7 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      Main/Restricted packages receive updates until 7/2024\.
+      Main/Restricted packages receive updates until 7/2025\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -802,7 +802,7 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ packages from Ubuntu Main/Restricted repository
 
-      Main/Restricted packages receive updates until 7/2024\.
+      Main/Restricted packages receive updates until 7/2025\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -833,7 +833,7 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 7/2024\.
+      Main/Restricted packages receive updates until 7/2025\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -855,10 +855,14 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 7/2024\.
+      Main/Restricted packages receive updates until 7/2025\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | oracular | lxd-container |
 
   Scenario Outline: Pass custom APT configuration to the Client for updates information
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

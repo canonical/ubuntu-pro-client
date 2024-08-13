@@ -3011,5 +3011,5 @@ Feature: Fix plan API endpoints
       """
 
     Examples: ubuntu release details
-      | release | machine_type |
-      | mantic  | lxd-vm       |
+      | release  | machine_type |
+      | oracular | lxd-vm       |

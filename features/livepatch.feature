@@ -191,8 +191,8 @@ Feature: Livepatch
       """
 
     Examples: ubuntu release
-      | release | machine_type | pretty_name             |
-      | mantic  | lxd-vm       | 23.10 (Mantic Minotaur) |
+      | release  | machine_type | pretty_name             |
+      | oracular | lxd-vm       | 24.10 (Oracular Oriole) |
 
   Scenario Outline: Livepatch is supported on interim HWE kernel
     # This test is intended to ensure that an interim HWE kernel has the correct support status

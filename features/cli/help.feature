@@ -433,13 +433,13 @@ Feature: Pro Client help text
       """
 
     Examples: ubuntu release
-      | release | machine_type  | infra-status |
-      | bionic  | lxd-container | enabled      |
-      | xenial  | lxd-container | enabled      |
-      | focal   | lxd-container | enabled      |
-      | jammy   | lxd-container | enabled      |
-      | mantic  | lxd-container | n/a          |
-      | noble   | lxd-container | enabled      |
+      | release  | machine_type  | infra-status |
+      | bionic   | lxd-container | enabled      |
+      | xenial   | lxd-container | enabled      |
+      | focal    | lxd-container | enabled      |
+      | jammy    | lxd-container | enabled      |
+      | noble    | lxd-container | enabled      |
+      | oracular | lxd-container | n/a          |
 
   Scenario Outline: Help command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -478,13 +478,13 @@ Feature: Pro Client help text
       """
 
     Examples: ubuntu release
-      | release | machine_type  | infra-available |
-      | xenial  | lxd-container | yes             |
-      | bionic  | lxd-container | yes             |
-      | bionic  | wsl           | yes             |
-      | focal   | lxd-container | yes             |
-      | focal   | wsl           | yes             |
-      | jammy   | lxd-container | yes             |
-      | jammy   | wsl           | yes             |
-      | mantic  | lxd-container | no              |
-      | noble   | lxd-container | yes             |
+      | release  | machine_type  | infra-available |
+      | xenial   | lxd-container | yes             |
+      | bionic   | lxd-container | yes             |
+      | bionic   | wsl           | yes             |
+      | focal    | lxd-container | yes             |
+      | focal    | wsl           | yes             |
+      | jammy    | lxd-container | yes             |
+      | jammy    | wsl           | yes             |
+      | noble    | lxd-container | yes             |
+      | oracular | lxd-container | no              |
