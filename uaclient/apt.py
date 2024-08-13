@@ -290,6 +290,13 @@ def get_apt_pkg_cache():
 
 def get_esm_apt_pkg_cache():
     try:
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        # apt_pkg recently changed behvior: when the cache structure isn't
+        # present, instead of having an exception raised we only get a
+        # stderr warning. So we need to ensure all is there, our side.
+        _ensure_esm_cache_structure()
+
         # Take care to initialize the cache with only the
         # Acquire configuration preserved
         for key in apt_pkg.config.keys():
@@ -297,12 +304,10 @@ def get_esm_apt_pkg_cache():
                 apt_pkg.config.clear(key)
         apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
         apt_pkg.init()
-        # If the rootdir folder doesn't contain any apt source info, the
-        # cache will be empty
-        # If the structure in the rootdir folder does not exist or is
-        # incorrect, an exception will be raised
+
         return apt_pkg.Cache(None)
     except Exception:
+        # We don't mind if there is any exception while trying to get the cache
         # The empty dictionary will act as an empty cache
         return {}
 
