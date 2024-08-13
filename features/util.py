@@ -313,7 +313,7 @@ def build_debs(
             check=True,
         )
     except subprocess.CalledProcessError as e:
-        logging.info("--- Error running sbuild")
+        logging.error("--- Error running sbuild")
         pattern = os.path.join(
             SBUILD_DIR, "ubuntu-advantage-tools_*_amd64.build"
         )
