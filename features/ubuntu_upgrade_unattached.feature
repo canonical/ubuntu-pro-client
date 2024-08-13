@@ -41,7 +41,7 @@ Feature: Upgrade between releases when uaclient is unattached
     And I verify that the folder `/var/lib/ubuntu-advantage/apt-esm` does not exist
     When I apt update
     And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-apps.sources || true` with sudo
-    Then if `<next_release>` not in `mantic or noble` and stdout matches regexp:
+    Then if `<next_release>` not in `noble` and stdout matches regexp:
       """
       Types: deb
       URIs: https://esm.ubuntu.com/apps/ubuntu

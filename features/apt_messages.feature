@@ -208,7 +208,7 @@ Feature: APT Messages
     When I run `pro detach --assume-yes` with sudo
     # We are doing this because ESM pin might prevent some packages to be upgraded (i.e.
     # distro-info-data)
-    When I apt upgrade
+    When I apt dist-upgrade
     Given a `focal` `<machine_type>` machine named `apt-news-server`
     When I apt install `nginx` on the `apt-news-server` machine
     When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
@@ -657,10 +657,77 @@ Feature: APT Messages
       | focal   | lxd-vm        |
       | jammy   | lxd-container |
       | jammy   | lxd-vm        |
-      | mantic  | lxd-container |
-      | mantic  | lxd-vm        |
       | noble   | lxd-container |
       | noble   | lxd-vm        |
+
+  # This is a subset of the above test, only checking proper outputs for Oracular
+  # At some point in time, ideally before next LTS, we need to invert this:
+  # Have the new APT output in the full test, using latest releases, and a subset for the
+  # old output.
+  @uses.config.contract_token
+  Scenario Outline: APT News
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    When I remove support for `backports` in APT
+    When I apt upgrade including phased updates
+    When I apt autoremove
+    When I apt install `jq`
+    When I run `pro detach --assume-yes` with sudo
+    # We are doing this because ESM pin might prevent some packages to be upgraded (i.e.
+    # distro-info-data)
+    When I apt dist-upgrade
+    Given a `focal` `<machine_type>` machine named `apt-news-server`
+    When I apt install `nginx` on the `apt-news-server` machine
+    When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
+    When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
+    When I run `pro config set apt_news_url=http://$behave_var{machine-ip apt-news-server}/aptnews.json` with sudo
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "lines": [
+              "one"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `pro refresh messages` with sudo
+    When I apt upgrade
+    Then I will see the following on stdout
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      #
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
+    Then I will see the following on stdout
+      """
+      "one"
+      """
+    # Test that it is not shown in apt-get output
+    When I apt-get upgrade
+    Then I will see the following on stdout
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      """
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | oracular | lxd-container |
+      | oracular | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -931,7 +998,7 @@ Feature: APT Messages
           {
             "begin": "$behave_var{today}",
             "selectors": {
-              "packages": [["<package>", "<", "8.2.1-1ubuntu3.2"]]
+              "packages": [["<package>", "<", "9.0.0"]]
             },
             "lines": [
               "one",
@@ -1088,17 +1155,20 @@ Feature: APT Messages
       | bionic  | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
       | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
       | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
-      | mantic  | lxd-container | jammy         | libcurl4        | 8.2.1-1ubuntu3    |
+      # No -updates/-security version for oracular before release
+      # | oracular | lxd-container | jammy         | libcurl4t64     | 8.8.0-3ubuntu3    |
+      | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt upgrade including phased updates
-    When I apt autoremove
-    When I apt install `hello`
-    When I run `pro config set apt_news=false` with sudo
-    When I run `pro refresh messages` with sudo
-    When I apt upgrade
+    And I apt dist-upgrade
+    And I apt autoremove
+    And I apt install `hello`
+    And I run `pro config set apt_news=false` with sudo
+    And I run `pro refresh messages` with sudo
+    And I apt upgrade
     Then stdout does not match regexp:
       """
       Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
@@ -1120,7 +1190,8 @@ Feature: APT Messages
       Building dependency tree...
       Reading state information...
       Calculating upgrade...
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I apt upgrade
     When I run `pro detach --assume-yes` with sudo
@@ -1132,9 +1203,10 @@ Feature: APT Messages
       Building dependency tree...
       Reading state information...
       Calculating upgrade...
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | mantic  | lxd-container |
+      | release  | machine_type  |
+      | oracular | lxd-container |
