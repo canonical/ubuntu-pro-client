@@ -1,5 +1,6 @@
 from behave import when
 
+from features.steps.files import when_i_create_file_with_content
 from features.steps.shell import when_i_run_command
 from features.util import SUT
 
@@ -76,4 +77,28 @@ def disable_internet_connection(context, machine_name=SUT):
         "ufw --force enable",
         "with sudo",
         machine_name=machine_name,
+    )
+
+
+@when(
+    "I create a response overlay for `{endpoint}` with response code "
+    "`{response_code}` and error message `{error_message}`"
+)
+def create_response_overlay(context, endpoint, response_code, error_message):
+    text = f"""
+{{
+    "https://contracts.canonical.com{endpoint}": [
+    {{
+        "code": "{response_code}",
+        "response": {{
+            "error": "{error_message}"
+        }}
+    }}
+    ]
+}}
+    """
+    when_i_create_file_with_content(
+        context=context,
+        file_path="/tmp/response-overlay.json",
+        text=text,
     )
