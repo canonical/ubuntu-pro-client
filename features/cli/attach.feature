@@ -1,41 +1,41 @@
 @uses.config.contract_token
 Feature: CLI attach command
 
-  Scenario Outline: Attached command in a non-lts ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I run `pro status` as non-root
-    Then stdout matches regexp:
-      """
-      <status_string>
-      """
-    And stdout matches regexp:
-      """
-      For a list of all Ubuntu Pro services, run 'pro status --all'
-      """
-    When I run `pro status --all` as non-root
-    Then stdout matches regexp:
-      """
-      SERVICE       +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud   +yes      +n/a      +.*
-      cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      cis           +yes      +n/a      +Security compliance and audit tools
-      esm-apps      +yes      +n/a      +Expanded Security Maintenance for Applications
-      esm-infra     +yes      +n/a      +Expanded Security Maintenance for Infrastructure
-      fips          +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview  +yes      +n/a      +.*
-      fips-updates  +yes      +n/a      +FIPS compliant crypto packages with stable security updates
-      landscape     +yes      +<landscape>      +Management and administration tool for Ubuntu
-      livepatch     +yes      +n/a      +Canonical Livepatch service
-      """
-    And stdout does not match regexp:
-      """
-      For a list of all Ubuntu Pro services, run 'pro status --all'
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  | landscape | status_string                                                           |
-      | mantic  | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
+  # To be uncommented when Oracular backend definitions are done (at least for landscape)
+  # Scenario Outline: Attached command in a non-lts ubuntu machine
+  # Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  # When I attach `contract_token` with sudo
+  # And I run `pro status` as non-root
+  # Then stdout matches regexp:
+  # """
+  # <status_string>
+  # """
+  # And stdout matches regexp:
+  # """
+  # For a list of all Ubuntu Pro services, run 'pro status --all'
+  # """
+  # When I run `pro status --all` as non-root
+  # Then stdout matches regexp:
+  # """
+  # SERVICE       +ENTITLED +STATUS   +DESCRIPTION
+  # anbox-cloud   +yes      +n/a      +.*
+  # cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+  # cis           +yes      +n/a      +Security compliance and audit tools
+  # esm-apps      +yes      +n/a      +Expanded Security Maintenance for Applications
+  # esm-infra     +yes      +n/a      +Expanded Security Maintenance for Infrastructure
+  # fips          +yes      +n/a      +NIST-certified FIPS crypto packages
+  # fips-preview  +yes      +n/a      +.*
+  # fips-updates  +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+  # landscape     +yes      +<landscape>      +Management and administration tool for Ubuntu
+  # livepatch     +yes      +n/a      +Canonical Livepatch service
+  # """
+  # And stdout does not match regexp:
+  # """
+  # For a list of all Ubuntu Pro services, run 'pro status --all'
+  # """
+  # Examples: ubuntu release
+  # | release  | machine_type  | landscape | status_string                                                           |
+  # | oracular | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -341,13 +341,13 @@ Feature: CLI attach command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |
 
   @uses.config.contract_token_staging_expired
   Scenario Outline: Attach command failure on expired token
@@ -387,13 +387,13 @@ Feature: CLI attach command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |
 
   Scenario Outline: Attach operation on a lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

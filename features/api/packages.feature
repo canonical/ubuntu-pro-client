@@ -54,4 +54,5 @@ Feature: Package related API endpoints
       | focal   | wsl           | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
       | jammy   | lxd-container | libcurl4        | 7.81.0-1         | standard-security |
       | jammy   | wsl           | libcurl4        | 7.81.0-1         | standard-security |
-      | mantic  | lxd-container | libcurl4        | 8.2.1-1ubuntu3   | standard-security |
+
+# TODO: add noble/oracular?

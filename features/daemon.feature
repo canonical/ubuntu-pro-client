@@ -10,12 +10,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: cloud-id-shim should run in postinst and on boot
@@ -270,29 +270,28 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | jammy   | azure.generic |
       | noble   | azure.generic |
 
-  @uses.config.contract_token
-  Scenario Outline: daemon does not start on gcp,azure generic non lts
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I wait `1` seconds
-    When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
-    Then stdout contains substring:
-      """
-      daemon starting
-      """
-    Then stdout contains substring:
-      """
-      Not on LTS, shutting down
-      """
-    Then stdout contains substring:
-      """
-      daemon ending
-      """
-
-    Examples: version
-      | release | machine_type  |
-      | mantic  | azure.generic |
-      | mantic  | gcp.generic   |
-
+  # Not available yet - uncomment when oracular is in the clouds
+  # @uses.config.contract_token
+  # Scenario Outline: daemon does not start on gcp,azure generic non lts
+  # Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  # When I wait `1` seconds
+  # When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+  # Then stdout contains substring:
+  # """
+  # daemon starting
+  # """
+  # Then stdout contains substring:
+  # """
+  # Not on LTS, shutting down
+  # """
+  # Then stdout contains substring:
+  # """
+  # daemon ending
+  # """
+  # Examples: version
+  # | release  | machine_type  |
+  # | oracular | azure.generic |
+  # | oracular | gcp.generic   |
   @uses.config.contract_token
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -313,25 +312,25 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | xenial  | lxd-vm        |
-      | xenial  | aws.generic   |
-      | bionic  | lxd-container |
-      | bionic  | lxd-vm        |
-      | bionic  | aws.generic   |
-      | focal   | lxd-container |
-      | focal   | lxd-vm        |
-      | focal   | aws.generic   |
-      | jammy   | lxd-container |
-      | jammy   | lxd-vm        |
-      | jammy   | aws.generic   |
-      | mantic  | lxd-container |
-      | mantic  | lxd-vm        |
-      | mantic  | aws.generic   |
-      | noble   | lxd-container |
-      | noble   | lxd-vm        |
-      | noble   | aws.generic   |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | xenial   | lxd-vm        |
+      | xenial   | aws.generic   |
+      | bionic   | lxd-container |
+      | bionic   | lxd-vm        |
+      | bionic   | aws.generic   |
+      | focal    | lxd-container |
+      | focal    | lxd-vm        |
+      | focal    | aws.generic   |
+      | jammy    | lxd-container |
+      | jammy    | lxd-vm        |
+      | jammy    | aws.generic   |
+      | noble    | lxd-container |
+      | noble    | lxd-vm        |
+      | noble    | aws.generic   |
+      # | oracular | aws.generic   | - not there yet
+      | oracular | lxd-container |
+      | oracular | lxd-vm        |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

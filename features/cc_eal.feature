@@ -64,7 +64,8 @@ Feature: Enable cc-eal on Ubuntu
       """
 
     Examples: ubuntu release
-      | release | machine_type  | version   | full_name       |
-      | focal   | lxd-container | 20.04 LTS | Focal Fossa     |
-      | jammy   | lxd-container | 22.04 LTS | Jammy Jellyfish |
-      | mantic  | lxd-container | 23.10     | Mantic Minotaur |
+      | release  | machine_type  | version   | full_name       |
+      | focal    | lxd-container | 20.04 LTS | Focal Fossa     |
+      | jammy    | lxd-container | 22.04 LTS | Jammy Jellyfish |
+      | noble    | lxd-container | 24.04 LTS | Noble Numbat    |
+      | oracular | lxd-container | 24.10     | Oracular Oriole |
