@@ -28,13 +28,13 @@ Feature: CLI auto-attach command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |
 
   Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -57,10 +57,10 @@ Feature: CLI auto-attach command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | xenial   | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |

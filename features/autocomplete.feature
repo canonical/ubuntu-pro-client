@@ -56,10 +56,10 @@ Feature: Pro autocomplete commands
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
+      | release  | machine_type  |
       # | xenial  | lxd-container | Can't rely on Xenial because of bash sorting things weirdly
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |

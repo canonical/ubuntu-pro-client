@@ -103,7 +103,7 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | mantic  | lxd-container |
+      # | oracular | lxd-container | - not yet in the backend
       | noble   | lxd-container |
 
   Scenario Outline: Enable Landscape interactively
@@ -178,7 +178,7 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | mantic  | lxd-container |
+      # | oracular | lxd-container | - not yet in the backend
       | noble   | lxd-container |
 
   Scenario Outline: Easily re-enable Landscape non-interactively after a disable
@@ -265,7 +265,7 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | mantic  | lxd-container |
+      # | oracular | lxd-container | - not yet in the backend
       | noble   | lxd-container |
 
   Scenario Outline: Detaching/reattaching on an unsupported release does not affect landscape
