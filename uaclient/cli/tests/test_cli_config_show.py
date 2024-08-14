@@ -46,12 +46,11 @@ class TestActionConfigShow:
         ),
     )
     @mock.patch(
-        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
-        new_callable=mock.PropertyMock,
+        "uaclient.files.user_config_file.UserConfigFileObject.read",
         return_value=UserConfigData(),
     )
     def test_show_values_and_limit_when_optional_key_provided(
-        self, _m_public_config, optional_key, FakeConfig, capsys
+        self, _m_config_read, optional_key, FakeConfig, capsys
     ):
         cfg = FakeConfig()
         cfg.user_config.http_proxy = "http://http_proxy"
