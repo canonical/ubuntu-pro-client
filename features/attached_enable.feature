@@ -1,69 +1,6 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
-  Scenario Outline: Attached enable livepatch
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    Then stdout matches regexp:
-      """
-      Enabling Livepatch
-      Livepatch enabled
-      """
-    And I verify that `livepatch` status is warning
-    When I run `pro api u.pro.security.status.reboot_required.v1` with sudo
-    Then stdout matches regexp:
-      """
-      {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "no", "reboot_required_packages": {"kernel_packages": null, "standard_packages": null}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
-      """
-    When I run `pro system reboot-required` as non-root
-    Then I will see the following on stdout:
-      """
-      no
-      """
-    When I apt install `libc6`
-    And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
-    Then stdout matches regexp:
-      """
-      {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \[\], "standard_packages": \["libc6"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
-      """
-    When I run `pro system reboot-required` as non-root
-    Then I will see the following on stdout:
-      """
-      yes
-      """
-    When I reboot the machine
-    And I run `pro system reboot-required` as non-root
-    Then I will see the following on stdout:
-      """
-      no
-      """
-    When I apt install `linux-image-generic`
-    And I run `pro api u.pro.security.status.reboot_required.v1` as non-root
-    Then stdout matches regexp:
-      """
-      {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \[\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
-      """
-    When I run `pro system reboot-required` as non-root
-    Then I will see the following on stdout:
-      """
-      yes
-      """
-    When I apt install `dbus`
-    And I run `pro api u.pro.security.status.reboot_required.v1` with sudo
-    Then stdout matches regexp:
-      """
-      {"_schema_version": "v1", "data": {"attributes": {"livepatch_enabled": true, "livepatch_enabled_and_kernel_patched": true, "livepatch_state": "applied", "livepatch_support": "kernel-upgrade-required", "reboot_required": "yes", "reboot_required_packages": {"kernel_packages": \["linux-base"\], "standard_packages": \["dbus"\]}}, "meta": {"environment_vars": \[\]}, "type": "RebootRequired"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
-      """
-    When I run `pro system reboot-required` as non-root
-    Then I will see the following on stdout:
-      """
-      yes
-      """
-
-    Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | lxd-vm       |
-
   @slow
   Scenario Outline: Attached enable fips on a machine with livepatch active
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
