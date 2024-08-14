@@ -129,3 +129,20 @@ Feature: Pro Install and Uninstall related tests
       | jammy   | lxd-container | ubuntu_advantage |
       | mantic  | lxd-container | ubuntu_advantage |
       | noble   | lxd-container | ubuntu_pro       |
+
+  @uses.config.contract_token
+  Scenario Outline: Create public machine token on postinst
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I run `rm /var/lib/ubuntu-advantage/machine-token.json` with sudo
+    Then the machine is unattached
+    When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
+    Then I verify that files exist matching `/var/lib/ubuntu-advantage/machine-token.json`
+    Then the machine is attached
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
