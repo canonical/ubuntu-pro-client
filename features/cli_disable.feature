@@ -349,3 +349,134 @@ Feature: CLI disable command
       | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
       | focal   | lxd-vm       |
+
+  Scenario Outline: Unattached disable fails in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify that running `pro disable esm-infra` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      This command must be run as root (try using sudo).
+      """
+    When I verify that running `pro disable esm-infra` `with sudo` exits `1`
+    Then I will see the following on stderr:
+      """
+      Cannot disable services when unattached - nothing to do.
+      To use 'esm-infra' you need an Ubuntu Pro subscription.
+      Personal and community subscriptions are available at no charge.
+      See https://ubuntu.com/pro
+      """
+    When I verify that running `pro disable esm-infra --format json --assume-yes` `with sudo` exits `1`
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "additional_info": {
+              "operation": "disable",
+              "valid_service": "esm-infra"
+            },
+            "message": "Cannot disable services when unattached - nothing to do.\nTo use 'esm-infra' you need an Ubuntu Pro subscription.\nPersonal and community subscriptions are available at no charge.\nSee https://ubuntu.com/pro",
+            "message_code": "valid-service-failure-unattached",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    When I verify that running `pro disable unknown` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      This command must be run as root (try using sudo).
+      """
+    When I verify that running `pro disable unknown` `with sudo` exits `1`
+    Then I will see the following on stderr:
+      """
+      Cannot disable unknown service 'unknown'.
+      """
+    When I verify that running `pro disable unknown --format json --assume-yes` `with sudo` exits `1`
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "additional_info": {
+              "invalid_service": "unknown",
+              "operation": "disable",
+              "service_msg": ""
+            },
+            "message": "Cannot disable unknown service 'unknown'.\n",
+            "message_code": "invalid-service-or-failure",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    When I verify that running `pro disable esm-infra unknown` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      This command must be run as root (try using sudo).
+      """
+    When I verify that running `pro disable esm-infra unknown` `with sudo` exits `1`
+    Then I will see the following on stderr:
+      """
+      Cannot disable unknown service 'unknown'.
+
+      Cannot disable services when unattached - nothing to do.
+      To use 'esm-infra' you need an Ubuntu Pro subscription.
+      Personal and community subscriptions are available at no charge.
+      See https://ubuntu.com/pro
+      """
+    When I verify that running `pro disable esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "additional_info": {
+              "invalid_service": "unknown",
+              "operation": "disable",
+              "service_msg": "",
+              "valid_service": "esm-infra"
+            },
+            "message": "Cannot disable unknown service 'unknown'.\n\nCannot disable services when unattached - nothing to do.\nTo use 'esm-infra' you need an Ubuntu Pro subscription.\nPersonal and community subscriptions are available at no charge.\nSee https://ubuntu.com/pro",
+            "message_code": "mixed-services-failure-unattached",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
