@@ -343,37 +343,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       log_file: /var/log/ubuntu-advantage.log
       """
     When I run `pro auto-attach` with sudo
-    When I run `systemctl restart ubuntu-advantage.service` with sudo
-    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
-    Then stdout matches regexp:
-      """
-      Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
-      """
-    When I reboot the machine
-    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
-    Then stdout matches regexp:
-      """
-      Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
-      """
-
-    Examples: version
-      | release | machine_type |
-      | xenial  | aws.pro      |
-      | bionic  | aws.pro      |
-      | focal   | aws.pro      |
-
-  Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-      """
-      contract_url: 'https://contracts.canonical.com'
-      data_dir: /var/lib/ubuntu-advantage
-      log_level: debug
-      log_file: /var/log/ubuntu-advantage.log
-      """
-    When I run `pro auto-attach` with sudo
     When I run `journalctl --flush --rotate` with sudo
     When I run `journalctl --vacuum-time=1s` with sudo
     When I run `systemctl restart ubuntu-advantage.service` with sudo
@@ -403,10 +372,13 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release | machine_type |
+      | xenial  | aws.pro      |
       | xenial  | azure.pro    |
       | xenial  | gcp.pro      |
+      | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |
+      | focal   | aws.pro      |
       | focal   | azure.pro    |
       | focal   | gcp.pro      |
 
