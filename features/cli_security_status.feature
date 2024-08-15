@@ -1,4 +1,4 @@
-Feature: Security status command behavior
+Feature: CLI security-status command
 
   @uses.config.contract_token
   Scenario Outline: Run security status with JSON/YAML format

@@ -1,4 +1,4 @@
-Feature: pro config sub-command
+Feature: CLI config command
 
   # earliest, latest lts[, latest stable]
   Scenario Outline: old ua_config in uaclient.conf is still supported

@@ -1,4 +1,4 @@
-Feature: Magic attach flow related tests
+Feature: CLI magic attach flow
 
   Scenario Outline: Attach using the magic attach flow
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
