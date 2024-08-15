@@ -499,23 +499,22 @@ Feature: CLI enable command
       | jammy   | lxd-container |
       | noble   | lxd-container |
 
-  @wip
-  Scenario Outline: Unattached enable/disable fails in a ubuntu machine
+  Scenario Outline: Unattached enable fails in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I verify that running `pro <command> esm-infra` `as non-root` exits `1`
+    When I verify that running `pro enable esm-infra` `as non-root` exits `1`
     Then I will see the following on stderr:
       """
       This command must be run as root (try using sudo).
       """
-    When I verify that running `pro <command> esm-infra` `with sudo` exits `1`
+    When I verify that running `pro enable esm-infra` `with sudo` exits `1`
     Then I will see the following on stderr:
       """
-      Cannot <command> services when unattached - nothing to do.
+      Cannot enable services when unattached - nothing to do.
       To use 'esm-infra' you need an Ubuntu Pro subscription.
       Personal and community subscriptions are available at no charge.
       See https://ubuntu.com/pro
       """
-    When I verify that running `pro <command> esm-infra --format json --assume-yes` `with sudo` exits `1`
+    When I verify that running `pro enable esm-infra --format json --assume-yes` `with sudo` exits `1`
     Then stdout is a json matching the `ua_operation` schema
     And API full output matches regexp:
       """
@@ -524,10 +523,10 @@ Feature: CLI enable command
         "errors": [
           {
             "additional_info": {
-              "operation": "<command>",
+              "operation": "enable",
               "valid_service": "esm-infra"
             },
-            "message": "Cannot <command> services when unattached - nothing to do.\nTo use 'esm-infra' you need an Ubuntu Pro subscription.\nPersonal and community subscriptions are available at no charge.\nSee https://ubuntu.com/pro",
+            "message": "Cannot enable services when unattached - nothing to do.\nTo use 'esm-infra' you need an Ubuntu Pro subscription.\nPersonal and community subscriptions are available at no charge.\nSee https://ubuntu.com/pro",
             "message_code": "valid-service-failure-unattached",
             "service": null,
             "type": "system"
@@ -540,17 +539,17 @@ Feature: CLI enable command
         "warnings": []
       }
       """
-    When I verify that running `pro <command> unknown` `as non-root` exits `1`
+    When I verify that running `pro enable unknown` `as non-root` exits `1`
     Then I will see the following on stderr:
       """
       This command must be run as root (try using sudo).
       """
-    When I verify that running `pro <command> unknown` `with sudo` exits `1`
+    When I verify that running `pro enable unknown` `with sudo` exits `1`
     Then I will see the following on stderr:
       """
-      Cannot <command> unknown service 'unknown'.
+      Cannot enable unknown service 'unknown'.
       """
-    When I verify that running `pro <command> unknown --format json --assume-yes` `with sudo` exits `1`
+    When I verify that running `pro enable unknown --format json --assume-yes` `with sudo` exits `1`
     Then stdout is a json matching the `ua_operation` schema
     And API full output matches regexp:
       """
@@ -560,10 +559,10 @@ Feature: CLI enable command
           {
             "additional_info": {
               "invalid_service": "unknown",
-              "operation": "<command>",
+              "operation": "enable",
               "service_msg": ""
             },
-            "message": "Cannot <command> unknown service 'unknown'.\n",
+            "message": "Cannot enable unknown service 'unknown'.\n",
             "message_code": "invalid-service-or-failure",
             "service": null,
             "type": "system"
@@ -576,22 +575,22 @@ Feature: CLI enable command
         "warnings": []
       }
       """
-    When I verify that running `pro <command> esm-infra unknown` `as non-root` exits `1`
+    When I verify that running `pro enable esm-infra unknown` `as non-root` exits `1`
     Then I will see the following on stderr:
       """
       This command must be run as root (try using sudo).
       """
-    When I verify that running `pro <command> esm-infra unknown` `with sudo` exits `1`
+    When I verify that running `pro enable esm-infra unknown` `with sudo` exits `1`
     Then I will see the following on stderr:
       """
-      Cannot <command> unknown service 'unknown'.
+      Cannot enable unknown service 'unknown'.
 
-      Cannot <command> services when unattached - nothing to do.
+      Cannot enable services when unattached - nothing to do.
       To use 'esm-infra' you need an Ubuntu Pro subscription.
       Personal and community subscriptions are available at no charge.
       See https://ubuntu.com/pro
       """
-    When I verify that running `pro <command> esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
+    When I verify that running `pro enable esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
     Then stdout is a json matching the `ua_operation` schema
     And API full output matches regexp:
       """
@@ -601,11 +600,11 @@ Feature: CLI enable command
           {
             "additional_info": {
               "invalid_service": "unknown",
-              "operation": "<command>",
+              "operation": "enable",
               "service_msg": "",
               "valid_service": "esm-infra"
             },
-            "message": "Cannot <command> unknown service 'unknown'.\n\nCannot <command> services when unattached - nothing to do.\nTo use 'esm-infra' you need an Ubuntu Pro subscription.\nPersonal and community subscriptions are available at no charge.\nSee https://ubuntu.com/pro",
+            "message": "Cannot enable unknown service 'unknown'.\n\nCannot enable services when unattached - nothing to do.\nTo use 'esm-infra' you need an Ubuntu Pro subscription.\nPersonal and community subscriptions are available at no charge.\nSee https://ubuntu.com/pro",
             "message_code": "mixed-services-failure-unattached",
             "service": null,
             "type": "system"
@@ -620,22 +619,13 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | command |
-      | xenial  | lxd-container | enable  |
-      | xenial  | lxd-container | disable |
-      | bionic  | lxd-container | enable  |
-      | bionic  | lxd-container | disable |
-      | bionic  | wsl           | enable  |
-      | bionic  | wsl           | disable |
-      | focal   | lxd-container | enable  |
-      | focal   | lxd-container | disable |
-      | focal   | wsl           | enable  |
-      | focal   | wsl           | disable |
-      | jammy   | lxd-container | enable  |
-      | jammy   | lxd-container | disable |
-      | jammy   | wsl           | enable  |
-      | jammy   | wsl           | disable |
-      | mantic  | lxd-container | enable  |
-      | mantic  | lxd-container | disable |
-      | noble   | lxd-container | enable  |
-      | noble   | lxd-container | disable |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
