@@ -311,6 +311,47 @@ Feature: FIPS enablement in lxd VMs
       | focal   | lxd-vm       |
 
   @slow
+  Scenario Outline: Attached enable fips on a machine with livepatch active
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then stdout matches regexp:
+      """
+      Ubuntu Pro: ESM Infra enabled
+      """
+    And stdout matches regexp:
+      """
+      Enabling Livepatch
+      Livepatch enabled
+      """
+    When I run `pro enable fips --assume-yes` with sudo
+    Then I will see the following on stdout
+      """
+      One moment, checking your subscription first
+      Disabling incompatible service: Livepatch
+      Executing `/snap/bin/canonical-livepatch disable`
+      Configuring APT access to FIPS
+      Updating FIPS package lists
+      Updating standard Ubuntu package lists
+      Installing FIPS packages
+      FIPS enabled
+      A reboot is required to complete install.
+      """
+    When I run `pro status --all` with sudo
+    Then stdout matches regexp:
+      """
+      fips +yes +enabled
+      """
+    And stdout matches regexp:
+      """
+      livepatch +yes +n/a
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | bionic  | lxd-vm       |
+      | xenial  | lxd-vm       |
+
+  @slow
   Scenario Outline: Attached enable fips-preview
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
