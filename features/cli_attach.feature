@@ -1,6 +1,5 @@
 @uses.config.contract_token
-Feature: Command behaviour when attaching a machine to an Ubuntu Pro
-  subscription using a valid token
+Feature: CLI attach command
 
   Scenario Outline: Attached command in a non-lts ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -37,49 +36,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
     Examples: ubuntu release
       | release | machine_type  | landscape | status_string                                                           |
       | mantic  | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
-
-  Scenario Outline: Attach command in a ubuntu lxd container
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I apt install `update-motd`
-    And I apt install `<downrev_pkg>`
-    And I run `pro refresh messages` with sudo
-    Then stdout matches regexp:
-      """
-      Successfully updated Ubuntu Pro related APT and MOTD messages.
-      """
-    When I run `update-motd` with sudo
-    Then if `<release>` in `xenial` and stdout matches regexp:
-      """
-      \d+ update(s)? can be applied immediately.
-      \d+ of these updates (is a|are) standard security update(s)?.
-      """
-    Then if `<release>` in `bionic` and stdout matches regexp:
-      """
-      \d+ update(s)? can be applied immediately.
-      \d+ of these updates (is a|are) standard security update(s)?.
-      """
-    Then if `<release>` in `focal` and stdout matches regexp:
-      """
-      \d+ update(s)? can be applied immediately.
-      """
-    When I attach `contract_token` with sudo
-    Then I verify that `esm-infra` is enabled
-    And I verify that `esm-apps` is enabled
-    When I verify that running `pro attach contract_token` `with sudo` exits `2`
-    Then stderr matches regexp:
-      """
-      This machine is already attached to '.+'
-      To use a different subscription first run: sudo pro detach.
-      """
-    And I verify that `/var/lib/ubuntu-advantage/status.json` is owned by `root:root` with permission `644`
-
-    Examples: ubuntu release packages
-      | release | machine_type  | downrev_pkg            | cc_status | cis_or_usg | cis      | fips     | livepatch_desc              |
-      | xenial  | lxd-container | libkrad0=1.13.2+dfsg-5 | disabled  | cis        | disabled | disabled | Canonical Livepatch service |
-      | bionic  | lxd-container | libkrad0=1.16-2build1  | disabled  | cis        | disabled | disabled | Canonical Livepatch service |
-      | focal   | lxd-container | hello=2.10-2ubuntu2    | n/a       | usg        | disabled | disabled | Canonical Livepatch service |
-      | jammy   | lxd-container | hello=2.10-2ubuntu4    | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service |
-      | noble   | lxd-container | hello=2.10-3build1     | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service |
 
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -167,35 +123,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | bionic  | lxd-container | cis        |
       | focal   | lxd-container | usg        |
 
-  Scenario Outline: Auto enable by default and attached disable of livepatch in a lxd vm
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    Then I verify that `esm-infra` is enabled
-    And I verify that `esm-apps` is enabled
-    And I verify that `livepatch` status is `<livepatch_status>`
-    When I run `pro disable livepatch` with sudo
-    Then I verify that running `canonical-livepatch status` `with sudo` exits `1`
-    And stderr matches regexp:
-      """
-      Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
-      token obtained from https://ubuntu.com/livepatch.
-      """
-    And I verify that `livepatch` is disabled
-    When I verify that running `pro enable livepatch --access-only` `with sudo` exits `1`
-    Then I will see the following on stdout:
-      """
-      One moment, checking your subscription first
-      Livepatch does not support being enabled with --access-only
-      Could not enable Livepatch.
-      """
-
-    Examples: ubuntu release
-      | release | machine_type | livepatch_status |
-      | xenial  | lxd-vm       | warning          |
-      | bionic  | lxd-vm       | enabled          |
-      | focal   | lxd-vm       | enabled          |
-      | jammy   | lxd-vm       | enabled          |
-
   Scenario Outline: Attach command in an generic cloud images
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -230,25 +157,51 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
   Scenario Outline: Attach command with json output
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running attach `as non-root` with json response exits `1`
-    Then I will see the following on stdout:
+    Then API full output matches regexp:
       """
-      {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "message": "This command must be run as root (try using sudo).",
+            "message_code": "nonroot-user",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
       """
     When I verify that running attach `with sudo` with json response exits `0`
-    Then I will see the following on stdout:
+    Then API full output matches regexp:
       """
-      {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+      {
+        "_schema_version": "0.1",
+        "errors": [],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [
+          "esm-apps",
+          "esm-infra"
+        ],
+        "result": "success",
+        "warnings": []
+      }
       """
     And I verify that `esm-infra` is enabled
     And I verify that `esm-apps` is enabled
 
     Examples: ubuntu release
-      | release | machine_type  | cc-eal   |
-      | xenial  | lxd-container | disabled |
-      | bionic  | lxd-container | disabled |
-      | focal   | lxd-container | n/a      |
-      | jammy   | lxd-container | n/a      |
-      | noble   | lxd-container | n/a      |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
 
   Scenario Outline: Attach and Check for contract change in status checking
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -352,3 +305,92 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Pro
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+
+  Scenario Outline: Attach command failure on invalid token
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify that running `pro attach INVALID_TOKEN` `with sudo` exits `1`
+    Then stderr matches regexp:
+      """
+      Invalid token. See https://ubuntu.com/pro
+      """
+    When I verify that running `pro attach INVALID_TOKEN` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      This command must be run as root (try using sudo).
+      """
+    When I verify that running `pro attach invalid-token --format json` `with sudo` exits `1`
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "message": "Invalid token. See https://ubuntu.com/pro/dashboard",
+            "message_code": "attach-invalid-token",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
+
+  @uses.config.contract_token_staging_expired
+  Scenario Outline: Attach command failure on expired token
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attempt to attach `contract_token_staging_expired` with sudo
+    Then stderr matches regexp:
+      """
+      Attach denied:
+      Contract ".*" .*
+      Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
+      """
+    When I verify that running attach `with sudo` using expired token with json response fails
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "additional_info": {
+              "contract_expiry_date": "08-21-2022",
+              "contract_id": "cAHT7ADjWMRCjo5Q53QlTawtPlrhxeRg7cbEnquxxm1g",
+              "date": "August 21, 2022"
+            },
+            "message": "Attach denied:\nContract \\"cAHT7ADjWMRCjo5Q53QlTawtPlrhxeRg7cbEnquxxm1g\\" expired on August 21, 2022\nVisit https://ubuntu.com/pro/dashboard to manage contract tokens.",
+            "message_code": "attach-forbidden-expired",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
