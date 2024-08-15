@@ -1,4 +1,4 @@
-Feature: Command behaviour when attached to an Ubuntu Pro subscription
+Feature: CLI collect-logs command
 
   Scenario Outline: Run collect-logs on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
