@@ -1,31 +1,5 @@
 Feature: Command behaviour when unattached
 
-  Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I verify that running `pro <command>` `as non-root` exits `1`
-    Then I will see the following on stderr:
-      """
-      This command must be run as root (try using sudo).
-      """
-    When I verify that running `pro <command>` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      This machine is not attached to an Ubuntu Pro subscription.
-      See https://ubuntu.com/pro
-      """
-
-    Examples: pro commands
-      | release | machine_type  | command |
-      | bionic  | lxd-container | refresh |
-      | bionic  | wsl           | refresh |
-      | focal   | lxd-container | refresh |
-      | focal   | wsl           | refresh |
-      | xenial  | lxd-container | refresh |
-      | jammy   | lxd-container | refresh |
-      | jammy   | wsl           | refresh |
-      | mantic  | lxd-container | refresh |
-      | noble   | lxd-container | refresh |
-
   Scenario Outline: Unattached enable/disable fails in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro <command> esm-infra` `as non-root` exits `1`

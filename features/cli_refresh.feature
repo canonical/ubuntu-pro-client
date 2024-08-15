@@ -46,3 +46,29 @@ Feature: CLI refresh command
       | jammy   | wsl           |
       | mantic  | lxd-container |
       | noble   | lxd-container |
+
+  Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify that running `pro refresh` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      This command must be run as root (try using sudo).
+      """
+    When I verify that running `pro refresh` `with sudo` exits `1`
+    Then stderr matches regexp:
+      """
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+
+    Examples: pro commands
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | mantic  | lxd-container |
+      | noble   | lxd-container |
