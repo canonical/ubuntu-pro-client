@@ -66,6 +66,7 @@ Feature: CLI status command
       """
       Valid until: Unknown/Expired
       """
+    And I verify that `/var/lib/ubuntu-advantage/status.json` is owned by `root:root` with permission `644`
 
     Examples: ubuntu release
       | release | machine_type  |
