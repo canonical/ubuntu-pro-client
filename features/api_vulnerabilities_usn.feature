@@ -6,10 +6,10 @@ Feature: Client behaviour for USN vulnerabilities API
     When I attach `contract_token` with sudo
     # Check we can download and parse the JSON data
     And I run `pro api u.pro.security.vulnerabilities.usn.v1` as non-root
-    And I apt install `jq`
     And I push static file `security_issues_xenial.xz` to machine
     And I run `unxz -d /tmp/security_issues_xenial.xz` as non-root
-    And I run shell command `pro api u.pro.security.vulnerabilities.usn.v1 --args data_file=/tmp/security_issues_xenial | jq '.data.attributes.usns[] | select (.name == \"USN-4976-2\")'` as non-root
+    And I run `pro api u.pro.security.vulnerabilities.usn.v1 --args data_file=/tmp/security_issues_xenial` as non-root
+    And I apply this jq filter `.data.attributes.usns[] | select (.name == "USN-4976-2")` to the output
     Then stdout matches regexp:
       """
       {
@@ -32,12 +32,13 @@ Feature: Client behaviour for USN vulnerabilities API
       }
       """
     When I apt install `dnsmasq-base`
-    And I run shell command `pro api u.pro.security.vulnerabilities.usn.v1 --args data_file=/tmp/security_issues_xenial | jq .data.attributes.usns` as non-root
+    And I run `pro api u.pro.security.vulnerabilities.usn.v1 --args data_file=/tmp/security_issues_xenial` as non-root
+    And I apply this jq filter `.data.attributes.usns` to the output
     Then stdout does not match regexp:
       """
       "name": "USN-4976-2",
       """
-    When I run shell command `pro api u.pro.security.vulnerabilities.usn.v1 --data '{\"unfixable\": true, \"data_file\": \"/tmp/security_issues_xenial\"}'` as non-root
+    When I run `pro api u.pro.security.vulnerabilities.usn.v1 --data '{"unfixable": true, "data_file": "/tmp/security_issues_xenial"}'` as non-root
     Then API data field output matches regexp:
       """
       {
