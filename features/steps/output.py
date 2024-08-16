@@ -262,8 +262,13 @@ def i_verify_field_is_redacted_in_the_logs(context, field):
 
 @when("I apply this jq filter `{jq_filter}` to the output")
 def i_apply_jq_filter(context, jq_filter):
-    context.process.stdout = (
-        jq.compile(jq_filter).input_text(context.process.stdout.strip()).text()
+    context.process.stdout = json.dumps(
+        json.loads(
+            jq.compile(jq_filter)
+            .input_text(context.process.stdout.strip())
+            .text()
+        ),
+        indent=2,
     )
 
 
