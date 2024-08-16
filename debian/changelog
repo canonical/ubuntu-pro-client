@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+
+  * wip
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 16 Aug 2024 12:10:33 -0500
+
 ubuntu-advantage-tools (34) oracular; urgency=medium
 
   * d/rules: check that version.py is consistent with changelog (GH: #3154)
@@ -45,7 +51,7 @@ ubuntu-advantage-tools (33) oracular; urgency=medium
     - contracts: add support for contracts which target a specific series
     - fips: change enable functionality to ensure all packages with a FIPS
       candidate are upgraded to the FIPS version (GH: #2667)
-    - fix: 
+    - fix:
       + add the current_status field to the plan api return object
       + change recommended attach method to magic attach (GH: #3040)
     - livepatch: prefer the term 'coverage' instead of 'support' in messaging
@@ -708,7 +714,7 @@ ubuntu-advantage-tools (27.11~22.10.1) kinetic; urgency=medium
     - pro:
       + Ubuntu Pro is released as a product
       + make `pro` the recommended executable for the client
-      + client, apt and motd messages updated/rewritten to show Pro 
+      + client, apt and motd messages updated/rewritten to show Pro
         information
       + base URL changed from /advantage to /pro
       + ESM services renamed as part of Pro
