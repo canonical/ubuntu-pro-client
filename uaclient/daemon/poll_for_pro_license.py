@@ -3,9 +3,9 @@ import time
 
 from uaclient import actions, exceptions, lock, system, util
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.clouds import AutoAttachCloudInstance
-from uaclient.clouds.azure import UAAutoAttachAzureInstance
-from uaclient.clouds.gcp import UAAutoAttachGCPInstance
+from uaclient.clouds import AutoAttachInstance
+from uaclient.clouds.azure import AzureAutoAttachInstance
+from uaclient.clouds.gcp import GCPAutoAttachInstance
 from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
 from uaclient.daemon import retry_auto_attach
@@ -13,7 +13,7 @@ from uaclient.daemon import retry_auto_attach
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
-def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachCloudInstance):
+def attempt_auto_attach(cfg: UAConfig, cloud: AutoAttachInstance):
     try:
         with lock.RetryLock(lock_holder="pro.daemon.attempt_auto_attach"):
             actions.auto_attach(cfg, cloud)
@@ -48,8 +48,8 @@ def poll_for_pro_license(cfg: UAConfig):
     is_supported_cloud = any(
         isinstance(cloud, cloud_instance)
         for cloud_instance in (
-            UAAutoAttachGCPInstance,
-            UAAutoAttachAzureInstance,
+            GCPAutoAttachInstance,
+            AzureAutoAttachInstance,
         )
     )
     if not is_supported_cloud:

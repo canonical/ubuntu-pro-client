@@ -4,15 +4,15 @@ import mock
 import pytest
 
 from uaclient import exceptions, http
-from uaclient.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance
+from uaclient.clouds.azure import IMDS_BASE_URL, AzureAutoAttachInstance
 
 M_PATH = "uaclient.clouds.azure."
 
 
-class TestUAAutoAttachAzureInstance:
+class TestAzureAutoAttachInstance:
     def test_cloud_type(self):
         """cloud_type is returned as azure."""
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         assert "azure" == instance.cloud_type
 
     @mock.patch(M_PATH + "http.readurl")
@@ -40,7 +40,7 @@ class TestUAAutoAttachAzureInstance:
                 raise AssertionError("Unexpected URL provided %s" % url)
 
         readurl.side_effect = fake_readurl
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         assert {
             "compute": {"computekey": "computeval"},
             "pkcs7": "attestedWOOT!===",
@@ -89,7 +89,7 @@ class TestUAAutoAttachAzureInstance:
             raise AssertionError("Unexpected url requested {}".format(url))
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         if exception:
             with pytest.raises(exceptions.CloudMetadataError):
                 instance.identity_doc
@@ -142,11 +142,11 @@ class TestUAAutoAttachAzureInstance:
             raise AssertionError("Invalid load_file of {}".format(f_name))
 
         load_file.side_effect = fake_load_file
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         assert viable is instance.is_viable
 
     def test_should_poll_for_license(self):
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         result = instance.should_poll_for_pro_license()
         assert result
 
@@ -165,7 +165,7 @@ class TestUAAutoAttachAzureInstance:
     def test_is_license_present(
         self, m_readurl, metadata_response, expected_result
     ):
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         m_readurl.return_value = http.HTTPResponse(
             code=200,
             headers={},
@@ -177,6 +177,6 @@ class TestUAAutoAttachAzureInstance:
         assert expected_result == result
 
     def test_is_licence_present_wait_for_change_raises_exception(self):
-        instance = UAAutoAttachAzureInstance()
+        instance = AzureAutoAttachInstance()
         with pytest.raises(exceptions.CancelProLicensePolling):
             instance.is_pro_license_present(wait_for_change=True)

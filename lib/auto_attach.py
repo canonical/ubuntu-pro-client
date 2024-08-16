@@ -23,7 +23,7 @@ from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import (
     FullAutoAttachOptions,
     full_auto_attach,
 )
-from uaclient.clouds.aws import UAAutoAttachAWSInstance
+from uaclient.clouds.aws import AWSAutoAttachInstance
 from uaclient.clouds.identity import cloud_instance_factory
 from uaclient.config import UAConfig
 from uaclient.daemon import AUTO_ATTACH_STATUS_MOTD_FILE, retry_auto_attach
@@ -77,7 +77,7 @@ def main(cfg: UAConfig):
     except exceptions.CloudFactoryError as e:
         LOG.debug("Error loading the cloud: %s", e)
     else:
-        if isinstance(cloud, UAAutoAttachAWSInstance):
+        if isinstance(cloud, AWSAutoAttachInstance):
             if not cloud.is_likely_pro:
                 LOG.info(
                     "Skipping auto-attach. Reason: No billingProduct nor"

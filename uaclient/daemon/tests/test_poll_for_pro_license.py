@@ -2,8 +2,8 @@ import mock
 import pytest
 
 from uaclient import exceptions, lock
-from uaclient.clouds.aws import UAAutoAttachAWSInstance
-from uaclient.clouds.gcp import UAAutoAttachGCPInstance
+from uaclient.clouds.aws import AWSAutoAttachInstance
+from uaclient.clouds.gcp import GCPAutoAttachInstance
 from uaclient.daemon.poll_for_pro_license import (
     attempt_auto_attach,
     poll_for_pro_license,
@@ -81,8 +81,8 @@ class TestAttemptAutoAttach:
 @mock.patch(M_PATH + "time.sleep")
 @mock.patch(M_PATH + "time.time")
 @mock.patch(M_PATH + "attempt_auto_attach")
-@mock.patch(M_PATH + "UAAutoAttachGCPInstance.is_pro_license_present")
-@mock.patch(M_PATH + "UAAutoAttachGCPInstance.should_poll_for_pro_license")
+@mock.patch(M_PATH + "GCPAutoAttachInstance.is_pro_license_present")
+@mock.patch(M_PATH + "GCPAutoAttachInstance.should_poll_for_pro_license")
 @mock.patch(M_PATH + "cloud_instance_factory")
 @mock.patch(M_PATH + "system.is_current_series_lts")
 @mock.patch(M_PATH + "util.is_config_value_true")
@@ -151,7 +151,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachAWSInstance(),
+                AWSAutoAttachInstance(),
                 None,
                 None,
                 None,
@@ -163,7 +163,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance(),
+                GCPAutoAttachInstance(),
                 False,
                 None,
                 None,
@@ -175,7 +175,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance(),
+                GCPAutoAttachInstance(),
                 True,
                 True,
                 None,
@@ -187,7 +187,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance(),
+                GCPAutoAttachInstance(),
                 True,
                 exceptions.CancelProLicensePolling(),
                 None,
@@ -199,7 +199,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance(),
+                GCPAutoAttachInstance(),
                 True,
                 False,
                 False,
@@ -215,7 +215,7 @@ class TestPollForProLicense:
                 False,
                 False,
                 True,
-                UAAutoAttachGCPInstance(),
+                GCPAutoAttachInstance(),
                 True,
                 False,
                 False,
@@ -413,7 +413,7 @@ class TestPollForProLicense:
 
         m_is_config_value_true.return_value = False
         m_is_current_series_lts.return_value = True
-        m_cloud_instance_factory.return_value = UAAutoAttachGCPInstance()
+        m_cloud_instance_factory.return_value = GCPAutoAttachInstance()
         m_should_poll.return_value = True
         m_is_pro_license_present.side_effect = (
             is_pro_license_present_side_effect

@@ -219,7 +219,7 @@ def attach_with_token(
 
 def auto_attach(
     cfg: config.UAConfig,
-    cloud: clouds.AutoAttachCloudInstance,
+    cloud: clouds.AutoAttachInstance,
     allow_enable=True,
 ) -> None:
     """

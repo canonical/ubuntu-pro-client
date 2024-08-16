@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict
 
 from uaclient import exceptions, http, secret_manager, system, util
-from uaclient.clouds import AutoAttachCloudInstance
+from uaclient.clouds import AutoAttachInstance
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -21,7 +21,7 @@ AZURE_CHASSIS_ASSET_TAG = "7783-7084-3265-9085-8269-3286-77"
 AZURE_PRO_LICENSE_TYPE = "UBUNTU_PRO"
 
 
-class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
+class AzureAutoAttachInstance(AutoAttachInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
