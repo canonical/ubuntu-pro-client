@@ -153,7 +153,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def get_contract_token_for_cloud_instance(
-        self, *, instance: clouds.AutoAttachCloudInstance
+        self, *, instance: clouds.AutoAttachInstance
     ):
         """Requests contract token for auto-attach images for Pro clouds.
 

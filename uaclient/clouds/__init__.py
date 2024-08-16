@@ -2,7 +2,7 @@ import abc
 from typing import Any, Dict
 
 
-class AutoAttachCloudInstance(metaclass=abc.ABCMeta):
+class AutoAttachInstance(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def identity_doc(self) -> Dict[str, Any]:

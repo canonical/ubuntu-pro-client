@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict
 
 from uaclient import exceptions, http, secret_manager, system, util
-from uaclient.clouds import AutoAttachCloudInstance
+from uaclient.clouds import AutoAttachInstance
 
 IMDS_IPV4_ADDRESS = "169.254.169.254"
 IMDS_IPV6_ADDRESS = "[fd00:ec2::254]"
@@ -24,7 +24,7 @@ AWS_TOKEN_REQ_HEADER = AWS_TOKEN_PUT_HEADER + "-ttl-seconds"
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
-class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
+class AWSAutoAttachInstance(AutoAttachInstance):
     _api_token = None
     _ip_address = None
 
