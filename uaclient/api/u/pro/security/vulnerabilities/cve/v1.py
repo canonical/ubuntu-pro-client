@@ -268,14 +268,15 @@ def _vulnerabilities(
         installed_pkgs_by_source=installed_pkgs_by_source,
     )
 
-    block_fixable_cves = False
-    block_unfixable_cves = False
-
     if options.unfixable:
         block_fixable_cves = True
-
-    if not options.unfixable and not options.all:
+        block_unfixable_cves = False
+    elif not options.all:
+        block_fixable_cves = False
         block_unfixable_cves = True
+    else:
+        block_fixable_cves = False
+        block_unfixable_cves = False
 
     cves = []
     for cve_name, cve in sorted(cve_vulnerabilities.items()):
