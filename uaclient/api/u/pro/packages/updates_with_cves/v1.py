@@ -305,7 +305,7 @@ endpoint = APIEndpoint(
 )
 
 _doc = {
-    "introduced_in": "34",
+    "introduced_in": "35",
     "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.packages.updates_with_cves.v1 import updates, UpdatesInfoWithCVEsOptions

@@ -317,7 +317,7 @@ endpoint = APIEndpoint(
 )
 
 _doc = {
-    "introduced_in": "34",
+    "introduced_in": "35",
     "requires_network": True,
     "example_python": """
 from uaclient.api.u.pro.security.vulnerabilities.usn.v1 import vulnerabilites,
