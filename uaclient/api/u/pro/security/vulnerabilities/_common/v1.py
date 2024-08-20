@@ -6,13 +6,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
-from uaclient import apt
+from uaclient import apt, http, system, util
 from uaclient.api.exceptions import UnsupportedManifestFile
 from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
+from uaclient.data_types import DataObject, Field, StringDataValue
 from uaclient.defaults import (
     VULNERABILITY_CACHE_PATH,
     VULNERABILITY_DATA_CACHE,
@@ -20,9 +21,15 @@ from uaclient.defaults import (
     VULNERABILITY_PUBLISH_DATE_CACHE,
 )
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
-from uaclient.http import download_xz_file_from_url, readurl
-from uaclient.system import get_release_info, load_file, write_file
-from uaclient.util import we_are_currently_root
+from uaclient.files.data_types import DataObjectFile
+from uaclient.files.files import UAFile
+
+
+class VulnerabilityCacheDate(DataObject):
+    fields = [Field("cache_date", StringDataValue)]
+
+    def __init__(self, cache_date):
+        self.cache_date = cache_date
 
 
 @enum.unique
@@ -58,38 +65,48 @@ class VulnerabilityData:
             VULNERABILITY_CACHE_PATH, series, VULNERABILITY_PUBLISH_DATE_CACHE
         )
 
-    def _save_cache(
-        self, series: str, json_data: Dict[str, Any], last_published_date
+    def _save_cache_data(self, series: str, json_data: Dict[str, Any]):
+        system.write_file(
+            self._get_cache_data_path(series), json.dumps(json_data)
+        )
+
+    def _save_cache_publish_date(
+        self, cache_date_file: DataObjectFile, published_date: str
     ):
-        write_file(self._get_cache_data_path(series), json.dumps(json_data))
-        write_file(
-            self._get_cache_published_date_path(series), last_published_date
+        cache_date_file.write(
+            VulnerabilityCacheDate(cache_date=published_date)
         )
 
     def _parse_published_date(self, published_date: str):
-        format_str = "%a, %d %b %Y %H:%M:%S GMT"
+        format_str = "%a, %d %b %Y %H:%M:%S %Z"
         return datetime.strptime(published_date, format_str)
 
     def _get_published_date(self, data_url):
-        resp = readurl(url=data_url, method="HEAD")
+        resp = http.readurl(url=data_url, method="HEAD")
         return resp.headers["last-modified"]
 
-    def _is_cache_valid(self, series: str, last_published_date: str) -> bool:
+    def _is_cache_valid(
+        self,
+        series: str,
+        last_published_date: str,
+        cache_date_file: DataObjectFile,
+    ) -> bool:
         last_published_datetime = self._parse_published_date(
             last_published_date
         )
 
-        try:
-            cache_published_datetime = self._parse_published_date(
-                load_file(self._get_cache_published_date_path(series))
-            )
-        except FileNotFoundError:
+        cache_date_obj = cache_date_file.read()
+        if not cache_date_obj:
             return False
+
+        cache_published_datetime = self._parse_published_date(
+            cache_date_obj.cache_date
+        )
 
         return cache_published_datetime >= last_published_datetime
 
     def _get_cache_data(self, series: str):
-        return json.loads(load_file(self._get_cache_data_path(series)))
+        return json.loads(system.load_file(self._get_cache_data_path(series)))
 
     def _get_data_url(self, series):
         data_name = series
@@ -107,21 +124,31 @@ class VulnerabilityData:
 
     def get(self):
         if self.data_file:
-            return json.loads(load_file(self.data_file))
+            return json.loads(system.load_file(self.data_file))
 
-        series = self.series or get_release_info().series
+        series = self.series or system.get_release_info().series
         data_url = self._get_data_url(series)
 
         last_published_date = self._get_published_date(data_url)
 
-        if self._is_cache_valid(series, last_published_date):
+        cache_date_file = DataObjectFile(
+            data_object_cls=VulnerabilityCacheDate,
+            ua_file=UAFile(
+                name=VULNERABILITY_PUBLISH_DATE_CACHE,
+                directory=os.path.join(VULNERABILITY_CACHE_PATH, series),
+            ),
+        )
+
+        if self._is_cache_valid(series, last_published_date, cache_date_file):
             return self._get_cache_data(series)
 
-        raw_json_data = download_xz_file_from_url(data_url)
+        json_data = json.loads(
+            http.download_xz_file_from_url(data_url).decode("utf-8")
+        )
 
-        json_data = json.loads(raw_json_data.decode("utf-8"))
-        if we_are_currently_root():
-            self._save_cache(series, json_data, last_published_date)
+        if util.we_are_currently_root():
+            self._save_cache_data(series, json_data)
+            self._save_cache_publish_date(cache_date_file, last_published_date)
 
         return json_data
 
