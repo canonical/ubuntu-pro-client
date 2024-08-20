@@ -1,3 +1,4 @@
+import abc
 import enum
 import json
 import os
@@ -171,7 +172,7 @@ class ProManifestSourcePackage:
     PKG_RE = re.compile(r"^(?P<pkg>[\w\-\.\+]+)(:\w+)?\s+(?P<version>.+)$")
 
     @staticmethod
-    def valid(manifest_file: str):
+    def valid(manifest_file: str) -> bool:
         with open(manifest_file, "r") as f:
             for line in f.readlines():
                 if not ProManifestSourcePackage.PKG_RE.match(line):
@@ -180,7 +181,7 @@ class ProManifestSourcePackage:
         return True
 
     @staticmethod
-    def parse(manifest_file: str):
+    def parse(manifest_file: str) -> Dict[str, str]:
         pkgs = {}
 
         with open(manifest_file, "r") as f:
@@ -259,22 +260,20 @@ def _get_vulnerability_fix_status(
     return vulnerability_status
 
 
-class VulnerabilityParser:
+class VulnerabilityParser(metaclass=abc.ABCMeta):
     vulnerability_type = None  # type: str
 
-    def __init__(
-        self,
-    ):
-        self.vulnerabilities = {}
-
+    @abc.abstractmethod
     def get_package_vulnerabilities(self, affected_pkg: Dict[str, Any]):
-        raise NotImplementedError
+        pass
 
-    def parse_data(
+    def get_vulnerabilities_for_installed_pkgs(
         self,
         vulnerabilities_data: Dict[str, Any],
         installed_pkgs_by_source: Dict[str, Dict[str, str]],
     ):
+        vulnerabilities = {}
+
         affected_pkgs = vulnerabilities_data.get("packages", {})
         vulns_info = vulnerabilities_data.get("security_issues", {}).get(
             self.vulnerability_type, {}
@@ -296,15 +295,13 @@ class VulnerabilityParser:
                 # yet.
                 if vuln_fixed_version is None:
                     if vuln_status != "not-vulnerable":
-                        if vuln_name not in self.vulnerabilities:
-                            self.vulnerabilities[vuln_name] = vuln_info
-                            self.vulnerabilities[vuln_name][
+                        if vuln_name not in vulnerabilities:
+                            vulnerabilities[vuln_name] = vuln_info
+                            vulnerabilities[vuln_name][
                                 "affected_packages"
                             ] = []
 
-                        self.vulnerabilities[vuln_name][
-                            "affected_packages"
-                        ].extend(
+                        vulnerabilities[vuln_name]["affected_packages"].extend(
                             {
                                 "name": pkg_name,
                                 "current_version": pkg_version,
@@ -336,15 +333,13 @@ class VulnerabilityParser:
                         continue
 
                     if apt.version_compare(fix_version, pkg_version) > 0:
-                        if vuln_name not in self.vulnerabilities:
-                            self.vulnerabilities[vuln_name] = vuln_info
-                            self.vulnerabilities[vuln_name][
+                        if vuln_name not in vulnerabilities:
+                            vulnerabilities[vuln_name] = vuln_info
+                            vulnerabilities[vuln_name][
                                 "affected_packages"
                             ] = []
 
-                        self.vulnerabilities[vuln_name][
-                            "affected_packages"
-                        ].append(
+                        vulnerabilities[vuln_name]["affected_packages"].append(
                             {
                                 "name": pkg_name,
                                 "current_version": pkg_version,
@@ -353,3 +348,5 @@ class VulnerabilityParser:
                                 "fix_available_from": pocket,
                             }
                         )
+
+        return vulnerabilities

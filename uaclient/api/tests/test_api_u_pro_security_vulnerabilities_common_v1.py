@@ -161,12 +161,16 @@ class TestVulnerabilityParser:
             ),
         ),
     )
-    def test_parse_data(
+    def test_get_vulnerabilities_for_installed_pkgs(
         self, vulnerabilities_data, installed_pkgs_by_source, expected_result
     ):
         parser = ConcreteVulnerabilityParser()
-        parser.parse_data(vulnerabilities_data, installed_pkgs_by_source)
-        assert parser.vulnerabilities == expected_result
+        assert (
+            parser.get_vulnerabilities_for_installed_pkgs(
+                vulnerabilities_data, installed_pkgs_by_source
+            )
+            == expected_result
+        )
 
 
 class TestGetVulnerabilityFixStatus:
