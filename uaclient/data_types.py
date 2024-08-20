@@ -123,11 +123,11 @@ class FloatDataValue(DataValue):
 
     @staticmethod
     def from_value(val: Any) -> float:
-        if not isinstance(val, float):
+        if not isinstance(val, float) and not isinstance(val, int):
             raise IncorrectTypeError(
                 expected_type="float", got_type=type(val).__name__
             )
-        return val
+        return float(val)
 
 
 class BoolDataValue(DataValue):
