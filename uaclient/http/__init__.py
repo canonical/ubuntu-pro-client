@@ -345,8 +345,7 @@ def download_xz_file_from_url(
             timeout=timeout,
             https_proxy=https_proxy,
         )
-        decompressor = lzma.LZMADecompressor()
-        return decompressor.decompress(resp.body)  # type: ignore
+        return lzma.decompress(resp.body)  # type: ignore
     else:
         return lzma.open(request.urlopen(url)).read()
 
