@@ -244,14 +244,15 @@ def _vulnerabilities(
         installed_pkgs_by_source=installed_pkgs_by_source,
     )
 
-    block_fixable_usns = False
-    block_unfixable_usns = False
-
     if options.unfixable:
         block_fixable_usns = True
-
-    if not options.unfixable and not options.all:
+        block_unfixable_usns = False
+    elif not options.all:
+        block_fixable_usns = False
         block_unfixable_usns = True
+    else:
+        block_fixable_usns = False
+        block_unfixable_usns = False
 
     usns = []
     for usn_name, usn in sorted(usn_vulnerabilities.items()):
