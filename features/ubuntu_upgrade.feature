@@ -180,6 +180,16 @@ Feature: Upgrade between releases when uaclient is attached
       """
     When I attach `contract_token` with sudo
     Then the machine is attached
+    When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
+    And I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --assume-yes` with sudo
+    # Some packages upgrade may require a reboot
+    And I reboot the machine
+    And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
+      """
+      [Sources]
+      AllowThirdParty=yes
+      """
+    And I run `sed -i 's/Prompt=lts/Prompt=<prompt>/' /etc/update-manager/release-upgrades` with sudo
     Then I verify that running `do-release-upgrade --frontend DistUpgradeViewNonInteractive` `with sudo` exits `0`
     When I reboot the machine
     And I run `lsb_release -cs` as non-root

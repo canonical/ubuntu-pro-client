@@ -7,7 +7,7 @@ M_PATH = "uaclient.update_contract_info."
 
 
 class TestValidateReleaseSeries:
-    @pytest.mark.parametrize("allowed_series", (None, "bionic", "jammy"))
+    @pytest.mark.parametrize("allowed_series", ("bionic", "jammy"))
     @mock.patch(
         "uaclient.system.get_release_info",
         return_value=mock.MagicMock(series="jammy"),
@@ -45,7 +45,7 @@ class TestValidateReleaseSeries:
                 series="jammy",
             ),
         ]
-        validate_release_series(cfg=FakeConfig())
+        validate_release_series(cfg=FakeConfig(), only_series=allowed_series)
         if allowed_series:
             if allowed_series != "jammy":
                 assert m_get_distro_info.call_count == 1
