@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, Dict, List, Optional
 
+from uaclient import util
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.exceptions import InvalidOptionCombination
@@ -304,9 +305,7 @@ def _vulnerabilities(
             CVEVulnerabilityResult(
                 name=cve_name,
                 description=cve["description"],
-                published_at=datetime.datetime.strptime(
-                    cve["published_at"], "%Y-%m-%dT%H:%M:%S"
-                ),
+                published_at=util.parse_rfc3339_date(cve["published_at"]),
                 ubuntu_priority=cve["ubuntu_priority"],
                 notes=cve["notes"],
                 affected_packages=[
@@ -327,8 +326,8 @@ def _vulnerabilities(
 
     return CVEVulnerabilitiesResult(
         cves=cves,
-        vulnerability_data_published_at=datetime.datetime.strptime(
-            vulnerabilities_json_data["published_at"], "%Y-%m-%dT%H:%M:%S"
+        vulnerability_data_published_at=util.parse_rfc3339_date(
+            vulnerabilities_json_data["published_at"]
         ),
         apt_updated_at=(
             get_apt_cache_datetime() if not options.manifest_file else None

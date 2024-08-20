@@ -111,7 +111,13 @@ class TestCVEVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             notes=["hint"],
                             cvss_severity="low",
@@ -139,7 +145,13 @@ class TestCVEVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             notes=["hint"],
                             cvss_severity="low",
@@ -147,7 +159,7 @@ class TestCVEVulnerabilities:
                         ),
                     ],
                     vulnerability_data_published_at=datetime.datetime(
-                        2024, 6, 24, 13, 19, 16
+                        2024, 6, 24, 13, 19, 16, tzinfo=datetime.timezone.utc
                     ),
                     apt_updated_at=datetime.datetime(2024, 6, 24, 13, 19, 16),
                 ),
@@ -180,7 +192,13 @@ class TestCVEVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             notes=["hint"],
                             cvss_severity="low",
@@ -188,7 +206,7 @@ class TestCVEVulnerabilities:
                         ),
                     ],
                     vulnerability_data_published_at=datetime.datetime(
-                        2024, 6, 24, 13, 19, 16
+                        2024, 6, 24, 13, 19, 16, tzinfo=datetime.timezone.utc
                     ),
                     apt_updated_at=datetime.datetime(2024, 6, 24, 13, 19, 16),
                 ),
@@ -221,7 +239,13 @@ class TestCVEVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             notes=["hint"],
                             cvss_severity="low",
@@ -229,7 +253,7 @@ class TestCVEVulnerabilities:
                         ),
                     ],
                     vulnerability_data_published_at=datetime.datetime(
-                        2024, 6, 24, 13, 19, 16
+                        2024, 6, 24, 13, 19, 16, tzinfo=datetime.timezone.utc
                     ),
                     apt_updated_at=datetime.datetime(2024, 6, 24, 13, 19, 16),
                 ),
