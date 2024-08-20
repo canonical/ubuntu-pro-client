@@ -304,7 +304,9 @@ def _vulnerabilities(
         vulnerability_data_published_at=datetime.datetime.strptime(
             vulnerabilities_json_data["published_at"], "%Y-%m-%dT%H:%M:%S"
         ),
-        apt_updated_at=get_apt_cache_datetime(),
+        apt_updated_at=(
+            get_apt_cache_datetime() if not options.manifest_file else None
+        ),
     )
 
 
