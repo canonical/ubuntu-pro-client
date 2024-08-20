@@ -239,7 +239,7 @@ def _vulnerabilities(
     ).get()
 
     usn_parser = USNParser()
-    usn_parser.parse_data(
+    usn_vulnerabilities = usn_parser.get_vulnerabilities_for_installed_pkgs(
         vulnerabilities_data=vulnerabilities_json_data,
         installed_pkgs_by_source=installed_pkgs_by_source,
     )
@@ -254,7 +254,7 @@ def _vulnerabilities(
         block_unfixable_usns = True
 
     usns = []
-    for usn_name, usn in sorted(usn_parser.vulnerabilities.items()):
+    for usn_name, usn in sorted(usn_vulnerabilities.items()):
         usn_fix_status = _get_vulnerability_fix_status(
             usn["affected_packages"]
         )

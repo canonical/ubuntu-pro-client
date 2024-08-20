@@ -263,7 +263,7 @@ def _vulnerabilities(
     ).get()
 
     cve_parser = CVEParser()
-    cve_parser.parse_data(
+    cve_vulnerabilities = cve_parser.get_vulnerabilities_for_installed_pkgs(
         vulnerabilities_data=vulnerabilities_json_data,
         installed_pkgs_by_source=installed_pkgs_by_source,
     )
@@ -278,7 +278,7 @@ def _vulnerabilities(
         block_unfixable_cves = True
 
     cves = []
-    for cve_name, cve in cve_parser.vulnerabilities.items():
+    for cve_name, cve in sorted(cve_vulnerabilities.items()):
         cve_fix_status = _get_vulnerability_fix_status(
             cve["affected_packages"]
         )
