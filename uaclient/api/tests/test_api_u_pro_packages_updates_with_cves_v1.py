@@ -9,7 +9,7 @@ from uaclient.api.u.pro.packages.updates.v1 import (
 )
 from uaclient.api.u.pro.packages.updates_with_cves.v1 import (
     CVEInfo,
-    PackageUpdatesWithCVEResult,
+    PackageUpdatesWithCVEsResult,
     UpdateInfoWithCVES,
     _updates_with_cves,
 )
@@ -137,7 +137,7 @@ class TestPackagesWithCVEs:
 
         assert _updates_with_cves(
             options=mock.MagicMock(data_file=None), cfg=None
-        ) == PackageUpdatesWithCVEResult(
+        ) == PackageUpdatesWithCVEsResult(
             summary=UpdateSummary(
                 num_updates=3,
                 num_esm_apps_updates=1,
