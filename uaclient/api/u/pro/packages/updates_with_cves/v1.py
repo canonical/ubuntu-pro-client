@@ -26,7 +26,7 @@ from uaclient.data_types import (
 )
 
 
-class UpdateInfoWithCVESOptions(DataObject):
+class UpdatesInfoWithCVEsOptions(DataObject):
     fields = [
         Field(
             "data_file",
@@ -158,7 +158,7 @@ class CVEInfo(DataObject):
         self.cvss_severity = cvss_severity
 
 
-class PackageUpdatesWithCVEResult(DataObject, AdditionalInfo):
+class PackageUpdatesWithCVEsResult(DataObject, AdditionalInfo):
     fields = [
         Field(
             "summary", UpdateSummary, doc="Summary of all available updates"
@@ -194,8 +194,8 @@ class PackageUpdatesWithCVEResult(DataObject, AdditionalInfo):
 
 
 def updates_with_cves(
-    options: UpdateInfoWithCVESOptions,
-) -> PackageUpdatesWithCVEResult:
+    options: UpdatesInfoWithCVEsOptions,
+) -> PackageUpdatesWithCVEsResult:
     return _updates_with_cves(options=options, cfg=UAConfig())
 
 
@@ -215,8 +215,8 @@ def _get_pkg_updates(cfg: UAConfig, updates_data: Optional[str]):
 
 
 def _updates_with_cves(
-    options: UpdateInfoWithCVESOptions, cfg: UAConfig
-) -> PackageUpdatesWithCVEResult:
+    options: UpdatesInfoWithCVEsOptions, cfg: UAConfig
+) -> PackageUpdatesWithCVEsResult:
     """
     This endpoint shows available updates for packages in a system including
     the CVEs that are tied to each update.
@@ -287,7 +287,7 @@ def _updates_with_cves(
             )
         )
 
-    return PackageUpdatesWithCVEResult(
+    return PackageUpdatesWithCVEsResult(
         summary=package_updates.summary,
         updates=package_updates_with_cves,
         cves=cves_info,
@@ -301,19 +301,19 @@ endpoint = APIEndpoint(
     version="v1",
     name="PackageUpdatesWithCVE",
     fn=_updates_with_cves,
-    options_cls=UpdateInfoWithCVESOptions,
+    options_cls=UpdatesInfoWithCVEsOptions,
 )
 
 _doc = {
     "introduced_in": "34",
     "requires_network": True,
     "example_python": """
-from uaclient.api.u.pro.packages.updates_with_cves.v1 import updates, UpdatesInfoWithCVEOptions
+from uaclient.api.u.pro.packages.updates_with_cves.v1 import updates, UpdatesInfoWithCVEsOptions
 
-options = UpdatesInfoWithCVEOptions
+options = UpdatesInfoWithCVEsOptions()
 result = updates(options)
 """,  # noqa: E501
-    "result_class": PackageUpdatesWithCVEResult,
+    "result_class": PackageUpdatesWithCVEsResult,
     "exceptions": [],
     "example_cli": "pro api u.pro.packages.updates_with_cves.v1",
     "example_json": """
