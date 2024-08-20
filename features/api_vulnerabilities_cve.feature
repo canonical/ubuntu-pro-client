@@ -56,7 +56,7 @@ Feature: Client behaviour for CVE vulnerabilities API
     When I apt install `vim`
     And I run `pro api u.pro.security.vulnerabilities.cve.v1 --args data_file=/tmp/security_issues_xenial` as non-root
     And I apply this jq filter `.data.attributes.cves` to the output
-    Then stdout does not match regexp:
+    Then stdout does not contain substring:
       """
       "name": "CVE-2022-2286"
       """
@@ -112,13 +112,23 @@ Feature: Client behaviour for CVE vulnerabilities API
         "ubuntu_priority": "medium"
       }
       """
-    And stdout does not match regexp:
+    When I verify that running `pro api u.pro.security.vulnerabilities.cve.v1 --data '{"unfixable": true, "all": true, "data_file": "/tmp/security_issues_xenial"}'` `as non-root` exits `1`
+    Then API errors field output is:
       """
-      "fixable": "yes"
+      [
+        {
+          "code": "invalid-option-combination",
+          "meta": {
+            "option1": "unfixable",
+            "option2": "all"
+          },
+          "title": "unfixable cannot be used together with all"
+        }
+      ]
       """
     When I create the file `/tmp/manifest` with the following:
       """
-      libzstd1:amd634     1.3.1+dfsg-1~ubuntu0.16.04.1
+      libzstd1:amd64     1.3.1+dfsg-1~ubuntu0.16.04.1
       """
     And I run `pro api u.pro.security.vulnerabilities.cve.v1 --args data_file=/tmp/security_issues_xenial manifest_file=/tmp/manifest` as non-root
     Then API data field output matches regexp:
@@ -133,7 +143,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                   "current_version": "1.3.1\+dfsg\-1~ubuntu0.16.04.1",
                   "fix_available_from": "esm-infra",
                   "fix_status": "fixed",
-                  "fix_version": ".*",
+                  "fix_version": "1.3.1\+dfsg\-1~ubuntu0.16.04.1\+esm1",
                   "name": "libzstd1"
                 }
               ],
