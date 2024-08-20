@@ -108,7 +108,13 @@ class TestUSNVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             related_cves=[],
                             related_launchpad_bugs=[
@@ -134,7 +140,13 @@ class TestUSNVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             related_cves=["CVE-2022-12345"],
                             related_launchpad_bugs=[],
@@ -158,14 +170,20 @@ class TestUSNVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             related_cves=["CVE-2022-12345"],
                             related_launchpad_bugs=[],
                         ),
                     ],
                     vulnerability_data_published_at=datetime.datetime(
-                        2024, 6, 24, 13, 19, 16
+                        2024, 6, 24, 13, 19, 16, tzinfo=datetime.timezone.utc
                     ),
                     apt_updated_at=datetime.datetime(2024, 6, 24, 13, 19, 16),
                 ),
@@ -195,14 +213,20 @@ class TestUSNVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             related_cves=["CVE-2022-12345"],
                             related_launchpad_bugs=[],
                         ),
                     ],
                     vulnerability_data_published_at=datetime.datetime(
-                        2024, 6, 24, 13, 19, 16
+                        2024, 6, 24, 13, 19, 16, tzinfo=datetime.timezone.utc
                     ),
                     apt_updated_at=datetime.datetime(2024, 6, 24, 13, 19, 16),
                 ),
@@ -232,7 +256,13 @@ class TestUSNVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             related_cves=[],
                             related_launchpad_bugs=[
@@ -258,14 +288,20 @@ class TestUSNVulnerabilities:
                                 ),
                             ],
                             published_at=datetime.datetime(
-                                2024, 6, 24, 13, 19, 16
+                                2024,
+                                6,
+                                24,
+                                13,
+                                19,
+                                16,
+                                tzinfo=datetime.timezone.utc,
                             ),
                             related_cves=["CVE-2022-12345"],
                             related_launchpad_bugs=[],
                         ),
                     ],
                     vulnerability_data_published_at=datetime.datetime(
-                        2024, 6, 24, 13, 19, 16
+                        2024, 6, 24, 13, 19, 16, tzinfo=datetime.timezone.utc
                     ),
                     apt_updated_at=datetime.datetime(2024, 6, 24, 13, 19, 16),
                 ),
