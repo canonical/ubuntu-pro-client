@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
+from uaclient.api.exceptions import InvalidOptionCombination
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     SourcePackages,
     VulnerabilityData,
@@ -252,6 +253,9 @@ def _vulnerabilities(
     This endpoint shows the CVE vulnerabilites in the system.
     By default, this API will only show fixable CVEs in the system.
     """
+
+    if options.unfixable and options.all:
+        raise InvalidOptionCombination(option1="unfixable", option2="all")
 
     vulnerabilities_json_data = VulnerabilityData(
         cfg=cfg, data_file=options.data_file, series=options.series
