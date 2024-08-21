@@ -193,7 +193,7 @@ Feature: api.u.unattended_upgrades.status.v1
     When I run shell command `pro api u.unattended_upgrades.status.v1 | jq '.data.meta.raw_config.\"Unattended-Upgrade::Allowed-Origins\"'` as non-root
     Then I will see the following on stdout:
       """
-      null
+      []
       """
     When I run `/usr/lib/apt/apt.systemd.daily update` with sudo
     And I run `/usr/lib/apt/apt.systemd.daily install` with sudo
