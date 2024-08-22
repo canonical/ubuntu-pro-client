@@ -30,16 +30,16 @@ endif
 	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild
 
 override_dh_auto_build:
+	# fail early if version.py wasn't updated to match d/changelog's version
+	# only take into account the actual upstream version, discarding ubuntu and
+	# backport suffixes
+	python3 tools/check-versions-are-consistent.py
 	dh_auto_build
 	make -C apt-hook build
 	make -C debian/po build
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	# fail early if version.py wasn't updated to match d/changelog's version
-	# only take into account the actual upstream version, discarding ubuntu and
-	# backport suffixes
-	python3 tools/check-versions-are-consistent.py
 # Hooks will only be delivered on LTS instances
 ifeq (LTS,$(findstring LTS,$(VERSION)))
 	make -C apt-hook test
