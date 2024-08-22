@@ -1586,7 +1586,7 @@ class TestRequestAutoAttach:
 
         with pytest.raises(exceptions.InvalidProImage) as exc_error:
             contract.get_contract_token_for_cloud_instance(
-                instance=mock.MagicMock()
+                cloud_type=mock.MagicMock(), data=mock.MagicMock()
             )
 
         expected_message = messages.E_INVALID_PRO_IMAGE.format(

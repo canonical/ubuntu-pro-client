@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
-    clouds,
     event_logger,
     exceptions,
     http,
@@ -153,7 +152,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def get_contract_token_for_cloud_instance(
-        self, *, instance: clouds.AutoAttachInstance
+        self, *, cloud_type: str, data: Dict[str, Any]
     ):
         """Requests contract token for auto-attach images for Pro clouds.
 
@@ -163,9 +162,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         response = self.request_url(
             API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
-                cloud_type=instance.cloud_type
+                cloud_type=cloud_type
             ),
-            data=instance.identity_doc,
+            data=data,
         )
         if response.code != 200:
             msg = response.json_dict.get("message", "")
