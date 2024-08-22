@@ -1,75 +1,35 @@
-import os
-
 import mock
 import pytest
 
-from uaclient import exceptions, gpg, system
-from uaclient.testing import data
-
-
-@pytest.yield_fixture
-def home_dir(tmpdir):
-    home = tmpdir.join("home")
-    home.mkdir()
-
-    unset = object()
-    old_home = os.environ.get("HOME", unset)
-
-    os.environ["HOME"] = home.strpath
-    yield
-
-    if old_home is unset:
-        del os.environ["HOME"]
-    else:
-        os.environ["HOME"] = old_home
+from uaclient import exceptions, gpg
+from uaclient.testing import helpers
 
 
 class TestExportGPGKey:
-    def test_key_error_on_missing_keyfile(self, home_dir, tmpdir):
-        """Raise UbuntuProError when source_keyfile is not found."""
-        src_keyfile = tmpdir.join("nothere").strpath
-        destination_keyfile = tmpdir.join("destination_keyfile").strpath
-        # known valid gpg key which will not exist in source_keyring_dir
-        with pytest.raises(exceptions.UbuntuProError) as excinfo:
-            gpg.export_gpg_key(
-                source_keyfile=src_keyfile,
-                destination_keyfile=destination_keyfile,
-            )
-
-        error_msg = "GPG key '{}' not found".format(src_keyfile)
-        assert error_msg in str(excinfo.value)
-        assert not os.path.exists(destination_keyfile)
-
-    def test_export_single_key_from_keyring_dir(self, home_dir, tmpdir, _subp):
-        """Only a single key is exported from a multi-key source keyring."""
-        source_key1 = tmpdir.join(
-            "ubuntu-pro-esm-{}.gpg".format(data.GPG_KEY1_ID)
-        )
-        source_key2 = tmpdir.join(
-            "ubuntu-pro-cc-eal-{}.gpg".format(data.GPG_KEY2_ID)
-        )
-        destination_keyfile = tmpdir.join("destination_key").strpath
-        # Create keyring with both ESM and CC-EAL2 keys
-        source_key1.write(data.GPG_KEY1, "wb")
-        source_key2.write(data.GPG_KEY2, "wb")
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
-            gpg.export_gpg_key(
-                source_keyfile=source_key1.strpath,
-                destination_keyfile=destination_keyfile,
-            )
-        gpg_dest_list_keys = [
-            "gpg",
-            "--no-auto-check-trustdb",
-            "--options",
-            "/dev/null",
-            "--no-default-keyring",
-            "--keyring",
-            destination_keyfile,
-            "--list-keys",
-        ]
-        with mock.patch("uaclient.system._subp", side_effect=_subp):
-            dest_out, _err = system.subp(gpg_dest_list_keys)
-
-        assert "Ubuntu Common Criteria EAL2" in dest_out
-        # ESM didn't get exported
-        assert "Expanded Security Maintenance" not in dest_out
+    @pytest.mark.parametrize(
+        ["source_exists", "expected_raises"],
+        [
+            (True, helpers.does_not_raise()),
+            (False, pytest.raises(exceptions.GPGKeyNotFound)),
+        ],
+    )
+    @mock.patch("uaclient.gpg.shutil.copy")
+    @mock.patch("uaclient.gpg.os.chmod")
+    @mock.patch("uaclient.gpg.os.path.exists")
+    def test_export_gpg_key(
+        self,
+        m_exists,
+        m_chmod,
+        m_copy,
+        source_exists,
+        expected_raises,
+    ):
+        m_exists.return_value = source_exists
+        with expected_raises:
+            gpg.export_gpg_key(mock.sentinel.source, mock.sentinel.dest)
+            assert m_copy.call_args_list == [
+                mock.call(mock.sentinel.source, mock.sentinel.dest)
+            ]
+            assert m_chmod.call_args_list == [
+                mock.call(mock.sentinel.dest, 0o644)
+            ]
