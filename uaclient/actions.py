@@ -230,13 +230,7 @@ def auto_attach(
     :raise NonAutoAttachImageError: If this cloud type does not have
         auto-attach support.
     """
-    contract_client = contract.UAContractClient(cfg)
-    tokenResponse = contract_client.get_contract_token_for_cloud_instance(
-        instance=cloud
-    )
-
-    token = tokenResponse["contractToken"]
-
+    token = cloud.acquire_pro_token(cfg)
     attach_with_token(cfg, token=token, allow_enable=allow_enable)
 
 

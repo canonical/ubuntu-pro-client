@@ -5,7 +5,7 @@ import os
 from typing import Any, Dict, List, Optional  # noqa: F401
 
 from uaclient import exceptions, http, secret_manager, system, util
-from uaclient.clouds import AutoAttachInstance
+from uaclient.clouds import PublicCloudAutoAttachInstance
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -33,7 +33,7 @@ GCP_LICENSES = {
 }
 
 
-class GCPAutoAttachInstance(AutoAttachInstance):
+class GCPAutoAttachInstance(PublicCloudAutoAttachInstance):
     def __init__(self):
         # store ETAG
         # https://cloud.google.com/compute/docs/metadata/querying-metadata#etags  # noqa
