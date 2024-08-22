@@ -50,7 +50,7 @@ class ServiceInfo(DataObject, AdditionalInfo):
         name: str,
         desc: str,
         available: bool,
-        entitled: Optional[bool] = None,
+        entitled: Optional[bool] = None
     ):
         self.name = name
         self.description = desc
