@@ -145,7 +145,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
 
     def get_notices(
         self,
-        details: Optional[str] = None,
+        cves: Optional[str] = None,
         release: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
@@ -156,7 +156,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
         @return: Sorted list of USN instances based on the the JSON response.
         """
         query_params = {
-            "details": details,
+            "cves": cves,
             "release": release,
             "limit": limit,
             "offset": offset,
@@ -172,7 +172,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
             [
                 USN(client=self, response=usn_md)
                 for usn_md in response.json_dict.get("notices", [])
-                if (details is None or details in usn_md.get("cves_ids", []))
+                if (cves is None or cves in usn_md.get("cves_ids", []))
                 and usn_md.get("id", "").startswith("USN-")
             ],
             key=lambda x: x.id,
