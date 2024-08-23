@@ -186,6 +186,7 @@ Feature: Command behaviour when attached to an Ubuntu Pro subscription
       This machine is now detached.
       """
     And the machine is unattached
+    And I verify that no files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
     And I ensure apt update runs without errors
     When I attach `contract_token` with sudo
     Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`

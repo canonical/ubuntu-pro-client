@@ -998,12 +998,12 @@ class TestRemoveAptConfig:
         entitlement.remove_apt_config(mock.MagicMock())
 
         assert [
-            mock.call("http://REPOTEST", "xenial")
+            mock.call("http://REPOTEST/ubuntu", "xenial")
         ] == m_remove_apt_list_files.call_args_list
         assert [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-repotest.list",
-                "http://REPOTEST",
+                "http://REPOTEST/ubuntu",
                 "test.gpg",
             )
         ] == m_remove_auth_apt_repo.call_args_list
