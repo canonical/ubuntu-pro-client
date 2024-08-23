@@ -173,17 +173,20 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
         )
 
 
-@step("I set up parca-agent")
+@step("I set up parca-agent 2")
 def i_set_up_parca_agent(context):
-    when_i_run_command(
-        context, "snap install parca-agent --edge --classic", "with sudo"
-    )
     token = os.getenv("PARCA_TOKEN")
+    if token is None:
+        print(repr(os.environ))
+    when_i_run_command(
+        context, "snap install parca-agent --classic", "with sudo"
+    )
     when_i_run_command(
         context,
         f"snap set parca-agent remote-store-bearer-token={token}",
         "with sudo",
     )
+    when_i_run_command(context, "snap start --enable parca-agent", "with sudo")
 
 
 def get_command_prefix_for_user_spec(user_spec):
