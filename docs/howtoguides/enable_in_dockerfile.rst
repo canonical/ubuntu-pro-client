@@ -116,14 +116,15 @@ inline comments explaining each line:
       # services, we can clean up.
       ###########################################################################
       #
-      # This purges ubuntu-pro-client, including all Ubuntu Pro related
-      # secrets from the system.
+      # This detaches and purges ubuntu-pro-client, including all Ubuntu Pro
+      # related secrets from the system.
       ###########################################################################
       # IMPORTANT: As written here, this command assumes your container does not
       # need ca-certificates so it is purged as well.
       # If your container needs ca-certificates, then do not purge it from the
       # system here.
       ###########################################################################
+      && pro detach --assume-yes
       && apt-get purge --auto-remove -y ubuntu-pro-client ca-certificates \
       #
       # Finally, we clean up the apt lists which should not be needed anymore
