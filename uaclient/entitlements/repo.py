@@ -701,6 +701,8 @@ class RepoEntitlement(base.UAEntitlement):
         if not repo_url:
             raise exceptions.MissingAptURLDirective(entitlement_name=self.name)
 
+        repo_url = self.repo_url_tmpl.format(repo_url)
+
         progress.progress(
             messages.REMOVING_APT_CONFIGURATION.format(title=self.title)
         )
