@@ -4,9 +4,9 @@ Create an Ubuntu FIPS Docker image
 **********************************
 
 .. note::
-    
+
     This tutorial requires at least Ubuntu Pro Client version 27.7 -- to check
-    which version of the Pro Client you are using, run ``pro version``. 
+    which version of the Pro Client you are using, run ``pro version``.
 
 Acquire your Ubuntu Pro token
 =============================
@@ -71,7 +71,7 @@ command:
     touch Dockerfile
 
 This file will later enable FIPS in the container, upgrade all the packages,
-and install the FIPS version of ``openssl``. 
+and install the FIPS version of ``openssl``.
 
 Edit the file and add the following contents:
 
@@ -81,11 +81,11 @@ Edit the file and add the following contents:
 
     RUN --mount=type=secret,id=pro-attach-config \
         apt-get update \
-        && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
+        && apt-get install --no-install-recommends -y ubuntu-pro-client ca-certificates \
         && pro attach --attach-config /run/secrets/pro-attach-config \
         && apt-get upgrade -y \
         && apt-get install -y openssl libssl1.1 libssl1.1-hmac libgcrypt20 libgcrypt20-hmac strongswan strongswan-hmac openssh-client openssh-server \
-        && apt-get purge --auto-remove -y ubuntu-advantage-tools ca-certificates \
+        && apt-get purge --auto-remove -y ubuntu-pro-client ca-certificates \
         && rm -rf /var/lib/apt/lists/*
 
 .. hint::
