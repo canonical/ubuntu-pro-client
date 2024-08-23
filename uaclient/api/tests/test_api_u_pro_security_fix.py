@@ -36,7 +36,7 @@ SAMPLE_GET_CVES_QUERY_PARAMS = {
 }
 
 SAMPLE_GET_NOTICES_QUERY_PARAMS = {
-    "details": "cve",
+    "cves": "cve",
     "release": "vq",
     "limit": 1,
     "offset": 2,
@@ -635,7 +635,7 @@ class TestUASecurityClient:
         "m_kwargs,expected_error, extra_security_params",
         (
             ({}, None, None),
-            ({"details": "cve"}, None, None),
+            ({"cves": "cve"}, None, None),
             (SAMPLE_GET_NOTICES_QUERY_PARAMS, None, {"test": "blah"}),
             ({"invalidparam": "vv"}, TypeError, None),
         ),
@@ -690,11 +690,11 @@ class TestUASecurityClient:
                 mock.call(API_V1_NOTICES, query_params=m_kwargs)
             ] == request_url.call_args_list
 
-    @pytest.mark.parametrize("details", (("cve1"), (None)))
-    def test_get_notices_filter_usns_when_setting_details_param(
-        self, request_url, details, FakeConfig
+    @pytest.mark.parametrize("cves", (("cve1"), (None)))
+    def test_get_notices_filter_usns_when_setting_cves_param(
+        self, request_url, cves, FakeConfig
     ):
-        """Test if details are used to filter the returned USNs."""
+        """Test if cves are used to filter the returned USNs."""
         cfg = FakeConfig()
         client = UASecurityClient(cfg)
         request_url.return_value = http.HTTPResponse(
@@ -710,9 +710,9 @@ class TestUASecurityClient:
             },
             json_list=[],
         )
-        usns = client.get_notices(details=details)
+        usns = client.get_notices(cves=cves)
 
-        if details:
+        if cves:
             assert len(usns) == 1
             assert usns[0].id == "USN-1"
         else:
