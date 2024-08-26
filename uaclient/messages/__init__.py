@@ -2739,3 +2739,8 @@ E_INVALID_URL = FormattedNamedMessage(
     "invalid-url",
     t.gettext("Invalid URL: {url}"),
 )
+
+E_UNKNOWN_PROCESSOR_TYPE = FormattedNamedMessage(
+    "unknown-processor-type",
+    t.gettext("Unknown processor type: {processor_type}"),
+)
