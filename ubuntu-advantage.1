@@ -6,7 +6,7 @@ pro \- Manage Ubuntu Pro services from Canonical
 
 
 .SH SYNOPSIS
-.BR "pro" " <command> [<args>]"
+.BR "pro" " [-h] [--debug] [--version] <command> ..."
 
 
 .SH DESCRIPTION
@@ -15,6 +15,20 @@ Ubuntu users. The Ubuntu Pro command line tool is used to attach
 a system to an Ubuntu Pro contract to then enable and disable
 services from Canonical. The available commands and services are
 described in more detail below.
+
+
+.SH OPTIONS
+.TP
+.BR "-h, --help"
+Show help for pro or for the specified pro command.
+
+.TP
+.BR "--debug"
+Redirect all the debugging logs to the console.
+
+.TP
+.BR "--version"
+Show the Pro Client version and exit.
 
 
 .SH COMMANDS
@@ -61,60 +75,7 @@ directory.
 .TP
 .BR "config set/unset" " <config-name>"
 
-Set/unset one of the available Pro configuration settings:
-
-.BR \fBhttp_proxy\fP
-If set, pro will use the specified http proxy when making any http requests
-
-.BR \fBhttps_proxy\fP
-If set, pro will use the specified https proxy when making any https requests
-
-.BR \fBapt_http_proxy\fP
-\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
-
-.BR \fBapt_https_proxy\fP
-\fB[DEPRECATED]\fP If set, pro will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
-
-.BR \fBglobal_apt_http_proxy\fP
-If set, pro will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
-prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
-
-.BR \fBglobal_apt_https_proxy\fP
-If set, pro will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
-prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
-
-.BR \fBua_apt_http_proxy\fP
-If set, pro will configure apt to use the specified http proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
-to accessing resources from \fIesm.ubuntu.com\fB
-
-.BR \fBua_apt_https_proxy\fP
-If set, pro will configure apt to use the specified https proxy by writing a apt
-config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
-to accessing resources from \fIesm.ubuntu.com\fB
-
-.BR \fB<job_name>_timer\fP
-Sets the timer running interval for a specific job. Those intervals are checked
-every time the systemd timer runs.
-
-.BR \fBapt_news\fP
-If set to false, the Pro client will no longer display apt news messages on the output
-of apt upgrade.
-
-.BR \fBapt_news_url\fP
-Sets the url where the Pro client will consume apt news information from.
-
-If needed, authentication to the proxy server can be performed by setting
-username and password in the URL itself, as in:
-.nf
-.fam C
-  http_proxy: http://<username>:<password>@<fqdn>:<port>
-.fam T
-.fi
+Set/unset one of the available Pro configuration settings.
 
 .TP
 .BR "config show" " <config-name>"
@@ -241,46 +202,6 @@ output.
 .BR "system reboot-required"
 Tells if the system needs to be rebooted
 
-.TP
-.B version
-Show version of the Ubuntu Pro package.
-
-
-.SH PRO UPGRADE DAEMON
-Ubuntu Pro client sets up a daemon on supported platforms (currently on Azure and GCP) to
-detect if an Ubuntu Pro license is purchased for the machine. If an Ubuntu Pro license
-is detected, then the machine is automatically attached.
-If you are uninterested in Ubuntu Pro services, you can safely stop and disable the
-daemon using systemctl:
-
-sudo systemctl stop ubuntu-advantage.service
-sudo systemctl disable ubuntu-advantage.service
-
-.SH TIMER JOBS
-Ubuntu Pro client sets up a systemd timer to run jobs that need to be executed
-recurrently. The timer itself ticks every 5 minutes on average, and decides
-which jobs need to be executed based on their intervals.
-
-Jobs are executed by the timer script if the script has not yet run
-successfully, or their interval since last successful run is already exceeded.
-There is a random delay applied to the timer, to desynchronize job execution
-time on machines spinned at the same time, avoiding multiple synchronized
-calls to the same service.
-
-Current jobs being checked and executed are:
-.TP
-.B
-\fBupdate_messaging\fP
-Makes sure that the MOTD and APT messages match the available/enabled services
-on the system, showing information about available packages or security
-updates.
-
-.TP
-.B
-\fBmetering\fP
-If attached, this job will ping the Canonical servers telling
-which services are enabled on the machine.
-
 
 .SH SERVICES
 .TP
@@ -388,6 +309,109 @@ security and non-security updates, the esm-infra, esm-apps, and ros services
 will also be enabled.
 
 You can find out more about the ROS ESM service at https://ubuntu.com/robotics/ros-esm
+
+
+.SH CONFIGURATION SETTINGS
+.TP
+.BR "http_proxy"
+If set, pro will use the specified http proxy when making any http requests
+
+.TP
+.BR "https_proxy"
+If set, pro will use the specified https proxy when making any https requests
+
+.TP
+.BR "apt_http_proxy" " [DEPRECATED]"
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
+
+.TP
+.BR "apt_https_proxy" " [DEPRECATED]"
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
+
+.TP
+.BR "global_apt_http_proxy"
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "global_apt_https_proxy"
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "ua_apt_http_proxy"
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "ua_apt_https_proxy"
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "<job_name>_timer"
+Sets the timer running interval for a specific job. Those intervals are checked
+every time the systemd timer runs.
+
+.TP
+.BR "apt_news"
+If set to false, the Pro client will no longer display apt news messages on the output
+of apt upgrade.
+
+.TP
+.BR "apt_news_url"
+Sets the url where the Pro client will consume apt news information from.
+
+.P
+If needed, authentication to the proxy server can be performed by setting
+username and password in the URL itself, as in:
+.nf
+.fam C
+  http_proxy: http://<username>:<password>@<fqdn>:<port>
+.fam T
+.fi
+
+
+.SH PRO UPGRADE DAEMON
+Ubuntu Pro client sets up a daemon on supported platforms (currently on Azure and GCP) to
+detect if an Ubuntu Pro license is purchased for the machine. If an Ubuntu Pro license
+is detected, then the machine is automatically attached.
+If you are uninterested in Ubuntu Pro services, you can safely stop and disable the
+daemon using systemctl:
+
+sudo systemctl stop ubuntu-advantage.service
+sudo systemctl disable ubuntu-advantage.service
+
+.SH TIMER JOBS
+Ubuntu Pro client sets up a systemd timer to run jobs that need to be executed
+recurrently. The timer itself ticks every 5 minutes on average, and decides
+which jobs need to be executed based on their intervals.
+
+Jobs are executed by the timer script if the script has not yet run
+successfully, or their interval since last successful run is already exceeded.
+There is a random delay applied to the timer, to desynchronize job execution
+time on machines spinned at the same time, avoiding multiple synchronized
+calls to the same service.
+
+Current jobs being checked and executed are:
+.TP
+.B
+\fBupdate_messaging\fP
+Makes sure that the MOTD and APT messages match the available/enabled services
+on the system, showing information about available packages or security
+updates.
+
+.TP
+.B
+\fBmetering\fP
+If attached, this job will ping the Canonical servers telling
+which services are enabled on the machine.
 
 
 .SH REPORTING BUGS
