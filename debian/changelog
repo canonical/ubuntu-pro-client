@@ -3,10 +3,12 @@ ubuntu-advantage-tools (34) oracular; urgency=medium
   * d/rules: check that version.py is consistent with changelog (GH: #3154)
   * New upstream release 34: (LP: #2075543)
     - apt-hook: redirect errors away from users (LP: #2074211)
+    - detach: ensure apt bearer tokens are always cleaned up
     - fips-preview: add warnings and prompts similar to fips and fips-updates
     - fips and realtime-kernel: add warning when the new kernel may have
       different hardware support than the current kernel based on the flavor
       (GH: #3115)
+    - fix: use more reliable api query param when looking up CVE fixes
     - help:
       + change help output for base pro command
       + remove service descriptions from output (GH: #3126)
