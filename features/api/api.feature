@@ -7,6 +7,7 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_retry_service"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import should_auto_attach"` as non-root
+    When I run `python3 -c "from uaclient.api.u.pro.attach.guest.get_guest_token.v1 import get_guest_token"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.initiate.v1 import initiate"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.revoke.v1 import revoke"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.wait.v1 import wait"` as non-root

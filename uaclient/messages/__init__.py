@@ -2778,3 +2778,11 @@ E_MANIFEST_PARSE_ERROR = FormattedNamedMessage(
     "manifest-parse-error",
     t.gettext("Error parsing {name} for line:\n{error_line}"),
 )
+
+E_FEATURE_NOT_SUPPORTED_OLD_TOKEN = FormattedNamedMessage(
+    "feature-not-supported-old-token",
+    t.gettext(
+        "The feature '{feature_name}' is not supported with the old token"
+        " format. Please detach and reattach to give this machine a new token."
+    ),
+)

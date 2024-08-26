@@ -156,6 +156,73 @@ class TestUAContractClient:
             )
         ] == m_request_url.call_args_list
 
+    @pytest.mark.parametrize(
+        [
+            "request_url_return_value",
+            "expected_raises",
+            "expected_result",
+        ],
+        [
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                helpers.does_not_raise(),
+                {"test": "value"},
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=404,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                pytest.raises(exceptions.ContractAPIError),
+                None,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=400,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                pytest.raises(exceptions.FeatureNotSupportedOldTokenError),
+                None,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.contract.UAContractClient.headers")
+    def test_get_guest_token(
+        self,
+        m_headers,
+        m_get_machine_id,
+        m_request_url,
+        request_url_return_value,
+        expected_raises,
+        expected_result,
+    ):
+        m_headers.return_value = {"header": "headerval"}
+        m_request_url.side_effect = request_url_return_value
+
+        client = UAContractClient(mock.MagicMock())
+        with expected_raises:
+            assert expected_result == client.get_guest_token(
+                "mToken", "contractId", "machineId"
+            )
+
     @pytest.mark.parametrize("machine_id_param", (("attach-machine-id")))
     @pytest.mark.parametrize(
         "machine_id_response", (("contract-machine-id"), None)

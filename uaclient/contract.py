@@ -47,6 +47,10 @@ API_V1_GET_MAGIC_ATTACH_TOKEN_INFO = "/v1/magic-attach"
 API_V1_NEW_MAGIC_ATTACH = "/v1/magic-attach"
 API_V1_REVOKE_MAGIC_ATTACH = "/v1/magic-attach"
 
+API_V1_GET_GUEST_TOKEN = (
+    "/v1/contracts/{contract}/context/machines/{machine}/guest-token"
+)
+
 OVERRIDE_SELECTOR_WEIGHTS = {
     "series_overrides": 1,
     "series": 2,
@@ -416,6 +420,41 @@ class UAContractClient(serviceclient.UAServiceClient):
             )
         if response.headers.get("expires"):
             response.json_dict["expires"] = response.headers["expires"]
+        return response.json_dict
+
+    def get_guest_token(
+        self,
+        machine_token: str,
+        contract_id: str,
+        machine_id: str,
+    ) -> Dict:
+        """Request guest token associated with this machine's contract
+        @param machine_token: The machine token needed to talk to
+            this contract service endpoint.
+        @param contract_id: Unique contract id provided by contract service
+        @param machine_id: Unique machine id that was registered with the pro
+            backend on attach.
+        @return: Dict of the JSON response containing the guest token
+        """
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
+        url = API_V1_GET_GUEST_TOKEN.format(
+            contract=contract_id,
+            machine=machine_id,
+        )
+        response = self.request_url(url, headers=headers, method="GET")
+        if response.code == 400:
+            # defined response code for when machine has a v1 or v2 token
+            # this will only be true for old attachments (2020 or earlier)
+            raise exceptions.FeatureNotSupportedOldTokenError(
+                feature_name="get_guest_token"
+            )
+        elif response.code != 200:
+            raise exceptions.ContractAPIError(
+                url=url,
+                code=response.code,
+                body=response.body,
+            )
         return response.json_dict
 
     def _get_activity_info(self):
