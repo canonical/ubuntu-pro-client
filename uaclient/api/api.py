@@ -15,6 +15,7 @@ VALID_ENDPOINTS = [
     "u.pro.attach.auto.configure_retry_service.v1",
     "u.pro.attach.auto.full_auto_attach.v1",
     "u.pro.attach.auto.should_auto_attach.v1",
+    "u.pro.attach.guest.get_guest_token.v1",
     "u.pro.attach.magic.initiate.v1",
     "u.pro.attach.magic.revoke.v1",
     "u.pro.attach.magic.wait.v1",
