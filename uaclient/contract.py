@@ -23,6 +23,7 @@ from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.files.state_files import attachment_data_file, machine_id_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
+from uaclient.system import cpu_type
 
 # Here we describe every endpoint from the ua-contracts
 # service that is used by this client implementation.
@@ -429,6 +430,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             "desktop": system.is_desktop(),
             "virt": system.get_virt_type(),
             "clientVersion": version.get_version(),
+            "cpu_type": cpu_type.get_cpu_type(),
         }
 
         if _is_attached(self.cfg).is_attached:
