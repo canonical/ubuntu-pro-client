@@ -394,3 +394,18 @@ Feature: CLI attach command
       | jammy   | lxd-container |
       | mantic  | lxd-container |
       | noble   | lxd-container |
+
+  Scenario Outline: Attach operation on a lxd vm
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then I verify that `esm-apps` is enabled
+    And I verify that `esm-infra` is enabled
+    And I verify that `livepatch` status is `<livepatch_status>`
+
+    Examples: ubuntu release
+      | release | machine_type | livepatch_status |
+      | xenial  | lxd-vm       | warning          |
+      | bionic  | lxd-vm       | enabled          |
+      | focal   | lxd-vm       | enabled          |
+      | jammy   | lxd-vm       | enabled          |
+      | noble   | lxd-vm       | enabled          |
