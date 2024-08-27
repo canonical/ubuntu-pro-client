@@ -11,6 +11,7 @@ PRO_SUBSCRIBE = "https://ubuntu.com/pro/subscribe"
 PRO_CLIENT_DOCS_RELATED_USNS = "https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/cves_and_usns_explained.html#what-are-related-usns"  # noqa: E501
 PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES = "https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances.html"  # noqa: E501
 PRO_CLIENT_DOCS_PROXY_CONFIG = "https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/configure_proxies.html"  # noqa: E501
+PRO_CLIENT_DOCS_API_REFERENCE = "https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/references/api/"  # noqa: E501
 
 # TODO: If/when `pro disable fips --purge` exists, reference that where
 # this URL is used
