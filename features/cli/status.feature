@@ -1001,22 +1001,19 @@ Feature: CLI status command
       """
     And stdout matches regexp:
       """
-      \"message\": \"Attach denied:\\nContract .* expired on .*\"
+      \"message\": \"Contract .* expired on .*\"
       """
     When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
     Then stdout is a yaml matching the `ua_status` schema
     Then stdout matches regexp:
       """
       errors:
-      - message: 'Attach denied:
-
-          Contract .* expired on .*
+      - message: 'Contract .* expired on .*
       """
     When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
     Then stdout matches regexp:
       """
       This token is not valid.
-      Attach denied:
       Contract \".*\" expired on .*
       Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
@@ -1050,22 +1047,19 @@ Feature: CLI status command
       """
     And stdout matches regexp:
       """
-      \"message\": \"Attach denied:\\nContract .* expired on .*\"
+      \"message\": \"Contract .* expired on .*\"
       """
     When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
     Then stdout is a yaml matching the `ua_status` schema
     Then stdout matches regexp:
       """
       errors:
-      - message: 'Attach denied:
-
-          Contract .* expired on .*
+      - message: 'Contract .* expired on .*
       """
     When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
     Then stdout matches regexp:
       """
       This token is not valid.
-      Attach denied:
       Contract \".*\" expired on .*
       Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
@@ -1096,22 +1090,19 @@ Feature: CLI status command
       """
     And stdout matches regexp:
       """
-      \"message\": \"Attach denied:\\nContract .* expired on .*\"
+      \"message\": \"Contract .* expired on .*\"
       """
     When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
     Then stdout is a yaml matching the `ua_status` schema
     Then stdout matches regexp:
       """
       errors:
-      - message: 'Attach denied:
-
-          Contract .* expired on .*
+      - message: 'Contract .* expired on .*
       """
     When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
     Then stdout matches regexp:
       """
       This token is not valid.
-      Attach denied:
       Contract \".*\" expired on .*
       Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 

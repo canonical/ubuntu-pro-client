@@ -1022,7 +1022,6 @@ class TestActionStatus:
             (
                 "expired_token",
                 (
-                    "Attach denied:\n"
                     'Contract "some_id" expired on December 31, 2019\n'
                     "Visit https://ubuntu.com/pro/dashboard to manage "
                     "contract tokens."
@@ -1033,7 +1032,6 @@ class TestActionStatus:
             (
                 "token_not_valid_yet",
                 (
-                    "Attach denied:\n"
                     'Contract "some_id" is not effective until December 31, '
                     "9999\n"
                     "Visit https://ubuntu.com/pro/dashboard to manage "
