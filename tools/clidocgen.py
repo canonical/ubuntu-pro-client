@@ -1,5 +1,6 @@
+#!/usr/bin/python3
 """
-Generate RST documentation for an ubuntu-pro-client cli commands.
+Generate documentation for an ubuntu-pro-client cli commands.
 """
 
 import sys
@@ -8,6 +9,8 @@ sys.path.insert(0, ".")
 
 from uaclient.cli import COMMANDS, get_parser
 from uaclient.cli.commands import ProCommand
+
+VALID_TARGETS = ["manpage"]
 
 MANPAGE_TEMPLATE = """\
 .TP
@@ -32,12 +35,24 @@ def _build_manpage_entry(command: ProCommand) -> str:
     )
 
 
-if __name__ == "__main__":
-    # get a parser so we register all the commands
-    _parser = get_parser()
-
+def _generate_manpage_section():
     result = ""
     for command in COMMANDS:
         result += _build_manpage_entry(command)
 
-    print(result)
+    with open("./ubuntu-advantage.1.template", "r") as f:
+        template = f.read()
+    content = template.replace("<<commands_description>>", result)
+    with open("./ubuntu-advantage.1", "w") as f:
+        f.write(content)
+
+
+if __name__ == "__main__":
+    # get a parser so we register all the commands
+    _parser = get_parser()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "manpage":
+            _generate_manpage_section()
+            sys.exit()
+
+    raise ValueError("call the script with one of: " + " ".join(VALID_TARGETS))
