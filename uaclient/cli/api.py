@@ -51,6 +51,7 @@ api_command = ProCommand(
     help=messages.CLI_ROOT_API,
     description=messages.CLI_API_DESC,
     action=action_api,
+    preserve_description=True,
     argument_groups=[
         ProArgumentGroup(
             arguments=[

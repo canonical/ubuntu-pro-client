@@ -28,6 +28,7 @@ collect_logs_command = ProCommand(
     "collect-logs",
     help=messages.CLI_ROOT_COLLECT_LOGS,
     description=messages.CLI_COLLECT_LOGS_DESC,
+    preserve_description=True,
     action=action_collect_logs,
     argument_groups=[
         ProArgumentGroup(
