@@ -468,7 +468,7 @@ def simulate_status(
         expiration_datetime = response["expires"]
         delta = expiration_datetime - now
         if delta.total_seconds() <= 0:
-            message = messages.E_ATTACH_FORBIDDEN_EXPIRED.format(
+            message = messages.E_TOKEN_FORBIDDEN_EXPIRED.format(
                 contract_id=response["contract"]["id"],
                 date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
@@ -482,7 +482,7 @@ def simulate_status(
         effective_datetime = response["effective"]
         delta = now - effective_datetime
         if delta.total_seconds() <= 0:
-            message = messages.E_ATTACH_FORBIDDEN_NOT_YET.format(
+            message = messages.E_TOKEN_FORBIDDEN_NOT_YET.format(
                 contract_id=response["contract"]["id"],
                 date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
