@@ -47,6 +47,7 @@ Feature: Pro Client help text
       usage: pro collect-logs [-h] [-o OUTPUT]
 
       Collect logs and relevant system information into a tarball.
+      This information can be later used for triaging/debugging issues.
 
       <options_string>:
         -h, --help            show this help message and exit
@@ -61,6 +62,11 @@ Feature: Pro Client help text
                      endpoint
 
       Calls the Client API endpoints.
+
+      For a list of all of the supported endpoints and their structure,
+      please refer to the Pro Client API reference guide:
+
+      https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/references/api/
 
       positional arguments:
         endpoint              API endpoint to call
@@ -79,7 +85,7 @@ Feature: Pro Client help text
       usage: pro disable [-h] [--assume-yes] [--format {cli,json}] [--purge]
                          service [service ...]
 
-      Disable an Ubuntu Pro service.
+      Disable one or more Ubuntu Pro services.
 
       positional arguments:
         service              the name(s) of the Ubuntu Pro services to disable. One
@@ -102,7 +108,8 @@ Feature: Pro Client help text
                         [--format {cli,json}] [--variant VARIANT]
                         service [service ...]
 
-      Enable an Ubuntu Pro service.
+      Activate and configure this machine's access to one or more Ubuntu Pro
+      services.
 
       positional arguments:
         service              the name(s) of the Ubuntu Pro services to enable. One
@@ -134,6 +141,17 @@ Feature: Pro Client help text
       When running this command without a token, it will generate a short code
       and prompt you to attach the machine to your Ubuntu Pro account using
       a web browser.
+
+      The "attach-config" option can be used to provide a file with the token
+      and optionally, a list of services to enable after attaching. To know more,
+      visit:
+      https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/how_to_attach_with_config_file/
+
+      The exit code will be:
+
+          * 0: on successful attach
+          * 1: in case of any error while trying to attach
+          * 2: if the machine is already attached
 
       positional arguments:
         token                 token obtained for Ubuntu Pro authentication
@@ -181,13 +199,14 @@ Feature: Pro Client help text
       Shows counts of how many packages are supported for security updates
       in the system.
 
-      If called with --format json|yaml it shows a summary of the
+      If the format is set to JSON or YAML it shows a summary of the
       installed packages based on the origin:
-      - main/restricted/universe/multiverse: packages from the Ubuntu archive
-      - esm-infra/esm-apps: packages from the ESM archive
-      - third-party: packages installed from non-Ubuntu sources
-      - unknown: packages which don't have an installation source (like local
-        deb packages or packages for which the source was removed)
+
+          - main/restricted/universe/multiverse: Packages from the Ubuntu archive.
+          - esm-infra/esm-apps: Packages from the ESM archive.
+          - third-party: Packages installed from non-Ubuntu sources.
+          - unknown: Packages which don't have an installation source (like local
+            deb packages or packages for which the source was removed).
 
       The output contains basic information about Ubuntu Pro. For a
       complete status on Ubuntu Pro services, run 'pro status'.
@@ -208,7 +227,14 @@ Feature: Pro Client help text
       """
       usage: pro fix [-h] [--dry-run] [--no-related] security_issue
 
-      Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this machine.
+      Inspect and resolve Common Vulnerabilities and Exposures (CVEs) and
+      Ubuntu Security Notices (USNs) on this machine.
+
+      The exit code will be:
+
+          * 0: the fix was successfully applied or the system is not affected
+          * 1: the fix cannot be applied
+          * 2: the fix was applied but requires a reboot before it takes effect
 
       positional arguments:
         security_issue  Security vulnerability ID to inspect and resolve on this
@@ -231,35 +257,35 @@ Feature: Pro Client help text
 
       Report current status of Ubuntu Pro services on system.
 
-      This shows whether this machine is attached to an Ubuntu Advantage
+      This shows whether this machine is attached to an Ubuntu Pro
       support contract. When attached, the report includes the specific
       support contract details including contract name, expiry dates, and the
       status of each service on this system.
 
       The attached status output has four columns:
 
-      * SERVICE: name of the service
-      * ENTITLED: whether the contract to which this machine is attached
-        entitles use of this service. Possible values are: yes or no
-      * STATUS: whether the service is enabled on this machine. Possible
-        values are: enabled, disabled, n/a (if your contract entitles
-        you to the service, but it isn't available for this machine) or - (if
-        you aren't entitled to this service)
-      * DESCRIPTION: a brief description of the service
+          * SERVICE: Name of the service.
+          * ENTITLED: Whether the contract to which this machine is attached
+            entitles use of this service. Possible values are: yes or no.
+          * STATUS: Whether the service is enabled on this machine. Possible
+            values are: enabled, disabled, n/a (if your contract entitles
+            you to the service, but it isn't available for this machine) or — (if
+            you aren't entitled to this service).
+          * DESCRIPTION: A brief description of the service.
 
       The unattached status output instead has three columns. SERVICE
       and DESCRIPTION are the same as above, and there is the addition
       of:
 
-      * AVAILABLE: whether this service would be available if this machine
-        were attached. The possible values are yes or no.
+          * AVAILABLE: Whether this service would be available if this machine
+            were attached. The possible values are yes or no.
 
-      If --simulate-with-token is used, then the output has five
+      If "simulate-with-token" is used, then the output has five
       columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
       as mentioned above, and AUTO_ENABLED shows whether the service is set
       to be enabled when that token is attached.
 
-      If the --all flag is set, beta and unavailable services are also
+      If the "all" flag is set, beta and unavailable services are also
       listed in the output.
 
       <options_string>:
@@ -278,12 +304,12 @@ Feature: Pro Client help text
 
       Refresh three distinct Ubuntu Pro related artifacts in the system:
 
-      * contract: Update contract details from the server.
-      * config:   Reload the config file.
-      * messages: Update APT and MOTD messages related to UA.
+          * contract: Update contract details from the server.
+          * config:   Reload the config file.
+          * messages: Update APT and MOTD messages related to Pro.
 
       You can individually target any of the three specific actions,
-      by passing the target name to the command.  If no `target`
+      by passing the target name to the command. If no target
       is specified, all targets are refreshed.
 
       positional arguments:
@@ -298,7 +324,7 @@ Feature: Pro Client help text
       """
       usage: pro system [-h] {reboot-required} ...
 
-      Output system related information related to Pro services
+      Outputs system-related information about Pro services.
 
       <options_string>:
         -h, --help         show this help message and exit
@@ -317,13 +343,13 @@ Feature: Pro Client help text
       This command will output one of the three following states
       for the machine regarding reboot:
 
-      * no: The machine doesn't require a reboot
-      * yes: The machine requires a reboot
-      * yes-kernel-livepatches-applied: There are only kernel related
-        packages that require a reboot, but Livepatch has already provided
-        patches for the current running kernel. The machine still needs a
-        reboot, but you can assess if the reboot can be performed in the
-        nearest maintenance window.
+          * no: The machine doesn't require a reboot.
+          * yes: The machine requires a reboot.
+          * yes-kernel-livepatches-applied: There are only kernel-related
+            packages that require a reboot, but Livepatch has already provided
+            patches for the current running kernel. The machine still needs a
+            reboot, but you can assess if the reboot can be performed in the
+            nearest maintenance window.
 
       <options_string>:
         -h, --help  show this help message and exit
@@ -333,23 +359,24 @@ Feature: Pro Client help text
       """
       usage: pro config [-h] {show,set,unset} ...
 
-      Manage Ubuntu Pro configuration
+      Manage Ubuntu Pro Client configuration on this machine.
 
       <options_string>:
         -h, --help        show this help message and exit
 
       Available Commands:
         {show,set,unset}
-          show            Show customizable configuration settings
-          set             Set and apply Ubuntu Pro configuration settings
-          unset           Unset Ubuntu Pro configuration setting
+          show            Show customizable configuration settings.
+          set             Set and apply Ubuntu Pro configuration settings.
+          unset           Unset an Ubuntu Pro configuration setting, restoring the
+                          default value.
       """
     When I run `pro config show --help` as non-root
     Then I will see the following on stdout
       """
       usage: pro config show [-h] [key]
 
-      Show customizable configuration settings
+      Show customizable configuration settings.
 
       positional arguments:
         key         Optional key or key(s) to show configuration settings.
@@ -362,7 +389,7 @@ Feature: Pro Client help text
       """
       usage: pro config set [-h] key_value_pair
 
-      Set and apply Ubuntu Pro configuration settings
+      Set and apply Ubuntu Pro configuration settings.
 
       positional arguments:
         key_value_pair  key=value pair to configure for Ubuntu Pro services. Key
@@ -380,7 +407,7 @@ Feature: Pro Client help text
       """
       usage: pro config unset [-h] key
 
-      Unset Ubuntu Pro configuration setting
+      Unset an Ubuntu Pro configuration setting, restoring the default value.
 
       positional arguments:
         key         configuration key to unset from Ubuntu Pro services. One of:

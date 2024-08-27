@@ -917,6 +917,7 @@ fix_command = ProCommand(
     description=messages.CLI_FIX_DESC,
     action=action_fix,
     help_category=HelpCategory.SECURITY,
+    preserve_description=True,
     argument_groups=[
         ProArgumentGroup(
             arguments=[
