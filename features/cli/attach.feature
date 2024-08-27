@@ -37,6 +37,53 @@ Feature: CLI attach command
   # | release  | machine_type  | landscape | status_string                                                           |
   # | oracular | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
+<<<<<<< HEAD:features/cli/attach.feature
+=======
+  Scenario Outline: Attach command in a ubuntu lxd container
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I apt install `update-motd`
+    And I apt install `<downrev_pkg>`
+    And I run `pro refresh messages` with sudo
+    Then stdout matches regexp:
+      """
+      Successfully updated Ubuntu Pro related APT and MOTD messages.
+      """
+    When I run `update-motd` with sudo
+    Then if `<release>` in `xenial` and stdout matches regexp:
+      """
+      \d+ update(s)? can be applied immediately.
+      \d+ of these updates (is a|are) standard security update(s)?.
+      """
+    Then if `<release>` in `bionic` and stdout matches regexp:
+      """
+      \d+ update(s)? can be applied immediately.
+      \d+ of these updates (is a|are) standard security update(s)?.
+      """
+    Then if `<release>` in `focal` and stdout matches regexp:
+      """
+      \d+ update(s)? can be applied immediately.
+      """
+    When I attach `contract_token` with sudo
+    Then I verify that `esm-infra` is enabled
+    And I verify that `esm-apps` is enabled
+    When I verify that running `pro attach contract_token` `with sudo` exits `2`
+    Then stderr matches regexp:
+      """
+      This machine is already attached to '.+'
+      To use a different subscription first run: sudo pro detach.
+      """
+    And I verify that `/var/lib/ubuntu-advantage/status.json` is owned by `root:root` with permission `644`
+
+    Examples: ubuntu release packages
+      | release | machine_type  | downrev_pkg            | cc_status | cis_or_usg | cis      | fips     | livepatch_desc              |
+      | xenial  | lxd-container | libkrad0=1.13.2+dfsg-5 | disabled  | cis        | disabled | disabled | Canonical Livepatch service |
+      | bionic  | lxd-container | libkrad0=1.16-2build1  | disabled  | cis        | disabled | disabled | Canonical Livepatch service |
+      | focal   | lxd-container | hello=2.10-2ubuntu2    | n/a       | usg        | disabled | disabled | Canonical Livepatch service |
+      | jammy   | lxd-container | hello=2.10-2ubuntu4    | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service |
+      | noble   | lxd-container | hello=2.10-3build1     | n/a       | usg        | n/a      | n/a      | Canonical Livepatch service |
+
+  @arm64
+>>>>>>> 7355f153 (Add arm64 tag to tests):features/attach_validtoken.feature
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # simplest happy path

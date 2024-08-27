@@ -475,6 +475,7 @@ Feature: CLI status command
       | release | machine_type  |
       | noble   | lxd-container |
 
+  @arm64
   Scenario Outline: Unattached status in a ubuntu machine - formatted
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro status --format json` as non-root
@@ -529,6 +530,7 @@ Feature: CLI status command
       | noble    | lxd-container |
       | oracular | lxd-container |
 
+  @arm64
   Scenario Outline: Unattached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify root and non-root `pro status` calls have the same output
@@ -759,6 +761,7 @@ Feature: CLI status command
       | release | machine_type  |
       | jammy   | lxd-container |
 
+  @arm64
   Scenario Outline: Unattached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify root and non-root `pro status` calls have the same output
