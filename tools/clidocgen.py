@@ -14,13 +14,13 @@ VALID_TARGETS = ["manpage"]
 
 MANPAGE_TEMPLATE = """\
 .TP
-.BR "{name}" " {usage_options}"
+.BR "{indent}{name}" " {usage_options}"
 {description}
 
 """
 
 
-def _build_manpage_entry(command: ProCommand) -> str:
+def _build_manpage_entry(command: ProCommand, indent: str = "") -> str:
     # the usage line looks like
     # usage: <prog> <options>
     # we wanto only the <options>
@@ -29,6 +29,7 @@ def _build_manpage_entry(command: ProCommand) -> str:
     usage_options = " ".join(options_line.split())
 
     return MANPAGE_TEMPLATE.format(
+        indent=indent,
         name=command.name,
         usage_options=usage_options,
         description=command.description,
@@ -39,6 +40,8 @@ def _generate_manpage_section():
     result = ""
     for command in COMMANDS:
         result += _build_manpage_entry(command)
+        for subcommand in command.subcommands:
+            result += _build_manpage_entry(subcommand, indent=" " * 4)
 
     with open("./ubuntu-advantage.1.template", "r") as f:
         template = f.read()
