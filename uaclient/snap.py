@@ -1,11 +1,17 @@
-import http.client
-import json
 import logging
 import re
-import socket
 from typing import List, NamedTuple, Optional
 
-from uaclient import api, apt, event_logger, exceptions, messages, system, util
+from uaclient import (
+    api,
+    apt,
+    event_logger,
+    exceptions,
+    http,
+    messages,
+    system,
+    util,
+)
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
@@ -181,52 +187,25 @@ def refresh_snap(snap: str):
 
 
 def get_snap_info(snap: str) -> SnapPackage:
-    snap_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    snap_sock.connect(SNAPD_SOCKET_PATH)
-
-    conn = http.client.HTTPConnection("localhost")
-    conn.sock = snap_sock
     url = SNAPD_SNAPS_API.format(snap)
-
     try:
-        conn.request("GET", SNAPD_SNAPS_API.format(snap))
-        response = conn.getresponse()
-        # We don't expect the snapd API to return non-utf8,
-        # but better safe than sorry
-        out = response.read().decode("utf-8", errors="ignore")
-
-        try:
-            data = json.loads(out)
-        except json.JSONDecodeError as e:
-            LOG.warning(
-                "JSONDecodeError while parsing result of snap api call to %s, "
-                'returning None. output was: "%s"',
-                url,
-                out,
-                exc_info=e,
-            )
-            raise exceptions.InvalidJson(
-                source="SNAPD API {}".format(url), out=out
-            )
-
+        resp = http.unix_socket_request(SNAPD_SOCKET_PATH, "GET", url)
         # This means that the snap doesn't exist or is not installed
-        if response.status != 200:
+        if resp.code != 200:
             if (
-                response.status == 404
-                and data.get("result", {}).get("kind") == "snap-not-found"
+                resp.code == 404
+                and resp.json_dict.get("result", {}).get("kind")
+                == "snap-not-found"
             ):
                 raise exceptions.SnapNotInstalledError(snap=snap)
             else:
-                error_msg = data.get("result", {}).get("message")
+                error_msg = resp.json_dict.get("result", {}).get("message")
                 raise exceptions.UnexpectedSnapdAPIError(error=error_msg)
 
     except ConnectionRefusedError:
         raise exceptions.SnapdAPIConnectionRefused()
-    finally:
-        conn.close()
-        snap_sock.close()
 
-    snap_info = data.get("result", {})
+    snap_info = resp.json_dict.get("result", {})
     return SnapPackage(
         name=snap_info.get("name", ""),
         version=snap_info.get("version", ""),

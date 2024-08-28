@@ -462,3 +462,157 @@ class TestHandlePycurlError:
             http._handle_pycurl_error(
                 m_error, "url", "PYCURL_ERROR", "CA_CERTIFICATES_ERROR"
             )
+
+
+class TestUnixSocketRequest:
+    @pytest.mark.parametrize(
+        [
+            "params",
+            "response_body",
+            "response_code",
+            "response_headers",
+            "expected",
+            "sock_connect_call_args",
+            "http_connection_call_args",
+            "request_call_args",
+        ],
+        [
+            (
+                {
+                    "socket_path": "/fake/socket",
+                    "http_method": "GET",
+                    "http_path": "/fake/path",
+                    "http_hostname": "x",
+                },
+                b"body",
+                200,
+                {"header": "fake"},
+                http.HTTPResponse(
+                    code=200,
+                    headers={"header": "fake"},
+                    body="body",
+                    json_dict={},
+                    json_list=[],
+                ),
+                [mock.call.connect("/fake/socket")],
+                [mock.call("x")],
+                [mock.call("GET", "/fake/path")],
+            ),
+            (
+                {
+                    "socket_path": "/fake/socket2",
+                    "http_method": "POST",
+                    "http_path": "/fake/path2",
+                    "http_hostname": "x2",
+                },
+                b"body",
+                201,
+                {"header2": "fake2"},
+                http.HTTPResponse(
+                    code=201,
+                    headers={"header2": "fake2"},
+                    body="body",
+                    json_dict={},
+                    json_list=[],
+                ),
+                [mock.call.connect("/fake/socket2")],
+                [mock.call("x2")],
+                [mock.call("POST", "/fake/path2")],
+            ),
+            (
+                {
+                    "socket_path": "/fake/socket",
+                    "http_method": "GET",
+                    "http_path": "/fake/path",
+                    "http_hostname": "x",
+                },
+                b'["body"]',
+                200,
+                {"header": "fake"},
+                http.HTTPResponse(
+                    code=200,
+                    headers={"header": "fake"},
+                    body='["body"]',
+                    json_dict={},
+                    json_list=[],
+                ),
+                [mock.call.connect("/fake/socket")],
+                [mock.call("x")],
+                [mock.call("GET", "/fake/path")],
+            ),
+            (
+                {
+                    "socket_path": "/fake/socket",
+                    "http_method": "GET",
+                    "http_path": "/fake/path",
+                    "http_hostname": "x",
+                },
+                b'["body"]',
+                200,
+                {"content-type": "application/json"},
+                http.HTTPResponse(
+                    code=200,
+                    headers={"content-type": "application/json"},
+                    body='["body"]',
+                    json_dict={},
+                    json_list=["body"],
+                ),
+                [mock.call.connect("/fake/socket")],
+                [mock.call("x")],
+                [mock.call("GET", "/fake/path")],
+            ),
+            (
+                {
+                    "socket_path": "/fake/socket",
+                    "http_method": "GET",
+                    "http_path": "/fake/path",
+                    "http_hostname": "x",
+                },
+                b'{"body": "value"}',
+                200,
+                {"content-type": "application/json"},
+                http.HTTPResponse(
+                    code=200,
+                    headers={"content-type": "application/json"},
+                    body='{"body": "value"}',
+                    json_dict={"body": "value"},
+                    json_list=[],
+                ),
+                [mock.call.connect("/fake/socket")],
+                [mock.call("x")],
+                [mock.call("GET", "/fake/path")],
+            ),
+        ],
+    )
+    @mock.patch("uaclient.http.http.client.HTTPConnection")
+    @mock.patch("uaclient.http.socket.socket")
+    def test_unix_socket_request(
+        self,
+        m_socket,
+        m_http_connection,
+        params,
+        response_body,
+        response_code,
+        response_headers,
+        expected,
+        sock_connect_call_args,
+        http_connection_call_args,
+        request_call_args,
+    ):
+        conn = m_http_connection.return_value
+        conn.getresponse.return_value.read.return_value = response_body
+        conn.getresponse.return_value.status = response_code
+        conn.getresponse.return_value.headers = response_headers
+
+        assert expected == http.unix_socket_request(**params)
+
+        assert m_socket.called
+        assert (
+            sock_connect_call_args
+            == m_socket.return_value.connect.call_args_list
+        )
+        assert http_connection_call_args == m_http_connection.call_args_list
+        assert conn.sock == m_socket.return_value
+        assert request_call_args == conn.request.call_args_list
+        assert m_socket.return_value.close.called
+        assert conn.close.called
