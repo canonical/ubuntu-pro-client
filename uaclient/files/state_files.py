@@ -13,6 +13,7 @@ from uaclient.data_types import (
 )
 from uaclient.files.data_types import DataObjectFile, DataObjectFileFormat
 from uaclient.files.files import ProJSONFile, UAFile, UserCacheFile
+from uaclient.files.user_config_file import LXDGuestAttachEnum
 
 SERVICES_ONCE_ENABLED = "services-once-enabled"
 
@@ -237,6 +238,26 @@ machine_id_file = UAFile(
 )
 
 
+class LXDProConfig(DataObject):
+    fields = [
+        Field("guest_attach", LXDGuestAttachEnum),
+    ]
+
+    def __init__(self, guest_attach: LXDGuestAttachEnum):
+        self.guest_attach = guest_attach
+
+
+lxd_pro_config_file = DataObjectFile(
+    LXDProConfig,
+    UAFile(
+        "lxd-config.json",
+        directory=defaults.INTERFACE_FILES_DIR,
+        private=True,
+    ),
+    DataObjectFileFormat.JSON,
+)
+
+
 def delete_state_files():
     machine_id_file.delete()
     status_cache_file.delete()
@@ -245,3 +266,4 @@ def delete_state_files():
     reboot_cmd_marker_file.delete()
     only_series_check_marker_file.delete()
     status_cache_file.delete()
+    lxd_pro_config_file.delete()

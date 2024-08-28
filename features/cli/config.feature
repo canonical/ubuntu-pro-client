@@ -22,6 +22,7 @@ Feature: CLI config command
       cli_color                      True
       cli_suggestions                True
       vulnerability_data_url_prefix  https://security-metadata.canonical.com/oval/
+      lxd_guest_attach               off
       """
     Then I will see the following on stderr:
       """
@@ -48,6 +49,7 @@ Feature: CLI config command
       cli_color                      True
       cli_suggestions                True
       vulnerability_data_url_prefix  https://security-metadata.canonical.com/oval/
+      lxd_guest_attach               off
       """
     Then I will see the following on stderr:
       """
