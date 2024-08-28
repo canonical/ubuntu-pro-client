@@ -181,6 +181,7 @@ USER_CFG_DICT = {
     "cli_color": True,
     "cli_suggestions": True,
     "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/",  # noqa
+    "lxd_guest_attach": user_config_file.LXDGuestAttachEnum.OFF,
 }
 
 
@@ -202,10 +203,25 @@ class TestUserConfigKeys:
 
 class TestProcessConfig:
     @pytest.mark.parametrize(
-        "http_proxy, https_proxy, snap_is_snapd_installed, snap_http_val, "
-        "snap_https_val, livepatch_enabled, livepatch_http_val, "
-        "livepatch_https_val, snap_livepatch_msg, "
-        "global_https, global_http, ua_https, ua_http, apt_https, apt_http",
+        [
+            "http_proxy",
+            "https_proxy",
+            "snap_is_snapd_installed",
+            "snap_http_val",
+            "snap_https_val",
+            "livepatch_enabled",
+            "livepatch_http_val",
+            "livepatch_https_val",
+            "snap_livepatch_msg",
+            "global_https",
+            "global_http",
+            "ua_https",
+            "ua_http",
+            "apt_https",
+            "apt_http",
+            "lxd_guest_attach",
+            "is_attached",
+        ],
         [
             (
                 "http",
@@ -223,6 +239,8 @@ class TestProcessConfig:
                 None,
                 None,
                 None,
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 "http",
@@ -240,6 +258,8 @@ class TestProcessConfig:
                 None,
                 "apt_https",
                 "apt_http",
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 "http",
@@ -257,6 +277,8 @@ class TestProcessConfig:
                 None,
                 None,
                 None,
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 "http",
@@ -274,6 +296,8 @@ class TestProcessConfig:
                 "ua_http",
                 None,
                 None,
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 None,
@@ -291,6 +315,8 @@ class TestProcessConfig:
                 None,
                 "apt_https",
                 "apt_http",
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 None,
@@ -308,6 +334,8 @@ class TestProcessConfig:
                 "ua_http",
                 "apt_https",
                 "apt_http",
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 None,
@@ -325,6 +353,8 @@ class TestProcessConfig:
                 None,
                 None,
                 "apt_http",
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 None,
@@ -342,6 +372,8 @@ class TestProcessConfig:
                 None,
                 "apt_https",
                 None,
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 None,
@@ -359,6 +391,8 @@ class TestProcessConfig:
                 "ua_http",
                 None,
                 None,
+                user_config_file.LXDGuestAttachEnum.OFF,
+                True,
             ),
             (
                 None,
@@ -376,9 +410,13 @@ class TestProcessConfig:
                 None,
                 None,
                 None,
+                user_config_file.LXDGuestAttachEnum.OFF,
+                False,
             ),
         ],
     )
+    @mock.patch("uaclient.api.u.pro.status.is_attached.v1._is_attached")
+    @mock.patch("uaclient.config.state_files.lxd_pro_config_file.write")
     @mock.patch(
         "uaclient.api.u.pro.status.enabled_services.v1._enabled_services"
     )
@@ -401,6 +439,8 @@ class TestProcessConfig:
         m_livepatch_get_config_option,
         m_validate_proxy,
         m_enabled_services,
+        m_lxd_pro_config_file_write,
+        m_is_attached,
         http_proxy,
         https_proxy,
         snap_is_snapd_installed,
@@ -416,12 +456,15 @@ class TestProcessConfig:
         ua_http,
         apt_https,
         apt_http,
+        lxd_guest_attach,
+        is_attached,
         capsys,
         tmpdir,
         FakeConfig,
     ):
         m_snap_is_snapd_installed.return_value = snap_is_snapd_installed
         m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]
+        m_is_attached.return_value = is_attached
 
         _m_livepatch = mock.MagicMock()
         type(_m_livepatch).name = mock.PropertyMock(return_value="livepatch")
@@ -444,6 +487,7 @@ class TestProcessConfig:
         cfg.user_config.https_proxy = https_proxy
         cfg.user_config.update_messaging_timer = 21600
         cfg.user_config.metering_timer = 0
+        cfg.user_config.lxd_guest_attach = lxd_guest_attach
 
         if global_https is None and apt_https is not None:
             global_https = apt_https
@@ -530,6 +574,13 @@ class TestProcessConfig:
                     == out.strip()
                 )
             assert "" == err
+            if (
+                lxd_guest_attach != user_config_file.LXDGuestAttachEnum.OFF
+                or is_attached
+            ):
+                assert m_lxd_pro_config_file_write.call_args_list == [
+                    mock.call(mock.ANY)
+                ]
 
     def test_process_config_errors_for_wrong_timers(self, FakeConfig):
         cfg = FakeConfig()

@@ -7,6 +7,7 @@ from uaclient import defaults, event_logger, util
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
+    EnumDataValue,
     Field,
     IntDataValue,
     StringDataValue,
@@ -25,6 +26,15 @@ PROXY_FIELDS = [
     "http_proxy",
     "https_proxy",
 ]
+
+
+class LXDGuestAttachEnum(EnumDataValue):
+    ON = "on"
+    OFF = "off"
+    AVAILABLE = "available"
+
+    def __str__(self):
+        return self.value
 
 
 class UserConfigData(DataObject):
@@ -48,6 +58,7 @@ class UserConfigData(DataObject):
         Field(
             "vulnerability_data_url_prefix", StringDataValue, required=False
         ),
+        Field("lxd_guest_attach", LXDGuestAttachEnum, required=False),
     ]
 
     def __init__(
@@ -69,6 +80,7 @@ class UserConfigData(DataObject):
         cli_color: Optional[bool] = None,
         cli_suggestions: Optional[bool] = None,
         vulnerability_data_url_prefix: Optional[str] = None,
+        lxd_guest_attach: Optional[LXDGuestAttachEnum] = None,
     ):
         self.apt_http_proxy = apt_http_proxy
         self.apt_https_proxy = apt_https_proxy
@@ -87,6 +99,7 @@ class UserConfigData(DataObject):
         self.cli_color = cli_color
         self.cli_suggestions = cli_suggestions
         self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
+        self.lxd_guest_attach = lxd_guest_attach
 
 
 event = event_logger.get_event_logger()

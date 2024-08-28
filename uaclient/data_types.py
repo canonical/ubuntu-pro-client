@@ -38,7 +38,7 @@ class IncorrectEnumValueError(IncorrectTypeError):
     _formatted_msg = messages.E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE
 
     def __init__(self, *, values: List[Union[str, int]], enum_class: Any):
-        super().__init__(values=values, enum_class=repr(enum_class))
+        super().__init__(values=values, enum_class=enum_class.__name__)
         self.expected_type = "one of: {}".format(
             ", ".join([str(v) for v in values])
         )

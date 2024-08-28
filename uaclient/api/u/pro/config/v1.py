@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from typing import Optional
 
 from uaclient import util
@@ -8,12 +9,22 @@ from uaclient.config import UA_CONFIGURABLE_KEYS, UAConfig
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
+    EnumDataValue,
     Field,
     IntDataValue,
     StringDataValue,
 )
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
+
+
+class LXDGuestAttachEnum(EnumDataValue):
+    ON = "on"
+    OFF = "off"
+    AVAILABLE = "available"
+
+    def __str__(self):
+        return self.value
 
 
 class ConfigInfo(DataObject, AdditionalInfo):
@@ -80,6 +91,21 @@ class ConfigInfo(DataObject, AdditionalInfo):
             required=False,
             doc="Base url for fetching JSON vulnerability data",
         ),
+        Field(
+            "lxd_guest_attach",
+            LXDGuestAttachEnum,
+            required=False,
+            doc=(
+                "Configures whether LXD guests will attach using the same Pro"
+                " access as the host. Possible values are 'on', 'off', and"
+                " 'available'. If set to 'on', the guest will attach using the"
+                " host's Pro access automatically on launch. If set to 'off',"
+                " the guest will not be allowed to attach using the host's Pro"
+                " lx access. If set to 'available', the guest will be allowed"
+                " to attach using the host's Pro access, but it will not be"
+                " automatic."
+            ),
+        ),
     ]
 
     def __init__(
@@ -97,7 +123,8 @@ class ConfigInfo(DataObject, AdditionalInfo):
         apt_news_url: Optional[str] = None,
         cli_color: Optional[bool] = None,
         cli_suggestions: Optional[bool] = None,
-        vulnerability_data_url_prefix: Optional[str] = None
+        vulnerability_data_url_prefix: Optional[str] = None,
+        lxd_guest_attach: Optional[LXDGuestAttachEnum] = None
     ):
         self.http_proxy = http_proxy
         self.https_proxy = https_proxy
@@ -112,6 +139,7 @@ class ConfigInfo(DataObject, AdditionalInfo):
         self.cli_color = cli_color
         self.cli_suggestions = cli_suggestions
         self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
+        self.lxd_guest_attach = lxd_guest_attach
 
 
 def config() -> ConfigInfo:
@@ -123,7 +151,10 @@ def _config(cfg: UAConfig) -> ConfigInfo:
     pro_config = {}
     for key in UA_CONFIGURABLE_KEYS:
         if hasattr(cfg, key):
-            pro_config[key] = getattr(cfg, key)
+            val = getattr(cfg, key)
+            if isinstance(val, Enum):
+                val = val.value
+            pro_config[key] = val
 
     return ConfigInfo.from_dict(pro_config)
 

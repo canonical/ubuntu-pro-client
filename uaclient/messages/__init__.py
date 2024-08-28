@@ -268,6 +268,12 @@ Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
          Please add following to uaclient.conf to keep your config:"""
 )
 
+WARNING_LXD_GUEST_ATTACH_SET_BUT_NOT_ATTACHED = t.gettext(
+    """\
+Warning: lxd_guest_attach is set to "on" or "available", but the machine is
+not attached. Ignoring."""
+)
+
 
 ###############################################################################
 #               ATTACH/DETACH/ENABLE/DISABLE SUBCOMMAND                       #

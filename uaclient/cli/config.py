@@ -8,12 +8,14 @@ from uaclient import (
     messages,
 )
 from uaclient.api.u.pro.config.v1 import _config
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import AptProxyScope
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.parser import HelpCategory
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.files import state_files
+from uaclient.files.user_config_file import LXDGuestAttachEnum
 from uaclient.livepatch import (
     configure_livepatch_proxy,
     unconfigure_livepatch_proxy,
@@ -190,6 +192,14 @@ def action_config_set(args, *, cfg, **kwargs):
             apt_news.update_apt_news(cfg)
         else:
             state_files.apt_news_contents_file.delete()
+    elif set_key == "lxd_guest_attach":
+        if not _is_attached(cfg).is_attached:
+            raise exceptions.UnattachedError()
+        state_files.lxd_pro_config_file.write(
+            state_files.LXDProConfig(
+                guest_attach=LXDGuestAttachEnum.from_value(set_value.lower())
+            )
+        )
 
     setattr(cfg, set_key, set_value)
 
@@ -234,6 +244,10 @@ def action_config_unset(args, *, cfg, **kwargs):
             )
             args.key = "global_" + args.key
         cli_util.configure_apt_proxy(cfg, AptProxyScope.GLOBAL, args.key, None)
+    elif args.key == "lxd_guest_attach":
+        state_files.lxd_pro_config_file.write(
+            state_files.LXDProConfig(guest_attach=LXDGuestAttachEnum.OFF)
+        )
 
     setattr(cfg, args.key, None)
     return 0

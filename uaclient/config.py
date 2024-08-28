@@ -25,7 +25,7 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     DEFAULT_DATA_DIR,
 )
-from uaclient.files import user_config_file
+from uaclient.files import state_files, user_config_file
 from uaclient.yaml import safe_load
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -53,6 +53,7 @@ UA_CONFIGURABLE_KEYS = (
     "cli_color",
     "cli_suggestions",
     "vulnerability_data_url_prefix",
+    "lxd_guest_attach",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -329,6 +330,20 @@ class UAConfig:
         user_config_file.user_config.write(self.user_config)
 
     @property
+    def lxd_guest_attach(self) -> user_config_file.LXDGuestAttachEnum:
+        val = self.user_config.lxd_guest_attach
+        if val is None:
+            return user_config_file.LXDGuestAttachEnum.OFF
+        return val
+
+    @lxd_guest_attach.setter
+    def lxd_guest_attach(self, value: user_config_file.LXDGuestAttachEnum):
+        if value is None:
+            value = user_config_file.LXDGuestAttachEnum.OFF
+        self.user_config.lxd_guest_attach = value
+        user_config_file.user_config.write(self.user_config)
+
+    @property
     def data_dir(self):
         return self.cfg.get("data_dir", DEFAULT_DATA_DIR)
 
@@ -463,6 +478,18 @@ class UAConfig:
                 messages.PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
                     services=services
                 )
+            )
+
+        from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+
+        if (
+            self.lxd_guest_attach != user_config_file.LXDGuestAttachEnum.OFF
+            and not _is_attached(self).is_attached
+        ):
+            print(messages.WARNING_LXD_GUEST_ATTACH_SET_BUT_NOT_ATTACHED)
+        else:
+            state_files.lxd_pro_config_file.write(
+                state_files.LXDProConfig(guest_attach=self.lxd_guest_attach)
             )
 
     def warn_about_invalid_keys(self):
