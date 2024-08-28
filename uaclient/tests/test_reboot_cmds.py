@@ -147,17 +147,20 @@ class TestMain:
         else:
             assert [] == m_reboot_cmd_marker_file.delete.call_args_list
 
-        if expected_calls:
+        if is_attached:
             assert [
                 mock.call(lock_holder="pro-reboot-cmds")
             ] == m_spin_lock.call_args_list
+        else:
+            assert [] == m_spin_lock.call_args_list
+
+        if expected_calls:
             assert [mock.call(mock.ANY)] == m_fix_pro_pkg_holds.call_args_list
             assert [mock.call(mock.ANY)] == m_refresh_contract.call_args_list
             assert [
                 mock.call(mock.ANY)
             ] == m_process_contract_delta_after_apt_lock.call_args_list
         else:
-            assert [] == m_spin_lock.call_args_list
             assert [] == m_fix_pro_pkg_holds.call_args_list
             assert [] == m_refresh_contract.call_args_list
             assert [] == m_process_contract_delta_after_apt_lock.call_args_list

@@ -72,3 +72,13 @@ except Exception as e:
 "
     fi
 fi
+
+if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "35~"; then
+    # Create an only series marker file only if
+    # the machine-token.json file exists
+    # This is to ensure that the only-series
+    # contract check runs correctly
+    if [ -f "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
+        touch "/var/lib/ubuntu-advantage/marker-only-series-check"
+    fi
+fi
