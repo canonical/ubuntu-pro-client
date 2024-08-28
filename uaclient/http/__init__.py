@@ -1,3 +1,5 @@
+import email.message
+import http.client
 import io
 import json
 import logging
@@ -161,6 +163,11 @@ def get_configured_web_proxy() -> Dict[str, str]:
     return _global_proxy_dict
 
 
+def _headers_to_dict(headers: email.message.Message) -> Dict[str, str]:
+    # convert EmailMessage header object to dict with lowercase keys
+    return {k.lower(): v for k, v, in headers.items()}
+
+
 def _readurl_urllib(
     req: request.Request,
     timeout: Optional[int] = None,
@@ -175,12 +182,9 @@ def _readurl_urllib(
 
     body = resp.read()
 
-    # convert EmailMessage header object to dict with lowercase keys
-    headers = {k.lower(): v for k, v, in resp.headers.items()}
-
     return UnparsedHTTPResponse(
         code=resp.code,
-        headers=headers,
+        headers=_headers_to_dict(resp.headers),
         body=body,
     )
 
@@ -415,6 +419,45 @@ def readurl(
         code=resp.code,
         headers=resp.headers,
         body=decoded_body,
+        json_dict=json_dict,
+        json_list=json_list,
+    )
+
+
+def unix_socket_request(
+    socket_path: str,
+    http_method: str,
+    http_path: str,
+    http_hostname: str = "localhost",
+) -> HTTPResponse:
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect(socket_path)
+
+    conn = http.client.HTTPConnection(http_hostname)
+    conn.sock = sock
+
+    try:
+        conn.request(http_method, http_path)
+        resp = conn.getresponse()
+        # We don't expect to receive non-utf8, but better safe than sorry
+        out = resp.read().decode("utf-8", errors="ignore")
+    finally:
+        conn.close()
+        sock.close()
+
+    json_dict = {}
+    json_list = []
+    if "application/json" in resp.headers.get("content-type", ""):
+        json_body = json.loads(out, cls=util.DatetimeAwareJSONDecoder)
+        if isinstance(json_body, dict):
+            json_dict = json_body
+        elif isinstance(json_body, list):
+            json_list = json_body
+
+    return HTTPResponse(
+        code=resp.status,
+        headers=_headers_to_dict(resp.headers),
+        body=out,
         json_dict=json_dict,
         json_list=json_list,
     )
