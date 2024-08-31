@@ -59,7 +59,7 @@ def main() -> int:
     LOG.debug("checking for condition files")
     is_correct_cloud = any(
         os.path.exists("/run/cloud-init/cloud-id-{}".format(cloud))
-        for cloud in ("gce", "azure")
+        for cloud in ("gce", "azure", "lxd")
     )
     if is_correct_cloud and not os.path.exists(
         retry_auto_attach.FLAG_FILE_PATH

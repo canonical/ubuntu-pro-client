@@ -67,7 +67,7 @@ def cloud_instance_factory(
     :raises CloudFactoryNonViableCloudError: if no cloud instance object can be
         constructed because we explicitly do not support the cloud we're on
     """
-    from uaclient.clouds import aws, azure, gcp
+    from uaclient.clouds import aws, azure, gcp, lxd
 
     cloud_instance_map = {
         "aws": aws.AWSAutoAttachInstance,
@@ -75,6 +75,7 @@ def cloud_instance_factory(
         "aws-gov": aws.AWSAutoAttachInstance,
         "azure": azure.AzureAutoAttachInstance,
         "gce": gcp.GCPAutoAttachInstance,
+        "lxd": lxd.LXDAutoAttachInstance,
     }  # type: Dict[str, Type[clouds.AutoAttachInstance]]
 
     if cloud_override is not None:
