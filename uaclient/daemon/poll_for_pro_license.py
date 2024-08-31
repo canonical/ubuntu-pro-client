@@ -7,6 +7,7 @@ from uaclient.clouds import AutoAttachInstance
 from uaclient.clouds.azure import AzureAutoAttachInstance
 from uaclient.clouds.gcp import GCPAutoAttachInstance
 from uaclient.clouds.identity import cloud_instance_factory
+from uaclient.clouds.lxd import LXDAutoAttachInstance
 from uaclient.config import UAConfig
 from uaclient.daemon import retry_auto_attach
 
@@ -50,6 +51,7 @@ def poll_for_pro_license(cfg: UAConfig):
         for cloud_instance in (
             GCPAutoAttachInstance,
             AzureAutoAttachInstance,
+            LXDAutoAttachInstance,
         )
     )
     if not is_supported_cloud:

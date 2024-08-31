@@ -2460,6 +2460,16 @@ See: {url}"""
     ).format(url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES),
 )
 
+E_LXD_AUTO_ATTACH_NOT_AVAILABLE = NamedMessage(
+    "lxd-auto-attach-not-available",
+    t.gettext("The running version of LXD does not support guest auto attach"),
+)
+
+E_LXD_AUTO_ATTACH_NOT_ALLOWED = NamedMessage(
+    "lxd-auto-attach-not-allowed",
+    t.gettext("The LXD host does not allow guest auto attach"),
+)
+
 E_INVALID_FILE_FORMAT = FormattedNamedMessage(
     name="invalid-file-format",
     msg=t.gettext("{file_name} is not valid {file_format}"),

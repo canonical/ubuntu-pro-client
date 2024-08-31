@@ -8,64 +8,68 @@ from features.steps.packages import when_i_apt_install, when_i_apt_update
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from features.util import (
     ALL_BINARY_PACKAGE_NAMES,
+    NORMAL_BINARY_PACKAGE_NAMES,
     SUT,
     InstallationSource,
     build_debs,
     get_debs_for_series,
 )
 
+SETUP_PRO_PACKAGE_SOURCES_SCRIPTS = {
+    InstallationSource.ARCHIVE: "sudo apt update",
+    InstallationSource.DAILY: """\
+sudo add-apt-repository ppa:ua-client/daily
+sudo apt update""",
+    InstallationSource.STAGING: """\
+sudo add-apt-repository ppa:ua-client/staging
+sudo apt update""",
+    InstallationSource.STABLE: """\
+sudo add-apt-repository ppa:ua-client/stable
+sudo apt update""",
+    InstallationSource.PROPOSED: """\
+cat > /etc/apt/sources.list.d/proposed.list << EOF
+deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main
+EOF
+cat > /etc/apt/preferences.d/lower-proposed << EOF
+Package: *
+Pin: release a={series}-proposed
+Pin-Priority: 400
+EOF
+cat > /etc/apt/preferences.d/upper-pro-posed << EOF
+Package: {packages}
+Pin: release a={series}-proposed
+Pin-Priority: 1001
+EOF
+sudo apt update""",
+    InstallationSource.CUSTOM: """\
+sudo add-apt-repository {ppa}
+sudo apt update""",
+}
+
+
+def get_setup_pro_package_sources_script(context, series):
+    script = SETUP_PRO_PACKAGE_SOURCES_SCRIPTS.get(
+        context.pro_config.install_from, ""
+    )
+    script = script.format(
+        ppa=context.pro_config.custom_ppa,
+        series=series,
+        packages=" ".join(ALL_BINARY_PACKAGE_NAMES),
+    )
+    return script
+
 
 def setup_pro_package_sources(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
-
-    if context.pro_config.install_from is InstallationSource.ARCHIVE:
-        instance.execute("sudo apt update")
-    elif context.pro_config.install_from is InstallationSource.DAILY:
-        instance.execute("sudo add-apt-repository ppa:ua-client/daily")
-        instance.execute("sudo apt update")
-    elif context.pro_config.install_from is InstallationSource.STAGING:
-        instance.execute("sudo add-apt-repository ppa:ua-client/staging")
-        instance.execute("sudo apt update")
-    elif context.pro_config.install_from is InstallationSource.STABLE:
-        instance.execute("sudo add-apt-repository ppa:ua-client/stable")
-        instance.execute("sudo apt update")
-    elif context.pro_config.install_from is InstallationSource.PROPOSED:
-        series = context.machines[machine_name].series
-        context.text = "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/sources.list.d/uaclient-proposed.list",
-            machine_name=machine_name,
-        )
-
-        context.text = "Package: *\nPin: release a={series}-proposed\nPin-Priority: 400\n".format(  # noqa: E501
-            series=series
-        )
-        when_i_create_file_with_content(
-            context,
-            "/etc/apt/preferences.d/lower-proposed",
-            machine_name=machine_name,
-        )
-
-        for package in ALL_BINARY_PACKAGE_NAMES:
-            context.text = "Package: {package}\nPin: release a={series}-proposed\nPin-Priority: 1001\n".format(  # noqa: E501
-                package=package,
-                series=series,
-            )
-            when_i_create_file_with_content(
-                context,
-                "/etc/apt/preferences.d/{}-proposed".format(package),
-                machine_name=machine_name,
-            )
-
-        instance.execute("sudo apt update")
-    elif context.pro_config.install_from is InstallationSource.CUSTOM:
-        instance.execute(
-            "sudo add-apt-repository {}".format(context.pro_config.custom_ppa)
-        )
-        instance.execute("sudo apt update")
+    series = context.machines[machine_name].series
+    script = get_setup_pro_package_sources_script(context, series)
+    context.text = script
+    when_i_create_file_with_content(
+        context,
+        "/tmp/setup_pro.sh",
+        machine_name=machine_name,
+    )
+    instance.execute("sudo bash /tmp/setup_pro.sh")
 
 
 @when("I install ubuntu-advantage-tools")
@@ -129,6 +133,60 @@ def when_i_install_uat(context, machine_name=SUT):
                 "ubuntu-pro-auto-attach",
                 machine_name=machine_name,
             )
+
+
+@when("I install ubuntu-advantage-tools on the `{guest_name}` lxd guest")
+def when_i_install_uat_on_lxd_guest(context, guest_name):
+    # This function assumes "when_i_install_uat" was run on the SUT
+    if context.pro_config.install_from in {
+        InstallationSource.PREBUILT,
+        InstallationSource.LOCAL,
+    }:
+        to_install = []
+        for deb_name in NORMAL_BINARY_PACKAGE_NAMES:
+            deb_file_name = "behave_{}.deb".format(deb_name)
+            instance_tmp_path = "/tmp/{}".format(deb_file_name)
+            guest_path = "/root/{}".format(deb_file_name)
+            when_i_run_command(
+                context,
+                "lxc file push {tmp_path} {guest_name}{guest_path}".format(
+                    tmp_path=instance_tmp_path,
+                    guest_name=guest_name,
+                    guest_path=guest_path,
+                ),
+                "with sudo",
+            )
+            to_install.append(guest_path)
+        when_i_run_command(
+            context,
+            "lxc exec {guest_name} -- apt install -y {packages}".format(
+                guest_name=guest_name, packages=" ".join(to_install)
+            ),
+            "with sudo",
+        )
+    else:
+        when_i_run_command(
+            context,
+            "lxc file push /tmp/setup_pro.sh {guest_name}/root/setup_pro.sh".format(  # noqa: E501
+                guest_name=guest_name
+            ),
+            "with sudo",
+        )
+        when_i_run_command(
+            context,
+            "lxc exec {guest_name} -- bash /root/setup_pro.sh".format(
+                guest_name=guest_name
+            ),
+            "with sudo",
+        )
+        when_i_run_command(
+            context,
+            "lxc exec {guest_name} -- apt install -y {packages}".format(
+                guest_name=guest_name,
+                packages=" ".join(NORMAL_BINARY_PACKAGE_NAMES),
+            ),
+            "with sudo",
+        )
 
 
 @when("I ensure -proposed is not enabled anymore")

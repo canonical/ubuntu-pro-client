@@ -42,6 +42,11 @@ ALL_BINARY_PACKAGE_NAMES = [
     "ubuntu-advantage-tools",
     "ubuntu-advantage-pro",
 ]
+NORMAL_BINARY_PACKAGE_NAMES = [
+    "ubuntu-pro-client",
+    "ubuntu-pro-client-l10n",
+    "ubuntu-advantage-tools",
+]
 
 
 @dataclass

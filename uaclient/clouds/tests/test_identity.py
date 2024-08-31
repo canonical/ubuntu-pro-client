@@ -128,7 +128,7 @@ class TestCloudInstanceFactory:
                 cloud_instance_factory()
 
     @pytest.mark.parametrize(
-        "cloud_type", ("aws", "aws-gov", "aws-china", "azure")
+        "cloud_type", ("aws", "aws-gov", "aws-china", "azure", "lxd")
     )
     def test_return_cloud_instance_on_viable_clouds(
         self, m_get_cloud_type, cloud_type
@@ -144,6 +144,8 @@ class TestCloudInstanceFactory:
 
         if cloud_type == "azure":
             M_INSTANCE_PATH = "uaclient.clouds.azure.AzureAutoAttachInstance"
+        elif cloud_type == "lxd":
+            M_INSTANCE_PATH = "uaclient.clouds.lxd.LXDAutoAttachInstance"
         else:
             M_INSTANCE_PATH = "uaclient.clouds.aws.AWSAutoAttachInstance"
 

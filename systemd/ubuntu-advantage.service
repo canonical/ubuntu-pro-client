@@ -25,6 +25,7 @@ ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json
 # The following conditions correspond to those two modes.
 ConditionPathExists=|/run/cloud-init/cloud-id-gce
 ConditionPathExists=|/run/cloud-init/cloud-id-azure
+ConditionPathExists=|/run/cloud-init/cloud-id-lxd
 ConditionPathExists=|/run/ubuntu-advantage/flags/auto-attach-failed
 
 [Service]

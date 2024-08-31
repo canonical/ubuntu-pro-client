@@ -451,7 +451,7 @@ class NonInteractiveKernelPurgeDisallowed(UbuntuProError):
 
 
 ###############################################################################
-#                              CLOUD PRO                                      #
+#                              CLOUD AUTO-ATTACH                              #
 ###############################################################################
 
 
@@ -491,6 +491,14 @@ class NonAutoAttachImageError(CloudFactoryError):
 
     exit_code = 0
     _formatted_msg = messages.E_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE
+
+
+class LXDAutoAttachNotAvailable(UbuntuProError):
+    _msg = messages.E_LXD_AUTO_ATTACH_NOT_AVAILABLE
+
+
+class LXDAutoAttachNotAllowed(UbuntuProError):
+    _msg = messages.E_LXD_AUTO_ATTACH_NOT_ALLOWED
 
 
 ###############################################################################
