@@ -149,3 +149,12 @@ def setup_cli_logging(log_level: Union[str, int], log_file: str):
     file_handler.addFilter(KnownSecretRedactionFilter())
 
     logger.addHandler(file_handler)
+
+
+def extra(**kwargs):
+    """
+    A helper for passing extra fields to log statements.
+    Usage:
+    LOG.info("message string", extra=log.extra(field=something_relevant))
+    """
+    return {"extra": kwargs}
