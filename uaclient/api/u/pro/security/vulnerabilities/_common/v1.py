@@ -7,8 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
-from uaclient import apt, http, system, util
-from uaclient.api.exceptions import UnsupportedManifestFile
+from uaclient import apt, exceptions, http, system, util
 from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
@@ -166,19 +165,12 @@ def _get_source_package_from_vulnerabilities_data(
 
 
 class ProManifestSourcePackage:
+    name = "Pro manifest"
+
     # This pkg part of this regex was created accordingly to the debian
     # name pattern defined here:
     # https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-source
     PKG_RE = re.compile(r"^(?P<pkg>[\w\-\.\+]+)(:\w+)?\s+(?P<version>.+)$")
-
-    @staticmethod
-    def valid(manifest_file: str) -> bool:
-        with open(manifest_file, "r") as f:
-            for line in f.readlines():
-                if not ProManifestSourcePackage.PKG_RE.match(line):
-                    return False
-
-        return True
 
     @staticmethod
     def parse(manifest_file: str) -> Dict[str, str]:
@@ -195,6 +187,10 @@ class ProManifestSourcePackage:
                         continue
 
                     pkgs[pkg] = match_groups["version"]
+                else:
+                    raise exceptions.ManifestParseError(
+                        name=ProManifestSourcePackage.name, error_line=line
+                    )
 
         return pkgs
 
@@ -223,12 +219,14 @@ class SourcePackages:
         manifest_pkgs = None
 
         for manifest_parser_cls in self.SUPPORTED_MANIFESTS:
-            if manifest_parser_cls.valid(self.manifest_file):
+            try:
                 manifest_pkgs = manifest_parser_cls.parse(self.manifest_file)
                 break
+            except exceptions.ManifestParseError:
+                continue
 
         if not manifest_pkgs:
-            raise UnsupportedManifestFile
+            raise exceptions.UnsupportedManifestFile
 
         source_pkgs = {}  # type: Dict[str, Dict[str, str]]
         for pkg, version in manifest_pkgs.items():
