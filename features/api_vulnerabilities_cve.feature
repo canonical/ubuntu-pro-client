@@ -6,8 +6,7 @@ Feature: Client behaviour for CVE vulnerabilities API
     When I attach `contract_token` with sudo
     # Check we can download and parse the JSON data
     And I run `pro api u.pro.security.vulnerabilities.cve.v1` as non-root
-    And I push static file `security_issues_xenial.xz` to machine
-    And I run `unxz -d /tmp/security_issues_xenial.xz` as non-root
+    And I push static file `security_issues_xenial` to machine
     And I run `pro api u.pro.security.vulnerabilities.cve.v1 --args data_file=/tmp/security_issues_xenial` as non-root
     And I apply this jq filter `.data.attributes.cves[] | select(.name == "CVE-2022-2286")` to the output
     Then stdout matches regexp:
@@ -122,7 +121,7 @@ Feature: Client behaviour for CVE vulnerabilities API
             "option1": "unfixable",
             "option2": "all"
           },
-          "title": "unfixable cannot be used together with all"
+          "title": "Error: Cannot use unfixable together with all."
         }
       ]
       """
@@ -135,7 +134,7 @@ Feature: Client behaviour for CVE vulnerabilities API
       """
       {
         "attributes": {
-          "apt_updated_at": ".*",
+          "apt_updated_at": null,
           "cves": [
             {
               "affected_packages": [
