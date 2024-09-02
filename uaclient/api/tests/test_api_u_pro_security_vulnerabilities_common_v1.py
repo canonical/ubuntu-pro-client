@@ -1,5 +1,6 @@
 import pytest
 
+from uaclient import exceptions
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     ProManifestSourcePackage,
     SourcePackages,
@@ -271,30 +272,17 @@ class TestProManifestSourcePackage:
         "manifest_content,expected_value",
         (
             (
-                (
-                    "pkg1\t1.1.2\n"
-                    "pkg2-2:amd64\t3.2+1git1\n"
-                    "pkg3.1.0\t1.1\n"
-                    "pkg4++:amd64\t1.2\n"
-                    "snap:pkg5\tlatest/stable\t1725\n"
-                    "snap:pkg6\tlatest/stable\t1113"
-                ),
-                True,
-            ),
-            (
                 ("pkg1\t1.1.2\n" "pkg2-2:amd64\t3.2+1git1\n" "invalid"),
                 False,
             ),
         ),
     )
-    def test_valid(self, manifest_content, expected_value, tmpdir):
+    def test_invalid_manifest(self, manifest_content, expected_value, tmpdir):
         manifest_file = tmpdir.join("manifest")
         manifest_file.write(manifest_content)
 
-        assert (
-            ProManifestSourcePackage.valid(manifest_file.strpath)
-            is expected_value
-        )
+        with pytest.raises(exceptions.ManifestParseError):
+            ProManifestSourcePackage.parse(manifest_file.strpath)
 
     @pytest.mark.parametrize(
         "manifest_content,expected_value",

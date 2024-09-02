@@ -2749,3 +2749,9 @@ E_UNSUPPORTED_MANIFEST_FILE = FormattedNamedMessage(
     "unsupported-manifest-file",
     t.gettext("Unsupported manifest file format: {manifest_file}"),
 )
+
+
+E_MANIFEST_PARSE_ERROR = FormattedNamedMessage(
+    "manifest-parse-error",
+    t.gettext("Error parsing {name} for line:\n{error_line}"),
+)
