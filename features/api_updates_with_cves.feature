@@ -5,8 +5,7 @@ Feature: Client behaviour for updates with CVEs API
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I apt install `jq`
-    And I push static file `security_issues_xenial.xz` to machine
-    And I run `unxz -d /tmp/security_issues_xenial.xz` as non-root
+    And I push static file `security_issues_xenial` to machine
     And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial` as non-root
     And I apply this jq filter `.data.attributes.updates[] | select (.package == "bash")` to the output
     Then stdout matches regexp:
