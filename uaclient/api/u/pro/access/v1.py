@@ -69,7 +69,7 @@ class ContractInfo(DataObject, AdditionalInfo):
         tech_support_level: Optional[str],
         origin: Optional[str],
         effective: Optional[datetime],
-        expires: Optional[datetime],
+        expires: Optional[datetime]
     ):
         self.created_at = created_at
         self.id = id
@@ -101,7 +101,7 @@ class AccountInfo(DataObject, AdditionalInfo):
         created_at: str,
         external_account_ids: List[str],
         id: str,
-        name: str,
+        name: str
     ):
         self.created_at = created_at
         self.external_account_ids = external_account_ids
@@ -109,7 +109,7 @@ class AccountInfo(DataObject, AdditionalInfo):
         self.name = name
 
 
-class SubscriptionResult(DataObject, AdditionalInfo):
+class AccessResult(DataObject, AdditionalInfo):
     fields = [
         Field("contract", ContractInfo, doc="Contract Information"),
         Field("account", AccountInfo, doc="Account information"),
@@ -138,16 +138,17 @@ class SubscriptionResult(DataObject, AdditionalInfo):
         self.machine_is_attached = machine_is_attached
 
 
-def subscription() -> SubscriptionResult:
-    return _subscription(UAConfig())
+def access() -> AccessResult:
+    return _access(UAConfig())
 
 
-def _subscription(cfg: UAConfig) -> SubscriptionResult:
+def _access(cfg: UAConfig) -> AccessResult:
     """
-    Returns the Ubuntu Pro subscription information for the machine.
+    Returns the Ubuntu Pro access information for the machine including
+    the account and product information.
     """
     if not _is_attached(cfg).is_attached:
-        return SubscriptionResult(
+        return AccessResult(
             contract=ContractInfo(
                 created_at="",
                 id="",
@@ -201,7 +202,7 @@ def _subscription(cfg: UAConfig) -> SubscriptionResult:
     # Subscription Result
     activity_id = machine_token_file.activity_id or ""
     machine_is_attached = True
-    return SubscriptionResult(
+    return AccessResult(
         contract=contract,
         account=account,
         machine_id=machineTokenInfo["machineId"],
@@ -212,8 +213,8 @@ def _subscription(cfg: UAConfig) -> SubscriptionResult:
 
 endpoint = APIEndpoint(
     version="v1",
-    name="Subscription",
-    fn=_subscription,
+    name="Access",
+    fn=_access,
     options_cls=None,
 )
 
@@ -221,12 +222,12 @@ _doc = {
     "introduced_in": "35",
     "requires_network": False,
     "example_python": """
-from uaclient.api.u.pro.subscription.v1 import subscription
-result = subscription()
+from uaclient.api.u.pro.access.v1 import access
+result = access()
 """,  # noqa: E501
-    "result_class": SubscriptionResult,
+    "result_class": AccessResult,
     "exceptions": [],
-    "example_cli": "pro api u.pro.subscription.v1",
+    "example_cli": "pro api u.pro.access.v1",
     "example_json": """
 {
     "attributes": {
@@ -252,7 +253,7 @@ result = subscription()
     "meta": {
         "environment_vars": []
     },
-    "type": "Subscription"
+    "type": "Access"
 }
 """,
 }
