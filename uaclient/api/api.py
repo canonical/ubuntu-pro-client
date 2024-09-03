@@ -10,6 +10,7 @@ from uaclient.messages import API_UNKNOWN_ARG, WARN_NEW_VERSION_AVAILABLE
 from uaclient.version import check_for_new_version
 
 VALID_ENDPOINTS = [
+    "u.pro.access.v1",
     "u.pro.version.v1",
     "u.pro.attach.auto.configure_retry_service.v1",
     "u.pro.attach.auto.full_auto_attach.v1",
@@ -35,7 +36,6 @@ VALID_ENDPOINTS = [
     "u.pro.status.enabled_services.v1",
     "u.pro.status.is_attached.v1",
     "u.pro.status.notices.v1",
-    "u.pro.subscription.v1",
     "u.pro.token_info.v1",
     "u.apt_news.current_news.v1",
     "u.security.package_manifest.v1",
