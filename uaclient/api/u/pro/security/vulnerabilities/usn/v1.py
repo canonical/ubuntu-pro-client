@@ -6,11 +6,10 @@ from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.exceptions import InvalidOptionCombination
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
-    SourcePackages,
-    VulnerabilityData,
     VulnerabilityParser,
     VulnerabilityStatus,
     _get_vulnerability_fix_status,
+    get_vulnerabilities,
 )
 from uaclient.apt import get_apt_cache_datetime
 from uaclient.config import UAConfig
@@ -59,6 +58,15 @@ class USNVulnerabilitiesOptions(DataObject):
                 "vulnerabilities data for the given series."
             ),
         ),
+        Field(
+            "update",
+            BoolDataValue,
+            True,
+            doc=(
+                "If the vulnerability data should automatically "
+                "be updated when running the command (default=True)"
+            ),
+        ),
     ]
 
     def __init__(
@@ -68,13 +76,15 @@ class USNVulnerabilitiesOptions(DataObject):
         unfixable: Optional[bool] = False,
         data_file: Optional[str] = None,
         manifest_file: Optional[str] = None,
-        series: Optional[str] = None
+        series: Optional[str] = None,
+        update: Optional[bool] = True
     ):
         self.all = all
         self.unfixable = unfixable
         self.data_file = data_file
         self.manifest_file = manifest_file
         self.series = series
+        self.update = update
 
 
 class USNAffectedPackage(DataObject):
@@ -243,19 +253,13 @@ def _vulnerabilities(
     if options.unfixable and options.all:
         raise InvalidOptionCombination(option1="unfixable", option2="all")
 
-    vulnerabilities_json_data = VulnerabilityData(
-        cfg=cfg, data_file=options.data_file, series=options.series
-    ).get()
-
-    installed_pkgs_by_source = SourcePackages(
-        vulnerabilities_data=vulnerabilities_json_data,
+    usn_vulnerabilities = get_vulnerabilities(
+        parser=USNParser(),
+        cfg=cfg,
+        update_json_data=options.update,
+        series=options.series,
+        data_file=options.data_file,
         manifest_file=options.manifest_file,
-    ).get()
-
-    usn_parser = USNParser()
-    usn_vulnerabilities = usn_parser.get_vulnerabilities_for_installed_pkgs(
-        vulnerabilities_data=vulnerabilities_json_data,
-        installed_pkgs_by_source=installed_pkgs_by_source,
     )
 
     if options.unfixable:
@@ -309,7 +313,7 @@ def _vulnerabilities(
     return USNVulnerabilitiesResult(
         usns=usns,
         vulnerability_data_published_at=util.parse_rfc3339_date(
-            vulnerabilities_json_data["published_at"]
+            usn_vulnerabilities["vulnerability_data_published_at"]
         ),
         apt_updated_at=(
             get_apt_cache_datetime() if not options.manifest_file else None

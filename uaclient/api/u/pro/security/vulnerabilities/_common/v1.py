@@ -7,18 +7,25 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
-from uaclient import apt, exceptions, http, system, util
+from uaclient import apt, config, exceptions, http, system, util
 from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import _enabled_services
 from uaclient.config import UAConfig
-from uaclient.data_types import DataObject, Field, StringDataValue
+from uaclient.data_types import (
+    DataObject,
+    Field,
+    FloatDataValue,
+    StringDataValue,
+)
 from uaclient.defaults import (
     VULNERABILITY_CACHE_PATH,
     VULNERABILITY_DATA_CACHE,
     VULNERABILITY_DATA_TMPL,
+    VULNERABILITY_DPKG_STATUS_DATE_CACHE,
     VULNERABILITY_PUBLISH_DATE_CACHE,
+    VULNERABILITY_RESULT_CACHE,
 )
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient.files.data_types import DataObjectFile
@@ -30,6 +37,13 @@ class VulnerabilityCacheDate(DataObject):
 
     def __init__(self, cache_date):
         self.cache_date = cache_date
+
+
+class VulnerabilityDpkgCacheDate(DataObject):
+    fields = [Field("dpkg_status_date", FloatDataValue)]
+
+    def __init__(self, dpkg_status_date: float):
+        self.dpkg_status_date = dpkg_status_date
 
 
 @enum.unique
@@ -91,6 +105,10 @@ class VulnerabilityData:
 
         return self._is_cache_valid(last_published_date, cache_date_file)
 
+    def cache_exists(self):
+        cache_date_file = self._get_cache_file()
+        return cache_date_file.read() is not None
+
     def _is_cache_valid(
         self,
         last_published_date: str,
@@ -143,6 +161,9 @@ class VulnerabilityData:
         if self.data_file:
             return json.loads(system.load_file(self.data_file))
 
+        if not fetch_data and self.cache_exists():
+            return self._get_cache_data()
+
         last_published_date = self._get_published_date()
         cache_date_file = self._get_cache_file()
 
@@ -153,7 +174,7 @@ class VulnerabilityData:
         if cache_valid:
             return self._get_cache_data()
 
-        if fetch_data:
+        if fetch_data or not self.cache_exists():
             json_data = json.loads(
                 http.download_xz_file_from_url(self._get_data_url()).decode(
                     "utf-8"
@@ -167,8 +188,6 @@ class VulnerabilityData:
                 )
 
             return json_data
-
-        return None
 
 
 def _get_source_package_from_vulnerabilities_data(
@@ -297,7 +316,11 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
         vulnerabilities_data: Dict[str, Any],
         installed_pkgs_by_source: Dict[str, Dict[str, str]],
     ):
-        vulnerabilities = {}
+        vulnerabilities = {
+            "vulnerability_data_published_at": vulnerabilities_data.get(
+                "published_at"
+            )
+        }
 
         affected_pkgs = vulnerabilities_data.get("packages", {})
         vulns_info = vulnerabilities_data.get("security_issues", {}).get(
@@ -387,3 +410,111 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         )
 
         return vulnerabilities
+
+
+class VulnerabilityResultCache:
+
+    def __init__(self, series, vulnerability_type):
+        self.series = series or system.get_release_info().series
+        self.vulnerability_type = vulnerability_type
+
+    def _get_result_cache_path(self):
+        return (
+            os.path.join(
+                VULNERABILITY_CACHE_PATH,
+                self.series,
+                self.vulnerability_type,
+                VULNERABILITY_RESULT_CACHE,
+            ),
+        )
+
+    def save_result_cache(self, vulnerability_data: Dict[str, Any]):
+        latest_dpkg_status_time = apt.get_dpkg_status_time() or 0
+        dpkg_status_cache = DataObjectFile(
+            data_object_cls=VulnerabilityDpkgCacheDate,
+            ua_file=UAFile(
+                name=VULNERABILITY_DPKG_STATUS_DATE_CACHE,
+                directory=VULNERABILITY_CACHE_PATH,
+            ),
+        )
+        dpkg_status_cache.write(
+            VulnerabilityDpkgCacheDate(
+                dpkg_status_date=latest_dpkg_status_time
+            )
+        )
+        system.write_file(
+            self._get_result_cache_path(),
+            json.dumps(vulnerability_data),
+        )
+
+    def _has_apt_state_changed(self):
+        latest_dpkg_status_time = apt.get_dpkg_status_time() or 0
+
+        dpkg_status_cache = DataObjectFile(
+            data_object_cls=VulnerabilityDpkgCacheDate,
+            ua_file=UAFile(
+                name=VULNERABILITY_DPKG_STATUS_DATE_CACHE,
+                directory=VULNERABILITY_CACHE_PATH,
+            ),
+        )
+        dpkg_status_cache_obj = dpkg_status_cache.read()
+        if not dpkg_status_cache_obj:
+            return True
+
+        return latest_dpkg_status_time > dpkg_status_cache_obj.dpkg_status_date
+
+    def _cache_result_exists(self):
+        return os.path.exists(self._get_result_cache_path())
+
+    def _is_cache_result_valid(self):
+        if not self._cache_result_exists():
+            return False
+
+        if self._has_apt_state_changed():
+            return False
+
+        return True
+
+    def is_cache_valid(self, vulnerability_data):
+        return self._is_cache_result_valid()
+
+    def get_result_cache(self):
+        return json.loads(system.load_file(self._get_result_cache_path()))
+
+
+def get_vulnerabilities(
+    parser: VulnerabilityParser,
+    cfg: config.UAconfig,
+    update_json_data: bool,
+    series: Optional[str],
+    data_file: Optional[str],
+    manifest_file: Optional[str],
+):
+    vulnerabilities_data = VulnerabilityData(
+        cfg=cfg, data_file=data_file, series=series
+    )
+    vulnerabilities_result = VulnerabilityResultCache(
+        series=series,
+        vulnerability_type=parser.vulnerability_type,
+    )
+
+    if not manifest_file and vulnerabilities_data.is_cache_valid():
+        if vulnerabilities_result.is_cache_valid():
+            return vulnerabilities_result.get_result_cache()
+
+    vulnerabilities_json_data = vulnerabilities_data.get(
+        fetch_data=update_json_data
+    )
+    installed_pkgs_by_source = SourcePackages(
+        vulnerabilities_data=vulnerabilities_json_data,
+        manifest_file=manifest_file,
+    ).get()
+
+    vulnerabilities = parser.get_vulnerabilities_for_installed_pkgs(
+        vulnerabilities_data=vulnerabilities_json_data,
+        installed_pkgs_by_source=installed_pkgs_by_source,
+    )
+
+    vulnerabilities_result.save_result_cache(vulnerabilities)
+
+    return vulnerabilities
