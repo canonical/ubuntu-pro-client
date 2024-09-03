@@ -1,10 +1,10 @@
 import abc
+import datetime
 import enum
 import json
 import os
 import re
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 from uaclient import apt, exceptions, http, system, util
@@ -53,22 +53,22 @@ class VulnerabilityData:
     ):
         self.cfg = cfg
         self.data_file = data_file
-        self.series = series
+        self.series = series or system.get_release_info().series
 
-    def _get_cache_data_path(self, series: str):
+    def _get_cache_data_path(self):
         return os.path.join(
-            VULNERABILITY_CACHE_PATH, series, VULNERABILITY_DATA_CACHE
+            VULNERABILITY_CACHE_PATH, self.series, VULNERABILITY_DATA_CACHE
         )
 
-    def _get_cache_published_date_path(self, series: str):
+    def _get_cache_published_date_path(self):
         return os.path.join(
-            VULNERABILITY_CACHE_PATH, series, VULNERABILITY_PUBLISH_DATE_CACHE
+            VULNERABILITY_CACHE_PATH,
+            self.series,
+            VULNERABILITY_PUBLISH_DATE_CACHE,
         )
 
-    def _save_cache_data(self, series: str, json_data: Dict[str, Any]):
-        system.write_file(
-            self._get_cache_data_path(series), json.dumps(json_data)
-        )
+    def _save_cache_data(self, json_data: Dict[str, Any]):
+        system.write_file(self._get_cache_data_path(), json.dumps(json_data))
 
     def _save_cache_publish_date(
         self, cache_date_file: DataObjectFile, published_date: str
@@ -79,78 +79,96 @@ class VulnerabilityData:
 
     def _parse_published_date(self, published_date: str):
         format_str = "%a, %d %b %Y %H:%M:%S %Z"
-        return datetime.strptime(published_date, format_str)
+        return datetime.datetime.strptime(published_date, format_str)
 
-    def _get_published_date(self, data_url):
-        resp = http.readurl(url=data_url, method="HEAD")
+    def _get_published_date(self):
+        resp = http.readurl(url=self._get_data_url(), method="HEAD")
         return resp.headers["last-modified"]
+
+    def is_cache_valid(self) -> Tuple[bool, Optional[datetime.datetime]]:
+        last_published_date = self._get_published_date()
+        cache_date_file = self._get_cache_file()
+
+        return self._is_cache_valid(last_published_date, cache_date_file)
 
     def _is_cache_valid(
         self,
-        series: str,
         last_published_date: str,
         cache_date_file: DataObjectFile,
-    ) -> bool:
+    ) -> Tuple[bool, Optional[datetime.datetime]]:
         last_published_datetime = self._parse_published_date(
             last_published_date
         )
 
         cache_date_obj = cache_date_file.read()
         if not cache_date_obj:
-            return False
+            return (False, None)
 
         cache_published_datetime = self._parse_published_date(
             cache_date_obj.cache_date
         )
 
-        return cache_published_datetime >= last_published_datetime
+        return (
+            cache_published_datetime >= last_published_datetime,
+            last_published_datetime - cache_published_datetime,
+        )
 
-    def _get_cache_data(self, series: str):
-        return json.loads(system.load_file(self._get_cache_data_path(series)))
+    def _get_cache_data(self):
+        return json.loads(system.load_file(self._get_cache_data_path()))
 
-    def _get_data_url(self, series):
-        data_name = series
+    def _get_data_url(self):
+        data_name = self.series
 
         enabled_services_names = [
             s.name for s in _enabled_services(self.cfg).enabled_services
         ]
         if FIPSEntitlement.name in enabled_services_names:
-            data_name = "fips_{}".format(series)
+            data_name = "fips_{}".format(self.series)
         elif FIPSUpdatesEntitlement.name in enabled_services_names:
-            data_name = "fips-updates_{}".format(series)
+            data_name = "fips-updates_{}".format(self.series)
 
         data_file = VULNERABILITY_DATA_TMPL.format(series=data_name)
         return urljoin(self.cfg.vulnerability_data_url_prefix, data_file)
 
-    def get(self):
-        if self.data_file:
-            return json.loads(system.load_file(self.data_file))
-
-        series = self.series or system.get_release_info().series
-        data_url = self._get_data_url(series)
-
-        last_published_date = self._get_published_date(data_url)
-
-        cache_date_file = DataObjectFile(
+    def _get_cache_file(self):
+        return DataObjectFile(
             data_object_cls=VulnerabilityCacheDate,
             ua_file=UAFile(
                 name=VULNERABILITY_PUBLISH_DATE_CACHE,
-                directory=os.path.join(VULNERABILITY_CACHE_PATH, series),
+                directory=os.path.join(VULNERABILITY_CACHE_PATH, self.series),
             ),
         )
 
-        if self._is_cache_valid(series, last_published_date, cache_date_file):
-            return self._get_cache_data(series)
+    def get(self, fetch_data: bool = True):
+        if self.data_file:
+            return json.loads(system.load_file(self.data_file))
 
-        json_data = json.loads(
-            http.download_xz_file_from_url(data_url).decode("utf-8")
+        last_published_date = self._get_published_date()
+        cache_date_file = self._get_cache_file()
+
+        cache_valid, _ = self._is_cache_valid(
+            last_published_date, cache_date_file
         )
 
-        if util.we_are_currently_root():
-            self._save_cache_data(series, json_data)
-            self._save_cache_publish_date(cache_date_file, last_published_date)
+        if cache_valid:
+            return self._get_cache_data()
 
-        return json_data
+        if fetch_data:
+            json_data = json.loads(
+                http.download_xz_file_from_url(self._get_data_url()).decode(
+                    "utf-8"
+                )
+            )
+
+            if util.we_are_currently_root():
+                self._save_cache_data(json_data)
+                self._save_cache_publish_date(
+                    cache_date_file, last_published_date
+                )
+
+            return json_data
+
+        return None
 
 
 def _get_source_package_from_vulnerabilities_data(
@@ -265,6 +283,15 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
     def get_package_vulnerabilities(self, affected_pkg: Dict[str, Any]):
         pass
 
+    @abc.abstractmethod
+    def _post_process_vulnerability_info(
+        self,
+        installed_pkgs_by_source: Dict[str, Dict[str, str]],
+        vulnerability_info: Dict[str, Any],
+        vulnerabilities_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        pass
+
     def get_vulnerabilities_for_installed_pkgs(
         self,
         vulnerabilities_data: Dict[str, Any],
@@ -284,7 +311,7 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
             for vuln_name, vuln in self.get_package_vulnerabilities(
                 affected_pkg
             ).items():
-                vuln_info = vulns_info.get(vuln_name, "")
+                vuln_info = vulns_info.get(vuln_name, {})
                 vuln_fixed_version = vuln.get("source_fixed_version")
                 vuln_status = vuln.get("status")
 
@@ -294,7 +321,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                 if vuln_fixed_version is None:
                     if vuln_status != "not-vulnerable":
                         if vuln_name not in vulnerabilities:
-                            vulnerabilities[vuln_name] = vuln_info
+                            vulnerabilities[vuln_name] = (
+                                self._post_process_vulnerability_info(
+                                    installed_pkgs_by_source,
+                                    vuln_info,
+                                    vulnerabilities_data,
+                                )
+                            )
                             vulnerabilities[vuln_name][
                                 "affected_packages"
                             ] = []
@@ -332,7 +365,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
 
                     if apt.version_compare(fix_version, pkg_version) > 0:
                         if vuln_name not in vulnerabilities:
-                            vulnerabilities[vuln_name] = vuln_info
+                            vulnerabilities[vuln_name] = (
+                                self._post_process_vulnerability_info(
+                                    installed_pkgs_by_source,
+                                    vuln_info,
+                                    vulnerabilities_data,
+                                )
+                            )
                             vulnerabilities[vuln_name][
                                 "affected_packages"
                             ] = []

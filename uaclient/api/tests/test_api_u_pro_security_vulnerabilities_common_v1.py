@@ -95,6 +95,14 @@ class ConcreteVulnerabilityParser(VulnerabilityParser):
     def get_package_vulnerabilities(self, affected_pkg):
         return affected_pkg.get(self.vulnerability_type, {})
 
+    def _post_process_vulnerability_info(
+        self,
+        installed_pkgs_by_source,
+        vulnerability_info,
+        vulnerabilities_data,
+    ):
+        return vulnerability_info
+
 
 class TestVulnerabilityParser:
 
