@@ -2,7 +2,7 @@ ubuntu-advantage-tools (34) oracular; urgency=medium
 
   * d/rules: check that version.py is consistent with changelog (GH: #3154)
   * New upstream release 34: (LP: #2075543)
-    - apt-hook: redirect errors away from users (LP: #2074211)
+    - apt-hook: redirect errors away from users (LP: #2074211, LP: #2055239)
     - detach: ensure apt bearer tokens are always cleaned up
     - fips-preview: add warnings and prompts similar to fips and fips-updates
     - fips and realtime-kernel: add warning when the new kernel may have
