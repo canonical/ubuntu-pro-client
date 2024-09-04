@@ -1,6 +1,6 @@
 Feature: Pro Upgrade Daemon only runs in environments where necessary
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `4`
@@ -17,7 +17,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | noble    | lxd-container |
       | oracular | lxd-container |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim should run in postinst and on boot
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # verify installing pro created the cloud-id file

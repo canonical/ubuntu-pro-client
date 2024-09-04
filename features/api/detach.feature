@@ -1,6 +1,6 @@
 Feature: Detach API endpoint
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: Detach API endpoint on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api u.pro.detach.v1` `as non-root` exits `1`
