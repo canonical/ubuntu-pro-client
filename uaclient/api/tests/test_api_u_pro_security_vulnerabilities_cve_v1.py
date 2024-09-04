@@ -12,6 +12,7 @@ from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import (
 )
 
 M_PATH = "uaclient.api.u.pro.security.vulnerabilities.cve.v1."
+M_VULN_COMMON_PATH = "uaclient.api.u.pro.security.vulnerabilities._common.v1."
 
 VULNEBILITIES_DATA = {
     "published_at": "2024-06-24T13:19:16",
@@ -260,19 +261,26 @@ class TestCVEVulnerabilities:
             ),
         ),
     )
+    @mock.patch(
+        M_VULN_COMMON_PATH + "VulnerabilityResultCache.save_result_cache"
+    )
     @mock.patch(M_PATH + "get_apt_cache_datetime")
-    @mock.patch(M_PATH + "VulnerabilityData.get")
-    @mock.patch(M_PATH + "SourcePackages.get")
+    @mock.patch(M_VULN_COMMON_PATH + "VulnerabilityData.get")
+    @mock.patch(M_VULN_COMMON_PATH + "VulnerabilityData.is_cache_valid")
+    @mock.patch(M_VULN_COMMON_PATH + "SourcePackages.get")
     def test_parse_data(
         self,
         m_get_source_pkgs,
+        m_vulnerability_data_is_cache_valid,
         m_vulnerability_data_get,
         m_get_apt_cache_datetime,
+        _m_vulnerability_result_save_cache,
         vulnerabilities_data,
         installed_pkgs_by_source,
         cve_options,
         expected_result,
     ):
+        m_vulnerability_data_is_cache_valid.return_value = (False, None)
         m_get_source_pkgs.return_value = installed_pkgs_by_source
         m_vulnerability_data_get.return_value = vulnerabilities_data
         m_get_apt_cache_datetime.return_value = datetime.datetime(

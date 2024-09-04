@@ -223,7 +223,7 @@ class TestVulnerabilityParser:
         assert (
             parser.get_vulnerabilities_for_installed_pkgs(
                 vulnerabilities_data, installed_pkgs_by_source
-            )
+            ).vulnerabilities
             == expected_result
         )
 

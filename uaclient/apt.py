@@ -59,6 +59,7 @@ CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
+DPKG_STATUS_PATH = "/var/lib/dpkg/status"
 
 SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy")
 
@@ -852,6 +853,13 @@ def get_apt_cache_time() -> Optional[float]:
     if os.path.exists(APT_UPDATE_SUCCESS_STAMP_PATH):
         cache_time = os.stat(APT_UPDATE_SUCCESS_STAMP_PATH).st_mtime
     return cache_time
+
+
+def get_dpkg_status_time() -> Optional[float]:
+    status_time = None
+    if os.path.exists(DPKG_STATUS_PATH):
+        status_time = os.stat(DPKG_STATUS_PATH).st_mtime
+    return status_time
 
 
 def get_apt_cache_datetime() -> Optional[datetime.datetime]:
