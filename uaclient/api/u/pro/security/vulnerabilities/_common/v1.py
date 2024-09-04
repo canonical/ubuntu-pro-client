@@ -285,13 +285,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                 affected_pkg
             ).items():
                 vuln_info = vulns_info.get(vuln_name, "")
-                vuln_fixed_version = vuln.get("source_fixed_version")
+                vuln_source_fixed_version = vuln.get("source_fixed_version")
                 vuln_status = vuln.get("status")
 
                 # if the vulnerability fixed version is None,
                 # that means that no fix has been published
                 # yet.
-                if vuln_fixed_version is None:
+                if vuln_source_fixed_version is None:
                     if vuln_status != "not-vulnerable":
                         if vuln_name not in vulnerabilities:
                             vulnerabilities[vuln_name] = vuln_info
@@ -314,13 +314,15 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
 
                     continue
 
-                for pkg_name, pkg_version in sorted(binary_pkgs.items()):
+                for pkg_name, binary_pkg_version in sorted(
+                    binary_pkgs.items()
+                ):
                     try:
-                        pocket = source_version[vuln_fixed_version].get(
+                        pocket = source_version[vuln_source_fixed_version].get(
                             "pocket"
                         )
-                        fix_version = (
-                            source_version[vuln_fixed_version]
+                        binary_fix_version = (
+                            source_version[vuln_source_fixed_version]
                             .get("binary_packages", {})
                             .get(pkg_name, "")
                         )
@@ -330,7 +332,12 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         # of this issue and they are handling it
                         continue
 
-                    if apt.version_compare(fix_version, pkg_version) > 0:
+                    if (
+                        apt.version_compare(
+                            binary_fix_version, binary_pkg_version
+                        )
+                        > 0
+                    ):
                         if vuln_name not in vulnerabilities:
                             vulnerabilities[vuln_name] = vuln_info
                             vulnerabilities[vuln_name][
@@ -340,8 +347,8 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         vulnerabilities[vuln_name]["affected_packages"].append(
                             {
                                 "name": pkg_name,
-                                "current_version": pkg_version,
-                                "fix_version": fix_version,
+                                "current_version": binary_pkg_version,
+                                "fix_version": binary_fix_version,
                                 "status": vuln_status,
                                 "fix_available_from": pocket,
                             }
