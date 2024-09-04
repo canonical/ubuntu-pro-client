@@ -23,7 +23,6 @@ from uaclient import status as ua_status
 from uaclient import system, timer, util
 from uaclient.defaults import (
     APPARMOR_PROFILES,
-    APT_UPGRADE_HOOK_ERR,
     CLOUD_BUILD_INFO,
     DEFAULT_CONFIG_FILE,
     DEFAULT_LOG_PREFIX,
@@ -340,7 +339,6 @@ def _get_state_files(cfg: config.UAConfig):
         cfg.cfg_path or DEFAULT_CONFIG_FILE,
         cfg.log_file,
         timer_jobs_state_file.ua_file.path,
-        APT_UPGRADE_HOOK_ERR,
         CLOUD_BUILD_INFO,
         *(
             entitlement_cls(cfg).repo_file
