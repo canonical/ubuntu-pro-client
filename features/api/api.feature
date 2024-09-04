@@ -1,5 +1,6 @@
 Feature: Client behaviour for the API endpoints
 
+  @arm64
   Scenario Outline: all API endpoints can be imported individually
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_retry_service"` as non-root
@@ -34,6 +35,7 @@ Feature: Client behaviour for the API endpoints
       | noble    | lxd-container |
       | oracular | lxd-container |
 
+  @arm64
   Scenario Outline: API invalid endpoint or args
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api invalid.endpoint` `with sudo` exits `1`
@@ -83,6 +85,7 @@ Feature: Client behaviour for the API endpoints
       | noble    | lxd-container |
       | oracular | lxd-container |
 
+  @arm64
   Scenario Outline: Basic endpoints
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro api u.pro.version.v1` with sudo
@@ -175,7 +178,7 @@ Feature: Client behaviour for the API endpoints
       | noble    | lxd-container |
       | oracular | lxd-container |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: u.pro.status.is_attached.v1
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro api u.pro.status.is_attached.v1` with sudo

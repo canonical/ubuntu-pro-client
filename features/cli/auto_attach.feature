@@ -36,6 +36,7 @@ Feature: CLI auto-attach command
       | noble    | lxd-container |
       | oracular | lxd-container |
 
+  @arm64
   Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # Validate systemd unit/timer syntax

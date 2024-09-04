@@ -1,5 +1,6 @@
 Feature: Pro Client help text
 
+  @arm64
   Scenario Outline: Help text for the Pro Client commands
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro --help` as non-root
@@ -448,6 +449,7 @@ Feature: Pro Client help text
       | noble    | lxd-container | enabled      |
       | oracular | lxd-container | n/a          |
 
+  @arm64
   Scenario Outline: Help command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro help esm-infra` as non-root

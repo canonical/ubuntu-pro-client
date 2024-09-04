@@ -2,6 +2,7 @@
 Feature: Timer for regular background jobs while attached
 
   # earlies, latest lts, devel
+  @arm64
   Scenario Outline: Timer is stopped when detached, started when attached
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     Then I verify the `ua-timer` systemd timer is disabled
