@@ -1,5 +1,6 @@
 Feature: CLI collect-logs command
 
+  @arm64
   Scenario Outline: Run collect-logs on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
@@ -47,7 +48,7 @@ Feature: CLI collect-logs command
       | noble    | lxd-container |
       | oracular | lxd-container |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: Run collect-logs on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo

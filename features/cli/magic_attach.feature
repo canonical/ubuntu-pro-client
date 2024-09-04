@@ -1,5 +1,6 @@
 Feature: CLI magic attach flow
 
+  @arm64
   Scenario Outline: Attach using the magic attach flow
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/tmp/response-overlay.json` with the following:

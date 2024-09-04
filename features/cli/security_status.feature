@@ -1,6 +1,6 @@
 Feature: CLI security-status command
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: Run security status with JSON/YAML format
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt update
@@ -108,7 +108,7 @@ Feature: CLI security-status command
       \s*  patched: true
       """
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario: Run security status in an Ubuntu machine
     Given a `xenial` `lxd-container` machine with ubuntu-advantage-tools installed
     When I install third-party / unknown packages in the machine

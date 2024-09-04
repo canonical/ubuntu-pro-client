@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: Enable cc-eal on Ubuntu
 
+  @arm64
   Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -28,6 +29,7 @@ Feature: Enable cc-eal on Ubuntu
       | bionic  | lxd-container |
       | bionic  | wsl           |
 
+  @arm64
   Scenario Outline: Enable cc-eal with --access-only
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo

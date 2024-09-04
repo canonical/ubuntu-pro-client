@@ -1,5 +1,6 @@
 Feature: u.pro.services.disable
 
+  @arm64
   Scenario Outline: u.pro.services.disable.v1 container services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt update

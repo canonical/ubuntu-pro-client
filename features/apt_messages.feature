@@ -1,6 +1,6 @@
 Feature: APT Messages
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: APT JSON Hook prints package counts correctly on xenial
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo

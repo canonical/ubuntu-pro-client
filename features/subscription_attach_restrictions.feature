@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: One time pro subscription related tests
 
+  @arm64
   Scenario Outline: Attach fail if subscription is restricted to release
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/tmp/response-overlay.json` with the following:
@@ -46,6 +47,7 @@ Feature: One time pro subscription related tests
       | jammy   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
       | noble   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
 
+  @arm64
   Scenario Outline: Check notice visible when attached with onlySeries present
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/tmp/response-overlay.json` with the following:

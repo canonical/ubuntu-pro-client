@@ -77,7 +77,7 @@ Feature: CLI status command
       | noble    | lxd-container |
       | oracular | lxd-container |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: Non-root status can see in-progress operations
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -285,7 +285,7 @@ Feature: CLI status command
       | jammy   | azure.pro    |
       | jammy   | gcp.pro      |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: Attached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -429,7 +429,7 @@ Feature: CLI status command
       | release | machine_type  |
       | jammy   | lxd-container |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: Attached status in the latest LTS ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -475,6 +475,7 @@ Feature: CLI status command
       | release | machine_type  |
       | noble   | lxd-container |
 
+  @arm64
   Scenario Outline: Unattached status in a ubuntu machine - formatted
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro status --format json` as non-root
@@ -529,6 +530,7 @@ Feature: CLI status command
       | noble    | lxd-container |
       | oracular | lxd-container |
 
+  @arm64
   Scenario Outline: Unattached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify root and non-root `pro status` calls have the same output
