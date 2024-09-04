@@ -249,12 +249,34 @@ def _updates_with_cves(
             )
 
             for cve_name, cve_info in pkg_cves.items():
-                cve_fixed_version = cve_info["source_fixed_version"]
-                if not cve_fixed_version:
+                cve_source_fixed_version = cve_info["source_fixed_version"]
+                if not cve_source_fixed_version:
                     continue
 
-                if version_compare(current_pkg_version, cve_fixed_version) < 0:
-                    if version_compare(update_version, cve_fixed_version) >= 0:
+                cve_binary_fixed_version = (
+                    vulnerabilities_json_data.get("packages")
+                    .get(source_pkg, {})
+                    .get("source_versions", {})
+                    .get(cve_source_fixed_version, {})
+                    .get("binary_packages", {})
+                    .get(pkg_name)
+                )
+
+                if not cve_binary_fixed_version:
+                    continue
+
+                if (
+                    version_compare(
+                        current_pkg_version, cve_binary_fixed_version
+                    )
+                    < 0
+                ):
+                    if (
+                        version_compare(
+                            update_version, cve_binary_fixed_version
+                        )
+                        >= 0
+                    ):
                         related_cves.append(cve_name)
                         all_cves.add(cve_name)
 
