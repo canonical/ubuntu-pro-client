@@ -276,3 +276,11 @@ def i_apply_jq_filter(context, jq_filter):
 def i_apply_jq_filter_to_api_data(context, jq_filter):
     content = process_api_data(context, api_key="data", escape=False)
     context.process.stdout = jq.compile(jq_filter).input_text(content).text()
+
+
+@when("I remove colors from output")
+def i_remove_colors_from_output(context):
+    COLOR_FORMATTING_PATTERN = r"\033\[.*?m"
+    context.process.stdout = re.sub(
+        COLOR_FORMATTING_PATTERN, "", context.process.stdout.strip()
+    )
