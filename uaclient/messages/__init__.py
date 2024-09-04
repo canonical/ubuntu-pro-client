@@ -1194,6 +1194,66 @@ CLI_ROOT_REFRESH = t.gettext("refresh Ubuntu Pro services")
 CLI_ROOT_STATUS = t.gettext("current status of all Ubuntu Pro services")
 CLI_ROOT_SYSTEM = t.gettext("show system information related to Pro services")
 
+CLI_ROOT_VULNERABILITY = t.gettext(
+    "show information about system vulnerabilities"
+)
+CLI_VULNERABILITY_DESC = t.gettext(
+    """\
+Show information about system vulnerabilities.
+
+show: display all available information for a given CVE/USN.
+list: display all fixable CVEs in the system
+update: update the vulnerability data in the system
+"""
+)
+CLI_VULNERABILITY_DATA_FILE = t.gettext(
+    """\
+Static vulnerability JSON data to be used in the command"""
+)
+CLI_VULNERABILITY_DATE_OUTDATED = t.gettext(
+    """\
+The vulnerabilities data used in the system is outdated by {t_diff} days/hours
+To update the data please run with --update:
+
+    $ {cmd} --update
+"""
+)
+
+CLI_VULNERABILITY_SHOW = t.gettext("show information about a vulnerability")
+CLI_VULNERABILITY_SHOW_DESC = t.gettext(
+    """\
+Show all available information about a given security issue.
+"""
+)
+CLI_VULNERABILITY_SHOW_ISSUE = t.gettext(
+    "Security vulnerability ID to display information."
+    " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
+)
+CLI_VULNERABILITY_SHOW_NOT_AFFECTED = t.gettext(
+    "{issue} does not affect your system"
+)
+CLI_VULNERABILITY_SHOW_PUBLIC_URL = t.gettext("Public URL: {}")
+CLI_VULNERABILITY_SHOW_PUBLISHED_AT = t.gettext("Published at: {}")
+CLI_VULNERABILITY_SHOW_JSON_PUBLISHED_AT = t.gettext(
+    "Ubuntu vulnerability data published at: {}"
+)
+CLI_VULNERABILITY_SHOW_APT_UPDATED_AT = t.gettext(
+    "APT package information updated at: {}"
+)
+CLI_VULNERABILITY_SHOW_APT_UPDATED_AT = t.gettext(
+    "APT package information updated at: {}"
+)
+CLI_VULNERABILITY_SHOW_UBUNTU_PRIORITY = t.gettext("Ubuntu priority: {}")
+CLI_VULNERABILITY_SHOW_CVSS_SCORE = t.gettext("CVSS score: {}")
+CLI_VULNERABILITY_SHOW_CVSS_SEVERITY = t.gettext("CVSS severity: {}")
+CLI_VULNERABILITY_SHOW_DESCRIPTION = t.gettext("[DESCRIPTION]\n{}")
+CLI_VULNERABILITY_SHOW_NOTES = t.gettext("[NOTES]\n")
+CLI_VULNERABILITY_SHOW_RELATED_USNS = t.gettext("[RELATED USNs]\n")
+CLI_VULNERABILITY_SHOW_RELATED_CVES = t.gettext("[RELATED CVEs]\n")
+CLI_VULNERABILITY_SHOW_AFFECTED_PKGS = t.gettext(
+    "[AFFECTED INSTALLED PACKAGES]\n"
+)
+
 WARNING_HUMAN_READABLE_OUTPUT = t.gettext(
     """\
 WARNING: this output is intended to be human readable, and subject to change.
@@ -2535,7 +2595,7 @@ E_SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = FormattedNamedMessage(
     "invalid-security-issue-id-format",
     t.gettext(
         'Error: issue "{issue}" is not recognized.\n'
-        'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
+        'Usage: "pro {cmd} CVE-yyyy-nnnn" or "pro {cmd} USN-nnnn"'
     ),
 )
 

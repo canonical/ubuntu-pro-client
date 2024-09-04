@@ -1,4 +1,3 @@
-import re
 import textwrap
 from typing import (  # noqa: F401
     Dict,
@@ -22,7 +21,6 @@ from uaclient.api.u.pro.attach.magic.wait.v1 import (
     _wait,
 )
 from uaclient.api.u.pro.security.fix._common import (
-    CVE_OR_USN_REGEX,
     FixStatus,
     UnfixedPackage,
     status_message,
@@ -57,6 +55,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import (
     ContractExpiryStatus,
     _is_attached,
 )
+from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.detach import action_detach
 from uaclient.clouds.identity import (
@@ -891,12 +890,8 @@ def execute_fix_plan(
     return (fix_context.fix_status, fix_context.unfixed_pkgs)
 
 
+@cli_util.assert_vulnerability_issue_valid(cmd="fix")
 def action_fix(args, *, cfg, **kwargs):
-    if not re.match(CVE_OR_USN_REGEX, args.security_issue):
-        raise exceptions.InvalidSecurityIssueIdFormat(
-            issue=args.security_issue
-        )
-
     if args.dry_run:
         print(messages.SECURITY_DRY_RUN_WARNING)
 
