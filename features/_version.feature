@@ -136,6 +136,7 @@ Feature: Pro is expected version
       | noble    | lxd-container |
       | oracular | lxd-container |
 
+  @arm64
   Scenario Outline: Check for newer versions of the client in an ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # Make sure we have a fresh, just rebooted, environment

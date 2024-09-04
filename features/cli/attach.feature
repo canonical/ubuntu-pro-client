@@ -36,7 +36,6 @@ Feature: CLI attach command
   # Examples: ubuntu release
   # | release  | machine_type  | landscape | status_string                                                           |
   # | oracular | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
-
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # simplest happy path
@@ -306,6 +305,7 @@ Feature: CLI attach command
       | focal   | lxd-container |
       | jammy   | lxd-container |
 
+  @arm64
   Scenario Outline: Attach command failure on invalid token
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro attach INVALID_TOKEN` `with sudo` exits `1`

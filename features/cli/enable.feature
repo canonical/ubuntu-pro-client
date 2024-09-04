@@ -26,6 +26,7 @@ Feature: CLI enable command
       | jammy   | lxd-container |
       | noble   | lxd-container |
 
+  @arm64
   Scenario Outline: Empty series affordance means no series, null means all series
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo and options `--no-auto-enable`

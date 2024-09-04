@@ -1,6 +1,7 @@
 Feature: CLI config command
 
   # earliest, latest lts[, latest stable]
+  @arm64
   Scenario Outline: old ua_config in uaclient.conf is still supported
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro config show` with sudo
