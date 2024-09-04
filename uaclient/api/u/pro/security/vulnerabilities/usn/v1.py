@@ -61,7 +61,7 @@ class USNVulnerabilitiesOptions(DataObject):
         Field(
             "update",
             BoolDataValue,
-            True,
+            False,
             doc=(
                 "If the vulnerability data should automatically "
                 "be updated when running the command (default=True)"
@@ -77,13 +77,17 @@ class USNVulnerabilitiesOptions(DataObject):
         data_file: Optional[str] = None,
         manifest_file: Optional[str] = None,
         series: Optional[str] = None,
-        update: Optional[bool] = True
+        update: Optional[bool] = None
     ):
         self.all = all
         self.unfixable = unfixable
         self.data_file = data_file
         self.manifest_file = manifest_file
         self.series = series
+
+        if update is None:
+            update = True
+
         self.update = update
 
 
@@ -253,7 +257,7 @@ def _vulnerabilities(
     if options.unfixable and options.all:
         raise InvalidOptionCombination(option1="unfixable", option2="all")
 
-    usn_vulnerabilities = get_vulnerabilities(
+    usn_vulnerabilities_result = get_vulnerabilities(
         parser=USNParser(),
         cfg=cfg,
         update_json_data=options.update,
@@ -261,6 +265,7 @@ def _vulnerabilities(
         data_file=options.data_file,
         manifest_file=options.manifest_file,
     )
+    usn_vulnerabilities = usn_vulnerabilities_result.vulnerabilities
 
     if options.unfixable:
         block_fixable_usns = True
@@ -313,7 +318,7 @@ def _vulnerabilities(
     return USNVulnerabilitiesResult(
         usns=usns,
         vulnerability_data_published_at=util.parse_rfc3339_date(
-            usn_vulnerabilities["vulnerability_data_published_at"]
+            usn_vulnerabilities_result.vulnerability_data_published_at
         ),
         apt_updated_at=(
             get_apt_cache_datetime() if not options.manifest_file else None

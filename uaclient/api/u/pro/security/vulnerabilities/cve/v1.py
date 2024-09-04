@@ -78,13 +78,17 @@ class CVEVulnerabilitiesOptions(DataObject):
         data_file: Optional[str] = None,
         manifest_file: Optional[str] = None,
         series: Optional[str] = None,
-        update: Optional[bool] = True
+        update: Optional[bool] = None
     ):
         self.all = all
         self.unfixable = unfixable
         self.data_file = data_file
         self.manifest_file = manifest_file
         self.series = series
+
+        if update is None:
+            update = True
+
         self.update = update
 
 
@@ -280,7 +284,9 @@ class CVEVulnerabilitiesResult(DataObject, AdditionalInfo):
 class CVEParser(VulnerabilityParser):
     vulnerability_type = "cves"
 
-    def get_package_vulnerabilities(self, affected_pkg: Dict[str, Any]):
+    def get_package_vulnerabilities(
+        self, affected_pkg: Dict[str, Any]
+    ) -> Dict[str, Any]:
         return affected_pkg.get(self.vulnerability_type, {})
 
     def _post_process_vulnerability_info(
@@ -349,7 +355,7 @@ def _vulnerabilities(
     if options.unfixable and options.all:
         raise InvalidOptionCombination(option1="unfixable", option2="all")
 
-    cve_vulnerabilities = get_vulnerabilities(
+    cve_vulnerabilities_result = get_vulnerabilities(
         parser=CVEParser(),
         cfg=cfg,
         update_json_data=options.update,
@@ -357,6 +363,7 @@ def _vulnerabilities(
         data_file=options.data_file,
         manifest_file=options.manifest_file,
     )
+    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities
 
     if options.unfixable:
         block_fixable_cves = True
@@ -422,7 +429,7 @@ def _vulnerabilities(
     return CVEVulnerabilitiesResult(
         cves=cves,
         vulnerability_data_published_at=util.parse_rfc3339_date(
-            cve_vulnerabilities["vulnerability_data_published_at"]
+            cve_vulnerabilities_result.vulnerability_data_published_at
         ),
         apt_updated_at=(
             get_apt_cache_datetime() if not options.manifest_file else None
