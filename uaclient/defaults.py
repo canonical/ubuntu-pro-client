@@ -27,7 +27,9 @@ NOTICES_SUBDIR = "notices"
 PRIVATE_ESM_CACHE_SUBDIR = "apt-esm"
 VULNERABILITY_SUBDIR = "vulnerability-data"
 VULNERABILITY_DATA_CACHE = "vulnerability-cache.json"
+VULNERABILITY_RESULT_CACHE = "vulnerability-result.json"
 VULNERABILITY_PUBLISH_DATE_CACHE = "vulnerability-publish-date"
+VULNERABILITY_DPKG_STATUS_DATE_CACHE = "vulnerability-dpkg-status-date"
 
 DEFAULT_PRIVATE_MACHINE_TOKEN_PATH = os.path.join(
     DEFAULT_DATA_DIR, PRIVATE_SUBDIR, MACHINE_TOKEN_FILE
