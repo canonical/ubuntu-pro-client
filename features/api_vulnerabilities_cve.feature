@@ -49,6 +49,15 @@ Feature: Client behaviour for CVE vulnerabilities API
         "name": "CVE-2022-2286",
         "notes": \[\],
         "published_at": ".*",
+        "related_usns": \[
+          {
+            "affected_installed_packages": \[
+              "vim"
+            \],
+            "name": "USN-6270-1",
+            "title": "Vim vulnerabilities"
+          }
+        \],
         "ubuntu_priority": "low"
       }
       """
@@ -82,6 +91,7 @@ Feature: Client behaviour for CVE vulnerabilities API
           .*
         \],
         "published_at": ".*",
+        "related_usns": \[\],
         "ubuntu_priority": "medium"
       }
       """
@@ -108,6 +118,7 @@ Feature: Client behaviour for CVE vulnerabilities API
           .*
         \],
         "published_at": ".*",
+        "related_usns": \[\],
         "ubuntu_priority": "medium"
       }
       """
@@ -153,6 +164,20 @@ Feature: Client behaviour for CVE vulnerabilities API
               "name": "CVE-2019-11922",
               "notes": [],
               "published_at": ".*",
+              "related_usns": [
+                {
+                  "affected_installed_packages": [],
+                  "name": "USN-4108-1",
+                  "title": ""
+                },
+                {
+                  "affected_installed_packages": [
+                    "libzstd"
+                  ],
+                  "name": "USN-5593-1",
+                  "title": "Zstandard vulnerability"
+                }
+              ],
               "ubuntu_priority": "medium"
             }
           ],

@@ -265,6 +265,15 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
     def get_package_vulnerabilities(self, affected_pkg: Dict[str, Any]):
         pass
 
+    @abc.abstractmethod
+    def _post_process_vulnerability_info(
+        self,
+        installed_pkgs_by_source: Dict[str, Dict[str, str]],
+        vulnerability_info: Dict[str, Any],
+        vulnerabilities_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        pass
+
     def _add_new_vulnerability(
         self,
         affected_vulns: Dict[str, Any],
@@ -459,6 +468,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                     vuln_pkg_status=vuln_pkg_status,
                     vuln_source_fixed_version=vuln_source_fixed_version,
                 ):
+                    if vuln_name not in vulnerabilities:
+                        vuln_info = self._post_process_vulnerability_info(
+                            installed_pkgs_by_source,
+                            vuln_info,
+                            vulnerabilities_data,
+                        )
+
                     self._add_unfixable_vulnerability(
                         affected_vulns=vulnerabilities,
                         bin_installed_pkg_name=bin_installed_pkg_name,
@@ -467,7 +483,6 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         vuln_info=vuln_info,
                         vuln_pkg_status=vuln_pkg_status,
                     )
-
                     continue
 
                 try:
@@ -490,6 +505,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                     bin_installed_pkg_name,
                     vuln_source_fixed_version,
                 ):
+                    if vuln_name not in vulnerabilities:
+                        vuln_info = self._post_process_vulnerability_info(
+                            installed_pkgs_by_source,
+                            vuln_info,
+                            vulnerabilities_data,
+                        )
+
                     self._add_unfixable_vulnerability(
                         affected_vulns=vulnerabilities,
                         bin_installed_pkg_name=bin_installed_pkg_name,
@@ -507,6 +529,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                     bin_installed_version,
                     vuln_bin_fix_version,
                 ):
+                    if vuln_name not in vulnerabilities:
+                        vuln_info = self._post_process_vulnerability_info(
+                            installed_pkgs_by_source,
+                            vuln_info,
+                            vulnerabilities_data,
+                        )
+
                     self._add_fixable_vulnerability(
                         affected_vulns=vulnerabilities,
                         bin_installed_pkg_name=bin_installed_pkg_name,
