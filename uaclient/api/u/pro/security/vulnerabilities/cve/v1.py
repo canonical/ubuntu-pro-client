@@ -135,6 +135,33 @@ class CVEAffectedPackage(DataObject):
         self.fix_available_from = fix_available_from
 
 
+class RelatedUSN(DataObject):
+    fields = [
+        Field(
+            "name",
+            StringDataValue,
+            doc="The USN name",
+        ),
+        Field(
+            "title",
+            StringDataValue,
+            doc="The USN title",
+        ),
+        Field(
+            "affected_installed_packages",
+            data_list(StringDataValue),
+            doc="A list of installed packages affected by the USN",
+        ),
+    ]
+
+    def __init__(
+        self, *, name: str, title: str, affected_installed_packages: List[str]
+    ):
+        self.name = name
+        self.title = title
+        self.affected_installed_packages = affected_installed_packages
+
+
 class CVEVulnerabilityResult(DataObject):
     fields = [
         Field(
@@ -174,6 +201,11 @@ class CVEVulnerabilityResult(DataObject):
             doc="The fixable status of the CVE",
         ),
         Field(
+            "related_usns",
+            data_list(RelatedUSN),
+            doc="The related USNs for this CVE",
+        ),
+        Field(
             "cvss_score",
             FloatDataValue,
             False,
@@ -197,6 +229,7 @@ class CVEVulnerabilityResult(DataObject):
         fixable: str,
         notes: Optional[List[str]] = None,
         affected_packages: List[CVEAffectedPackage],
+        related_usns: List[RelatedUSN],
         cvss_score: Optional[float] = None,
         cvss_severity: Optional[str] = None
     ):
@@ -207,6 +240,7 @@ class CVEVulnerabilityResult(DataObject):
         self.fixable = fixable
         self.notes = notes
         self.affected_packages = affected_packages
+        self.related_usns = related_usns
         self.cvss_score = cvss_score
         self.cvss_severity = cvss_severity
 
@@ -250,6 +284,53 @@ class CVEParser(VulnerabilityParser):
         self, affected_pkg: Dict[str, Any]
     ) -> Dict[str, Any]:
         return affected_pkg.get(self.vulnerability_type, {})
+
+    def _post_process_vulnerability_info(
+        self,
+        installed_pkgs_by_source: Dict[str, Dict[str, str]],
+        vulnerability_info: Dict[str, Any],
+        vulnerabilities_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        if vulnerability_info.get("related_usns"):
+            related_usns = []
+
+            usn_info = vulnerabilities_data.get("security_issues", {}).get(
+                "usns", {}
+            )
+            cves_info = vulnerabilities_data.get("security_issues", {}).get(
+                "cves", {}
+            )
+
+            for related_usn in vulnerability_info["related_usns"]:
+                related_cves = usn_info.get(related_usn, {}).get(
+                    "related_cves", []
+                )
+                affected_installed_pkgs = []
+
+                for cve in related_cves:
+                    related_pkgs = cves_info.get(cve, {}).get(
+                        "related_packages", []
+                    )
+
+                    affected_installed_pkgs = [
+                        pkg
+                        for pkg in related_pkgs
+                        if pkg in installed_pkgs_by_source
+                    ]
+
+                related_usns.append(
+                    {
+                        "name": related_usn,
+                        "title": usn_info.get(related_usn, {}).get(
+                            "title", ""
+                        ),
+                        "affected_installed_packages": affected_installed_pkgs,
+                    }
+                )
+
+            vulnerability_info["related_usns"] = related_usns
+
+        return vulnerability_info
 
 
 def vulnerabilities(
@@ -326,6 +407,16 @@ def _vulnerabilities(
                     for pkg in cve["affected_packages"]
                 ],
                 fixable=cve_fix_status.value,
+                related_usns=[
+                    RelatedUSN(
+                        name=usn["name"],
+                        title=usn["title"],
+                        affected_installed_packages=usn[
+                            "affected_installed_packages"
+                        ],
+                    )
+                    for usn in cve["related_usns"]
+                ],
                 cvss_score=cve["cvss_score"],
                 cvss_severity=cve["cvss_severity"],
             )

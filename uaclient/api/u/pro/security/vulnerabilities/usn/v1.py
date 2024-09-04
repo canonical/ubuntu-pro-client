@@ -226,6 +226,14 @@ class USNParser(VulnerabilityParser):
             **affected_pkg.get("ubuntu_security_notices_regressions", {}),
         }
 
+    def _post_process_vulnerability_info(
+        self,
+        installed_pkgs_by_source: Dict[str, Dict[str, str]],
+        vulnerability_info: Dict[str, Any],
+        vulnerabilities_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        return vulnerability_info
+
 
 def vulnerabilities(
     options: USNVulnerabilitiesOptions,
