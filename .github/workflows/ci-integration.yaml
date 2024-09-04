@@ -56,7 +56,7 @@ jobs:
           sg sbuild -c "sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
           mv ../*.deb '${{ runner.temp }}'  # Workaround for Debbug: #990734, drop in Jammy
       - name: Archive debs as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: 'ci-debs-${{ matrix.release }}'
           path: '${{ runner.temp }}/*.deb'
@@ -109,7 +109,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Retrieve debs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: 'ci-debs-${{ matrix.release }}'
           path: '${{ runner.temp }}'
@@ -155,7 +155,7 @@ jobs:
           sg lxd -c "tox -e behave -- -D machine_types=${{ matrix.platform }} -D releases=${{ matrix.release }} --tags=-slow --tags=-upgrade --tags=-no_gh --tags=-vpn"
       - name: Archive test artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: 'ci-behave-${{ matrix.release }}'
           path: '${{ runner.temp }}/artifacts/behave*'
