@@ -6,7 +6,10 @@ import pytest
 
 from lib import timer
 from lib.timer import MeteringTimedJob, TimedJob, run_jobs
-from uaclient.exceptions import InvalidFileFormatError
+from uaclient.exceptions import (
+    InvalidFileEncodingError,
+    InvalidFileFormatError,
+)
 
 
 class TestTimedJob:
@@ -155,6 +158,13 @@ class TestTimer:
     @pytest.mark.parametrize(
         "delete_side_effect", (None, OSError(), PermissionError())
     )
+    @pytest.mark.parametrize(
+        "read_side_effect",
+        (
+            InvalidFileFormatError(file_name="file", file_format="json"),
+            InvalidFileEncodingError(file_name="file", file_encoding="utf-8"),
+        ),
+    )
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @mock.patch("lib.timer.AllTimerJobsState")
     @mock.patch("lib.timer.run_job")
@@ -163,6 +173,7 @@ class TestTimer:
         m_run_job,
         m_jobs_state,
         delete_side_effect,
+        read_side_effect,
         caplog_text,
         FakeConfig,
     ):
@@ -172,9 +183,7 @@ class TestTimer:
         now = now - datetime.timedelta(microseconds=now.microsecond)
 
         fake_file = mock.MagicMock()
-        fake_file.read.side_effect = InvalidFileFormatError(
-            file_name="file", file_format="json"
-        )
+        fake_file.read.side_effect = read_side_effect
         fake_file.delete.side_effect = delete_side_effect
 
         with mock.patch.object(timer, "timer_jobs_state_file", fake_file):

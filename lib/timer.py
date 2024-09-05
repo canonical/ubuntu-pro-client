@@ -8,7 +8,10 @@ from typing import Callable, Optional
 
 from uaclient import http, log
 from uaclient.config import UAConfig
-from uaclient.exceptions import InvalidFileFormatError
+from uaclient.exceptions import (
+    InvalidFileEncodingError,
+    InvalidFileFormatError,
+)
 from uaclient.files import machine_token
 from uaclient.files.state_files import (
     AllTimerJobsState,
@@ -150,11 +153,11 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     state introspection for jobs which have not yet run.
     """
     jobs_status_obj = None
-    # If the file format is wrong we remove it, and after the jobs are
-    # executed it will be recreated with the proper data.
+    # If the file format or encoding is wrong we remove it.
+    # After the jobs are executed it will be recreated with the proper data.
     try:
         jobs_status_obj = timer_jobs_state_file.read()
-    except InvalidFileFormatError:
+    except (InvalidFileEncodingError, InvalidFileFormatError):
         try:
             timer_jobs_state_file.delete()
         except (OSError, PermissionError) as exception:
