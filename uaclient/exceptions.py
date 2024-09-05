@@ -494,6 +494,10 @@ class InvalidFileFormatError(UbuntuProError):
     _formatted_msg = messages.E_INVALID_FILE_FORMAT
 
 
+class InvalidFileEncodingError(UbuntuProError):
+    _formatted_msg = messages.E_INVALID_FILE_ENCODING
+
+
 class ParsingErrorOnOSReleaseFile(UbuntuProError):
     _formatted_msg = messages.E_ERROR_PARSING_VERSION_OS_RELEASE
 

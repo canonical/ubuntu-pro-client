@@ -530,12 +530,17 @@ def is_exe(path: str) -> bool:
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
-def load_file(filename: str, decode: bool = True) -> str:
+def load_file(filename: str) -> str:
     """Read filename and decode content."""
     with open(filename, "rb") as stream:
         LOG.debug("Reading file: %s", filename)
         content = stream.read()
-    return content.decode("utf-8")
+    try:
+        return content.decode("utf-8")
+    except UnicodeDecodeError:
+        raise exceptions.InvalidFileEncodingError(
+            file_name=filename, file_encoding="utf-8"
+        )
 
 
 def create_file(filename: str, mode: int = 0o644) -> None:
