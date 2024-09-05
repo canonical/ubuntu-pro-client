@@ -49,6 +49,10 @@ class TestMainConfigSet:
                 "https_proxy=  ",
                 "Empty value provided for https_proxy.",
             ),
+            (
+                "apt_news=please",
+                "<value> must be one of: true, false",
+            ),
         ),
     )
     @mock.patch("uaclient.contract.get_available_resources")
