@@ -87,6 +87,14 @@ def action_config_set(args, *, cfg, **kwargs):
     if not set_value.strip():
         parser.print_help_for_command("config set")
         raise exceptions.EmptyConfigValue(arg=set_key)
+
+    if type(getattr(cfg, set_key, None)) == bool:
+        if set_value.lower() not in ("true", "false"):
+            raise exceptions.InvalidArgChoice(
+                arg="<value>", choices="true, false"
+            )
+        set_value = set_value.lower() == "true"
+
     if set_key in ("http_proxy", "https_proxy"):
         protocol_type = set_key.split("_")[0]
         if protocol_type == "http":
@@ -178,7 +186,6 @@ def action_config_set(args, *, cfg, **kwargs):
                 key=set_key, value=set_value
             )
     elif set_key == "apt_news":
-        set_value = set_value.lower() == "true"
         if set_value:
             apt_news.update_apt_news(cfg)
         else:
