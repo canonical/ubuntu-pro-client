@@ -397,7 +397,7 @@ Feature: Pro Client help text
                         apt_https_proxy, ua_apt_http_proxy, ua_apt_https_proxy,
                         global_apt_http_proxy, global_apt_https_proxy,
                         update_messaging_timer, metering_timer, apt_news,
-                        apt_news_url
+                        apt_news_url, cli_color, cli_suggestions
 
       <options_string>:
         -h, --help      show this help message and exit
@@ -414,7 +414,7 @@ Feature: Pro Client help text
                     http_proxy, https_proxy, apt_http_proxy, apt_https_proxy,
                     ua_apt_http_proxy, ua_apt_https_proxy, global_apt_http_proxy,
                     global_apt_https_proxy, update_messaging_timer, metering_timer,
-                    apt_news, apt_news_url
+                    apt_news, apt_news_url, cli_color, cli_suggestions
 
       <options_string>:
         -h, --help  show this help message and exit

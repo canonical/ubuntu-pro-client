@@ -79,6 +79,8 @@ update_messaging_timer  21600
 metering_timer          14400
 apt_news                True
 apt_news_url            https://motd.ubuntu.com/aptnews.json
+cli_color               True
+cli_suggestions         True
 """
                 == out
             )

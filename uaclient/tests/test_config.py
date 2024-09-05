@@ -178,6 +178,8 @@ USER_CFG_DICT = {
     "https_proxy": None,
     "update_messaging_timer": 21600,
     "metering_timer": 14400,
+    "cli_color": True,
+    "cli_suggestions": True,
 }
 
 

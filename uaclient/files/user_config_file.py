@@ -44,6 +44,8 @@ class UserConfigData(DataObject):
         Field("polling_error_retry_delay", IntDataValue, required=False),
         Field("metering_timer", IntDataValue, required=False),
         Field("update_messaging_timer", IntDataValue, required=False),
+        Field("cli_color", BoolDataValue, required=False),
+        Field("cli_suggestions", BoolDataValue, required=False),
     ]
 
     def __init__(
@@ -62,6 +64,8 @@ class UserConfigData(DataObject):
         polling_error_retry_delay: Optional[int] = None,
         metering_timer: Optional[int] = None,
         update_messaging_timer: Optional[int] = None,
+        cli_color: Optional[bool] = None,
+        cli_suggestions: Optional[bool] = None,
     ):
         self.apt_http_proxy = apt_http_proxy
         self.apt_https_proxy = apt_https_proxy
@@ -77,6 +81,8 @@ class UserConfigData(DataObject):
         self.polling_error_retry_delay = polling_error_retry_delay
         self.metering_timer = metering_timer
         self.update_messaging_timer = update_messaging_timer
+        self.cli_color = cli_color
+        self.cli_suggestions = cli_suggestions
 
 
 event = event_logger.get_event_logger()
