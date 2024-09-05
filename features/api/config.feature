@@ -9,6 +9,8 @@ Feature: Config status api
         "attributes": {
           "apt_news": true,
           "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+          "cli_color": true,
+          "cli_suggestions": true,
           "global_apt_http_proxy": null,
           "global_apt_https_proxy": null,
           "http_proxy": null,
@@ -32,6 +34,8 @@ Feature: Config status api
         "attributes": {
           "apt_news": false,
           "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+          "cli_color": true,
+          "cli_suggestions": true,
           "global_apt_http_proxy": null,
           "global_apt_https_proxy": null,
           "http_proxy": null,
@@ -73,6 +77,8 @@ Feature: Config status api
         "attributes": {
           "apt_news": true,
           "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+          "cli_color": true,
+          "cli_suggestions": true,
           "global_apt_http_proxy": null,
           "global_apt_https_proxy": null,
           "http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
@@ -95,6 +101,8 @@ Feature: Config status api
         "attributes": {
           "apt_news": true,
           "apt_news_url": "https://motd.ubuntu.com/aptnews.json",
+          "cli_color": true,
+          "cli_suggestions": true,
           "global_apt_http_proxy": null,
           "global_apt_https_proxy": null,
           "http_proxy": "<REDACTED>",
