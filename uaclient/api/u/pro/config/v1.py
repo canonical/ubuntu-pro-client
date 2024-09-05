@@ -62,6 +62,18 @@ class ConfigInfo(DataObject, AdditionalInfo):
             required=False,
             doc="Update messaging timer",
         ),
+        Field(
+            "cli_color",
+            BoolDataValue,
+            required=False,
+            doc="Show colors in the CLI",
+        ),
+        Field(
+            "cli_suggestions",
+            BoolDataValue,
+            required=False,
+            doc="Show suggestions in the CLI",
+        ),
     ]
 
     def __init__(
@@ -76,7 +88,9 @@ class ConfigInfo(DataObject, AdditionalInfo):
         update_messaging_timer: Optional[int] = None,
         metering_timer: Optional[int] = None,
         apt_news: Optional[bool] = None,
-        apt_news_url: Optional[str] = None
+        apt_news_url: Optional[str] = None,
+        cli_color: Optional[bool] = None,
+        cli_suggestions: Optional[bool] = None
     ):
         self.http_proxy = http_proxy
         self.https_proxy = https_proxy
@@ -88,6 +102,8 @@ class ConfigInfo(DataObject, AdditionalInfo):
         self.metering_timer = metering_timer
         self.apt_news = apt_news
         self.apt_news_url = apt_news_url
+        self.cli_color = cli_color
+        self.cli_suggestions = cli_suggestions
 
 
 def config() -> ConfigInfo:
