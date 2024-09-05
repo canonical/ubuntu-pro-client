@@ -2404,6 +2404,11 @@ E_INVALID_FILE_FORMAT = FormattedNamedMessage(
     msg=t.gettext("{file_name} is not valid {file_format}"),
 )
 
+E_INVALID_FILE_ENCODING = FormattedNamedMessage(
+    name="invalid-file-encoding",
+    msg=t.gettext("{file_name} is not encoded as {file_encoding}"),
+)
+
 E_ERROR_PARSING_VERSION_OS_RELEASE = FormattedNamedMessage(
     "error-parsing-version-os-release",
     t.gettext(
