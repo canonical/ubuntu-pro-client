@@ -265,12 +265,166 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
     def get_package_vulnerabilities(self, affected_pkg: Dict[str, Any]):
         pass
 
+    def _add_new_vulnerability(
+        self,
+        affected_vulns: Dict[str, Any],
+        vuln_name: str,
+        vuln_info: Dict[str, Any],
+    ):
+        affected_vulns[vuln_name] = vuln_info
+        affected_vulns[vuln_name]["affected_packages"] = []
+
+    def _add_unfixable_vulnerability(
+        self,
+        affected_vulns: Dict[str, Any],
+        binary_pkgs: Dict[str, str],
+        vuln_name: str,
+        vuln_info: Dict[str, Any],
+        vuln_pkg_status: str,
+    ):
+        if vuln_name not in affected_vulns:
+            self._add_new_vulnerability(
+                affected_vulns=affected_vulns,
+                vuln_name=vuln_name,
+                vuln_info=vuln_info,
+            )
+
+        affected_vulns[vuln_name]["affected_packages"].extend(
+            {
+                "name": pkg_name,
+                "current_version": pkg_version,
+                "fix_version": None,
+                "status": vuln_pkg_status,
+                "fix_available_from": None,
+            }
+            for pkg_name, pkg_version in sorted(binary_pkgs.items())
+        )
+
+    def _add_fixable_vulnerability(
+        self,
+        affected_vulns: Dict[str, Any],
+        binary_pkg_name: str,
+        binary_current_version: str,
+        binary_fix_version: str,
+        fix_pocket: str,
+        vuln_name: str,
+        vuln_pkg_status: str,
+        vuln_info: Dict[str, Any],
+    ):
+        if vuln_name not in affected_vulns:
+            self._add_new_vulnerability(
+                affected_vulns=affected_vulns,
+                vuln_name=vuln_name,
+                vuln_info=vuln_info,
+            )
+
+        affected_vulns[vuln_name]["affected_packages"].append(
+            {
+                "name": binary_pkg_name,
+                "current_version": binary_current_version,
+                "fix_version": binary_fix_version,
+                "status": vuln_pkg_status,
+                "fix_available_from": fix_pocket,
+            }
+        )
+
+    def is_vulnerability_not_fixable(
+        self,
+        vuln_source_fixed_version: str,
+        vuln_pkg_status: str,
+    ):
+        # if the vulnerability fixed version is None,
+        # that means that no fix has been published
+        # yet.
+        if vuln_source_fixed_version is None:
+            if vuln_pkg_status != "not-vulnerable":
+                return True
+
+        return False
+
+    def _get_installed_source_pkg_version(self, binary_pkg_name: str):
+        out, _ = system.subp(
+            [
+                "dpkg-query",
+                "-W",
+                "-f=${source:Version}",
+                binary_pkg_name,
+            ]
+        )
+
+        return out
+
+    def is_vulnerability_valid_but_not_fixable(
+        self,
+        binary_fix_version: Optional[str],
+        binary_pkg_name: str,
+        vuln_source_fixed_version: str,
+    ):
+        """
+        This method checks if we detect that a vulnerability
+        affects a binary package but can't be fixed. This
+        situation can happen during a package transition.
+
+        For example, suppose we have this entry for pkg1:
+
+        "pkg1": {
+          "source_version": {
+            "1.0": {
+              "bin-pkg1": "1.0",
+              "bin-pkg2": "1.1",
+            },
+            "1.1": {
+              "bin-pkg1": "1.2"
+            }
+          }
+        }
+
+        Notice that version 1.1 doesn't produce bin-pkg2 anymore.
+        Therefore, if we detect that a vulnerability is fixable
+        by version 1.1, we won't find the binary fixable bersion for
+        the bin-pkg2 package.
+
+        If we detect that, we will:
+
+        1. Check if version of the source package associated with the
+           binary package is higher thatn the vulnerability source fix
+           version. If it is, we can say that the system is not vulnerable.
+        2. If it is not, then the binary package is affected by the issue, but
+           we can't say what the user needs to do to fix it.
+        """
+
+        if binary_fix_version is None:
+            installed_source_pkg_version = (
+                self._get_installed_source_pkg_version(binary_pkg_name)
+            )
+
+            if (
+                apt.version_compare(
+                    installed_source_pkg_version, vuln_source_fixed_version
+                )
+                > 0
+            ):
+                return False
+            else:
+                return True
+
+        return False
+
+    def vulnerability_affects_system(
+        self,
+        binary_current_version: str,
+        binary_fix_version: str,
+    ):
+        return (
+            apt.version_compare(binary_fix_version, binary_current_version) > 0
+        )
+
     def get_vulnerabilities_for_installed_pkgs(
         self,
         vulnerabilities_data: Dict[str, Any],
         installed_pkgs_by_source: Dict[str, Dict[str, str]],
     ):
-        vulnerabilities = {}
+        vulnerabilities = {}  # type: Dict[str, Any]
 
         affected_pkgs = vulnerabilities_data.get("packages", {})
         vulns_info = vulnerabilities_data.get("security_issues", {}).get(
@@ -286,35 +440,23 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
             ).items():
                 vuln_info = vulns_info.get(vuln_name, "")
                 vuln_source_fixed_version = vuln.get("source_fixed_version")
-                vuln_status = vuln.get("status")
+                vuln_pkg_status = vuln.get("status")
 
-                # if the vulnerability fixed version is None,
-                # that means that no fix has been published
-                # yet.
-                if vuln_source_fixed_version is None:
-                    if vuln_status != "not-vulnerable":
-                        if vuln_name not in vulnerabilities:
-                            vulnerabilities[vuln_name] = vuln_info
-                            vulnerabilities[vuln_name][
-                                "affected_packages"
-                            ] = []
-
-                        vulnerabilities[vuln_name]["affected_packages"].extend(
-                            {
-                                "name": pkg_name,
-                                "current_version": pkg_version,
-                                "fix_version": None,
-                                "status": vuln_status,
-                                "fix_available_from": None,
-                            }
-                            for pkg_name, pkg_version in sorted(
-                                binary_pkgs.items()
-                            )
-                        )
+                if self.is_vulnerability_not_fixable(
+                    vuln_pkg_status=vuln_pkg_status,
+                    vuln_source_fixed_version=vuln_source_fixed_version,
+                ):
+                    self._add_unfixable_vulnerability(
+                        affected_vulns=vulnerabilities,
+                        binary_pkgs=binary_pkgs,
+                        vuln_name=vuln_name,
+                        vuln_info=vuln_info,
+                        vuln_pkg_status=vuln_pkg_status,
+                    )
 
                     continue
 
-                for pkg_name, binary_pkg_version in sorted(
+                for binary_pkg_name, binary_current_version in sorted(
                     binary_pkgs.items()
                 ):
                     try:
@@ -324,7 +466,7 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         binary_fix_version = (
                             source_version[vuln_source_fixed_version]
                             .get("binary_packages", {})
-                            .get(pkg_name, "")
+                            .get(binary_pkg_name)
                         )
                     except KeyError:
                         # There is bug in the data where some sources are
@@ -332,26 +474,38 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         # of this issue and they are handling it
                         continue
 
-                    if (
-                        apt.version_compare(
-                            binary_fix_version, binary_pkg_version
-                        )
-                        > 0
+                    if self.is_vulnerability_valid_but_not_fixable(
+                        binary_fix_version,
+                        binary_pkg_name,
+                        vuln_source_fixed_version,
                     ):
-                        if vuln_name not in vulnerabilities:
-                            vulnerabilities[vuln_name] = vuln_info
-                            vulnerabilities[vuln_name][
-                                "affected_packages"
-                            ] = []
+                        self._add_unfixable_vulnerability(
+                            affected_vulns=vulnerabilities,
+                            binary_pkgs={
+                                binary_pkg_name: binary_current_version
+                            },
+                            vuln_name=vuln_name,
+                            vuln_info=vuln_info,
+                            vuln_pkg_status="unknown",
+                        )
+                        continue
 
-                        vulnerabilities[vuln_name]["affected_packages"].append(
-                            {
-                                "name": pkg_name,
-                                "current_version": binary_pkg_version,
-                                "fix_version": binary_fix_version,
-                                "status": vuln_status,
-                                "fix_available_from": pocket,
-                            }
+                    if binary_fix_version is None:
+                        continue
+
+                    if self.vulnerability_affects_system(
+                        binary_current_version,
+                        binary_fix_version,
+                    ):
+                        self._add_fixable_vulnerability(
+                            affected_vulns=vulnerabilities,
+                            binary_pkg_name=binary_pkg_name,
+                            binary_current_version=binary_current_version,
+                            binary_fix_version=binary_fix_version,
+                            fix_pocket=pocket,
+                            vuln_name=vuln_name,
+                            vuln_info=vuln_info,
+                            vuln_pkg_status=vuln_pkg_status,
                         )
 
         return vulnerabilities

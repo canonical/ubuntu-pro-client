@@ -1,3 +1,4 @@
+import mock
 import pytest
 
 from uaclient import exceptions
@@ -9,6 +10,9 @@ from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     _get_source_package_from_vulnerabilities_data,
     _get_vulnerability_fix_status,
 )
+
+M_PATH = "uaclient.api.u.pro.security.vulnerabilities._common.v1."
+
 
 VULNERABILITIES_DATA = {
     "packages": {
@@ -29,6 +33,12 @@ VULNERABILITIES_DATA = {
                     },
                     "pocket": "esm-infra",
                 },
+                "1.1.4": {
+                    "binary_packages": {
+                        "test1-bin1": "1.1.5",
+                    },
+                    "pocket": "esm-infra",
+                },
             },
             "cves": {
                 "CVE-2022-12345": {
@@ -46,6 +56,10 @@ VULNERABILITIES_DATA = {
                 "CVE-2022-95632": {
                     "source_fixed_version": None,
                     "status": "not-vulnerable",
+                },
+                "CVE-2022-86782": {
+                    "source_fixed_version": "1.1.4",
+                    "status": "fixed",
                 },
             },
         },
@@ -77,6 +91,14 @@ VULNERABILITIES_DATA = {
                 "cvss_score": 4.2,
             },
             "CVE-2022-56789": {
+                "description": "description",
+                "published_at": "date",
+                "notes": ["hint"],
+                "mitigation": "hint",
+                "cvss_severity": "low",
+                "cvss_score": 4.2,
+            },
+            "CVE-2022-86782": {
                 "description": "description",
                 "published_at": "date",
                 "notes": ["hint"],
@@ -158,13 +180,45 @@ class TestVulnerabilityParser:
                         "cvss_severity": "low",
                         "cvss_score": 4.2,
                     },
+                    "CVE-2022-86782": {
+                        "affected_packages": [
+                            {
+                                "name": "test1-bin",
+                                "current_version": "1.1.4",
+                                "fix_version": None,
+                                "status": "unknown",
+                                "fix_available_from": None,
+                            },
+                            {
+                                "name": "test1-bin1",
+                                "current_version": "1.1.1",
+                                "fix_version": "1.1.5",
+                                "status": "fixed",
+                                "fix_available_from": "esm-infra",
+                            },
+                        ],
+                        "description": "description",
+                        "published_at": "date",
+                        "notes": ["hint"],
+                        "mitigation": "hint",
+                        "cvss_severity": "low",
+                        "cvss_score": 4.2,
+                    },
                 },
             ),
         ),
     )
+    @mock.patch(
+        M_PATH + "VulnerabilityParser._get_installed_source_pkg_version"
+    )
     def test_get_vulnerabilities_for_installed_pkgs(
-        self, vulnerabilities_data, installed_pkgs_by_source, expected_result
+        self,
+        m_get_installed_source_pkg_version,
+        vulnerabilities_data,
+        installed_pkgs_by_source,
+        expected_result,
     ):
+        m_get_installed_source_pkg_version.return_value = "1.1.3"
         parser = ConcreteVulnerabilityParser()
         assert (
             parser.get_vulnerabilities_for_installed_pkgs(
