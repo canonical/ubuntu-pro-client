@@ -13,4 +13,4 @@ pytest-cov
 # two releases have the same python_version.
 git+https://git.launchpad.net/ubuntu/+source/python-apt@ubuntu/jammy-updates ; python_version == '3.10'
 # need to keep an aye to bump this when python-apt is in noble-updates
-git+https://git.launchpad.net/ubuntu/+source/python-apt@ubuntu/noble ; python_version == '3.12'
+git+https://git.launchpad.net/ubuntu/+source/python-apt@ubuntu/noble-updates ; python_version == '3.12'
