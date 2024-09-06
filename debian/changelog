@@ -13,6 +13,7 @@ ubuntu-advantage-tools (34) oracular; urgency=medium
       + change help output for base pro command
       + remove service descriptions from output (GH: #3126)
       + show help content when run without a subcommand
+    - timer: recover from corrupted job status file (LP: #2074211)
     - update manpage
 
  -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 29 Jul 2024 15:48:22 -0500
