@@ -28,9 +28,9 @@ standard structure, as can be seen below:
            },
            "type": "<response_type>"
        },
-       "errors": [], 
+       "errors": [],
        "result": "<success|failure>",
-       "version": "<client version>", 
+       "version": "<client version>",
        "warnings": []
    }
 
@@ -117,7 +117,7 @@ will be populated like this if we have a connectivity issue when running a
 
    [
        {
-           "msg": "Failed to connect to authentication server",
+           "title": "Failed to connect to authentication server",
            "code": "connectivity-error",
            "meta": {}
        }
