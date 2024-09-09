@@ -58,6 +58,7 @@ Necessary endpoints for ``snap``
 Necessary endpoints for ``livepatch``:
 
 - ``livepatch.canonical.com:443``
+- ``livepatch-files.canonical.com:443``
 
 Fix
 ===
