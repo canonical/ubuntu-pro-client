@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+import shutil
 import unicodedata
 from typing import List, Optional
 
@@ -199,10 +200,12 @@ def select_message(
 
 @ensure_apt_pkg_init
 def fetch_aptnews_json(cfg: UAConfig):
-    os.makedirs(defaults.UAC_RUN_PATH, exist_ok=True)
+    os.makedirs(defaults.APT_NEWS_PATH, exist_ok=True)
+    shutil.chown(defaults.APT_NEWS_PATH, user="_apt")
+
     acq = apt_pkg.Acquire()
     apt_news_file = apt_pkg.AcquireFile(
-        acq, cfg.apt_news_url, hash="", destdir=defaults.UAC_RUN_PATH
+        acq, cfg.apt_news_url, hash="", destdir=defaults.APT_NEWS_PATH
     )
     acq.run()
     apt_news_contents = system.load_file(apt_news_file.destfile)
