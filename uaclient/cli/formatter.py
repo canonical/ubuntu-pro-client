@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 from uaclient.config import UAConfig
@@ -36,3 +37,23 @@ class ProOutputFormatterConfig:
 
 
 ProOutputFormatterConfig.init(cfg=UAConfig())
+
+
+class ProColorString(str):
+    _formatting_pattern = r"\033\[.*?m"
+
+    def __add__(self, other):
+        return self.__class__(str(self) + other)
+
+    def __radd__(self, other):
+        return self.__class__(other + str(self))
+
+    def __len__(self):
+        return len(self.decolorize())
+
+    def decolorize(self):
+        return re.sub(self._formatting_pattern, "", self)
+
+    def split(self, sep=None, maxsplit=-1):
+        splitted = super().split(sep=sep, maxsplit=maxsplit)
+        return [self.__class__(s) for s in splitted]
