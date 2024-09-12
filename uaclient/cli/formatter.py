@@ -1,8 +1,20 @@
 import os
 import re
 import sys
+from enum import Enum
 
 from uaclient.config import UAConfig
+
+
+class TxtColor(Enum):
+    BLUE = "\033[94m"
+    BOLD = "\033[1m"
+    GREEN = "\033[92m"
+    GREY = "\033[37m"
+    ORANGE = "\033[38;5;208m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    ENDC = "\033[0m"
 
 
 # Class attributes and methods so we don't need singletons or globals for this
@@ -57,3 +69,14 @@ class ProColorString(str):
     def split(self, sep=None, maxsplit=-1):
         splitted = super().split(sep=sep, maxsplit=maxsplit)
         return [self.__class__(s) for s in splitted]
+
+
+def colorize(input_string: str, color: TxtColor) -> str:
+    if not ProOutputFormatterConfig.use_color:
+        return input_string
+
+    return_string = ProColorString(color.value + input_string)
+    if not return_string.endswith(TxtColor.ENDC.value):
+        return_string += TxtColor.ENDC.value
+
+    return return_string

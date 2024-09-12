@@ -3,6 +3,7 @@ import pytest
 
 from uaclient.cli.formatter import ProColorString
 from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
+from uaclient.cli.formatter import TxtColor, colorize
 
 M_PATH = "uaclient.cli.formatter."
 
@@ -155,3 +156,21 @@ class TestProColorString:
         ] == splitted
         for chunk in splitted:
             assert isinstance(chunk, ProColorString)
+
+
+class TestColorize:
+    def test_adds_color_to_strings(self, FakeConfig):
+        POFC.use_color = True
+        assert "\033[94mtest_string\033[0m" == colorize(
+            "test_string", TxtColor.BLUE
+        )
+
+    def test_noop_if_no_color_set(self, FakeConfig):
+        POFC.use_color = False
+        assert "test_string" == colorize("test_string", TxtColor.BLUE)
+
+    def does_not_add_multiple_end_characters(self, FakeConfig):
+        POFC.use_color = True
+        blue_string = colorize("test_string", TxtColor.BLUE)
+        bold_blue_string = colorize(blue_string, TxtColor.BOLD)
+        assert "\033[1m\033[94mtest_string\033[0m" == bold_blue_string
