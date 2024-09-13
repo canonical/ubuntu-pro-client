@@ -245,12 +245,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type   |
-      | xenial  | aws.generic    |
-      | bionic  | aws.generic    |
-      | focal   | aws.generic    |
-      | jammy   | aws.generic    |
-      | noble   | aws.generic    |
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
 
   Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
