@@ -36,6 +36,7 @@ class TxtColor:
     INFOBLUE = "\033[94m"
     WARNINGYELLOW = "\033[93m"
     FAIL = "\033[91m"
+    ORANGE = "\033[38;5;208m"
     BOLD = "\033[1m"
     ENDC = "\033[0m"
 
