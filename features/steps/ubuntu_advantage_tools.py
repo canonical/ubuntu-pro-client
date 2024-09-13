@@ -79,12 +79,12 @@ def when_i_install_uat(context, machine_name=SUT):
         debs = get_debs_for_series(context.pro_config.debs_path, series)
         logging.info("using debs: {}".format(debs))
         to_install = []
-        for deb_name, deb_path in debs.non_cloud_pro_image_debs():
+        for deb_name, deb_path in debs.non_cloud_pro_image_debs(series):
             instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
             instance.push_file(deb_path, instance_tmp_path)
             to_install.append(instance_tmp_path)
         if is_pro:
-            for deb_name, deb_path in debs.cloud_pro_image_debs():
+            for deb_name, deb_path in debs.cloud_pro_image_debs(series):
                 instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
                 instance.push_file(deb_path, instance_tmp_path)
                 to_install.append(instance_tmp_path)
@@ -97,7 +97,7 @@ def when_i_install_uat(context, machine_name=SUT):
             sbuild_output_to_terminal=context.pro_config.sbuild_output_to_terminal,  # noqa: E501
         )
         to_install = []
-        for deb_name, deb_path in debs.non_cloud_pro_image_debs():
+        for deb_name, deb_path in debs.non_cloud_pro_image_debs(series):
             instance_tmp_path = "/tmp/behave_{}.deb".format(deb_name)
             instance.push_file(deb_path, instance_tmp_path)
             to_install.append(instance_tmp_path)
@@ -110,11 +110,19 @@ def when_i_install_uat(context, machine_name=SUT):
             context, " ".join(to_install), machine_name=machine_name
         )
     else:
-        when_i_apt_install(
-            context,
-            "ubuntu-pro-client ubuntu-advantage-tools",
-            machine_name=machine_name,
-        )
+        if series in ("xenial", "bionic", "focal", "jammy"):
+            when_i_apt_install(
+                context,
+                "ubuntu-pro-client ubuntu-advantage-tools",
+                machine_name=machine_name,
+            )
+        else:
+            when_i_apt_install(
+                context,
+                "ubuntu-pro-client",
+                machine_name=machine_name,
+            )
+
         if is_pro:
             when_i_apt_install(
                 context,
