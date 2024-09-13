@@ -1,7 +1,11 @@
 import os
+import re
 import sys
+from typing import List
 
 from uaclient.config import UAConfig
+
+COLOR_FORMATTING_PATTERN = r"\033\[.*?m"
 
 
 # Class attributes and methods so we don't need singletons or globals for this
@@ -36,3 +40,30 @@ class ProOutputFormatterConfig:
 
 
 ProOutputFormatterConfig.init(cfg=UAConfig())
+
+
+def len_no_color(text: str) -> int:
+    return len(re.sub(COLOR_FORMATTING_PATTERN, "", text))
+
+
+# We can't rely on textwrap because of the len_no_color function
+# Textwrap is using a magic regex instead
+def wrap_text(text: str, max_width: int) -> List[str]:
+    if len_no_color(text) < max_width:
+        return [text]
+
+    words = text.split()
+    wrapped_lines = []
+    current_line = ""
+
+    for word in words:
+        if len_no_color(current_line) + len_no_color(word) >= max_width:
+            wrapped_lines.append(current_line.strip())
+            current_line = word
+        else:
+            current_line += " " + word
+
+    if current_line:
+        wrapped_lines.append(current_line.strip())
+
+    return wrapped_lines
