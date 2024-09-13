@@ -2,6 +2,7 @@ import mock
 import pytest
 
 from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
+from uaclient.cli.formatter import len_no_color, wrap_text
 
 M_PATH = "uaclient.cli.formatter."
 
@@ -63,3 +64,49 @@ class TestProFormatterConfig:
 
         POFC.disable_suggestions()
         assert POFC.show_suggestions is False
+
+
+class TestRealLength:
+    @pytest.mark.parametrize(
+        "input_string,expected_length",
+        (
+            ("", 0),
+            ("input text", 10),
+            ("\033[1mbold text\033[0m", 9),
+            ("\033[91mred text\033[0m", 8),
+            ("\033[1m\033[91mbold and red text\033[0m", 17),
+            ("some \033[1mbold\033[0m and some \033[91mred\033[0m text", 27),
+        ),
+    )
+    def test_length_ignores_color(self, input_string, expected_length):
+        assert expected_length == len_no_color(input_string)
+
+
+class TestWrapText:
+    def test_single_line_wrapped(self):
+        assert ["example"] == wrap_text("example", 20)
+
+        long_string = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+            "Pellentesque diam nulla, efficitur a orci non, "
+            "scelerisque lobortis felis."
+        )
+        assert [
+            "Lorem ipsum dolor sit amet,",
+            "consectetur adipiscing elit.",
+            "Pellentesque diam nulla,",
+            "efficitur a orci non,",
+            "scelerisque lobortis felis.",
+        ] == wrap_text(long_string, 30)
+
+        colored_string = (
+            "some \033[1mbold\033[0m and include "
+            "the \033[91mred\033[0m text too"
+        )
+        assert len(colored_string) == 55
+        assert [colored_string] == wrap_text(colored_string, 40)
+        assert [
+            "some \x1b[1mbold\x1b[0m and",
+            "include the \x1b[91mred\x1b[0m text",
+            "too",
+        ] == wrap_text(colored_string, 20)
