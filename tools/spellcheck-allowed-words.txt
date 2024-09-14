@@ -91,6 +91,8 @@ LIVEPATCH
 livepatches
 Livepatches
 LTS
+lxd
+LXD
 METAPACKAGE
 MOTD
 msg
