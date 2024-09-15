@@ -1,8 +1,10 @@
+import textwrap
+
 import mock
 import pytest
 
 from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
-from uaclient.cli.formatter import len_no_color, wrap_text
+from uaclient.cli.formatter import Table, len_no_color, wrap_text
 
 M_PATH = "uaclient.cli.formatter."
 
@@ -66,7 +68,7 @@ class TestProFormatterConfig:
         assert POFC.show_suggestions is False
 
 
-class TestRealLength:
+class TestLenNoColor:
     @pytest.mark.parametrize(
         "input_string,expected_length",
         (
@@ -110,3 +112,123 @@ class TestWrapText:
             "include the \x1b[91mred\x1b[0m text",
             "too",
         ] == wrap_text(colored_string, 20)
+
+
+class TestTable:
+    @pytest.mark.parametrize(
+        "input_str,input_len,expected_value",
+        (
+            ("", 0, ""),
+            ("", 5, "     "),
+            ("test", 2, "test"),
+            ("test", 4, "test"),
+            ("test", 10, "test      "),
+        ),
+    )
+    def test_ljust(self, input_str, input_len, expected_value):
+        assert expected_value == Table.ljust(input_str, input_len)
+
+    @pytest.mark.parametrize(
+        "headers,rows,expected_msg",
+        (
+            (None, None, "Empty table not supported."),
+            (None, [["a", "b"], [], ["c", "d"]], "Empty row not supported."),
+            (
+                None,
+                [["a", "b"], ["c", "d", "e"], ["f", "g"]],
+                "Mixed lengths in table content.",
+            ),
+            (
+                ["h1", "h2", "h3"],
+                [["a", "b"], ["c", "d"], ["e", "f"]],
+                "Mixed lengths in table content.",
+            ),
+        ),
+    )
+    def test_validate_rejects_invalid_entries(
+        self, headers, rows, expected_msg
+    ):
+        with pytest.raises(ValueError) as error:
+            Table(headers=headers, rows=rows)
+
+        assert expected_msg in str(error.value)
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
+    def test_max_length_is_set(self, _m_is_tty):
+        table = Table(["a"], [], max_length=99)
+        assert table.max_length == 99
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
+    @mock.patch(M_PATH + "os.get_terminal_size")
+    def test_max_length_is_terminal_size_if_not_set(
+        self, m_terminal_size, _m_is_tty
+    ):
+        table = Table(["a"], [])
+        assert table.max_length == m_terminal_size.return_value.columns
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=False)
+    def test_max_length_is_infinite_if_not_tty(self, _m_is_tty):
+        table = Table(["a"], [])
+        assert table.max_length == 999
+
+    def test_column_sizes(self):
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                ["b", "de", "fg", "wow this is a really big string of data"],
+                ["c", "fg", "hijkl", "m"],
+            ],
+        )
+        assert table.column_sizes == [7, 2, 5, 39]
+
+    def test_line_length(self):
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                ["b", "de", "fg", "wow this is a really big string of data"],
+                ["c", "fg", "hijkl", "m"],
+            ],
+        )
+        assert table._get_line_length() == 59
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
+    def test_wrap_last_column(self, _m_is_tty):
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                ["b", "de", "fg", "wow this is a really big string of data"],
+                ["c", "fg", "hijkl", "m"],
+            ],
+            max_length=40,
+        )
+        assert table.wrap_last_column() == [
+            table.rows[0],
+            ["b", "de", "fg", "wow this is a"],
+            [" ", " ", " ", "really big string of"],
+            [" ", " ", " ", "data"],
+            table.rows[2],
+        ]
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
+    def test_print_as_str(self, _m_is_tty):
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                ["b", "de", "fg", "wow this is a really big string of data"],
+                ["c", "fg", "hijkl", "m"],
+            ],
+            max_length=40,
+        )
+        assert table.__str__() == textwrap.dedent(
+            """\
+            \x1b[1mheader1  h2  h3     h4\x1b[0m
+            a        bc  de     f
+            b        de  fg     wow this is a
+                                really big string of
+                                data
+            c        fg  hijkl  m"""
+        )
