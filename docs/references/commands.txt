@@ -1,0 +1,327 @@
+..
+   THIS DOCUMENTATION WAS AUTOMATICALLY GENERATED
+   Do not edit this document directly. Instead, edit the commands in the cli
+   source code, which can be found on the main branch of the git repo at
+   https://github.com/canonical/ubuntu-pro-client. The cli source code is
+   nested in the uaclient/cli folder. Description for the commands is found
+   in the uaclient/messages folder.
+
+Available commands
+==================
+
+The currently available commands are:
+
+- `pro api`_
+- `pro attach`_
+- `pro auto-attach`_
+- `pro collect-logs`_
+- `pro config`_
+- `pro detach`_
+- `pro disable`_
+- `pro enable`_
+- `pro fix`_
+- `pro help`_
+- `pro refresh`_
+- `pro security-status`_
+- `pro status`_
+- `pro system`_
+
+
+pro api
+=======
+
+**Usage:**
+
+``pro api [-h] [--show-progress] [--args [OPTIONS ...]] [--data DATA] endpoint``
+
+**Description:**
+
+Calls the Client API endpoints.
+
+For a list of all of the supported endpoints and their structure,
+please refer to the Pro Client API reference guide:
+
+https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/references/api/
+
+pro attach
+==========
+
+**Usage:**
+
+``pro attach [-h] [--no-auto-enable] [--attach-config ATTACH_CONFIG] [--format {cli,json}] [token]``
+
+**Description:**
+
+Attach this machine to an Ubuntu Pro subscription with a token obtained from:
+https://ubuntu.com/pro/dashboard
+
+When running this command without a token, it will generate a short code
+and prompt you to attach the machine to your Ubuntu Pro account using
+a web browser.
+
+The "attach-config" option can be used to provide a file with the token
+and optionally, a list of services to enable after attaching. To know more,
+visit:
+https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/how_to_attach_with_config_file/
+
+The exit code will be:
+
+    * 0: on successful attach
+    * 1: in case of any error while trying to attach
+    * 2: if the machine is already attached
+
+pro auto-attach
+===============
+
+**Usage:**
+
+``pro auto-attach [-h]``
+
+**Description:**
+
+Automatically attach on an Ubuntu Pro cloud instance.
+
+pro collect-logs
+================
+
+**Usage:**
+
+``pro collect-logs [-h] [-o OUTPUT]``
+
+**Description:**
+
+Collect logs and relevant system information into a tarball.
+This information can be later used for triaging/debugging issues.
+
+pro config
+==========
+
+**Usage:**
+
+``pro config [-h] {show,set,unset} ...``
+
+**Description:**
+
+Manage Ubuntu Pro Client configuration on this machine.
+
+pro config show
+---------------
+
+**Usage:**
+
+``pro config show [-h] [key]``
+
+**Description:**
+
+Show customizable configuration settings.
+
+pro config set
+--------------
+
+**Usage:**
+
+``pro config set [-h] key_value_pair``
+
+**Description:**
+
+Set and apply Ubuntu Pro configuration settings.
+
+pro config unset
+----------------
+
+**Usage:**
+
+``pro config unset [-h] key``
+
+**Description:**
+
+Unset an Ubuntu Pro configuration setting, restoring the default value.
+
+pro detach
+==========
+
+**Usage:**
+
+``pro detach [-h] [--assume-yes] [--format {cli,json}]``
+
+**Description:**
+
+Detach this machine from an Ubuntu Pro subscription.
+
+pro disable
+===========
+
+**Usage:**
+
+``pro disable [-h] [--assume-yes] [--format {cli,json}] [--purge] service [service ...]``
+
+**Description:**
+
+Disable one or more Ubuntu Pro services.
+
+pro enable
+==========
+
+**Usage:**
+
+``pro enable [-h] [--assume-yes] [--access-only] [--beta] [--format {cli,json}] [--variant VARIANT] service [service ...]``
+
+**Description:**
+
+Activate and configure this machine's access to one or more Ubuntu Pro services.
+
+pro fix
+=======
+
+**Usage:**
+
+``pro fix [-h] [--dry-run] [--no-related] security_issue``
+
+**Description:**
+
+Inspect and resolve Common Vulnerabilities and Exposures (CVEs) and
+Ubuntu Security Notices (USNs) on this machine.
+
+The exit code will be:
+
+    * 0: the fix was successfully applied or the system is not affected
+    * 1: the fix cannot be applied
+    * 2: the fix was applied but requires a reboot before it takes effect
+
+pro help
+========
+
+**Usage:**
+
+``pro help [-h] [--format {tabular,json,yaml}] [--all] [service]``
+
+**Description:**
+
+Provide detailed information about Ubuntu Pro services.
+
+pro refresh
+===========
+
+**Usage:**
+
+``pro refresh [-h] [{contract,config,messages}]``
+
+**Description:**
+
+Refresh three distinct Ubuntu Pro related artifacts in the system:
+
+    * contract: Update contract details from the server.
+    * config:   Reload the config file.
+    * messages: Update APT and MOTD messages related to Pro.
+
+You can individually target any of the three specific actions,
+by passing the target name to the command. If no target
+is specified, all targets are refreshed.
+
+
+pro security-status
+===================
+
+**Usage:**
+
+``pro security-status [-h] [--format {json,yaml,text}] [--thirdparty | --unavailable | --esm-infra | --esm-apps]``
+
+**Description:**
+
+Show security updates for packages in the system, including all
+available Expanded Security Maintenance (ESM) related content.
+
+Shows counts of how many packages are supported for security updates
+in the system.
+
+If the format is set to JSON or YAML it shows a summary of the
+installed packages based on the origin:
+
+    - main/restricted/universe/multiverse: Packages from the Ubuntu archive.
+    - esm-infra/esm-apps: Packages from the ESM archive.
+    - third-party: Packages installed from non-Ubuntu sources.
+    - unknown: Packages which don't have an installation source (like local
+      deb packages or packages for which the source was removed).
+
+The output contains basic information about Ubuntu Pro. For a
+complete status on Ubuntu Pro services, run 'pro status'.
+
+
+pro status
+==========
+
+**Usage:**
+
+``pro status [-h] [--wait] [--format {tabular,json,yaml}] [--simulate-with-token TOKEN] [--all]``
+
+**Description:**
+
+Report current status of Ubuntu Pro services on system.
+
+This shows whether this machine is attached to an Ubuntu Pro
+support contract. When attached, the report includes the specific
+support contract details including contract name, expiry dates, and the
+status of each service on this system.
+
+The attached status output has four columns:
+
+    * SERVICE: Name of the service.
+    * ENTITLED: Whether the contract to which this machine is attached
+      entitles use of this service. Possible values are: yes or no.
+    * STATUS: Whether the service is enabled on this machine. Possible
+      values are: enabled, disabled, n/a (if your contract entitles
+      you to the service, but it isn't available for this machine) or — (if
+      you aren't entitled to this service).
+    * DESCRIPTION: A brief description of the service.
+
+The unattached status output instead has three columns. SERVICE
+and DESCRIPTION are the same as above, and there is the addition
+of:
+
+    * AVAILABLE: Whether this service would be available if this machine
+      were attached. The possible values are yes or no.
+
+If "simulate-with-token" is used, then the output has five
+columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
+as mentioned above, and AUTO_ENABLED shows whether the service is set
+to be enabled when that token is attached.
+
+If the "all" flag is set, beta and unavailable services are also
+listed in the output.
+
+
+pro system
+==========
+
+**Usage:**
+
+``pro system [-h] {reboot-required} ...``
+
+**Description:**
+
+Outputs system-related information about Pro services.
+
+pro system reboot-required
+--------------------------
+
+**Usage:**
+
+``pro system reboot-required [-h]``
+
+**Description:**
+
+Report the current reboot-required status for the machine.
+
+This command will output one of the three following states
+for the machine regarding reboot:
+
+    * no: The machine doesn't require a reboot.
+    * yes: The machine requires a reboot.
+    * yes-kernel-livepatches-applied: There are only kernel-related
+      packages that require a reboot, but Livepatch has already provided
+      patches for the current running kernel. The machine still needs a
+      reboot, but you can assess if the reboot can be performed in the
+      nearest maintenance window.
+
+
+
