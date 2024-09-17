@@ -153,6 +153,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
                 retry_sleeps=APT_RETRIES,
             )
     except exceptions.ProcessExecutionError as e:
+        LOG.error("Error running apt-helper: %s", str(e))
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
             if re.search(r"401\s+unauthorized|httperror401", stderr):
@@ -227,6 +228,7 @@ def run_apt_command(
             override_env_vars=override_env_vars,
         )
     except exceptions.ProcessExecutionError as e:
+        LOG.warning("Error running apt command %s: %s", str(cmd), str(e))
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             raise exceptions.APTProcessConflictError()
         else:
@@ -376,7 +378,8 @@ def run_apt_update_command(
         out = run_apt_command(
             cmd=["apt-get", "update"], override_env_vars=override_env_vars
         )
-    except exceptions.APTProcessConflictError:
+    except exceptions.APTProcessConflictError as e:
+        LOG.warning("Error running apt-get update: %s", str(e))
         raise exceptions.APTUpdateProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTUpdateInvalidRepoError(repo_msg=e.msg)
@@ -424,7 +427,8 @@ def update_sources_list(sources_list_path: str):
             with lock:
                 cache.update(fetch_progress, sources_list, 0)
         # No apt_pkg.Error on Xenial
-        except getattr(apt_pkg, "Error", ()):
+        except getattr(apt_pkg, "Error", ()) as e:
+            LOG.error("Error updating apt cache: %s", str(e))
             raise exceptions.APTProcessConflictError()
         except SystemError as e:
             raise exceptions.APTUpdateFailed(detail=str(e))
@@ -448,6 +452,7 @@ def run_apt_install_command(
             override_env_vars=override_env_vars,
         )
     except exceptions.APTProcessConflictError:
+        LOG.error("Error running apt install for packages %s", packages)
         raise exceptions.APTInstallProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTInstallInvalidRepoError(repo_msg=e.msg)
