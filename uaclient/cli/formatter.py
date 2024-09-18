@@ -133,11 +133,12 @@ class Table:
         return column_sizes
 
     def __str__(self) -> str:
+        rows = self.rows
         if self._get_line_length() > self.max_length:
-            self.rows = self.wrap_last_column()
+            rows = self.wrap_last_column()
         output = ""
         output += TxtColor.BOLD + self._fill_row(self.headers) + TxtColor.ENDC
-        for row in self.rows:
+        for row in rows:
             output += "\n"
             output += self._fill_row(row)
         return output
@@ -158,8 +159,7 @@ class Table:
                 new_rows.append(row)
             else:
                 wrapped_last_column = wrap_text(row[-1], last_column_size)
-                row[-1] = wrapped_last_column[0]
-                new_rows.append(row)
+                new_rows.append(row[:-1] + [wrapped_last_column[0]])
                 for extra_line in wrapped_last_column[1:]:
                     new_row = [" "] * (len(self.column_sizes) - 1) + [
                         extra_line
