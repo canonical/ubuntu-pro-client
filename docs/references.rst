@@ -14,6 +14,7 @@ Reference
     :maxdepth: 1
     :glob:
 
+    CLI reference guide <references/commands.rst>
     API reference guide <references/api.rst>
     Network requirements <references/network_requirements.md>
     Personal Package Archives (PPAs) <references/ppas.md>

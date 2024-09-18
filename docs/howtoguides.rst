@@ -10,73 +10,74 @@ can be applied to a wider range of situations.
 They will help you to achieve a particular end result, but may require you to
 understand and adapt the steps to fit your specific requirements.
 
-How to use ``pro`` commands
-===========================
+Attach a machine to a subscription
+==================================
 
-``pro attach``
---------------
+.. include:: howtoguides/attach_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   Attach... <howtoguides/attach_index>
+
+Enable services
+===============
+
+.. include:: howtoguides/enable_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+      
+   Enable... <howtoguides/enable_index>
+
+Fix vulnerabilities
+===================
+
+.. include:: howtoguides/fix_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+   
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   Fix vulnerabilities... <howtoguides/fix_index>
+
+Use the Pro Client
+==================
+
+.. include:: howtoguides/configure_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   Use the Client... <howtoguides/configure_index>
+
+Proxies
+=======
 
 .. toctree::
    :maxdepth: 1
 
-   Attach a machine to a subscription <howtoguides/get_token_and_attach>
-   Attach via a configuration file <howtoguides/how_to_attach_with_config_file>
+   Configure a proxy <howtoguides/configure_proxies>
+   Configure TLS-in-TLS proxy <howtoguides/configure_tls_in_tls_proxy>
 
-``pro collect-logs``
---------------------
+How to collect logs
+===================
 
 .. toctree::
    :maxdepth: 1
    
    Collect data logs for bug reporting <howtoguides/how_to_collect_logs>
-
-``pro config``
---------------
-
-.. toctree::
-   :maxdepth: 2
-   
-   Configure... <howtoguides/configure_index>
-
-``pro enable``
---------------
-
-.. toctree::
-   :maxdepth: 2
-      
-   Enable... <howtoguides/enable_index>
-
-``pro refresh``
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Update MOTD and APT messages <howtoguides/update_motd_messages>
-
-``pro status``
---------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Simulate the `attach` operation <howtoguides/how_to_simulate_attach>
-
-``pro version``
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Check Ubuntu Pro Client version <howtoguides/check_pro_version>
-
-Fixing CVEs and USNs
-====================
-
-.. toctree::
-   :maxdepth: 2
-
-   Resolving CVEs and USNs... <howtoguides/fix_index>
 
 Corrupted lock files
 ====================
@@ -102,11 +103,3 @@ Ubuntu Pro Client for Clouds
 
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
-
-APT integration
-===============
-
-.. toctree::
-   :maxdepth: 1
-
-    How to use custom APT configuration <howtoguides/use_custom_apt_config>

@@ -19,16 +19,16 @@ check the version you are running with the following command:
 
     pro version
 
-If you're on a version lower than 27.7, you can update it by running: 
+If you're on a version lower than 27.7, you can update it by running:
 
 .. code-block:: bash
 
-    sudo apt update && sudo apt install ubuntu-advantage-tools
+    sudo apt update && sudo apt install ubuntu-pro-client
 
 Create an Ubuntu Pro Attach Config file
 =======================================
 
-.. attention:: 
+.. attention::
 
    The Ubuntu Pro Attach Config file will contain your Ubuntu Pro Contract
    token and should be treated as a secret file.
@@ -86,9 +86,9 @@ inline comments explaining each line:
       # the next step
       apt-get update \
       #
-      # Here we install `pro` (ubuntu-advantage-tools) as well as ca-certificates,
+      # Here we install `pro` (ubuntu-pro-client) as well as ca-certificates,
       # which is required to talk to the Ubuntu Pro authentication server securely.
-      && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
+      && apt-get install --no-install-recommends -y ubuntu-pro-client ca-certificates \
       #
       # With pro installed, we attach using our attach config file from the
       # previous step
@@ -116,15 +116,16 @@ inline comments explaining each line:
       # services, we can clean up.
       ###########################################################################
       #
-      # This purges ubuntu-advantage-tools, including all Ubuntu Pro related
-      # secrets from the system.
+      # This detaches and purges ubuntu-pro-client, including all Ubuntu Pro
+      # related secrets from the system.
       ###########################################################################
       # IMPORTANT: As written here, this command assumes your container does not
       # need ca-certificates so it is purged as well.
       # If your container needs ca-certificates, then do not purge it from the
       # system here.
       ###########################################################################
-      && apt-get purge --auto-remove -y ubuntu-advantage-tools ca-certificates \
+      && pro detach --assume-yes
+      && apt-get purge --auto-remove -y ubuntu-pro-client ca-certificates \
       #
       # Finally, we clean up the apt lists which should not be needed anymore
       # because any `apt-get install`s should have happened above. Cleaning these

@@ -1,7 +1,7 @@
 Check the status of the services
 ================================
 
-After you have :ref:`attached your subscription <get_token_and_attach>` and
+After you have :ref:`attached your subscription <attach>` and
 updated the ``ubuntu-advantage-tools`` package, you can check which services
 are enabled by running the following command:
 

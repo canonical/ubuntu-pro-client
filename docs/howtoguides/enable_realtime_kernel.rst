@@ -4,8 +4,8 @@ How to enable Real-time Ubuntu
 ******************************
 
 `Real-time Ubuntu <realtime_>`_ is supported on specific Ubuntu releases. To
- find out more about the supported Ubuntu versions and what kernel variants
- are available, refer to `the supported releases page <rt_releases_>`_.
+find out more about the supported Ubuntu versions and what kernel variants
+are available, refer to `the supported releases page <rt_releases_>`_.
 
 Attach your subscription
 ========================
@@ -19,8 +19,7 @@ running the following command:
     sudo pro attach
 
 And follow the instructions in your terminal window. For a more complete guide
-to the attach process, refer to our
-:ref:`how to attach <get_token_and_attach>` guide.
+to the attach process, refer to our :ref:`how to attach <attach>` guide.
 
 .. Make sure Pro is up to date
 .. include:: ./enable-disable/update-pro.txt
@@ -52,7 +51,7 @@ and processor, and use the corresponding command below:
 
    .. tab-item:: Generic
 
-      .. code-block:: shell
+      .. code-block:: bash
 
          sudo pro enable realtime-kernel
       
@@ -65,7 +64,7 @@ and processor, and use the corresponding command below:
 
       For Raspberry Pi 4 and 5:
 
-      .. code-block:: shell
+      .. code-block:: bash
 
          sudo pro enable realtime-kernel --variant=raspi
 
@@ -73,7 +72,7 @@ and processor, and use the corresponding command below:
 
       For 12th Gen Intel® Core™ processors:
 
-      .. code-block:: shell
+      .. code-block:: bash
 
          sudo pro enable realtime-kernel --variant=intel-iotg
 
@@ -109,7 +108,7 @@ To access the Real-time Ubuntu repository but not install the package
 immediately, you can use the ``--access-only`` flag, which was introduced in
 Pro Client version 27.11:
 
-.. code-block:: shell-session
+.. code-block:: bash
 
    $ sudo pro enable realtime-kernel --access-only
 
@@ -126,7 +125,7 @@ Now that Real-time Ubuntu is accessible, you can install and enable it whenever
 you wish. For example, to install the generic Real-time kernel (not suitable
 for Raspberry Pi):
 
-.. code-block:: shell
+.. code-block:: bash
 
    sudo apt install ubuntu-realtime
 

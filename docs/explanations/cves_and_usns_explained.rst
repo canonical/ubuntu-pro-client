@@ -3,6 +3,8 @@
 CVEs and USNs explained
 ***********************
 
+.. _what-is-a-cve:
+
 What is a CVE
 =============
 

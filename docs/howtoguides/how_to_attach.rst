@@ -1,4 +1,4 @@
-.. _get_token_and_attach:
+.. _attach:
 
 How to attach a machine to your Ubuntu Pro subscription
 *******************************************************
