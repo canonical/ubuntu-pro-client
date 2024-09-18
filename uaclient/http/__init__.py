@@ -232,7 +232,6 @@ def _readurl_pycurl_https_in_https(
     req: request.Request,
     timeout: Optional[int] = None,
     https_proxy: Optional[str] = None,
-    decode_response: bool = True,
 ) -> UnparsedHTTPResponse:
     try:
         import pycurl
@@ -385,7 +384,7 @@ def readurl(
     else:
         resp = _readurl_urllib(req, timeout=timeout)
 
-    decoded_body = resp.body.decode("utf-8")
+    decoded_body = resp.body.decode("utf-8", errors="ignore")
 
     json_dict = {}
     json_list = []
