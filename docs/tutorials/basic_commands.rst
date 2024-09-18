@@ -337,7 +337,7 @@ we recommend taking a look at our
 :ref:`how-to guides<how-to>`.
 
 If you have any questions or need some help, please feel free to reach out to
-the ``pro`` team on `#ubuntu-server` on `Libera IRC <pro_IRC_>`_ -- we're happy
+the ``pro`` team on `#ubuntu-server` on Libera IRC -- we're happy
 to help! 
 
 Alternatively, if you have a GitHub account, click on the "Give feedback"

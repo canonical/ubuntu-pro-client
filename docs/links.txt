@@ -12,7 +12,6 @@
 .. _Pro_dashboard: https://ubuntu.com/pro/dashboard
 .. _pro_discourse: https://discourse.ubuntu.com/c/ubuntu-pro/116
 .. _pro_launchpad: https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
-.. _pro_IRC: https://kiwiirc.com/nextclient/irc.libera.chat/ubuntu-server
 .. _tox: https://tox.readthedocs.io/en/latest/
 .. _Ubuntu One: https://login.ubuntu.com/
 
