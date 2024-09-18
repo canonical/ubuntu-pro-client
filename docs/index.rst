@@ -63,7 +63,7 @@ using it!
   If you have any comments, requests or suggestions that you'd like to share,
   we'd be very happy to receive them! Please feel free to reach out on
   `our Discourse forum <pro_discourse_>`_, or you can get in touch via the
-  ``#ubuntu-server`` `IRC channel on Libera <pro_IRC_>`_.
+  ``#ubuntu-server`` IRC channel on Libera.
 
 Project and community
 =====================

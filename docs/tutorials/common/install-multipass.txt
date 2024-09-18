@@ -6,6 +6,6 @@ will set up a virtual machine using `Multipass`_. We are using Multipass
 because it allows us to launch VMs without needing any complicated setup. To
 install Multipass on your system, run the following command on your machine:
 
-.. code-block:: console
+.. code-block:: bash
 
    $ sudo snap install multipass
