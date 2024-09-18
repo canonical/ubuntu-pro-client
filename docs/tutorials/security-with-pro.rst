@@ -92,11 +92,11 @@ current version, and the version we can upgrade to:
     [...]
     python3-update-manager/bionic-updates 1:18.04.12 all [upgradable from: 1:18.04.11.13]
     shim-signed/bionic-updates 1.37~18.04.13+15.7-0ubuntu1 amd64 [upgradable from: 1.37~18.04.11+15.4-0ubuntu9]
-    ubuntu-advantage-tools/bionic-updates 32.3~18.04 amd64 [upgradable from: 27.14.4~18.04]
+    ubuntu-pro-client/bionic-updates 32.3~18.04 amd64 [upgradable from: 27.14.4~18.04]
     update-manager-core/bionic-updates 1:18.04.12 all [upgradable from: 1:18.04.11.13]
     update-notifier-common/bionic-updates 3.192.1.21 all [upgradable from: 3.192.1.19]
 
-One of the packages that needs updating is the ``ubuntu-advantage-tools``
+One of the packages that needs updating is the ``ubuntu-pro-client``
 package, which provides the Pro Client, but it's good practice to always keep
 software up-to-date, so let's upgrade all of these packages in our VM:
 
