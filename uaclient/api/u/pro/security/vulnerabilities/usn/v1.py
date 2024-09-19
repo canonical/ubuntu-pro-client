@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import util
 from uaclient.api.api import APIEndpoint
@@ -245,28 +245,11 @@ def vulnerabilities(
     return _vulnerabilities(options, UAConfig())
 
 
-def _vulnerabilities(
+def _parse_vulnerabilities(
     options: USNVulnerabilitiesOptions,
-    cfg: UAConfig,
+    usn_vulnerabilities: Dict[str, Any],
+    vulnerability_data_published_at: str,
 ) -> USNVulnerabilitiesResult:
-    """
-    This endpoint shows the USN vulnerabilites in the system.
-    By default, this API will only show fixable USNs in the system.
-    """
-
-    if options.unfixable and options.all:
-        raise InvalidOptionCombination(option1="unfixable", option2="all")
-
-    usn_vulnerabilities_result = get_vulnerabilities(
-        parser=USNParser(),
-        cfg=cfg,
-        update_json_data=options.update,
-        series=options.series,
-        data_file=options.data_file,
-        manifest_file=options.manifest_file,
-    )
-    usn_vulnerabilities = usn_vulnerabilities_result.vulnerabilities
-
     if options.unfixable:
         block_fixable_usns = True
         block_unfixable_usns = False
@@ -318,11 +301,73 @@ def _vulnerabilities(
     return USNVulnerabilitiesResult(
         usns=usns,
         vulnerability_data_published_at=util.parse_rfc3339_date(
-            usn_vulnerabilities_result.vulnerability_data_published_at
+            vulnerability_data_published_at
         ),
         apt_updated_at=(
             get_apt_cache_datetime() if not options.manifest_file else None
         ),
+    )
+
+
+def _vulnerabilities_with_applied_fixes_count(
+    options: USNVulnerabilitiesOptions,
+    cfg: UAConfig,
+) -> Tuple[USNVulnerabilitiesResult, Dict[str, Any]]:
+    if options.unfixable and options.all:
+        raise InvalidOptionCombination(option1="unfixable", option2="all")
+
+    usn_vulnerabilities_result = get_vulnerabilities(
+        parser=USNParser(),
+        cfg=cfg,
+        update_json_data=options.update,
+        series=options.series,
+        data_file=options.data_file,
+        manifest_file=options.manifest_file,
+    )
+    usn_vulnerabilities = usn_vulnerabilities_result.vulnerabilities_info.get(
+        "vulnerabilities", {}
+    )
+
+    return (
+        _parse_vulnerabilities(
+            options=options,
+            usn_vulnerabilities=usn_vulnerabilities,
+            vulnerability_data_published_at=usn_vulnerabilities_result.vulnerability_data_published_at,  # noqa
+        ),
+        usn_vulnerabilities_result.vulnerabilities_info.get(
+            "applied_fixes_count", {}
+        ),
+    )
+
+
+def _vulnerabilities(
+    options: USNVulnerabilitiesOptions,
+    cfg: UAConfig,
+) -> USNVulnerabilitiesResult:
+    """
+    This endpoint shows the USN vulnerabilites in the system.
+    By default, this API will only show fixable USNs in the system.
+    """
+
+    if options.unfixable and options.all:
+        raise InvalidOptionCombination(option1="unfixable", option2="all")
+
+    usn_vulnerabilities_result = get_vulnerabilities(
+        parser=USNParser(),
+        cfg=cfg,
+        update_json_data=options.update,
+        series=options.series,
+        data_file=options.data_file,
+        manifest_file=options.manifest_file,
+    )
+    usn_vulnerabilities = usn_vulnerabilities_result.vulnerabilities_info.get(
+        "vulnerabilities", {}
+    )
+
+    return _parse_vulnerabilities(
+        options=options,
+        usn_vulnerabilities=usn_vulnerabilities,
+        vulnerability_data_published_at=usn_vulnerabilities_result.vulnerability_data_published_at,  # noqa
     )
 
 
