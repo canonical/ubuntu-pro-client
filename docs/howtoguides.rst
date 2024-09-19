@@ -104,11 +104,3 @@ Ubuntu Pro Client for Clouds
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
 
-Fixing multiple CVEs
-====================
-
-.. toctree::
-   :maxdepth: 1
-
-   How to know if a system is affected by a list of CVEs? <howtoguides/how_to_know_if_system_affected_by_a_list_of_cves>
-   Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
