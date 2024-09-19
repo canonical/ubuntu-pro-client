@@ -137,10 +137,16 @@ class Table:
         if self._get_line_length() > self.max_length:
             rows = self.wrap_last_column()
         output = ""
-        output += TxtColor.BOLD + self._fill_row(self.headers) + TxtColor.ENDC
+        if self.headers:
+            output += (
+                TxtColor.BOLD
+                + self._fill_row(self.headers)
+                + TxtColor.ENDC
+                + "\n"
+            )
         for row in rows:
-            output += "\n"
             output += self._fill_row(row)
+            output += "\n"
         return output
 
     def _get_line_length(self) -> int:
