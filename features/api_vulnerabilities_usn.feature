@@ -25,7 +25,13 @@ Feature: Client behaviour for USN vulnerabilities API
         "name": "USN-4976-2",
         "published_at": ".*",
         "related_cves": \[
-          "CVE-2021-3448"
+          {
+            "affected_installed_packages": \[
+              "dnsmasq"
+            \],
+            "name": "CVE-2021-3448",
+            "priority": "low"
+          }
         \],
         "related_launchpad_bugs": \[\]
       }
@@ -91,7 +97,13 @@ Feature: Client behaviour for USN vulnerabilities API
               "name": "USN-5593-1",
               "published_at": ".*",
               "related_cves": [
-                "CVE-2019-11922"
+                {
+                  "affected_installed_packages": [
+                    "libzstd"
+                  ],
+                  "name": "CVE-2019-11922",
+                  "priority": "medium"
+                }
               ],
               "related_launchpad_bugs": []
             },
@@ -109,8 +121,20 @@ Feature: Client behaviour for USN vulnerabilities API
               "name": "USN-5720-1",
               "published_at": ".*",
               "related_cves": [
-                "CVE-2021-24031",
-                "CVE-2021-24032"
+                {
+                  "affected_installed_packages": [
+                    "libzstd"
+                  ],
+                  "name": "CVE-2021-24031",
+                  "priority": "medium"
+                },
+                {
+                  "affected_installed_packages": [
+                    "libzstd"
+                  ],
+                  "name": "CVE-2021-24032",
+                  "priority": "medium"
+                }
               ],
               "related_launchpad_bugs": []
             }
