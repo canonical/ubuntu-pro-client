@@ -1303,6 +1303,63 @@ CLI_VULNERABILITY_UPDATE_DATA_UPDATED = OKGREEN_CHECK + t.gettext(
 """
 )
 
+CLI_VULNERABILITY_LIST = t.gettext(
+    "list the vulnerabilities that affect the system"
+)
+CLI_VULNERABILITY_LIST_DESC = t.gettext(
+    """\
+    List the fixable vulnerabilities that affects the system.
+    By default, the command will only list CVEs. To display
+    USNs instead, run the command with the --usns flag."""
+)
+CLI_VULNERABILITY_LIST_CVE_HEADER = (
+    TxtColor.DISABLEGREY
+    + t.gettext("Common vulnerabilities and exposures (CVE):")
+    + TxtColor.ENDC
+)
+CLI_VULNERABILITY_LIST_USN_HEADER = (
+    TxtColor.DISABLEGREY
+    + t.gettext("Ubuntu Security Notices (USN):")
+    + TxtColor.ENDC
+)
+CLI_VULNERABILITY_LIST_ALL = t.gettext(
+    "List all vulnerabilities that affect the machine, even if they can't be fixed"  # noqa
+)
+CLI_VULNERABILITY_LIST_USNS = t.gettext(
+    "List USNs vulnerabilities instead of CVEs"
+)
+CLI_VULNERABILITY_LIST_UNFIXABLE = t.gettext(
+    "List only vulnerabilities that don't have a fix available"
+)
+CLI_VULNERABILITY_LIST_MANIFEST_FILE = t.gettext(
+    "Manifest file to be used by the command"
+)
+CLI_VULNERABILITY_LIST_SERIES = t.gettext(
+    "When a manifest file is provided, specify the series that generated using this parameter"  # noqa
+)
+CLI_VULNERABILITY_LIST_FIXES_AVAILABLE_HEADER = (
+    TxtColor.DISABLEGREY
+    + t.gettext("Vulnerabilities with fixes available:")
+    + TxtColor.ENDC
+)
+CLI_VULNERABILITY_LIST_UNFIXABLE_AVAILABLE_HEADER = (
+    TxtColor.DISABLEGREY
+    + t.gettext("Vulnerabilities with no fixes available:")
+    + TxtColor.ENDC
+)
+CLI_VULNERABILITY_LIST_FIXES_APPLIED_HEADER = (
+    TxtColor.DISABLEGREY
+    + t.gettext("Vulnerabilities with applied fixes:")
+    + TxtColor.ENDC
+)
+CLI_VULNERABILITY_LIST_FIXES_AVAILABLE_COUNT = t.gettext(
+    "vulnerabilities found"
+)
+CLI_VULNERABILITY_LIST_UNFIXABLE_AVAILABLE_COUNT = t.gettext(
+    "unfixable vulnerabilities found"
+)
+CLI_VULNERABILITY_LIST_FIXES_APPLIED_COUNT = t.gettext("applied via")
+
 
 WARNING_HUMAN_READABLE_OUTPUT = t.gettext(
     """\
