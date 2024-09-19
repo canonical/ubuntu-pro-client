@@ -477,7 +477,7 @@ def _vulnerabilities_with_applied_fixes_count(
             cve_vulnerabilities=cve_vulnerabilities,
             vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
         ),
-        cve_vulnerabilities_result.vulnerability_info.get(
+        cve_vulnerabilities_result.vulnerabilities_info.get(
             "applied_fixes_count", {}
         ),
     )
