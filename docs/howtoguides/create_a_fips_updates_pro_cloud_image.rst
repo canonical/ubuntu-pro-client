@@ -1,3 +1,5 @@
+.. _create_a_fips_updates_pro_cloud_image:
+
 How to customise a cloud Ubuntu Pro image with FIPS updates
 ***********************************************************
 

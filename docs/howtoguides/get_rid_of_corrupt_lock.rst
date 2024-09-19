@@ -1,3 +1,5 @@
+.. _fix_corrupt_lock:
+
 How to get rid of a corrupt lock
 ********************************
 

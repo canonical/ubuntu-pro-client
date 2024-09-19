@@ -1,3 +1,5 @@
+.. _disable_enable_apt_news:
+
 How to disable or re-enable APT News
 ************************************
 

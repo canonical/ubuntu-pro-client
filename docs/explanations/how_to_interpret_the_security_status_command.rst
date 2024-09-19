@@ -208,63 +208,48 @@ source):
 Machine-readable output
 =======================
 
-If you run the ``pro security-status --format yaml`` command on your machine,
-you should expect to see an output that follows this structure:
+If you need a machine readable version of ``pro security-status``, you can use
+these API endpoint to achieve that:
 
-.. code-block:: text
+* :ref:`u.pro.packages.summary.v1 <references/api:u.pro.packages.summary.v1>`
+* :ref:`u.pro.packages.updates.v1 <references/api:u.pro.packages.updates.v1>`
+* :ref:`u.pro.status.is_attached.v1 <references/api:u.pro.status.is_attached.v1>`
+* :ref:`u.pro.status.enabled_services.v1 <references/api:u.pro.status.enabled_services.v1>`
+* :ref:`u.pro.security.status.livepatch_cves.v1 <references/api:u.pro.security.status.livepatch_cves.v1>`
 
-    _schema_version: '0.1'
-    summary:
-      num_esm_apps_packages: 0
-      num_esm_apps_updates: 0
-      num_esm_infra_packages: 1
-      num_esm_infra_updates: 1
-      num_main_packages: 70
-      num_multiverse_packages: 10
-      num_restricted_packages: 10
-      num_third_party_packages: 0
-      num_universe_packages: 9
-      num_installed_packages: 100
-      num_standard_security_updates: 0
-      ua:
-        attached: true
-        enabled_services:
-        - esm-apps
-        - esm-infra
-        entitled_services:
-        - esm-apps
-        - esm-infra
-    packages:
-    - origin: esm.ubuntu.com
-      package: zlib1g
-      service_name: esm-infra
-      status: upgrade_available
-      version: 1:1.2.8.dfsg-2ubuntu4.3+esm1
-      download_size: 123456
-    livepatch:
-      fixed_cves:
-        - Name: cve-2013-1798
-          Patched: true
+``u.pro.packages.summary.v1``
+------------------------------
 
-Let's understand what each key means in the output of the
-``pro security-status --format yaml`` command:
+This API is responsible for providing a summary of where all the installed packages
+in the machine comes from.
 
-``summary``
------------
+When called through ``pro api u.pro.packages.summary.v1``, it will produce a data output
+with the following structure:
 
-This provides a summary of the system related to Ubuntu Pro and the different
-package sources in the system:
+.. code-block:: js
+
+    {
+        "summary":{
+            "num_installed_packages": 1,
+            "num_esm_apps_packages": 2,
+            "num_esm_infra_packages": 3,
+            "num_main_packages": 4,
+            "num_multiverse_packages": 5,
+            "num_restricted_packages": 6,
+            "num_third_party_packages": 7,
+            "num_universe_packages": 8,
+            "num_unknown_packages": 9,
+        },
+    }
+
+The summary object contains the following fields:
 
 * **num_installed_packages**: The total number of installed packages on the
   system.
 * **num_esm_apps_packages**: The number of packages installed from
   ``esm-apps``.
-* **num_esm_apps_updates**: The number of ``esm-apps`` package updates
-  available to the system.
 * **num_esm_infra_packages**: The number of packages installed from
   ``esm-infra``.
-* **num_esm_infra_updates**: The number of ``esm-infra`` package updates
-  available to the system.
 * **num_main_packages**: The number of packages installed from the ``main``
   archive component.
 * **num_multiverse_packages**: The number of packages installed from the
@@ -278,47 +263,59 @@ package sources in the system:
 * **num_unknown_packages**: The number of packages installed from sources not
   known to ``apt`` (e.g., those installed locally through ``dpkg`` or packages
   without a remote reference).
+
+
+``u.pro.packages.updates.v1``
+------------------------------
+
+This API is responsible for listing the available package updates in the system.
+
+When called through ``pro api u.pro.packages.updates.v1``, it will produce a data output
+with the following structure:
+
+.. code-block:: js
+
+    {
+        "summary": {
+            "num_updates": 15,
+            "num_esm_apps_updates": 2,
+            "num_esm_infra_updates": 3,
+            "num_standard_security_updates": 5,
+            "num_standard_updates": 5,
+        },
+        "updates": [
+            {
+                "download_size": 6,
+                "origin": "<some site>",
+                "package": "<package name>",
+                "provided_by": "<service name>",
+                "status": "<update status>",
+                "version": "<updated version>",
+            },
+        ]
+    }
+
+
+Note that there are two distinct object in the JSON response, **summary** and **updates**.
+The summary object will contain the following attributes:
+
+* **num_updates**: The total number of available updates to the system.
+* **num_esm_apps_updates**: The number of ``esm-apps`` package updates
+  available to the system.
+* **num_esm_infra_updates**: The number of ``esm-infra`` package updates
+  available to the system.
 * **num_standard_security_updates**: The number of standard security updates
   available to the system.
+* **num_standard_updates**: The number of standard updates available to the system.
 
-.. note::
+While the updates object will be a list of package updates, where each update object
+will contain the following attributes:
 
-    It is worth mentioning here that the ``_updates`` fields are presenting the
-    number of **security** updates for **installed** packages. For example,
-    let's assume your machine has a universe package that has a security update
-    from ``esm-infra``. The count will be displayed as:
-
-    .. code-block:: text
-
-        num_esm_infra_packages: 0
-        num_esm_infra_updates: 1
-        num_universe_packages: 1
-    
-    After upgrading the system, the count will turn to:
-
-    .. code-block:: text
-
-        num_esm_infra_packages: 1
-        num_esm_infra_updates: 0
-        num_universe_packages: 0
-    
-* **ua**: An object representing the state of Ubuntu Pro on the system:
-
-  * **attached**: If the system is attached to an Ubuntu Pro subscription.
-  * **enabled_services**: A list of services that are enabled on the system.
-    If unattached, this will always be an empty list.
-  * **entitled_services**: A list of services that are entitled on your
-    Ubuntu Pro subscription. If unattached, this will always be an empty list.
-
-``packages``
-------------
-
-This provides a list of security updates for packages installed on the system.
-Every entry on the list will follow this structure:
-
+* **download_size**: The number of bytes that would be downloaded in order to
+  install the update.
 * **origin**: The host where the update comes from.
 * **package**: The name of the package.
-* **service_name**: The service that provides the package update. It can be
+* **provided_by**: The service that provides the package update. It can be
   one of: ``esm-infra``, ``esm-apps`` or ``standard-security``.
 * **status**: The status for this update. It will be one of:
 
@@ -329,14 +326,106 @@ Every entry on the list will follow this structure:
     but the service required to provide the upgrade is not enabled.
   * **"upgrade_unavailable"**: The machine is attached, but the contract is not
     entitled to the service which provides the upgrade.
-
 * **version**: The update version.
-* **download_size**: The number of bytes that would be downloaded in order to
-  install the update.
 
-``livepatch``
--------------
+``u.pro.status.is_attached.v1``
+--------------------------------
 
-This displays Livepatch-related information. Currently, the only information
-presented is **`fixed_cves`**. This represents a list of CVEs that were fixed
-by Livepatches applied to the kernel.
+This API is responsible for telling if the system is attached to a Pro subscription
+
+When called through ``pro api u.pro.status.is_attached.v1``, it will produce a data output
+with the following structure:
+
+.. code-block:: js
+
+    {
+        "contract_remaining_days": 360,
+        "contract_status": "active",
+        "is_attached": true,
+        "is_attached_and_contract_valid": true
+    }
+
+The JSON response object will contain the following fields:
+
+* **contract_remaining_days**: The number of days left in the Ubuntu Pro subscription
+* **contract_status**: The status of the Ubuntu Pro subscription:
+
+  * **active**: The contract is currently valid.
+  * **grace-period**: The contract is in the grace period. This means that
+    it is expired, but there are still some days where the contract will be
+    valid.
+  * **active-soon-to-expire**: The contract is almost expired, but still
+    valid.
+  * **expired**: The contract is expired and no longer valid.
+
+* **is_attached**:  true if the machine is attached to an Ubuntu Pro subscription
+* **is_attached_and_contract_valid**: true if the machine is attached to an Ubuntu
+  Pro subscription and that subscription is not expired
+
+``u.pro.status.enabled_services.v1``
+-------------------------------------
+
+This API is responsible for telling which services are enabled in the machine.
+
+When called through ``pro api u.pro.status.enabled_services.v1``, it will produce a data output
+with the following structure:
+
+.. code-block:: js
+
+    {
+        "enabled_services": [
+            {
+                "name": "esm-apps",
+                "variant_enabled": false,
+                "variant_name": null
+            },
+            {
+                "name": "esm-infra",
+                "variant_enabled": false,
+                "variant_name": null
+            },
+            {
+                "name": "realtime-kernel",
+                "variant_enabled": true,
+                "variant_name": "raspi"
+            }
+        ]
+    }
+
+You can see that the JSON response has an object named **enabled_services** that is a list
+of services that are enabled in the machine. Each enabled service has these attributes:
+
+* **name**: The name of the service.
+* **variant_enabled**: true if a variant of the service was enable.
+* **variant_name**: The variant name if **variant_enabled** is true, **null** otherwise.
+
+
+``u.pro.security.status.livepatch_cves.v1``
+--------------------------------------------
+
+This endpoint lists Livepatch patches for the currently-running kernel.
+
+When called through ``pro api u.pro.security.status.livepatch_cves.v1``, it will
+produce a data output with the following structure:
+
+.. code-block:: js
+
+    {
+        "fixed_cves":[
+            {
+                "name": "<CVE Name>",
+                "patched": true
+            },
+            {
+                "name": "<Other CVE Name>",
+                "patched": false
+            },
+        ]
+    }
+
+You can see that the JSON response has an object named **fixed_cves** that is a list
+of CVEs that are addressed by the current Livepatch patch. Each CVE object will have the
+following attributes:
+
+* **name**: The name of the CVE.
+* **patched**: true if a CVE was patched by Livepatch patch, false otherwise.

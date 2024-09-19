@@ -1,3 +1,5 @@
+.. _tls_in_tls:
+
 How to configure a TLS-in-TLS proxy
 ***********************************
 
@@ -73,7 +75,7 @@ Success!
 
 Now with the TLS-in-TLS proxy configured, you can
 :ref:`configure any other proxies you need <configure-proxies>` and then use
-your Ubuntu Pro token to :ref:`attach your machine <get_token_and_attach>`.
+your Ubuntu Pro token to :ref:`attach your machine <attach>`.
 
 .. LINKS:
 .. _PEM: https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail

@@ -10,74 +10,74 @@ can be applied to a wider range of situations.
 They will help you to achieve a particular end result, but may require you to
 understand and adapt the steps to fit your specific requirements.
 
-How to use ``pro`` commands
-===========================
+Attach a machine to a subscription
+==================================
 
-``pro attach``
---------------
+.. include:: howtoguides/attach_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   Attach... <howtoguides/attach_index>
+
+Enable services
+===============
+
+.. include:: howtoguides/enable_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+      
+   Enable... <howtoguides/enable_index>
+
+Fix vulnerabilities
+===================
+
+.. include:: howtoguides/fix_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+   
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   Fix vulnerabilities... <howtoguides/fix_index>
+
+Use the Pro Client
+==================
+
+.. include:: howtoguides/configure_index.rst
+   :start-line: 3
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   Use the Client... <howtoguides/configure_index>
+
+Proxies
+=======
 
 .. toctree::
    :maxdepth: 1
 
-   Attach a machine to a subscription <howtoguides/get_token_and_attach>
-   Attach via a configuration file <howtoguides/how_to_attach_with_config_file>
+   Configure a proxy <howtoguides/configure_proxies>
+   Configure TLS-in-TLS proxy <howtoguides/configure_tls_in_tls_proxy>
 
-``pro collect-logs``
---------------------
+How to collect logs
+===================
 
 .. toctree::
    :maxdepth: 1
    
    Collect data logs for bug reporting <howtoguides/how_to_collect_logs>
-
-``pro config``
---------------
-
-.. toctree::
-   :maxdepth: 2
-   
-   Configure... <howtoguides/configure_index>
-
-``pro enable``
---------------
-
-.. toctree::
-   :maxdepth: 2
-      
-   Enable... <howtoguides/enable_index>
-
-``pro fix``
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   How to know what the `fix` command would change? <howtoguides/how_to_know_what_the_fix_command_would_change>
-   Skip fixing related USNs <howtoguides/how_to_not_fix_related_usns>
-
-``pro refresh``
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Update MOTD and APT messages <howtoguides/update_motd_messages>
-
-``pro status``
---------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Simulate the `attach` operation <howtoguides/how_to_simulate_attach>
-
-``pro version``
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Check Ubuntu Pro Client version <howtoguides/check_pro_version>
 
 Corrupted lock files
 ====================
@@ -112,4 +112,3 @@ Fixing multiple CVEs
 
    How to know if a system is affected by a list of CVEs? <howtoguides/how_to_know_if_system_affected_by_a_list_of_cves>
    Better visualise results when fixing multiple CVEs <howtoguides/how_to_better_visualise_fixing_multiple_cves>
-

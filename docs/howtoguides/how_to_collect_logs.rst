@@ -1,3 +1,5 @@
+.. _collect_logs:
+
 How to collect Ubuntu Pro Client logs
 *************************************
 

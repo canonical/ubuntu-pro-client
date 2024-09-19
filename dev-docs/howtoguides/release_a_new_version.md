@@ -40,7 +40,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
   # do this for each supported release, e.g. xenial, bionic, focal, jammy, noble, etc.
   sbuild-launchpad-chroot create -d $release -a amd64 -n $release-amd64
   ```
-  
+
 * In order to run the `ppa` command, install `ppa-dev-tools` from `bryce`'s PPA:
   ```bash
   sudo add-apt-repository ppa:bryce/ppa-dev-tools
@@ -315,6 +315,12 @@ When reviewing the release PR, please use the following guidelines when reviewin
       git commit -m "open next development version"
       ```
 6. Change GitHub's "default" branch back to `main`.
-    * This should automatically switch any open PRs against `next-v$((version+1))` to target `main`.
-7. Change the daily PPA build recipe to use `main`.
-8. Open a PR moving any scripts added in `sru/` to a new folder in `sru/_archive` for the release.
+7. For all PR's currently targetting `next-v$version`, leave a comment asking the owner to rebase onto `main`, force push, and set the PR to target `main`.
+    * Do not delete `next-v$version` until all open PRs now target `main`. If you do, their PRs will be permanently closed and brand new PRs will need to be opened.
+8. Change the daily PPA build recipe to use `main`.
+9. Open a PR moving any scripts added in `sru/` to a new folder in `sru/_archive` for the release.
+10. Post a release announcement on https://discourse.ubuntu.com.
+    * Post in the [Ubuntu Pro category](https://discourse.ubuntu.com/c/ubuntu-pro/116)
+    * Tag the post with `pro-client-release`
+    * Include brief descriptions of only the most interesting features
+    * Use the structure from [this previous post](https://discourse.ubuntu.com/t/ubuntu-pro-client-version-32-3-released/45517)
