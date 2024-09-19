@@ -527,7 +527,7 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
         vulnerabilities = {}  # type: Dict[str, Any]
         applied_fixes_count = {
             "count": {
-                "ubuntu_standard": 0,
+                "ubuntu_security": 0,
                 "ubuntu_pro": 0,
             },
             "info": {},
@@ -636,7 +636,7 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                     )
                 else:
                     ubuntu_pocket_translation = (
-                        "ubuntu_standard"
+                        "ubuntu_security"
                         if pocket in ("release", "updates", "security")
                         else "ubuntu_pro"
                     )
