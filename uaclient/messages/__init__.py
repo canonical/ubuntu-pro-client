@@ -1264,6 +1264,40 @@ CLI_VULNERABILITY_SHOW_AFFECTED_PKGS = t.gettext(
     "[AFFECTED INSTALLED PACKAGES]\n"
 )
 
+CLI_VULNERABILITY_UPDATE = t.gettext(
+    "update the vulnerability data in your machine"
+)
+CLI_VULNERABILITY_UPDATE_DESC = t.gettext(
+    """\
+Updates the vulnerability data stored in the machine.
+If no vulnerability data exists yet, the command will
+download it
+"""
+)
+CLI_VULNERABILITY_UPDATE_CHECK_NEW_DATA = t.gettext(
+    """\
+Checking for the availability of newer vulnerability data.
+Please wait a moment while we verify if a new version is ready for download.
+"""
+)
+CLI_VULNERABILITY_UPDATE_NEW_DATA_FOUND = t.gettext(
+    """\
+Found a newer version of the data.
+Fetching and processing the new data…
+"""
+)
+CLI_VULNERABILITY_UPDATE_NO_NEW_DATA_FOUND = OKGREEN_CHECK + t.gettext(
+    """\
+ Vulnerability data in the system is already up-to-date
+"""
+)
+CLI_VULNERABILITY_UPDATE_DATA_UPDATED = OKGREEN_CHECK + t.gettext(
+    """\
+ Vulnerability data in the system is now up-to-date
+"""
+)
+
+
 WARNING_HUMAN_READABLE_OUTPUT = t.gettext(
     """\
 WARNING: this output is intended to be human readable, and subject to change.
