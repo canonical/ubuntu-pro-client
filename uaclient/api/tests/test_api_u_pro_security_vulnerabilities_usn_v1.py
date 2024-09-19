@@ -1,9 +1,11 @@
+import copy
 import datetime
 
 import mock
 import pytest
 
 from uaclient.api.u.pro.security.vulnerabilities.usn.v1 import (
+    RelatedCVE,
     USNAffectedPackage,
     USNVulnerabilitiesOptions,
     USNVulnerabilitiesResult,
@@ -46,6 +48,12 @@ VULNEBILITIES_DATA = {
         }
     },
     "security_issues": {
+        "cves": {
+            "CVE-2022-12345": {
+                "ubuntu_priority": "low",
+                "related_packages": ["test1", "test2"],
+            }
+        },
         "usns": {
             "USN-2022-1": {
                 "description": "description",
@@ -67,7 +75,7 @@ VULNEBILITIES_DATA = {
                 "related_cves": ["CVE-2022-12345"],
                 "related_launchpad_bugs": [],
             },
-        }
+        },
     },
 }
 
@@ -149,7 +157,13 @@ class TestUSNVulnerabilities:
                                 16,
                                 tzinfo=datetime.timezone.utc,
                             ),
-                            related_cves=["CVE-2022-12345"],
+                            related_cves=[
+                                RelatedCVE(
+                                    name="CVE-2022-12345",
+                                    priority="low",
+                                    affected_installed_packages=["test1"],
+                                )
+                            ],
                             related_launchpad_bugs=[],
                         ),
                         USNVulnerabilityResult(
@@ -179,7 +193,13 @@ class TestUSNVulnerabilities:
                                 16,
                                 tzinfo=datetime.timezone.utc,
                             ),
-                            related_cves=["CVE-2022-12345"],
+                            related_cves=[
+                                RelatedCVE(
+                                    name="CVE-2022-12345",
+                                    priority="low",
+                                    affected_installed_packages=["test1"],
+                                )
+                            ],
                             related_launchpad_bugs=[],
                         ),
                     ],
@@ -222,7 +242,13 @@ class TestUSNVulnerabilities:
                                 16,
                                 tzinfo=datetime.timezone.utc,
                             ),
-                            related_cves=["CVE-2022-12345"],
+                            related_cves=[
+                                RelatedCVE(
+                                    name="CVE-2022-12345",
+                                    priority="low",
+                                    affected_installed_packages=["test1"],
+                                )
+                            ],
                             related_launchpad_bugs=[],
                         ),
                     ],
@@ -297,7 +323,13 @@ class TestUSNVulnerabilities:
                                 16,
                                 tzinfo=datetime.timezone.utc,
                             ),
-                            related_cves=["CVE-2022-12345"],
+                            related_cves=[
+                                RelatedCVE(
+                                    name="CVE-2022-12345",
+                                    priority="low",
+                                    affected_installed_packages=["test1"],
+                                )
+                            ],
                             related_launchpad_bugs=[],
                         ),
                     ],
@@ -330,7 +362,9 @@ class TestUSNVulnerabilities:
     ):
         m_vulnerability_data_is_cache_valid.return_value = (False, None)
         m_get_source_pkgs.return_value = installed_pkgs_by_source
-        m_vulnerability_data_get.return_value = vulnerabilities_data
+        m_vulnerability_data_get.return_value = copy.deepcopy(
+            vulnerabilities_data
+        )
         m_get_apt_cache_datetime.return_value = datetime.datetime(
             2024, 6, 24, 13, 19, 16
         )
