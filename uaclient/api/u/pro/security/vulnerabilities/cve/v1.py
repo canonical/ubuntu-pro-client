@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import util
 from uaclient.api.api import APIEndpoint
@@ -339,28 +339,11 @@ def vulnerabilities(
     return _vulnerabilities(options, UAConfig())
 
 
-def _vulnerabilities(
+def _parse_vulnerbiliries(
     options: CVEVulnerabilitiesOptions,
-    cfg: UAConfig,
+    cve_vulnerabilities: Dict[str, Any],
+    vulnerability_data_published_at: str,
 ) -> CVEVulnerabilitiesResult:
-    """
-    This endpoint shows the CVE vulnerabilites in the system.
-    By default, this API will only show fixable CVEs in the system.
-    """
-
-    if options.unfixable and options.all:
-        raise InvalidOptionCombination(option1="unfixable", option2="all")
-
-    cve_vulnerabilities_result = get_vulnerabilities(
-        parser=CVEParser(),
-        cfg=cfg,
-        update_json_data=options.update,
-        series=options.series,
-        data_file=options.data_file,
-        manifest_file=options.manifest_file,
-    )
-    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities
-
     if options.unfixable:
         block_fixable_cves = True
         block_unfixable_cves = False
@@ -425,10 +408,77 @@ def _vulnerabilities(
     return CVEVulnerabilitiesResult(
         cves=cves,
         vulnerability_data_published_at=util.parse_rfc3339_date(
-            cve_vulnerabilities_result.vulnerability_data_published_at
+            vulnerability_data_published_at
         ),
         apt_updated_at=(
             get_apt_cache_datetime() if not options.manifest_file else None
+        ),
+    )
+
+
+def _vulnerabilities(
+    options: CVEVulnerabilitiesOptions,
+    cfg: UAConfig,
+) -> CVEVulnerabilitiesResult:
+    """
+    This endpoint shows the CVE vulnerabilites in the system.
+    By default, this API will only show fixable CVEs in the system.
+    """
+
+    if options.unfixable and options.all:
+        raise InvalidOptionCombination(option1="unfixable", option2="all")
+
+    cve_vulnerabilities_result = get_vulnerabilities(
+        parser=CVEParser(),
+        cfg=cfg,
+        update_json_data=options.update,
+        series=options.series,
+        data_file=options.data_file,
+        manifest_file=options.manifest_file,
+    )
+    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities_info.get(
+        "vulnerabilities", {}
+    )
+
+    return _parse_vulnerbiliries(
+        options=options,
+        cve_vulnerabilities=cve_vulnerabilities,
+        vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
+    )
+
+
+def _vulnerabilities_with_applied_fixes_count(
+    options: CVEVulnerabilitiesOptions,
+    cfg: UAConfig,
+) -> Tuple[CVEVulnerabilitiesResult, Dict[str, Any]]:
+    """
+    This endpoint shows the CVE vulnerabilites in the system.
+    By default, this API will only show fixable CVEs in the system.
+    """
+
+    if options.unfixable and options.all:
+        raise InvalidOptionCombination(option1="unfixable", option2="all")
+
+    cve_vulnerabilities_result = get_vulnerabilities(
+        parser=CVEParser(),
+        cfg=cfg,
+        update_json_data=options.update,
+        series=options.series,
+        data_file=options.data_file,
+        manifest_file=options.manifest_file,
+    )
+    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities_info.get(
+        "vulnerabilities", {}
+    )
+
+    return (
+        _parse_vulnerbiliries(
+            options=options,
+            cve_vulnerabilities=cve_vulnerabilities,
+            vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
+        ),
+        cve_vulnerabilities_result.vulnerability_info.get(
+            "applied_fixes_count", {}
         ),
     )
 
