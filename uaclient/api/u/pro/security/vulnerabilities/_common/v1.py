@@ -322,7 +322,7 @@ VulnerabilityParserResult = NamedTuple(
     "VulnerabilityParserResult",
     [
         ("vulnerability_data_published_at", Optional[datetime.datetime]),
-        ("vulnerabilities", Dict[str, Any]),
+        ("vulnerabilities_info", Dict[str, Dict[str, Any]]),
     ],
 )
 
@@ -508,12 +508,39 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
             ) in sorted(binary_pkgs.items()):
                 yield source_pkg, binary_pkg_name, binary_installed_version
 
+    def _add_info_to_fixed_vulnerabilities_count(
+        self,
+        pocket: str,
+        fixed_vulnerability_info: Dict[str, Any],
+        vulnerability_info: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        ubuntu_priority = vulnerability_info.get("ubuntu_priority")
+
+        if not ubuntu_priority:
+            return fixed_vulnerability_info
+
+        if pocket not in fixed_vulnerability_info:
+            fixed_vulnerability_info[pocket] = {ubuntu_priority: 1}
+        elif ubuntu_priority not in fixed_vulnerability_info[pocket]:
+            fixed_vulnerability_info[pocket][ubuntu_priority] = 1
+        else:
+            fixed_vulnerability_info[pocket][ubuntu_priority] += 1
+
+        return fixed_vulnerability_info
+
     def get_vulnerabilities_for_installed_pkgs(
         self,
         vulnerabilities_data: Dict[str, Any],
         installed_pkgs_by_source: Dict[str, Dict[str, str]],
     ):
         vulnerabilities = {}  # type: Dict[str, Any]
+        applied_fixes_count = {
+            "count": {
+                "ubuntu_standard": 0,
+                "ubuntu_pro": 0,
+            },
+            "info": {},
+        }
 
         affected_pkgs = vulnerabilities_data.get("packages", {})
         vulns_info = vulnerabilities_data.get("security_issues", {}).get(
@@ -591,7 +618,6 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         vuln_info=vuln_info,
                         vuln_pkg_status="unknown",
                     )
-                    continue
 
                 if vuln_bin_fix_version is None:
                     continue
@@ -617,12 +643,34 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         vuln_info=vuln_info,
                         vuln_pkg_status=vuln_pkg_status,
                     )
+                else:
+                    ubuntu_pocket_translation = (
+                        "ubuntu_standard"
+                        if pocket in ("release", "updates", "security")
+                        else "ubuntu_pro"
+                    )
+                    applied_fixes_count["count"][
+                        ubuntu_pocket_translation
+                    ] += 1
+
+                    applied_fixes_count["info"] = (
+                        self._add_info_to_fixed_vulnerabilities_count(
+                            ubuntu_pocket_translation,
+                            applied_fixes_count["info"],
+                            vuln_info,
+                        )
+                    )
+
+                continue
 
         return VulnerabilityParserResult(
             vulnerability_data_published_at=vulnerabilities_data.get(
                 "published_at"
             ),
-            vulnerabilities=vulnerabilities,
+            vulnerabilities_info={
+                "vulnerabilities": vulnerabilities,
+                "applied_fixes_count": applied_fixes_count,
+            },
         )
 
 
@@ -713,7 +761,7 @@ def get_vulnerabilities(
             if vulnerabilities_result.is_cache_valid():
                 return VulnerabilityParserResult(
                     vulnerability_data_published_at=vulnerabilities_data.get_published_date(),  # noqa
-                    vulnerabilities=vulnerabilities_result.get_result_cache(),
+                    vulnerabilities_info=vulnerabilities_result.get_result_cache(),  # noqa
                 )
 
     vulnerabilities_json_data = vulnerabilities_data.get()
@@ -731,7 +779,7 @@ def get_vulnerabilities(
 
     if not manifest_file and not data_file:
         vulnerabilities_result.save_result_cache(
-            vulnerabilities_parser_result.vulnerabilities
+            vulnerabilities_parser_result.vulnerabilities_info
         )
 
     return vulnerabilities_parser_result
