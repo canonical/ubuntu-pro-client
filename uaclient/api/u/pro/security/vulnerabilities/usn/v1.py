@@ -130,6 +130,37 @@ class USNAffectedPackage(DataObject):
         self.fix_available_from = fix_available_from
 
 
+class RelatedCVE(DataObject):
+    fields = [
+        Field(
+            "name",
+            StringDataValue,
+            doc="The CVE name",
+        ),
+        Field(
+            "priority",
+            StringDataValue,
+            doc="The CVE ubuntu priority",
+        ),
+        Field(
+            "affected_installed_packages",
+            data_list(StringDataValue),
+            doc="A list of installed packages affected by the CVE",
+        ),
+    ]
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        priority: str,
+        affected_installed_packages: List[str]
+    ):
+        self.name = name
+        self.priority = priority
+        self.affected_installed_packages = affected_installed_packages
+
+
 class USNVulnerabilityResult(DataObject):
     fields = [
         Field(
@@ -159,7 +190,7 @@ class USNVulnerabilityResult(DataObject):
         ),
         Field(
             "related_cves",
-            data_list(StringDataValue),
+            data_list(RelatedCVE),
             doc="A list of CVEs related to this USN",
         ),
         Field(
@@ -177,7 +208,7 @@ class USNVulnerabilityResult(DataObject):
         published_at: datetime.datetime,
         affected_packages: List[USNAffectedPackage],
         fixable: str,
-        related_cves: List[str],
+        related_cves: List[RelatedCVE],
         related_launchpad_bugs: List[str]
     ):
         self.name = name
@@ -236,6 +267,31 @@ class USNParser(VulnerabilityParser):
         vulnerability_info: Dict[str, Any],
         vulnerabilities_data: Dict[str, Any],
     ) -> Dict[str, Any]:
+        if vulnerability_info.get("related_cves"):
+            related_cves = []
+            for related_cve in vulnerability_info["related_cves"]:
+                cve_info = (
+                    vulnerabilities_data.get("security_issues", {})
+                    .get("cves", {})
+                    .get(related_cve)
+                )
+
+                affected_installed_pkgs = [
+                    pkg
+                    for pkg in cve_info.get("related_packages", [])
+                    if pkg in installed_pkgs_by_source
+                ]
+
+                related_cves.append(
+                    {
+                        "name": related_cve,
+                        "priority": cve_info.get("ubuntu_priority", ""),
+                        "affected_installed_packages": affected_installed_pkgs,
+                    }
+                )
+
+            vulnerability_info["related_cves"] = related_cves
+
         return vulnerability_info
 
 
@@ -293,7 +349,16 @@ def _parse_vulnerabilities(
                     for pkg in usn["affected_packages"]
                 ],
                 fixable=usn_fix_status.value,
-                related_cves=usn["related_cves"],
+                related_cves=[
+                    RelatedCVE(
+                        name=cve["name"],
+                        priority=cve["priority"],
+                        affected_installed_packages=cve[
+                            "affected_installed_packages"
+                        ],
+                    )
+                    for cve in usn["related_cves"]
+                ],
                 related_launchpad_bugs=usn["related_launchpad_bugs"],
             )
         )
