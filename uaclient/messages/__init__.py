@@ -1359,6 +1359,9 @@ CLI_VULNERABILITY_LIST_UNFIXABLE_AVAILABLE_COUNT = t.gettext(
     "unfixable vulnerabilities found"
 )
 CLI_VULNERABILITY_LIST_FIXES_APPLIED_COUNT = t.gettext("applied via")
+CLI_VULNERABILITY_LIST_NOT_AFFECTED = t.gettext(
+    "No {issue} found that affects this system"
+)
 
 
 WARNING_HUMAN_READABLE_OUTPUT = t.gettext(
