@@ -9,7 +9,7 @@ up the APT sources needed for the service.
 
 .. note::
     Anbox Cloud is supported on all recent Ubuntu LTS releases (from 20.04 LTS
-    onwards). Refer to the `Anbox Cloud requirements page`_ for more details.
+    onward). Refer to the `Anbox Cloud requirements page`_ for more details.
 
 .. Make sure Pro is up to date
 .. include:: ./enable-disable/update-pro.txt
