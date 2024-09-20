@@ -1,3 +1,4 @@
+.. _security-tutorial:
 
 Exploring your system's security with Pro
 *****************************************

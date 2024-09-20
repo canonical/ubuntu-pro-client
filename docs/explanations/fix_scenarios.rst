@@ -6,15 +6,17 @@ Common scenarios when using ``pro fix`` to solve a CVE/USN
 .. Into "what is pro fix" shared with the related tutorial
 .. include:: ../includes/pro-fix-intro.txt
 
-In this article we will introduce the ``pro fix`` command, and then go into more details about the different scenarios you may encounter when using ``pro fix`` to resolve CVEs/USNs.
+In this article we will introduce the ``pro fix`` command, and then go into
+more details about the different scenarios you may encounter when using
+``pro fix`` to resolve CVEs/USNs.
 
 .. note::
 
-   If instead you look for a simpler guided tutorial to get started with
-   ``pro fix`` please start at
-   :ref:`Use pro fix to solve a CVE/USN <pro-fix-tutorial>`.
+   If you want a simpler guide to get started with ``pro fix``, start with
+   :ref:`our security features tutorial <security-tutorial>`.
    You can use the same VM-based environment created in that tutorial
-   to recreate the output shown below yourself. If you have already completed the tutorial, you may want to :ref:`skip this section <CVE-no-fix>`.
+   to recreate the output shown below yourself. If you have already completed
+   the tutorial, you may want to :ref:`skip this section <CVE-no-fix>`.
 
 
 Use ``pro fix``
@@ -50,6 +52,7 @@ Every ``pro fix`` output has a similar output structure. It:
 
 .. # The basic case is shared between Howto and Tutorial
 .. include:: ../includes/pro-fix-simple-case.txt
+
 .. _CVE-no-fix:
 
 CVE/USN without a released fix

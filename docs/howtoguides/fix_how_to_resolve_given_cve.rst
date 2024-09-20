@@ -7,12 +7,17 @@ In this guide, we will introduce the ``pro fix`` command and show how you can us
 
 .. note::
 
-   If you are looking for a simpler guided tutorial to get started with
-   ``pro fix``, please refer to the tutorial on
-   :ref:`Using pro fix to solve a CVE/USN <pro-fix-tutorial>`.
+   If you want a simpler guide to get started with ``pro fix``, start with
+   :ref:`our security features tutorial <security-tutorial>`.
    You can use the same VM-based environment created in that tutorial
-   to recreate the output shown below yourself. If you have already completed the tutorial, you may want to :ref:`skip this section <CVE-no-fix>`.
+   to recreate the output shown below yourself.
 
+Before you begin, you will need to update the Pro Client to the most recent
+version:
+
+.. code-block:: bash
+
+   $ sudo apt update && sudo apt install ubuntu-pro-client
 
 Use ``pro fix``
 ===============

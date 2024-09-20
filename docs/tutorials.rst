@@ -13,8 +13,8 @@ learning about ``pro``, how it works, and what it's capable of.
 
 -----
 
-Core tutorial
-=============
+Getting started
+===============
 
 This tutorial will help you get started with ``pro``. It introduces the main
 commands available and helps to orient you with the basics of ``pro``.
@@ -24,7 +24,8 @@ works.
 ..  toctree::
     :maxdepth: 1
 
-    tutorials/basic_commands.rst
+    Introduction to the Pro Client commands <tutorials/basic_commands.rst>
+    Explore your system's security with Pro <tutorials/security-with-pro.rst>
 
 Further tutorials
 =================
@@ -37,7 +38,5 @@ start. They are not sequential, so you can approach them in any order you like!
 ..  toctree::
     :maxdepth: 1
 
-    tutorials/security-with-pro.rst
-    tutorials/fix_intro.rst
     tutorials/create_a_fips_docker_image.rst
     tutorials/host_apt_news.rst
