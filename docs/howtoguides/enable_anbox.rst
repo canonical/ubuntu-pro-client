@@ -3,13 +3,13 @@
 How to manage Anbox Cloud
 *************************
 
-To use Anbox, you will need to enable it directly through the Ubuntu Pro
-Client (``pro``), which will install all the necessary snaps and set up the APT
-sources needed for the service.
+To use `Anbox Cloud <anbox_>`_, you will need to enable it directly through the
+Ubuntu Pro Client (``pro``), which will install all the necessary snaps and set
+up the APT sources needed for the service.
 
 .. note::
-
-    `Anbox Cloud <anbox_>`_ is supported on 20.04 and 22.04 releases.
+    Anbox Cloud is supported on all recent Ubuntu LTS releases (from 20.04 LTS
+    onward). Refer to the `Anbox Cloud requirements page`_ for more details.
 
 .. Make sure Pro is up to date
 .. include:: ./enable-disable/update-pro.txt
@@ -86,3 +86,4 @@ To also purge the service, removing all the APT packages installed with it, see
 .. LINKS
 
 .. include:: ../links.txt
+.. _Anbox Cloud requirements page: https://documentation.ubuntu.com/anbox-cloud/en/latest/reference/requirements/#ubuntu-version
