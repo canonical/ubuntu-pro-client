@@ -17,7 +17,7 @@ version:
 
 .. code-block:: bash
 
-   $ sudo apt update && sudo apt install ubuntu-advantage-tools
+   $ sudo apt update && sudo apt install ubuntu-pro-client
 
 Use ``pro fix``
 ===============
