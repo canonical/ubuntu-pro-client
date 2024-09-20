@@ -10,8 +10,14 @@ In this guide, we will introduce the ``pro fix`` command and show how you can us
    If you want a simpler guide to get started with ``pro fix``, start with
    :ref:`our security features tutorial <security-tutorial>`.
    You can use the same VM-based environment created in that tutorial
-   to recreate the output shown below yourself. If you have already completed
-   the tutorial, you may want to :ref:`skip this section <CVE-no-fix>`.
+   to recreate the output shown below yourself.
+
+Before you begin, you will need to update the Pro Client to the most recent
+version:
+
+.. code-block:: bash
+
+   $ sudo apt update && sudo apt install ubuntu-advantage-tools
 
 Use ``pro fix``
 ===============
