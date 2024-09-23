@@ -200,7 +200,8 @@ class TestTable:
         ]
 
     @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
-    def test_to_string_wraps_to_length(self, _m_is_tty):
+    def test_to_string_wraps_to_length(self, _m_is_tty, FakeConfig):
+        POFC.init(FakeConfig())
         table = Table(
             ["header1", "h2", "h3", "h4"],
             [
@@ -226,8 +227,9 @@ class TestTable:
         return_value=mock.MagicMock(columns=40),
     )
     def test_to_string_wraps_to_terminal_size(
-        self, _m_terminal_size, _m_is_tty
+        self, _m_terminal_size, _m_is_tty, FakeConfig
     ):
+        POFC.init(FakeConfig())
         table = Table(
             ["header1", "h2", "h3", "h4"],
             [
@@ -253,7 +255,10 @@ class TestTable:
         M_PATH + "os.get_terminal_size",
         side_effect=OSError(),
     )
-    def test_to_string_no_wrap_if_no_tty(self, _m_terminal_size, _m_is_tty):
+    def test_to_string_no_wrap_if_no_tty(
+        self, _m_terminal_size, _m_is_tty, FakeConfig
+    ):
+        POFC.init(FakeConfig())
         table = Table(
             ["header1", "h2", "h3", "h4"],
             [
@@ -269,7 +274,7 @@ class TestTable:
         )
         assert table.to_string() == textwrap.dedent(
             """\
-            \x1b[1mheader1  h2  h3     h4\x1b[0m
+            header1  h2  h3     h4
             a        bc  de     f
             b        de  fg     wow this is a really big string of datawow this is a really big string of datawow this is a really big string of data
             c        fg  hijkl  m
@@ -284,8 +289,9 @@ class TestBlock:
         side_effect=OSError(),
     )
     def test_indents_and_wraps_content_when_len_specified(
-        self, _m_terminal_size, _m_is_tty
+        self, _m_terminal_size, _m_is_tty, FakeConfig
     ):
+        POFC.init(FakeConfig())
         block = Block(
             title="Example Title",
             content=[
@@ -318,10 +324,10 @@ class TestBlock:
         )
         assert block.to_string() == textwrap.dedent(
             """\
-            \x1b[1m\x1b[37mExample Title\x1b[0m
+            Example Title
                 Smaller content line
                 A slightly bigger line which needs to be wrapped to fit the screen
-                \x1b[1m\x1b[37mInner block\x1b[0m
+                Inner block
                     Another small content line
                     Another slightly bigger line which needs to be wrapped to fit the screen
                 1  Table bigger last column which needs to be wrapped to fit the screen
@@ -331,11 +337,11 @@ class TestBlock:
         )
         assert block.to_string(line_length=40) == textwrap.dedent(
             """\
-            \x1b[1m\x1b[37mExample Title\x1b[0m
+            Example Title
                 Smaller content line
                 A slightly bigger line which needs
                 to be wrapped to fit the screen
-                \x1b[1m\x1b[37mInner block\x1b[0m
+                Inner block
                     Another small content line
                     Another slightly bigger line
                     which needs to be wrapped to fit
@@ -359,7 +365,7 @@ class TestBlock:
         POFC.init(FakeConfig())
         assert suggestion_block.to_string() == textwrap.dedent(
             """\
-            \x1b[1m\x1b[37mSuggestion\x1b[0m
+            Suggestion
                 Some content
             """
         )
