@@ -1,7 +1,8 @@
 import os
 import re
 import sys
-from typing import List, Optional
+import textwrap
+from typing import Any, List, Optional
 
 from uaclient.config import UAConfig
 from uaclient.messages import TxtColor
@@ -182,3 +183,55 @@ class Table:
             output += self.ljust(row[i], self.column_sizes[i]) + self.SEPARATOR
         output += row[-1]
         return output
+
+
+class Block:
+    INDENT_SIZE = 4
+    INDENT_CHAR = " "
+
+    def __init__(
+        self,
+        title: Optional[str] = None,
+        content: Optional[List[Any]] = None,
+    ):
+        self.title = title
+        self.content = content if content is not None else []
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, line_length: Optional[int] = None) -> str:
+        if line_length is None:
+            line_length = _get_default_length()
+
+        line_length -= self.INDENT_SIZE
+
+        output = ""
+
+        if self.title:
+            output += (
+                TxtColor.BOLD
+                + TxtColor.DISABLEGREY
+                + self.title
+                + TxtColor.ENDC
+                + "\n"
+            )
+
+        for item in self.content:
+            if isinstance(item, (Block, Table)):
+                item_str = item.to_string(line_length=line_length)
+            else:
+                item_str = "\n".join(wrap_text(str(item), line_length)) + "\n"
+
+            output += textwrap.indent(
+                item_str, self.INDENT_CHAR * self.INDENT_SIZE
+            )
+
+        return output
+
+
+class SuggestionBlock(Block):
+    def to_string(self, line_length: Optional[int] = None) -> str:
+        if ProOutputFormatterConfig.show_suggestions:
+            return super().to_string(line_length)
+        return ""

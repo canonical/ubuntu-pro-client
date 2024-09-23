@@ -3,8 +3,14 @@ import textwrap
 import mock
 import pytest
 
+from uaclient.cli.formatter import Block
 from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
-from uaclient.cli.formatter import Table, len_no_color, wrap_text
+from uaclient.cli.formatter import (
+    SuggestionBlock,
+    Table,
+    len_no_color,
+    wrap_text,
+)
 
 M_PATH = "uaclient.cli.formatter."
 
@@ -269,3 +275,93 @@ class TestTable:
             c        fg  hijkl  m
             """  # noqa: E501
         )
+
+
+class TestBlock:
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=False)
+    @mock.patch(
+        M_PATH + "os.get_terminal_size",
+        side_effect=OSError(),
+    )
+    def test_indents_and_wraps_content_when_len_specified(
+        self, _m_terminal_size, _m_is_tty
+    ):
+        block = Block(
+            title="Example Title",
+            content=[
+                "Smaller content line",
+                "A slightly bigger line which needs to be wrapped to fit the screen",  # noqa: E501
+                Block(
+                    title="Inner block",
+                    content=[
+                        "Another small content line",
+                        "Another slightly bigger line which needs to be wrapped to fit the screen",  # noqa: E501
+                    ],
+                ),
+                Table(
+                    rows=[
+                        [
+                            "1",
+                            "Table bigger last column which needs to be wrapped to fit the screen",  # noqa: E501
+                        ],
+                        [
+                            "2",
+                            "Table bigger last column which needs to be wrapped to fit the screen",  # noqa: E501
+                        ],
+                        [
+                            "3",
+                            "Table bigger last column which needs to be wrapped to fit the screen",  # noqa: E501
+                        ],
+                    ]
+                ),
+            ],
+        )
+        assert block.to_string() == textwrap.dedent(
+            """\
+            \x1b[1m\x1b[37mExample Title\x1b[0m
+                Smaller content line
+                A slightly bigger line which needs to be wrapped to fit the screen
+                \x1b[1m\x1b[37mInner block\x1b[0m
+                    Another small content line
+                    Another slightly bigger line which needs to be wrapped to fit the screen
+                1  Table bigger last column which needs to be wrapped to fit the screen
+                2  Table bigger last column which needs to be wrapped to fit the screen
+                3  Table bigger last column which needs to be wrapped to fit the screen
+            """  # noqa: E501
+        )
+        assert block.to_string(line_length=40) == textwrap.dedent(
+            """\
+            \x1b[1m\x1b[37mExample Title\x1b[0m
+                Smaller content line
+                A slightly bigger line which needs
+                to be wrapped to fit the screen
+                \x1b[1m\x1b[37mInner block\x1b[0m
+                    Another small content line
+                    Another slightly bigger line
+                    which needs to be wrapped to fit
+                    the screen
+                1  Table bigger last column which
+                   needs to be wrapped to fit the
+                   screen
+                2  Table bigger last column which
+                   needs to be wrapped to fit the
+                   screen
+                3  Table bigger last column which
+                   needs to be wrapped to fit the
+                   screen
+            """
+        )
+
+    def test_suggestions_can_be_disabled(self, FakeConfig):
+        suggestion_block = SuggestionBlock(
+            title="Suggestion", content=["Some content"]
+        )
+        POFC.init(FakeConfig())
+        assert suggestion_block.to_string() == textwrap.dedent(
+            """\
+            \x1b[1m\x1b[37mSuggestion\x1b[0m
+                Some content
+            """
+        )
+        POFC.disable_suggestions()
+        assert suggestion_block.to_string() == ""
