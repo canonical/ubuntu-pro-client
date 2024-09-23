@@ -2,12 +2,17 @@ import os
 import re
 import sys
 import textwrap
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional  # noqa: F401
 
 from uaclient.config import UAConfig
 from uaclient.messages import TxtColor
 
 COLOR_FORMATTING_PATTERN = r"\033\[.*?m"
+UTF8_ALTERNATIVES = {
+    "—": "-",
+    "✘": "x",
+    "✔": "*",
+}  # type: Dict[str, str]
 
 
 # Class attributes and methods so we don't need singletons or globals for this
@@ -54,6 +59,19 @@ def _get_default_length():
     # If you're not in a tty, we don't care about string length
     # If you have a thousand characters line, well, wow
     return 999
+
+
+def process_formatter_config(text: str) -> str:
+    output = text
+    if not ProOutputFormatterConfig.use_color:
+        output = re.sub(COLOR_FORMATTING_PATTERN, "", text)
+
+    if not ProOutputFormatterConfig.use_utf8:
+        for char, alternative in UTF8_ALTERNATIVES.items():
+            output = output.replace(char, alternative)
+        output = output.encode("ascii", "ignore").decode()
+
+    return output
 
 
 # We can't rely on textwrap because of the len_no_color function
@@ -151,7 +169,8 @@ class Table:
         for row in rows:
             output += self._fill_row(row)
             output += "\n"
-        return output
+
+        return process_formatter_config(output)
 
     def _get_line_length(self) -> int:
         return sum(self.column_sizes) + (len(self.column_sizes) - 1) * len(
@@ -227,7 +246,7 @@ class Block:
                 item_str, self.INDENT_CHAR * self.INDENT_SIZE
             )
 
-        return output
+        return process_formatter_config(output)
 
 
 class SuggestionBlock(Block):
