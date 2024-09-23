@@ -47,6 +47,14 @@ def len_no_color(text: str) -> int:
     return len(re.sub(COLOR_FORMATTING_PATTERN, "", text))
 
 
+def _get_default_length():
+    if sys.stdout.isatty():
+        return os.get_terminal_size().columns
+    # If you're not in a tty, we don't care about string length
+    # If you have a thousand characters line, well, wow
+    return 999
+
+
 # We can't rely on textwrap because of the len_no_color function
 # Textwrap is using a magic regex instead
 def wrap_text(text: str, max_width: int) -> List[str]:
@@ -77,21 +85,10 @@ class Table:
         self,
         headers: Optional[List[str]] = None,
         rows: Optional[List[List[str]]] = None,
-        max_length: Optional[int] = None,
     ):
         self.headers = headers if headers is not None else []
         self.rows = rows if rows is not None else []
         self.column_sizes = self._get_column_sizes()
-        if sys.stdout.isatty():
-            self.max_length = (
-                os.get_terminal_size().columns
-                if max_length is None
-                else max_length
-            )
-        else:
-            # If you're not in a tty, we don't care about wrapping
-            # If you have a thousand characters line on the table, well, wow
-            self.max_length = 999
 
     @staticmethod
     def ljust(string: str, total_length: int) -> str:
@@ -133,9 +130,15 @@ class Table:
         return column_sizes
 
     def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, line_length: Optional[int] = None) -> str:
+        if line_length is None:
+            line_length = _get_default_length()
+
         rows = self.rows
-        if self._get_line_length() > self.max_length:
-            rows = self.wrap_last_column()
+        if self._get_line_length() > line_length:
+            rows = self.wrap_last_column(line_length)
         output = ""
         if self.headers:
             output += (
@@ -154,8 +157,8 @@ class Table:
             self.SEPARATOR
         )
 
-    def wrap_last_column(self) -> List[List[str]]:
-        last_column_size = self.max_length - (
+    def wrap_last_column(self, max_length: int) -> List[List[str]]:
+        last_column_size = max_length - (
             sum(self.column_sizes[:-1])
             + (len(self.column_sizes) - 1) * len(self.SEPARATOR)
         )
