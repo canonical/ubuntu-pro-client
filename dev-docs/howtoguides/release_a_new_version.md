@@ -79,7 +79,6 @@ gitGraph LR:
   checkout review-v42
   merge main id: "Release PR" type:HIGHLIGHT
 
-  # release branches
   checkout main
   branch release-v42-xenial order: 4
   commit id: "Xenial Backport" type: HIGHLIGHT
