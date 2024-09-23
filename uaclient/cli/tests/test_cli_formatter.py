@@ -153,24 +153,6 @@ class TestTable:
 
         assert expected_msg in str(error.value)
 
-    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
-    def test_max_length_is_set(self, _m_is_tty):
-        table = Table(["a"], [], max_length=99)
-        assert table.max_length == 99
-
-    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
-    @mock.patch(M_PATH + "os.get_terminal_size")
-    def test_max_length_is_terminal_size_if_not_set(
-        self, m_terminal_size, _m_is_tty
-    ):
-        table = Table(["a"], [])
-        assert table.max_length == m_terminal_size.return_value.columns
-
-    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=False)
-    def test_max_length_is_infinite_if_not_tty(self, _m_is_tty):
-        table = Table(["a"], [])
-        assert table.max_length == 999
-
     def test_column_sizes(self):
         table = Table(
             ["header1", "h2", "h3", "h4"],
@@ -202,9 +184,8 @@ class TestTable:
                 ["b", "de", "fg", "wow this is a really big string of data"],
                 ["c", "fg", "hijkl", "m"],
             ],
-            max_length=40,
         )
-        assert table.wrap_last_column() == [
+        assert table.wrap_last_column(max_length=40) == [
             table.rows[0],
             ["b", "de", "fg", "wow this is a"],
             [" ", " ", " ", "really big string of"],
@@ -213,7 +194,7 @@ class TestTable:
         ]
 
     @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
-    def test_print_as_str(self, _m_is_tty):
+    def test_to_string_wraps_to_length(self, _m_is_tty):
         table = Table(
             ["header1", "h2", "h3", "h4"],
             [
@@ -221,14 +202,70 @@ class TestTable:
                 ["b", "de", "fg", "wow this is a really big string of data"],
                 ["c", "fg", "hijkl", "m"],
             ],
-            max_length=40,
         )
-        assert table.__str__() == textwrap.dedent(
+        assert table.to_string(line_length=40) == textwrap.dedent(
             """\
             \x1b[1mheader1  h2  h3     h4\x1b[0m
             a        bc  de     f
             b        de  fg     wow this is a
                                 really big string of
                                 data
-            c        fg  hijkl  m"""
+            c        fg  hijkl  m
+            """
+        )
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=True)
+    @mock.patch(
+        M_PATH + "os.get_terminal_size",
+        return_value=mock.MagicMock(columns=40),
+    )
+    def test_to_string_wraps_to_terminal_size(
+        self, _m_terminal_size, _m_is_tty
+    ):
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                ["b", "de", "fg", "wow this is a really big string of data"],
+                ["c", "fg", "hijkl", "m"],
+            ],
+        )
+        assert table.to_string() == textwrap.dedent(
+            """\
+            \x1b[1mheader1  h2  h3     h4\x1b[0m
+            a        bc  de     f
+            b        de  fg     wow this is a
+                                really big string of
+                                data
+            c        fg  hijkl  m
+            """
+        )
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=False)
+    # There is no terminal size if you are not in a tty
+    @mock.patch(
+        M_PATH + "os.get_terminal_size",
+        side_effect=OSError(),
+    )
+    def test_to_string_no_wrap_if_no_tty(self, _m_terminal_size, _m_is_tty):
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                [
+                    "b",
+                    "de",
+                    "fg",
+                    "wow this is a really big string of data" * 3,
+                ],
+                ["c", "fg", "hijkl", "m"],
+            ],
+        )
+        assert table.to_string() == textwrap.dedent(
+            """\
+            \x1b[1mheader1  h2  h3     h4\x1b[0m
+            a        bc  de     f
+            b        de  fg     wow this is a really big string of datawow this is a really big string of datawow this is a really big string of data
+            c        fg  hijkl  m
+            """  # noqa: E501
         )
