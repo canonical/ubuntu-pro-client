@@ -40,18 +40,18 @@ Here is a list of platforms and releases that Ubuntu Pro Client, through the
     * - Kinetic
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
       - 27.11.2
-      - Active SRU of all features
+      - 28.1
     * - Lunar
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
       - 27.14.4
-      - Active SRU of all features
+      - 30
     * - Mantic
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
-      - TBD
-      - Active SRU of all features
+      - 29.4
+      - 32.3.1
     * - Noble
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
-      - TBD
+      - 31.2.3
       - Active SRU of all features
     * - Oracular
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
