@@ -49,3 +49,12 @@ Here is a list of platforms and releases that Ubuntu Pro Client, through the
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
       - TBD
       - Active SRU of all features
+    * - Noble
+      - amd64, arm64, armhf, ppc64el, riscv64, s390x
+      - TBD
+      - Active SRU of all features
+    * - Oracular
+      - amd64, arm64, armhf, ppc64el, riscv64, s390x
+      - TBD
+      - Active SRU of all features
+
