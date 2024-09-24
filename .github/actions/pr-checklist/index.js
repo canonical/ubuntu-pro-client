@@ -324,6 +324,7 @@ async function run() {
             issue_number: context.issue.number,
             content: "eyes"
         });
+        errors.push("First run. Please fill out the checklist.")
     }
     
     if (errors.length > 0) {
