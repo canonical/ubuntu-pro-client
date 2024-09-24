@@ -1,3 +1,4 @@
+import abc
 import os
 import re
 import sys
@@ -97,7 +98,16 @@ def wrap_text(text: str, max_width: int) -> List[str]:
     return wrapped_lines
 
 
-class Table:
+class ProOutputFormatter(abc.ABC):
+    @abc.abstractmethod
+    def to_string(self, line_length: Optional[int] = None) -> str:
+        pass
+
+    def __str__(self):
+        return self.to_string()
+
+
+class Table(ProOutputFormatter):
     SEPARATOR = " " * 2
 
     def __init__(
@@ -147,9 +157,6 @@ class Table:
             )
 
         return column_sizes
-
-    def __str__(self) -> str:
-        return self.to_string()
 
     def to_string(self, line_length: Optional[int] = None) -> str:
         if line_length is None:
@@ -204,7 +211,7 @@ class Table:
         return output
 
 
-class Block:
+class Block(ProOutputFormatter):
     INDENT_SIZE = 4
     INDENT_CHAR = " "
 
@@ -215,9 +222,6 @@ class Block:
     ):
         self.title = title
         self.content = content if content is not None else []
-
-    def __str__(self) -> str:
-        return self.to_string()
 
     def to_string(self, line_length: Optional[int] = None) -> str:
         if line_length is None:
@@ -237,7 +241,7 @@ class Block:
             )
 
         for item in self.content:
-            if isinstance(item, (Block, Table)):
+            if isinstance(item, ProOutputFormatter):
                 item_str = item.to_string(line_length=line_length)
             else:
                 item_str = "\n".join(wrap_text(str(item), line_length)) + "\n"
