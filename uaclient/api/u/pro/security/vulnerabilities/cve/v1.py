@@ -4,7 +4,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from uaclient import util
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.exceptions import InvalidOptionCombination
+from uaclient.api.exceptions import (
+    DepedentOptionError,
+    InvalidOptionCombination,
+)
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     VulnerabilityParser,
     VulnerabilityStatus,
@@ -428,6 +431,9 @@ def _vulnerabilities(
     if options.unfixable and options.all:
         raise InvalidOptionCombination(option1="unfixable", option2="all")
 
+    if options.series and not options.manifest_file:
+        raise DepedentOptionError(option1="series", option2="manifest_file")
+
     cve_vulnerabilities_result = get_vulnerabilities(
         parser=CVEParser(),
         cfg=cfg,
@@ -455,9 +461,11 @@ def _vulnerabilities_with_applied_fixes_count(
     This endpoint shows the CVE vulnerabilites in the system.
     By default, this API will only show fixable CVEs in the system.
     """
-
     if options.unfixable and options.all:
         raise InvalidOptionCombination(option1="unfixable", option2="all")
+
+    if options.series and not options.manifest_file:
+        raise DepedentOptionError(option1="series", option2="manifest_file")
 
     cve_vulnerabilities_result = get_vulnerabilities(
         parser=CVEParser(),

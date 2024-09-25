@@ -2704,6 +2704,11 @@ E_INVALID_OPTION_COMBINATION = FormattedNamedMessage(
     t.gettext("Error: Cannot use {option1} together with {option2}."),
 )
 
+E_DEPEDENT_OPTION = FormattedNamedMessage(
+    "depedent-option",
+    t.gettext("Error: {option1} depends on {option2} to work properly."),
+)
+
 E_CLI_NO_HELP = FormattedNamedMessage(
     "no-help-content", t.gettext("No help available for '{name}'")
 )

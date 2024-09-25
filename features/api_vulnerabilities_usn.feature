@@ -3,6 +3,20 @@ Feature: Client behaviour for USN vulnerabilities API
   @uses.config.contract_token
   Scenario Outline: USN vulnerabilities for xenial machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify that running `pro api u.pro.security.vulnerabilities.usn.v1 --args series=jammy` `as non-root` exits `1`
+    Then API errors field output is:
+      """
+      [
+        {
+          "code": "depedent-option",
+          "meta": {
+            "option1": "series",
+            "option2": "manifest_file"
+          },
+          "title": "Error: series depends on manifest_file to work properly."
+        }
+      ]
+      """
     When I attach `contract_token` with sudo
     # Check we can download and parse the JSON data
     And I run `pro api u.pro.security.vulnerabilities.usn.v1` as non-root

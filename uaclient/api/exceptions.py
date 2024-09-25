@@ -4,6 +4,7 @@ from uaclient.exceptions import (
     AlreadyAttachedError,
     ConnectivityError,
     ContractAPIError,
+    DepedentOptionError,
     EntitlementNotDisabledError,
     EntitlementNotEnabledError,
     EntitlementNotFoundError,
@@ -48,6 +49,7 @@ __all__ = [
     "IncompatibleServiceStopsEnable",
     "RequiredServiceStopsEnable",
     "UnsupportedManifestFile",
+    "DepedentOptionError",
 ]
 
 

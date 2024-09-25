@@ -563,6 +563,10 @@ class InvalidOptionCombination(UbuntuProError):
     _formatted_msg = messages.E_INVALID_OPTION_COMBINATION
 
 
+class DepedentOptionError(UbuntuProError):
+    _formatted_msg = messages.E_DEPEDENT_OPTION
+
+
 class NoHelpContent(UbuntuProError):
     _formatted_msg = messages.E_CLI_NO_HELP
 
