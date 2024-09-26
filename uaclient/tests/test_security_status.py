@@ -64,15 +64,38 @@ ORIGIN_TO_SERVICE_MOCK = {
 
 class TestSecurityStatus:
     @pytest.mark.parametrize(
-        "service_name,ua_info,expected_result",
+        "service_name,ua_info,version,expected_result",
         (
-            ("standard-security", {}, UpdateStatus.AVAILABLE.value),
+            (
+                "standard-security",
+                {},
+                mock_version("1.0"),
+                UpdateStatus.AVAILABLE.value,
+            ),
+            (
+                "standard-security",
+                {},
+                mock_version("0.8"),
+                UpdateStatus.AVAILABLE_NOT_PREFERRED.value,
+            ),
             (
                 "esm",
                 {"attached": True, "enabled_services": ["esm"]},
+                mock_version("1.0"),
                 UpdateStatus.AVAILABLE.value,
             ),
-            ("esm", {"attached": False}, UpdateStatus.UNATTACHED.value),
+            (
+                "esm",
+                {"attached": True, "enabled_services": ["esm"]},
+                mock_version("1.1"),
+                UpdateStatus.AVAILABLE_NOT_PREFERRED.value,
+            ),
+            (
+                "esm",
+                {"attached": False},
+                mock_version("1.0"),
+                UpdateStatus.UNATTACHED.value,
+            ),
             (
                 "esm",
                 {
@@ -80,6 +103,7 @@ class TestSecurityStatus:
                     "enabled_services": ["not-esm"],
                     "entitled_services": ["esm"],
                 },
+                mock_version("1.0"),
                 UpdateStatus.NOT_ENABLED.value,
             ),
             (
@@ -89,12 +113,24 @@ class TestSecurityStatus:
                     "enabled_services": ["not-esm"],
                     "entitled_services": ["not-esm-again"],
                 },
+                mock_version("1.0"),
                 UpdateStatus.UNAVAILABLE.value,
             ),
         ),
     )
-    def test_get_update_status(self, service_name, ua_info, expected_result):
-        assert get_update_status(service_name, ua_info) == expected_result
+    @mock.patch(M_PATH + "get_pkg_candidate_version", return_value="1.0")
+    def test_get_update_status(
+        self,
+        m_pkg_candidate_version,
+        service_name,
+        ua_info,
+        version,
+        expected_result,
+    ):
+        assert (
+            get_update_status(service_name, ua_info, version)
+            == expected_result
+        )
 
     @pytest.mark.parametrize("is_attached", (True, False))
     @mock.patch(M_PATH + "_is_attached")
@@ -508,8 +544,10 @@ class TestSecurityStatus:
     )
     @mock.patch(M_PATH + "filter_updates")
     @mock.patch(M_PATH + "get_apt_pkg_cache")
+    @mock.patch(M_PATH + "get_pkg_candidate_version", return_value=None)
     def test_security_status_dict(
         self,
+        m_pkg_candidate_version,
         m_cache,
         m_filter_sec_updates,
         _m_get_origin,
@@ -524,11 +562,27 @@ class TestSecurityStatus:
         m_version = mock_version("1.0", size=123456)
         m_package = mock_package("example_package", m_version)
 
-        m_cache.return_value.packages = [m_package] * 10
+        # Different package with version that is not candidate
+        m_version_2 = mock_version("2.0", size=123456)
+        m_package_2 = mock_package(
+            "example_pkg_diff_candidate_version", m_version_2
+        )
+
+        m_package_list = [m_package] * 10
+        m_package_list.append(m_package_2)
+        m_cache.return_value.packages = m_package_list
+
+        m_pkg_candidate_version.return_value = "1.0"
+
         m_filter_sec_updates.return_value = {
-            "esm-infra": [(m_version, "some.url.for.esm")] * 2,
+            "esm-infra": [
+                (m_version, "some.url.for.esm"),
+                (m_version, "some.url.for.esm"),
+            ],
             "esm-apps": [],
-            "standard-security": [],
+            "standard-security": [
+                (m_version_2, "security.ubuntu.com"),
+            ],
         }
         m_reboot_status.return_value = mock.MagicMock(
             reboot_required=RebootStatus.REBOOT_NOT_REQUIRED.value
@@ -553,6 +607,14 @@ class TestSecurityStatus:
                     "origin": "some.url.for.esm",
                     "download_size": 123456,
                 },
+                {
+                    "package": "example_pkg_diff_candidate_version",
+                    "version": "2.0",
+                    "service_name": "standard-security",
+                    "status": "upgrade_available_not_preferred",
+                    "origin": "security.ubuntu.com",
+                    "download_size": 123456,
+                },
             ],
             "summary": {
                 "ua": {
@@ -560,8 +622,8 @@ class TestSecurityStatus:
                     "enabled_services": [],
                     "entitled_services": [],
                 },
-                "num_installed_packages": 10,
-                "num_main_packages": 10,
+                "num_installed_packages": 11,
+                "num_main_packages": 11,
                 "num_restricted_packages": 0,
                 "num_universe_packages": 0,
                 "num_multiverse_packages": 0,
@@ -571,7 +633,7 @@ class TestSecurityStatus:
                 "num_esm_apps_packages": 0,
                 "num_esm_infra_updates": 2,
                 "num_esm_apps_updates": 0,
-                "num_standard_security_updates": 0,
+                "num_standard_security_updates": 1,
                 "reboot_required": "no",
             },
             "livepatch": {"fixed_cves": []},

@@ -93,6 +93,7 @@
             "type": "string",
             "enum": [
               "upgrade_available",
+              "upgrade_available_not_preferred",
               "pending_attach",
               "pending_enable",
               "upgrade_unavailable"
