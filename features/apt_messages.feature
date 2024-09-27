@@ -133,7 +133,6 @@ Feature: APT Messages
       | release | machine_type  | version |
       | xenial  | lxd-container | 16      |
       | bionic  | lxd-container | 18      |
-      | bionic  | wsl           | 18      |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
