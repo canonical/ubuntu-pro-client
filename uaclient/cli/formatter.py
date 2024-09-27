@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import textwrap
+from enum import Enum
 from typing import Any, Dict, List, Optional  # noqa: F401
 
 from uaclient.config import UAConfig
@@ -14,6 +15,11 @@ UTF8_ALTERNATIVES = {
     "✘": "x",
     "✔": "*",
 }  # type: Dict[str, str]
+
+
+class ContentAlignment(Enum):
+    LEFT = "l"
+    RIGHT = "r"
 
 
 # Class attributes and methods so we don't need singletons or globals for this
@@ -114,10 +120,23 @@ class Table(ProOutputFormatter):
         self,
         headers: Optional[List[str]] = None,
         rows: Optional[List[List[str]]] = None,
+        alignment: Optional[List[ContentAlignment]] = None,
     ):
         self.headers = headers if headers is not None else []
         self.rows = rows if rows is not None else []
         self.column_sizes = self._get_column_sizes()
+        self.alignment = (
+            alignment
+            if alignment is not None
+            else [ContentAlignment.LEFT] * len(self.column_sizes)
+        )
+        if len(self.alignment) != len(self.column_sizes):
+            raise ValueError(
+                "'alignment' list should have length {}".format(
+                    len(self.column_sizes)
+                )
+            )
+        self.last_column_size = self.column_sizes[-1]
 
     @staticmethod
     def ljust(string: str, total_length: int) -> str:
@@ -125,6 +144,13 @@ class Table(ProOutputFormatter):
         if str_length >= total_length:
             return string
         return string + " " * (total_length - str_length)
+
+    @staticmethod
+    def rjust(string: str, total_length: int) -> str:
+        str_length = len_no_color(string)
+        if str_length >= total_length:
+            return string
+        return " " * (total_length - str_length) + string
 
     def _get_column_sizes(self) -> List[int]:
         if not self.headers and not self.rows:
@@ -185,16 +211,16 @@ class Table(ProOutputFormatter):
         )
 
     def wrap_last_column(self, max_length: int) -> List[List[str]]:
-        last_column_size = max_length - (
+        self.last_column_size = max_length - (
             sum(self.column_sizes[:-1])
             + (len(self.column_sizes) - 1) * len(self.SEPARATOR)
         )
         new_rows = []
         for row in self.rows:
-            if len(row[-1]) <= last_column_size:
+            if len(row[-1]) <= self.last_column_size:
                 new_rows.append(row)
             else:
-                wrapped_last_column = wrap_text(row[-1], last_column_size)
+                wrapped_last_column = wrap_text(row[-1], self.last_column_size)
                 new_rows.append(row[:-1] + [wrapped_last_column[0]])
                 for extra_line in wrapped_last_column[1:]:
                     new_row = [" "] * (len(self.column_sizes) - 1) + [
@@ -206,8 +232,18 @@ class Table(ProOutputFormatter):
     def _fill_row(self, row: List[str]) -> str:
         output = ""
         for i in range(len(row) - 1):
-            output += self.ljust(row[i], self.column_sizes[i]) + self.SEPARATOR
-        output += row[-1]
+            if self.alignment[i] == ContentAlignment.LEFT:
+                output += (
+                    self.ljust(row[i], self.column_sizes[i]) + self.SEPARATOR
+                )
+            elif self.alignment[i] == ContentAlignment.RIGHT:
+                output += (
+                    self.rjust(row[i], self.column_sizes[i]) + self.SEPARATOR
+                )
+        if self.alignment[-1] == ContentAlignment.LEFT:
+            output += row[-1]
+        elif self.alignment[-1] == ContentAlignment.RIGHT:
+            output += self.rjust(row[-1], self.last_column_size)
         return output
 
 
