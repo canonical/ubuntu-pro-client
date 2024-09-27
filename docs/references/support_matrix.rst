@@ -7,8 +7,12 @@ releases.
 On interim Ubuntu releases, ``pro status`` will report most of the services as
 "n/a" (not applicable), and disallow enabling those services.
 
-Here is a list of platforms and releases that Ubuntu Pro Client, through the
-``ubuntu-advantage-tools`` package, supports.
+Here is a list of platforms and releases that Ubuntu Pro Client supports,
+through the ``ubuntu-pro-client`` package (``ubuntu-advantage-tools`` on
+Trusty).
+
+It is available on amd64, arm64, armhf and ppc64el architectures on **all**
+releases.
 
 .. list-table:: 
     :header-rows: 1
@@ -17,44 +21,33 @@ Here is a list of platforms and releases that Ubuntu Pro Client, through the
       - Build Architectures
       - Initial Release
       - Final Release
-    * - Trusty
-      - amd64, arm64, armhf, i386, powerpc, ppc64el
+    * - 14.04 LTS (Trusty)
+      - i386, powerpc
       - None
       - 19.6
-    * - Xenial
-      - amd64, arm64, armhf, i386, powerpc, ppc64el, s390x
+    * - 16.04 LTS (Xenial)
+      - s390x, i386, powerpc
       - None
       - Active SRU of all features
-    * - Bionic
-      - amd64, arm64, armhf, i386, ppc64el, s390x
+    * - 18.04 LTS (Bionic)
+      - s390x, i386
       - 17
       - Active SRU of all features
-    * - Focal
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
+    * - 20.04 LTS (Focal)
+      - s390x, riscv64
       - 20.3
       - Active SRU of all features
-    * - Jammy
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
+    * - 22.04 LTS (Jammy)
+      - s390x, riscv64
       - 27.7
       - Active SRU of all features
-    * - Kinetic
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
-      - 27.11.2
-      - 28.1
-    * - Lunar
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
-      - 27.14.4
-      - 30
-    * - Mantic
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
-      - 29.4
-      - 32.3.1
-    * - Noble
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
+    * - 24.04 LTS (Noble)
+      - s390x, riscv64
       - 31.2.3
       - Active SRU of all features
-    * - Oracular
-      - amd64, arm64, armhf, ppc64el, riscv64, s390x
+    * - 24.10 (Oracular Oriole)
+      - s390x, riscv64
       - TBD
       - Active SRU of all features
+
 
