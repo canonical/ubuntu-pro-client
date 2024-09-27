@@ -1209,13 +1209,10 @@ CLI_ROOT_VULNERABILITY = t.gettext(
 )
 CLI_VULNERABILITY_DESC = t.gettext(
     """\
-Show information about system vulnerabilities.
-
-show: display all available information for a given CVE/USN.
-list: display all fixable CVEs in the system
-update: update the vulnerability data in the system
-"""
+Allow users to better visualize the vulnerability issues that affects
+the system."""
 )
+
 CLI_VULNERABILITY_DATA_FILE = t.gettext(
     """\
 Static vulnerability JSON data to be used in the command"""
@@ -1270,8 +1267,7 @@ CLI_VULNERABILITY_UPDATE = t.gettext(
 CLI_VULNERABILITY_UPDATE_DESC = t.gettext(
     """\
 Updates the vulnerability data stored in the machine.
-If no vulnerability data exists yet, the command will
-download it
+If no vulnerability data exists yet, the command will download it
 """
 )
 CLI_VULNERABILITY_UPDATE_CHECK_NEW_DATA = t.gettext(
@@ -1302,9 +1298,9 @@ CLI_VULNERABILITY_LIST = t.gettext(
 )
 CLI_VULNERABILITY_LIST_DESC = t.gettext(
     """\
-    List the fixable vulnerabilities that affects the system.
-    By default, the command will only list CVEs. To display
-    USNs instead, run the command with the --usns flag."""
+List the fixable vulnerabilities that affects the system.
+By default, the command will only list CVEs. To display
+USNs instead, run the command with the --usns flag."""
 )
 CLI_VULNERABILITY_LIST_CVE_HEADER = (
     TxtColor.DISABLEGREY

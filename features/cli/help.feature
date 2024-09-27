@@ -19,6 +19,7 @@ Feature: Pro Client help text
       Security-related commands:
 
         fix              check for and mitigate the impact of a CVE/USN on this system
+        vulnerability    show information about system vulnerabilities
 
       Troubleshooting-related commands:
 
@@ -58,6 +59,7 @@ Feature: Pro Client help text
       Security-related commands:
 
         fix              check for and mitigate the impact of a CVE/USN on this system
+        vulnerability    show information about system vulnerabilities
 
       Troubleshooting-related commands:
 
@@ -458,6 +460,80 @@ Feature: Pro Client help text
                     vulnerability_data_url_prefix
 
       <options_string>:
+        -h, --help  show this help message and exit
+      """
+    When I run `pro vulnerability --help` as non-root
+    Then I will see the following on stdout
+      """
+      usage: pro vulnerability [-h] {show,update,list} ...
+
+      Allow users to better visualize the vulnerability issues that affects
+      the system.
+
+      optional arguments:
+        -h, --help          show this help message and exit
+
+      Available Commands:
+        {show,update,list}
+          show              show information about a vulnerability
+          update            update the vulnerability data in your machine
+          list              list the vulnerabilities that affect the system
+      """
+    When I run `pro vulnerability show --help` as non-root
+    Then I will see the following on stdout
+      """
+      usage: pro vulnerability show [-h] [--data-file DATA_FILE] [--update]
+                                    security_issue
+
+      Show all available information about a given security issue.
+
+      positional arguments:
+        security_issue        Security vulnerability ID to display information.
+                              Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd
+
+      optional arguments:
+        -h, --help            show this help message and exit
+        --data-file DATA_FILE
+                              Static vulnerability JSON data to be used in the
+                              command
+        --update              update the vulnerability data in your machine
+      """
+    When I run `pro vulnerability list --help` as non-root
+    Then I will see the following on stdout
+      """
+      usage: pro vulnerability list [-h] [--data-file DATA_FILE] [--all] [--usns]
+                                    [--unfixable] [--manifest-file MANIFEST_FILE]
+                                    [--series SERIES] [--update]
+
+      List the fixable vulnerabilities that affects the system.
+      By default, the command will only list CVEs. To display
+      USNs instead, run the command with the --usns flag.
+
+      optional arguments:
+        -h, --help            show this help message and exit
+        --data-file DATA_FILE
+                              Static vulnerability JSON data to be used in the
+                              command
+        --all                 List all vulnerabilities that affect the machine, even
+                              if they can't be fixed
+        --usns                List USNs vulnerabilities instead of CVEs
+        --unfixable           List only vulnerabilities that don't have a fix
+                              available
+        --manifest-file MANIFEST_FILE
+                              Manifest file to be used by the command
+        --series SERIES       When a manifest file is provided, specify the series
+                              that generated using this parameter
+        --update              update the vulnerability data in your machine
+      """
+    When I run `pro vulnerability update --help` as non-root
+    Then I will see the following on stdout
+      """
+      usage: pro vulnerability update [-h]
+
+      Updates the vulnerability data stored in the machine.
+      If no vulnerability data exists yet, the command will download it
+
+      optional arguments:
         -h, --help  show this help message and exit
       """
 
