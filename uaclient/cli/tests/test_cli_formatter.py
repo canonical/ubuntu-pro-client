@@ -3,7 +3,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient.cli.formatter import Block
+from uaclient.cli.formatter import Block, ContentAlignment
 from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
 from uaclient.cli.formatter import (
     SuggestionBlock,
@@ -135,27 +135,53 @@ class TestTable:
         assert expected_value == Table.ljust(input_str, input_len)
 
     @pytest.mark.parametrize(
-        "headers,rows,expected_msg",
+        "input_str,input_len,expected_value",
         (
-            (None, None, "Empty table not supported."),
-            (None, [["a", "b"], [], ["c", "d"]], "Empty row not supported."),
+            ("", 0, ""),
+            ("", 5, "     "),
+            ("test", 2, "test"),
+            ("test", 4, "test"),
+            ("test", 10, "      test"),
+        ),
+    )
+    def test_rjust(self, input_str, input_len, expected_value):
+        assert expected_value == Table.rjust(input_str, input_len)
+
+    @pytest.mark.parametrize(
+        "headers,rows,alignment,expected_msg",
+        (
+            (None, None, None, "Empty table not supported."),
+            (
+                None,
+                [["a", "b"], [], ["c", "d"]],
+                None,
+                "Empty row not supported.",
+            ),
             (
                 None,
                 [["a", "b"], ["c", "d", "e"], ["f", "g"]],
+                None,
                 "Mixed lengths in table content.",
             ),
             (
                 ["h1", "h2", "h3"],
                 [["a", "b"], ["c", "d"], ["e", "f"]],
+                None,
                 "Mixed lengths in table content.",
+            ),
+            (
+                ["h1", "h2"],
+                [["a", "b"], ["c", "d"], ["e", "f"]],
+                [ContentAlignment.RIGHT],
+                "'alignment' list should have length 2",
             ),
         ),
     )
     def test_validate_rejects_invalid_entries(
-        self, headers, rows, expected_msg
+        self, headers, rows, alignment, expected_msg
     ):
         with pytest.raises(ValueError) as error:
-            Table(headers=headers, rows=rows)
+            Table(headers=headers, rows=rows, alignment=alignment)
 
         assert expected_msg in str(error.value)
 
@@ -218,6 +244,37 @@ class TestTable:
                                 really big string of
                                 data
             c        fg  hijkl  m
+            """
+        )
+
+    @mock.patch(M_PATH + "sys.stdout.isatty", return_value=False)
+    def test_columns_align_to_the_right(self, _m_is_tty, FakeConfig):
+        POFC.init(FakeConfig())
+        table = Table(
+            ["header1", "h2", "h3", "h4"],
+            [
+                ["a", "bc", "de", "f"],
+                ["b", "de", "fg", "wow this is a really big string of data"],
+                ["c", "fg", "hijkl", "m"],
+            ],
+            alignment=[ContentAlignment.RIGHT] * 4,
+        )
+        assert table.to_string() == textwrap.dedent(
+            """\
+            header1  h2     h3                                       h4
+                  a  bc     de                                        f
+                  b  de     fg  wow this is a really big string of data
+                  c  fg  hijkl                                        m
+            """  # noqa: E501
+        )
+        assert table.to_string(line_length=40) == textwrap.dedent(
+            """\
+            header1  h2     h3                    h4
+                  a  bc     de                     f
+                  b  de     fg         wow this is a
+                                really big string of
+                                                data
+                  c  fg  hijkl                     m
             """
         )
 
