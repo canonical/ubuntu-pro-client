@@ -84,7 +84,7 @@ def process_formatter_config(text: str) -> str:
 # We can't rely on textwrap because of the len_no_color function
 # Textwrap is using a magic regex instead
 def wrap_text(text: str, max_width: int) -> List[str]:
-    if len_no_color(text) < max_width:
+    if len_no_color(text) <= max_width:
         return [text]
 
     words = text.split()
