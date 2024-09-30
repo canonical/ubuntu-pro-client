@@ -1343,7 +1343,7 @@ CLI_VULNERABILITY_LIST_FIXES_APPLIED_HEADER = (
     + TxtColor.ENDC
 )
 CLI_VULNERABILITY_LIST_FIXES_AVAILABLE_COUNT = t.gettext(
-    "vulnerabilities found"
+    "fixable via {pocket}"
 )
 CLI_VULNERABILITY_LIST_UNFIXABLE_AVAILABLE_COUNT = t.gettext(
     "unfixable vulnerabilities found"
