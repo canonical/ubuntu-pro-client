@@ -8,7 +8,8 @@ from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
 from uaclient.cli.formatter import (
     SuggestionBlock,
     Table,
-    len_no_color,
+    create_link,
+    real_len,
     wrap_text,
 )
 
@@ -74,7 +75,15 @@ class TestProFormatterConfig:
         assert POFC.show_suggestions is False
 
 
-class TestLenNoColor:
+class TestCreateLink:
+    def test_creates_link(self):
+        assert (
+            "\x1b]8;;http://example.test\x1b\\some link\x1b]8;;\x1b\\"
+            == create_link(text="some link", url="http://example.test")
+        )
+
+
+class TestRealLen:
     @pytest.mark.parametrize(
         "input_string,expected_length",
         (
@@ -87,7 +96,15 @@ class TestLenNoColor:
         ),
     )
     def test_length_ignores_color(self, input_string, expected_length):
-        assert expected_length == len_no_color(input_string)
+        assert expected_length == real_len(input_string)
+
+    def test_length_ignores_links(self):
+        str_with_link = (
+            "There is an "
+            "\x1b]8;;https://example.com\x1b\\example link here\x1b]8;;\x1b\\"
+            " to be clicked"
+        )
+        assert 43 == real_len(str_with_link)
 
 
 class TestWrapText:
@@ -118,6 +135,19 @@ class TestWrapText:
             "include the \x1b[91mred\x1b[0m text",
             "too",
         ] == wrap_text(colored_string, 20)
+
+        string_with_link = (
+            "There is an "
+            "\x1b]8;;https://example.com\x1b\\example link here\x1b]8;;\x1b\\"
+            " to be clicked"
+        )
+        assert len(string_with_link) == 76
+        assert [string_with_link] == wrap_text(string_with_link, 45)
+        assert [
+            "There is an \x1b]8;;https://example.com\x1b\\example",
+            "link here\x1b]8;;\x1b\\ to be",
+            "clicked",
+        ] == wrap_text(string_with_link, 20)
 
 
 class TestTable:
@@ -290,7 +320,7 @@ class TestTable:
         table = Table(
             ["header1", "h2", "h3", "h4"],
             [
-                ["a", "bc", "de", "f"],
+                [create_link(text="a", url="example.com"), "bc", "de", "f"],
                 ["b", "de", "fg", "wow this is a really big string of data"],
                 ["c", "fg", "hijkl", "m"],
             ],
@@ -298,7 +328,7 @@ class TestTable:
         assert table.to_string() == textwrap.dedent(
             """\
             \x1b[1mheader1  h2  h3     h4\x1b[0m
-            a        bc  de     f
+            \x1b]8;;example.com\x1b\\a\x1b]8;;\x1b\\        bc  de     f
             b        de  fg     wow this is a
                                 really big string of
                                 data
@@ -319,7 +349,7 @@ class TestTable:
         table = Table(
             ["header1", "h2", "h3", "h4"],
             [
-                ["a", "bc", "de", "f"],
+                [create_link(text="a", url="example.com"), "bc", "de", "f"],
                 [
                     "b",
                     "de",

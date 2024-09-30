@@ -10,6 +10,8 @@ from uaclient.config import UAConfig
 from uaclient.messages import TxtColor
 
 COLOR_FORMATTING_PATTERN = r"\033\[.*?m"
+LINK_START_PATTERN = r"\033]8;;.+?\033\\+"
+LINK_END = "\033]8;;\033\\"
 UTF8_ALTERNATIVES = {
     "—": "-",
     "✘": "x",
@@ -56,8 +58,18 @@ class ProOutputFormatterConfig:
 ProOutputFormatterConfig.init(cfg=UAConfig())
 
 
-def len_no_color(text: str) -> int:
-    return len(re.sub(COLOR_FORMATTING_PATTERN, "", text))
+def create_link(text: str, url: str) -> str:
+    return "\033]8;;{url}\033\\{text}\033]8;;\033\\".format(url=url, text=text)
+
+
+def real_len(text: str) -> int:
+    # ignore colors if existing
+    result = re.sub(COLOR_FORMATTING_PATTERN, "", text)
+    # Ignore link control characters and metadata
+    result = re.sub(LINK_START_PATTERN, "", result)
+    result = result.replace(LINK_END, "")
+
+    return len(result)
 
 
 def _get_default_length():
@@ -78,13 +90,17 @@ def process_formatter_config(text: str) -> str:
             output = output.replace(char, alternative)
         output = output.encode("ascii", "ignore").decode()
 
+    if not sys.stdout.isatty():
+        output = re.sub(LINK_START_PATTERN, "", output)
+        output = output.replace(LINK_END, "")
+
     return output
 
 
-# We can't rely on textwrap because of the len_no_color function
+# We can't rely on textwrap because of the real_len function
 # Textwrap is using a magic regex instead
 def wrap_text(text: str, max_width: int) -> List[str]:
-    if len_no_color(text) <= max_width:
+    if real_len(text) <= max_width:
         return [text]
 
     words = text.split()
@@ -92,7 +108,7 @@ def wrap_text(text: str, max_width: int) -> List[str]:
     current_line = ""
 
     for word in words:
-        if len_no_color(current_line) + len_no_color(word) >= max_width:
+        if real_len(current_line) + real_len(word) >= max_width:
             wrapped_lines.append(current_line.strip())
             current_line = word
         else:
@@ -140,14 +156,14 @@ class Table(ProOutputFormatter):
 
     @staticmethod
     def ljust(string: str, total_length: int) -> str:
-        str_length = len_no_color(string)
+        str_length = real_len(string)
         if str_length >= total_length:
             return string
         return string + " " * (total_length - str_length)
 
     @staticmethod
     def rjust(string: str, total_length: int) -> str:
-        str_length = len_no_color(string)
+        str_length = real_len(string)
         if str_length >= total_length:
             return string
         return " " * (total_length - str_length) + string
@@ -179,7 +195,7 @@ class Table(ProOutputFormatter):
         column_sizes = []
         for i in range(len(all_content[0])):
             column_sizes.append(
-                max(len_no_color(str(item[i])) for item in all_content)
+                max(real_len(str(item[i])) for item in all_content)
             )
 
         return column_sizes
