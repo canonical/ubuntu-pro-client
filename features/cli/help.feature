@@ -41,6 +41,45 @@ Feature: Pro Client help text
 
       Use pro <command> --help for more information about a command.
       """
+    # '--help' and 'help' should both work and produce the same output
+    When I run `pro help` as non-root
+    Then I will see the following on stdout
+      """
+      usage: pro [-h] [--debug] [--version] <command> ...
+
+      Quick start commands:
+
+        status           current status of all Ubuntu Pro services
+        attach           attach this machine to an Ubuntu Pro subscription
+        enable           enable a specific Ubuntu Pro service on this machine
+        system           show system information related to Pro services
+        security-status  list available security updates for the system
+
+      Security-related commands:
+
+        fix              check for and mitigate the impact of a CVE/USN on this system
+
+      Troubleshooting-related commands:
+
+        collect-logs     collect Pro logs and debug information
+
+      Other commands:
+
+        api              Calls the Client API endpoints.
+        auto-attach      automatically attach on supported platforms
+        config           manage Ubuntu Pro configuration on this machine
+        detach           remove this machine from an Ubuntu Pro subscription
+        disable          disable a specific Ubuntu Pro service on this machine
+        refresh          refresh Ubuntu Pro services
+
+      Flags:
+
+        -h, --help       Displays help on pro and command line options
+        --debug          show all debug log messages to console
+        --version        show version of pro
+
+      Use pro <command> --help for more information about a command.
+      """
     When I run `pro collect-logs --help` as non-root
     Then I will see the following on stdout
       """
