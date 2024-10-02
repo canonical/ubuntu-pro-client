@@ -99,6 +99,12 @@ constructive feedback.
 
    Reference <references.rst>
 
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   Development <dev-docs/index.rst>
+
 .. LINKS
 
 .. include:: links.txt
