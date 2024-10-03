@@ -3,7 +3,10 @@ from typing import Any, Dict, Optional, Tuple
 
 from uaclient import api, event_logger, exceptions, messages, system, util
 from uaclient.entitlements.base import UAEntitlement
-from uaclient.entitlements.entitlement_status import ApplicationStatus
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    ApplicationStatus,
+)
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 event = event_logger.get_event_logger()
@@ -73,6 +76,27 @@ class LandscapeEntitlement(UAEntitlement):
                 ApplicationStatus.DISABLED,
                 messages.LANDSCAPE_SERVICE_NOT_ACTIVE,
             )
+
+    def applicability_status(
+        self,
+    ) -> Tuple[ApplicabilityStatus, Optional[messages.NamedMessage]]:
+        applicability_status = super().applicability_status()
+        if applicability_status[0] == ApplicabilityStatus.INAPPLICABLE:
+            affordance = self.entitlement_cfg["entitlement"].get(
+                "affordances", {}
+            )
+            affordance_series = affordance.get("series", None)
+            current_series = system.get_release_info().series
+            if (
+                self.affordance_check_series
+                and affordance_series is not None
+                and current_series not in affordance_series
+            ):
+                return (
+                    ApplicabilityStatus.INAPPLICABLE,
+                    messages.LANDSCAPE_INAPPLICABLE,
+                )
+        return applicability_status
 
     def enabled_warning_status(
         self,
