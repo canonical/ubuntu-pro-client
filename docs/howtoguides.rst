@@ -100,7 +100,15 @@ will direct you in setting up your Public Cloud environment.
 
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
-   
+
+Ubuntu Pro Client LXD integation
+================================
+
+.. toctree::
+   :maxdepth: 1
+
+   How to setup the Ubuntu Pro LXD integration <howtoguides/use_pro_lxd_guests>
+
 Troubleshooting
 ===============
 
@@ -113,4 +121,3 @@ in order to report a bug, or release a corrupted lock on a file.
    Check Pro Client version <howtoguides/check_pro_version>
    Collect data logs for bug reporting <howtoguides/how_to_collect_logs>
    Get rid of corrupted locks <howtoguides/get_rid_of_corrupt_lock>
-   
