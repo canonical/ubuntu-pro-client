@@ -1,4 +1,3 @@
-import copy
 import logging
 import os
 from typing import Optional
@@ -124,18 +123,14 @@ class UserConfigFileObject:
     def redact_config_data(
         self, user_config: UserConfigData
     ) -> UserConfigData:
-        redacted_data = copy.deepcopy(user_config)
+        redacted_data_dict = user_config.to_dict()
         for field in PROXY_FIELDS:
-            value = getattr(redacted_data, field)
+            value = redacted_data_dict.get(field)
             if value:
                 parsed_url = urlparse(value)
                 if parsed_url.username or parsed_url.password:
-                    setattr(
-                        redacted_data,
-                        field,
-                        "<REDACTED>",
-                    )
-        return redacted_data
+                    redacted_data_dict[field] = "<REDACTED>"
+        return UserConfigData.from_dict(redacted_data_dict)
 
     def read(self) -> UserConfigData:
         if util.we_are_currently_root():
