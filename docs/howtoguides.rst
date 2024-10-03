@@ -103,3 +103,12 @@ Ubuntu Pro Client for Clouds
 
    Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
+
+
+Ubuntu Pro Client LXD integation
+================================
+
+.. toctree::
+   :maxdepth: 1
+
+   How to setup the Ubuntu Pro LXD integration <howtoguides/use_pro_lxd_guests>
