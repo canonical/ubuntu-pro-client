@@ -34,6 +34,9 @@ FIPS_HOME_PAGE = "https://ubuntu.com/security/fips"
 LANDSCAPE_HOME_PAGE = "https://ubuntu.com/landscape"
 LANDSCAPE_SAAS = "https://landscape.canonical.com"
 LANDSCAPE_DOCS_INSTALL = "https://ubuntu.com/landscape/install"
+LANDSCAPE_CLIENT_INSTALL = (
+    "https://ubuntu.com/landscape/docs/install-landscape-client"
+)
 LIVEPATCH_HOME_PAGE = "https://ubuntu.com/security/livepatch"
 LIVEPATCH_SUPPORTED_KERNELS = (
     "https://ubuntu.com/security/livepatch/docs/kernels"

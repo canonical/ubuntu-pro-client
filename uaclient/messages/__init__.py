@@ -1837,6 +1837,14 @@ INAPPLICABLE_VENDOR_NAME = FormattedNamedMessage(
 Supported CPU vendors are: {supported_vendors}."""
     ),
 )
+LANDSCAPE_INAPPLICABLE = NamedMessage(
+    "landscape-inapplicable",
+    t.gettext(
+        """\
+Landscape cannot be enabled via Pro Client on Ubuntu 22.04 and earlier.
+Please manually install Landscape: {url}"""
+    ).format(url=urls.LANDSCAPE_CLIENT_INSTALL),
+)
 NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
     "no-entitlement-affordances-checked",
     t.gettext("no entitlement affordances checked"),
