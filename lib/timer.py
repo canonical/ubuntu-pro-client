@@ -2,6 +2,7 @@
 Timer used to run all jobs that need to be frequently run on the system
 """
 
+import argparse
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
@@ -25,6 +26,17 @@ LOG = logging.getLogger("ubuntupro.timer")
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
 CHECK_RELEASE_SERIES_INTERVAL = 86400  # 24 hours
+
+
+def parse_arguments():
+    """Parse command line arguments for the timer file"""
+    parser = argparse.ArgumentParser(description="Run timer jobs")
+    parser.add_argument(
+        "--run-on-boot",
+        action="store_true",
+        help="Run the metering job on boot, bypassing the normal schedule to ping the server",  # noqa
+    )
+    return parser.parse_args()
 
 
 class TimedJob:
@@ -124,10 +136,11 @@ def run_job(
     job: TimedJob,
     current_time: datetime,
     job_status: Optional[TimerJobState],
+    ignore_interval: bool = False,
 ) -> Optional[TimerJobState]:
     if job_status:
         next_run = job_status.next_run
-        if next_run and next_run > current_time:
+        if next_run and next_run > current_time and not ignore_interval:
             return job_status
     if job.run(cfg):
         # Persist last_run and next_run UTC-based times on job success.
@@ -136,7 +149,6 @@ def run_job(
             seconds=job.run_interval_seconds(cfg)
         )
         job_status = TimerJobState(next_run=next_run, last_run=last_run)
-
     return job_status
 
 
@@ -180,10 +192,14 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 if __name__ == "__main__":
     log.setup_journald_logging()
+    args = parse_arguments()
 
     cfg = UAConfig()
     current_time = datetime.now(timezone.utc)
 
     http.configure_web_proxy(cfg.http_proxy, cfg.https_proxy)
 
-    run_jobs(cfg=cfg, current_time=current_time)
+    if args.run_on_boot:
+        run_job(cfg, metering_job, current_time, None, ignore_interval=True)
+    else:
+        run_jobs(cfg=cfg, current_time=current_time)
