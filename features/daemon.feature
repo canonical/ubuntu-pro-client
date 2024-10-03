@@ -312,26 +312,14 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | xenial   | lxd-vm        |
-      | xenial   | aws.generic   |
-      | bionic   | lxd-container |
-      | bionic   | lxd-vm        |
-      | bionic   | aws.generic   |
-      | focal    | lxd-container |
-      | focal    | lxd-vm        |
-      | focal    | aws.generic   |
-      | jammy    | lxd-container |
-      | jammy    | lxd-vm        |
-      | jammy    | aws.generic   |
-      | noble    | lxd-container |
-      | noble    | lxd-vm        |
-      | noble    | aws.generic   |
-      # | oracular | aws.generic   | - not there yet
-      | oracular | lxd-container |
-      | oracular | lxd-vm        |
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
 
+  # | oracular | aws.generic   | - not there yet
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

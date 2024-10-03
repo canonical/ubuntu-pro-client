@@ -39,6 +39,8 @@ Feature: CLI auto-attach command
   @arm64
   Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    # Fake a non-lxd cloud-id
+    When I replace `"lxd"` in `/run/cloud-init/instance-data.json` with `"cloudy-cloud"`
     # Validate systemd unit/timer syntax
     When I run `systemd-analyze verify /lib/systemd/system/ua-timer.timer` with sudo
     Then stderr does not match regexp:
@@ -53,15 +55,15 @@ Feature: CLI auto-attach command
     When I run `pro auto-attach` with sudo
     Then stderr matches regexp:
       """
-      Auto-attach image support is not available on lxd
+      Auto-attach image support is not available on cloudy-cloud
       See: https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/explanations/what_are_ubuntu_pro_cloud_instances.html
       """
 
     Examples: ubuntu release
       | release  | machine_type  |
+      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
