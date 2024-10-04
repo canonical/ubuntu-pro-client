@@ -6,7 +6,7 @@ Feature: Logs in Json Array Formatter
     When I apt install `jq`
     And I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
-    And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` as non-root
+    And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` <user_spec>
     Then I will see the following on stderr
       """
       """
@@ -14,19 +14,19 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro refresh` `with sudo` exits `0`
     And I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
-    And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` as non-root
+    And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` <user_spec>
     Then I will see the following on stderr
       """
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release  | machine_type  | user_spec   |
+      | xenial   | lxd-container | as non-root |
+      | bionic   | lxd-container | as non-root |
+      | focal    | lxd-container | as non-root |
+      | jammy    | lxd-container | as non-root |
+      | noble    | lxd-container | with sudo   |
+      | oracular | lxd-container | with sudo   |
 
   Scenario Outline: Non-root user and root user log files are different
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -46,7 +46,7 @@ Feature: Logs in Json Array Formatter
     When I run `truncate -s 0 /home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log` with sudo
     And I attach `contract_token` with sudo
     And I verify `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log` is empty
-    And I run `cat /var/log/ubuntu-advantage.log` as non-root
+    And I run `cat /var/log/ubuntu-advantage.log` with sudo
     Then stdout contains substring
       """
       Executed with sys.argv: ['/usr/bin/pro', 'attach'
