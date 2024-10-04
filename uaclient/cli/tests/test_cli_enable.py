@@ -577,7 +577,6 @@ class TestActionEnable:
                         "one",
                         [],
                         [],
-                        called_name="one",
                         variant="",
                         service_title=mock.sentinel.ent_title,
                     )
@@ -805,7 +804,6 @@ class TestActionEnable:
         assert [
             mock.call(
                 mock.ANY,
-                called_name="landscape",
                 access_only=mock.sentinel.access_only,
                 extra_args=mock.sentinel.extra_args,
             )
@@ -835,7 +833,6 @@ class TestPromptForDependencyHandling:
             "service",
             "all_dependencies",
             "enabled_services",
-            "called_name",
             "service_title",
             "variant",
             "cfg_block_disable_on_enable",
@@ -853,7 +850,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -876,7 +872,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -899,7 +894,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -922,7 +916,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 True,
@@ -945,7 +938,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -971,7 +963,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="three")],
-                "one",
                 "One",
                 "",
                 False,
@@ -994,7 +985,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -1017,7 +1007,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -1040,7 +1029,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -1066,7 +1054,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -1083,7 +1070,6 @@ class TestPromptForDependencyHandling:
                         name="two", variant_enabled=True, variant_name="one"
                     )
                 ],
-                "two",
                 "Two",
                 "two",
                 False,
@@ -1126,7 +1112,6 @@ class TestPromptForDependencyHandling:
                     EnabledService(name="four"),
                     EnabledService(name="six"),
                 ],
-                "one",
                 "One",
                 "",
                 False,
@@ -1152,7 +1137,6 @@ class TestPromptForDependencyHandling:
         service,
         all_dependencies,
         enabled_services,
-        called_name,
         service_title,
         variant,
         cfg_block_disable_on_enable,
@@ -1173,7 +1157,6 @@ class TestPromptForDependencyHandling:
                 service,
                 all_dependencies,
                 enabled_services,
-                called_name,
                 variant,
                 service_title,
             )
