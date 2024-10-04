@@ -284,3 +284,13 @@ def i_remove_colors_from_output(context):
     context.process.stdout = re.sub(
         COLOR_FORMATTING_PATTERN, "", context.process.stdout.strip()
     )
+
+
+@when("I remove links from output")
+def i_remove_links_from_output(context):
+    LINK_START_PATTERN = r"\033]8;;.+?\033\\+"
+    LINK_END = "\033]8;;\033\\"
+    context.process.stdout = re.sub(
+        LINK_START_PATTERN, "", context.process.stdout.strip()
+    )
+    context.process.stdout = context.process.stdout.replace(LINK_END, "")
