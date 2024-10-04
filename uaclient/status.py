@@ -299,7 +299,7 @@ def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
 
         response["services"].append(
             {
-                "name": resource.get("presentedAs", resource["name"]),
+                "name": ent.name,
                 "description": ent.description,
                 "description_override": descr_override,
                 "available": available,
@@ -490,7 +490,7 @@ def simulate_status(
         )
         response["services"].append(
             {
-                "name": resource.get("presentedAs", ent.name),
+                "name": ent.name,
                 "description": ent.description,
                 "entitled": entitlement_information["entitled"],
                 "auto_enabled": entitlement_information["auto_enabled"],
@@ -793,7 +793,7 @@ def help(cfg, name):
     response_dict["name"] = name
 
     for resource in resources:
-        if resource["name"] == name or resource.get("presentedAs") == name:
+        if resource["name"] == name:
             try:
                 help_ent = entitlement_factory(cfg=cfg, name=resource["name"])
             except exceptions.EntitlementNotFoundError:
