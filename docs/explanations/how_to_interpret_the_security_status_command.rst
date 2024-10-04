@@ -320,6 +320,9 @@ will contain the following attributes:
 * **status**: The status for this update. It will be one of:
 
   * **"upgrade_available"**: The package can be upgraded right now.
+  * **"upgrade_available_not_preferred"**: The package can be upgraded but the
+    upgrade will not automatically selected by APT or other tools due to
+    lower pinning or the existence of a higher-priority candidate.
   * **"pending_attach"**: The package needs an Ubuntu Pro subscription attached
     to be upgraded.
   * **"pending_enable"**: The machine is attached to an Ubuntu Pro subscription,
