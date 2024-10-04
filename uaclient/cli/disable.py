@@ -33,7 +33,6 @@ def prompt_for_dependency_handling(
     service: str,
     all_dependencies: List[ServiceWithDependencies],
     enabled_service_names: List[str],
-    called_name: str,
     service_title: str,
 ):
     dependent_services = []
@@ -171,7 +170,6 @@ def action_disable(args, *, cfg, **kwargs):
                     ent.name,
                     all_dependencies,
                     enabled_service_names,
-                    called_name=ent_name,
                     service_title=ent.title,
                 )
             except exceptions.UbuntuProError as e:

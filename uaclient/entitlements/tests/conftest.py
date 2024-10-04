@@ -101,7 +101,6 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
         obligations: Optional[Dict[str, Any]] = None,
         overrides: Optional[List[Dict[str, Any]]] = None,
         entitled: bool = True,
-        called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
         suites: Optional[List[str]] = None,
@@ -134,7 +133,6 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
             )
 
         args = {
-            "called_name": called_name,
             "access_only": access_only,
             "purge": purge,
         }
