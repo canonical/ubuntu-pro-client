@@ -37,7 +37,6 @@ class AvailableResource(DataObject):
         Field("available", BoolDataValue, False),
         Field("name", StringDataValue, False),
         Field("description", StringDataValue, False),
-        Field("presentedAs", StringDataValue, False),
     ]
 
     def __init__(
@@ -45,12 +44,10 @@ class AvailableResource(DataObject):
         available: Optional[bool],
         name: Optional[str],
         description: Optional[str],
-        presentedAs: Optional[str],
     ):
         self.available = available
         self.name = name
         self.description = description
-        self.presentedAs = presentedAs
 
 
 class ExternalID(DataObject):
@@ -106,7 +103,6 @@ class PlatformChecks(DataObject):
 class Affordances(DataObject):
     fields = [
         Field("architectures", data_list(StringDataValue), False),
-        Field("presentedAs", StringDataValue, False),
         Field("series", data_list(StringDataValue), False),
         Field("kernelFlavors", data_list(StringDataValue), False),
         Field("minKernelVersion", StringDataValue, False),
@@ -118,7 +114,6 @@ class Affordances(DataObject):
     def __init__(
         self,
         architectures: Optional[List[str]],
-        presentedAs: Optional[str],
         series: List[Optional[str]],
         kernelFlavors: List[Optional[str]],
         minKernelVersion: Optional[str],
@@ -127,7 +122,6 @@ class Affordances(DataObject):
         platformChecks: Optional[PlatformChecks],
     ):
         self.architectures = architectures
-        self.presentedAs = presentedAs
         self.series = series
         self.kernelFlavors = kernelFlavors
         self.minKernelVersion = minKernelVersion

@@ -110,14 +110,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """The user-facing name shown for this entitlement"""
         if self.is_variant:
             return self.variant_name
-        elif self.machine_token_file.is_present:
-            return (
-                self.entitlement_cfg.get("entitlement", {})
-                .get("affordances", {})
-                .get("presentedAs", self.name)
-            )
-        else:
-            return self.name
+        return self.name
 
     def verify_platform_checks(
         self, platform_check: Dict[str, Any]
