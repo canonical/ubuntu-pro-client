@@ -18,32 +18,15 @@ def cis_entitlement(entitlement_factory):
 
 class TestCISEntitlement:
     @pytest.mark.parametrize(
-        "called_name,presentation_name,expected",
+        "called_name,expected",
         (
             (
                 "cis",
-                "cis",
                 {
                     "post_enable": [messages.CIS_POST_ENABLE],
                 },
             ),
             (
-                "cis",
-                "usg",
-                {
-                    "pre_can_enable": [messages.CIS_IS_NOW_USG],
-                    "post_enable": [messages.CIS_POST_ENABLE],
-                },
-            ),
-            (
-                "usg",
-                "cis",
-                {
-                    "post_enable": [messages.CIS_USG_POST_ENABLE],
-                },
-            ),
-            (
-                "usg",
                 "usg",
                 {
                     "post_enable": [messages.CIS_USG_POST_ENABLE],
@@ -51,12 +34,9 @@ class TestCISEntitlement:
             ),
         ),
     )
-    def test_messages(
-        self, called_name, presentation_name, expected, cis_entitlement
-    ):
+    def test_messages(self, called_name, expected, cis_entitlement):
         entitlement = cis_entitlement(
             called_name=called_name,
-            affordances={"presentedAs": presentation_name},
         )
 
         assert expected == entitlement.messaging

@@ -114,7 +114,7 @@ def unattached_services(cfg: UAConfig) -> ServiceListResult:
             )
             continue
         service = ServiceInfo(
-            name=resource.get("presentedAs", resource["name"]),
+            name=ent.name,
             desc=ent.description,
             available=available,
             entitled=None,
