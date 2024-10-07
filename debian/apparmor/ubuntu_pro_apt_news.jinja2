@@ -20,6 +20,8 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   # GH: 3079
   capability dac_override,
   capability kill,
+  capability chown,
+  capability fowner,
 
   /etc/apt/** r,
   /etc/default/apport r,
