@@ -15,15 +15,27 @@ MISC_BREAKS=""
 # versus Xenial to make those contraints applicable on each series.
 DISTRO_INFO_DEPS=distro-info (>= 0.18ubuntu0.18.04.1),
 
+# The python3-pkg-resources dependency is no longer needed after Oracular.
+# Because of that, we will only add it to the packages created for older
+# Ubuntu releases
+PYTHON3_PKG_RESOURCES=""
+
 ifeq (${VERSION_ID},"16.04")
 APT_PKG_DEPS=apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32),
 DISTRO_INFO_DEPS=distro-info (>= 0.14ubuntu0.2),
+PYTHON3_PKG_RESOURCES=python3-pkg-resources
 else ifeq (${VERSION_ID},"18.04")
 APT_PKG_DEPS=apt (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11),
+PYTHON3_PKG_RESOURCES=python3-pkg-resources
+else ifeq (${VERSION_ID},"20.04")
+PYTHON3_PKG_RESOURCES=python3-pkg-resources
+else ifeq (${VERSION_ID},"22.04")
+PYTHON3_PKG_RESOURCES=python3-pkg-resources
 else ifeq (${VERSION_ID},"24.04")
 # Noble python3-minimal has a bug that can break upgrades on systems with non-utf-translations
 # https://bugs.launchpad.net/ubuntu/+source/python3-defaults/+bug/2075337
 MISC_BREAKS=python3-minimal (<< 3.12.3-0ubuntu2~)
+PYTHON3_PKG_RESOURCES=python3-pkg-resources
 endif
 
 %:
@@ -49,7 +61,7 @@ endif
 endif
 
 override_dh_gencontrol:
-	echo "extra:Depends=$(APT_PKG_DEPS) $(DISTRO_INFO_DEPS)" >> debian/ubuntu-pro-client.substvars
+	echo "extra:Depends=$(APT_PKG_DEPS) $(DISTRO_INFO_DEPS) $(PYTHON3_PKG_RESOURCES)" >> debian/ubuntu-pro-client.substvars
 	echo "misc:Breaks=$(MISC_BREAKS)" >> debian/ubuntu-pro-client.substvars
 	dh_gencontrol
 
