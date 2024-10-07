@@ -20,7 +20,7 @@ changelog_version = (
 # ppa test builds: 32.3~22.04~ppa1 -> 32.3
 # devel: 1:1+devel -> 1:1+devel
 #
-m = re.match(r"((\d+:\d+\+devel)|\d+(\.\d+)?)", changelog_version)
+m = re.match(r"((\d+:\d+\+devel)|\d+(\.\d+)*)", changelog_version)
 if m:
     base_changelog_version = m.group()
 else:
@@ -28,8 +28,8 @@ else:
 
 if python_version != base_changelog_version:
     print(
-        'version.py says "{}" but changelog says "{}"'.format(
-            python_version, changelog_version
+        'version.py says "{}" but changelog says "{}" (base version: "{}")'.format(
+            python_version, changelog_version, base_changelog_version
         ),
         file=sys.stderr,
     )
