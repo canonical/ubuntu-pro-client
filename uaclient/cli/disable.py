@@ -1,7 +1,7 @@
 import json
 import logging
 import textwrap
-from typing import Dict, List  # noqa: F401
+from typing import Any, Dict, List  # noqa: F401
 
 from uaclient import (
     config,
@@ -115,7 +115,7 @@ def action_disable(args, *, cfg, **kwargs):
     """
     processed_services = []
     failed_services = []
-    errors = []
+    errors = []  # type: List[Dict[str, Any]]
     warnings = []  # type: List[Dict[str, str]]
 
     json_response = {
