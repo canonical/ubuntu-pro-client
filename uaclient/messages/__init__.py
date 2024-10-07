@@ -1421,9 +1421,9 @@ CC_POST_ENABLE = t.gettext(
 )
 
 CIS_TITLE = t.gettext("CIS Audit")
-CIS_USG_TITLE = t.gettext("Ubuntu Security Guide")
-CIS_DESCRIPTION = t.gettext("Security compliance and audit tools")
-CIS_HELP_TEXT = t.gettext(
+USG_TITLE = t.gettext("Ubuntu Security Guide")
+CIS_USG_DESCRIPTION = t.gettext("Security compliance and audit tools")
+CIS_USG_HELP_TEXT = t.gettext(
     """\
 Ubuntu Security Guide is a tool for hardening and auditing and allows for
 environment-specific customizations. It enables compliance with profiles such
@@ -1433,7 +1433,7 @@ as DISA-STIG and the CIS benchmarks. Find out more at
 CIS_POST_ENABLE = t.gettext("Visit {url} to learn how to use CIS").format(
     url=urls.CIS_HOME_PAGE
 )
-CIS_USG_POST_ENABLE = t.gettext("Visit {url} for the next steps").format(
+USG_POST_ENABLE = t.gettext("Visit {url} for the next steps").format(
     url=urls.USG_DOCS
 )
 CIS_IS_NOW_USG = t.gettext(
