@@ -43,20 +43,19 @@ def entitlement_factory(
     purge: bool = False,
     access_only: bool = False,
     extra_args: Optional[List[str]] = None,
-):
+) -> UAEntitlement:
     """Returns a UAEntitlement object based on the provided name.
 
-    The return type is Optional[Type[UAEntitlement]].
-    It cannot be explicit because of the Python version on Xenial (3.5.2).
     :param cfg: UAConfig instance
     :param name: The name of the entitlement to return
-    :param  variant: The variant name to be used
+    :param variant: The variant name to be used
     :param purge: If purge operation is enabled
     :param access_only: If entitlement should be set with access only
     :param extra_args: Extra parameters to create the entitlement
 
-    :raise EntitlementNotFoundError: If not_found_okay is False and no
-        entitlement with the given name is found, then raises this error.
+    :raise EntitlementNotFoundError: If no entitlement with the given name is
+      found, or if the entitlement exists but no variant with the specified
+      name is found.
     """
 
     for entitlement in ENTITLEMENT_CLASSES:
@@ -215,12 +214,6 @@ def create_enable_entitlements_not_found_error(
     )
 
 
-# This function is just here to simplify our unittests, as
-# mocking isinstance directly doesn't work here
-def _is_repo_entitlement(ent):
-    return isinstance(ent, RepoEntitlement)
-
-
 def check_entitlement_apt_directives_are_unique(
     cfg: UAConfig,
 ) -> bool:
@@ -229,7 +222,7 @@ def check_entitlement_apt_directives_are_unique(
     for ent_name in valid_services(cfg):
         ent = entitlement_factory(cfg, ent_name)
 
-        if not _is_repo_entitlement(ent):
+        if not isinstance(ent, RepoEntitlement):
             continue
 
         applicability_status, _ = ent.applicability_status()
@@ -252,16 +245,16 @@ def check_entitlement_apt_directives_are_unique(
 
         for def_path, ent_directive in entitlement_directives.items():
             if len(ent_directive) > 1:
-                apt_url = ent_directive[0]["apt_url"]
-                suite = ent_directive[0]["suite"]
+                ent_apt_url = ent_directive[0]["apt_url"]
+                ent_suite = ent_directive[0]["suite"]
 
                 raise exceptions.EntitlementsAPTDirectivesAreNotUnique(
                     url=cfg.contract_url,
                     names=", ".join(
-                        sorted(ent["from"] for ent in ent_directive)
+                        sorted(str(ent["from"]) for ent in ent_directive)
                     ),
-                    apt_url=apt_url,
-                    suite=suite,
+                    apt_url=ent_apt_url,
+                    suite=ent_suite,
                 )
 
     return True
