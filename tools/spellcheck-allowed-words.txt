@@ -41,6 +41,7 @@ customizable
 CVE
 CVEs
 CVES
+CVSS
 datestring
 depedent
 DISA
@@ -176,6 +177,8 @@ ubscribe
 ubuntu
 unbootable
 UNENTITLED
+unfixable
+UNFIXABLE
 url
 urls
 usg
