@@ -582,6 +582,7 @@ def add_auth_apt_repo(
     credentials: str,
     suites: List[str],
     keyring_file: str,
+    snapshot_urls: List[str],
 ) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
@@ -614,7 +615,8 @@ def add_auth_apt_repo(
         updates_enabled = True
         break
 
-    add_apt_auth_conf_entry(repo_url, username, password)
+    for url in [repo_url] + snapshot_urls:
+        add_apt_auth_conf_entry(url, username, password)
 
     if series in SERIES_NOT_USING_DEB822:
         source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
@@ -635,7 +637,10 @@ def add_auth_apt_repo(
 def add_apt_auth_conf_entry(repo_url, login, password):
     """Add or replace an apt auth line in apt's auth.conf file or conf.d."""
     apt_auth_file = get_apt_auth_file_from_apt_config()
-    _protocol, repo_path = repo_url.split("://")
+    if "://" in repo_url:
+        _protocol, repo_path = repo_url.split("://")
+    else:
+        repo_path = repo_url
     if not repo_path.endswith("/"):  # ensure trailing slash
         repo_path += "/"
     if os.path.exists(apt_auth_file):
@@ -678,7 +683,10 @@ def add_apt_auth_conf_entry(repo_url, login, password):
 
 def remove_repo_from_apt_auth_file(repo_url):
     """Remove a repo from the shared apt auth file"""
-    _protocol, repo_path = repo_url.split("://")
+    if "://" in repo_url:
+        _protocol, repo_path = repo_url.split("://")
+    else:
+        repo_path = repo_url
     if repo_path.endswith("/"):  # strip trailing slash
         repo_path = repo_path[:-1]
     apt_auth_file = get_apt_auth_file_from_apt_config()
@@ -695,7 +703,10 @@ def remove_repo_from_apt_auth_file(repo_url):
 
 
 def remove_auth_apt_repo(
-    repo_filename: str, repo_url: str, keyring_file: Optional[str] = None
+    repo_filename: str,
+    repo_url: str,
+    snapshot_urls: List[str],
+    keyring_file: Optional[str] = None,
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
     system.ensure_file_absent(repo_filename)
@@ -708,7 +719,8 @@ def remove_auth_apt_repo(
     if keyring_file:
         keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
         system.ensure_file_absent(keyring_file)
-    remove_repo_from_apt_auth_file(repo_url)
+    for url in [repo_url] + snapshot_urls:
+        remove_repo_from_apt_auth_file(url)
 
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
