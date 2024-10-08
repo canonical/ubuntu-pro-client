@@ -1,8 +1,49 @@
-ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (35) oracular; urgency=medium
 
-  * wip
+  * d/tests/usage: add more scenarios to dep8 tests
+  * New upstream release 35: (LP: #2083973)
+    - api:
+      + new endpoints:
+        * u.pro.attach.guest.get_guest_token.v1: Get the Pro client guest
+          token
+        * u.pro.config.v1: Show the Pro configuration in the machine
+        * u.pro.packages.updates_with_cves.v1: List the package updates
+          available and the CVEs that will be fixed by those updates
+        * u.pro.security.vulnerabilities.cve.v1: List the fixable CVEs that
+          affect the system
+        * u.pro.security.vulnerabilities.usn.v1: List the fixable USNs that
+          affect the system
+        * u.pro.services.list.v1: Show the services provided by Pro
+        * u.pro.status.notices.v1: Show the active Pro notices in the machine
+        * u.pro.subscription.v1: Show information about the Pro subscription
+          in the machine
+        * u.pro.token_info.v1: Show the Pro token information
+      + u.pro.packages.updates.v1: create new package
+        status: upgrade_available_not_preferred (GH: #3184)
+      + fixes for u.unattended_upgrades.status.v1:
+        * do not crash when a Unattended-Upgrade config is missing
+        * do not report unattended-upgrade disabled if any config is false
+        * report missing Unattended-Upgrade configs as turned off
+    - apt:
+      + always ensure the ESM cache is present (GH: #3132)
+      + silence warnings when fetching apt-news (GH: #3209, LP: #2070095)
+      + update logging for apt errors (GH: #3299)
+    - cli:
+      + add support for vulnerability commands:
+        * pro vulnerability list: List fixable vulnerabilities in the machine
+        * pro vulnerability show: Show information about an affected
+          vulnerability
+        * pro vulnerability update: Update the vulnerability data on the
+          machine
+    - config: add option lxd_guest_attach to control LXD integration with Pro
+    - contract:
+      + check onlySeries on reboot (GH: #3189)
+      + collect cpu type for activity info
+    - landscape:
+      + update message if service not available through Pro (GH: #3331)
+    - lxd: allow pro auto-attach to work on a LXD container
 
- -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 16 Aug 2024 12:10:33 -0500
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 08 Oct 2024 16:50:42 -0300
 
 ubuntu-advantage-tools (34) oracular; urgency=medium
 
