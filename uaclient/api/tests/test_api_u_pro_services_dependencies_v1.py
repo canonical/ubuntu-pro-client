@@ -11,7 +11,9 @@ from uaclient.api.u.pro.services.dependencies.v1 import (
 
 
 class TestServicesDependenciesV1:
-    def test_dependencies(self):
+    @mock.patch("uaclient.system.get_release_info")
+    def test_dependencies(self, m_release_info):
+        m_release_info.return_value.series = "noble"
         assert _dependencies(cfg=mock.MagicMock()) == DependenciesResult(
             services=[
                 ServiceWithDependencies(
@@ -19,9 +21,6 @@ class TestServicesDependenciesV1:
                 ),
                 ServiceWithDependencies(
                     name="cc-eal", incompatible_with=[], depends_on=[]
-                ),
-                ServiceWithDependencies(
-                    name="cis", incompatible_with=[], depends_on=[]
                 ),
                 ServiceWithDependencies(
                     name="esm-apps", incompatible_with=[], depends_on=[]
@@ -57,26 +56,6 @@ class TestServicesDependenciesV1:
                     depends_on=[],
                 ),
                 ServiceWithDependencies(
-                    name="fips-updates",
-                    incompatible_with=[
-                        ServiceWithReason(
-                            name="fips",
-                            reason=Reason(
-                                code=messages.FIPS_INVALIDATES_FIPS_UPDATES.name,  # noqa: E501
-                                title=messages.FIPS_INVALIDATES_FIPS_UPDATES.msg,  # noqa: E501
-                            ),
-                        ),
-                        ServiceWithReason(
-                            name="realtime-kernel",
-                            reason=Reason(
-                                code=messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE.name,  # noqa: E501
-                                title=messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE.msg,  # noqa: E501
-                            ),
-                        ),
-                    ],
-                    depends_on=[],
-                ),
-                ServiceWithDependencies(
                     name="fips-preview",
                     incompatible_with=[
                         ServiceWithReason(
@@ -105,6 +84,26 @@ class TestServicesDependenciesV1:
                             reason=Reason(
                                 code=messages.FIPS_INVALIDATES_FIPS_UPDATES.name,  # noqa: E501
                                 title=messages.FIPS_INVALIDATES_FIPS_UPDATES.msg,  # noqa: E501
+                            ),
+                        ),
+                    ],
+                    depends_on=[],
+                ),
+                ServiceWithDependencies(
+                    name="fips-updates",
+                    incompatible_with=[
+                        ServiceWithReason(
+                            name="fips",
+                            reason=Reason(
+                                code=messages.FIPS_INVALIDATES_FIPS_UPDATES.name,  # noqa: E501
+                                title=messages.FIPS_INVALIDATES_FIPS_UPDATES.msg,  # noqa: E501
+                            ),
+                        ),
+                        ServiceWithReason(
+                            name="realtime-kernel",
+                            reason=Reason(
+                                code=messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE.name,  # noqa: E501
+                                title=messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE.msg,  # noqa: E501
                             ),
                         ),
                     ],
@@ -206,6 +205,9 @@ class TestServicesDependenciesV1:
                             ),
                         ),
                     ],
+                ),
+                ServiceWithDependencies(
+                    name="usg", incompatible_with=[], depends_on=[]
                 ),
             ]
         )

@@ -153,9 +153,6 @@ class TestActionCollectLogs:
                 "/etc/apt/sources.list.d/ubuntu-cc-eal.{}".format(extension)
             ),
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-cis.{}".format(extension)
-            ),
-            mock.call(
                 "/etc/apt/sources.list.d/ubuntu-esm-apps.{}".format(extension)
             ),
             mock.call(
@@ -165,12 +162,12 @@ class TestActionCollectLogs:
                 "/etc/apt/sources.list.d/ubuntu-fips.{}".format(extension)
             ),
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-fips-updates.{}".format(
+                "/etc/apt/sources.list.d/ubuntu-fips-preview.{}".format(
                     extension
                 )
             ),
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-fips-preview.{}".format(
+                "/etc/apt/sources.list.d/ubuntu-fips-updates.{}".format(
                     extension
                 )
             ),
@@ -186,6 +183,9 @@ class TestActionCollectLogs:
                 "/etc/apt/sources.list.d/ubuntu-ros-updates.{}".format(
                     extension
                 )
+            ),
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-usg.{}".format(extension)
             ),
             mock.call("/var/log/ubuntu-advantage.log"),
             mock.call("/var/log/ubuntu-advantage.log.1"),
