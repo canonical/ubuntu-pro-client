@@ -342,7 +342,7 @@ def vulnerabilities(
     return _vulnerabilities(options, UAConfig())
 
 
-def _parse_vulnerbiliries(
+def _parse_vulnerabilities(
     options: CVEVulnerabilitiesOptions,
     cve_vulnerabilities: Dict[str, Any],
     vulnerability_data_published_at: str,
@@ -446,7 +446,7 @@ def _vulnerabilities(
         "vulnerabilities", {}
     )
 
-    return _parse_vulnerbiliries(
+    return _parse_vulnerabilities(
         options=options,
         cve_vulnerabilities=cve_vulnerabilities,
         vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
@@ -480,7 +480,7 @@ def _vulnerabilities_with_applied_fixes_count(
     )
 
     return (
-        _parse_vulnerbiliries(
+        _parse_vulnerabilities(
             options=options,
             cve_vulnerabilities=cve_vulnerabilities,
             vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
