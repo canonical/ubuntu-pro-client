@@ -97,6 +97,10 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     description = messages.ESM_APPS_DESCRIPTION
     help_text = messages.ESM_APPS_HELP_TEXT
     repo_key_file = "ubuntu-pro-esm-apps.gpg"
+    snapshot_urls = [
+        "snapshot.apps-security.esm.ubuntu.com/apps/ubuntu/",
+        "snapshot.apps-updates.esm.ubuntu.com/apps/ubuntu/",
+    ]
 
     def disable(
         self, progress: api.ProgressWrapper
@@ -118,6 +122,10 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     description = messages.ESM_INFRA_DESCRIPTION
     help_text = messages.ESM_INFRA_HELP_TEXT
     repo_key_file = "ubuntu-pro-esm-infra.gpg"
+    snapshot_urls = [
+        "snapshot.infra-security.esm.ubuntu.com/infra/ubuntu/",
+        "snapshot.infra-updates.esm.ubuntu.com/infra/ubuntu/",
+    ]
 
     def disable(
         self, progress: api.ProgressWrapper
