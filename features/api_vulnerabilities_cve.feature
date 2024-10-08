@@ -8,7 +8,7 @@ Feature: Client behaviour for CVE vulnerabilities API
       """
       [
         {
-          "code": "depedent-option",
+          "code": "dependent-option",
           "meta": {
             "option1": "series",
             "option2": "manifest_file"

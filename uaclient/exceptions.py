@@ -572,7 +572,7 @@ class InvalidOptionCombination(UbuntuProError):
 
 
 class DepedentOptionError(UbuntuProError):
-    _formatted_msg = messages.E_DEPEDENT_OPTION
+    _formatted_msg = messages.E_DEPENDENT_OPTION
 
 
 class NoHelpContent(UbuntuProError):
