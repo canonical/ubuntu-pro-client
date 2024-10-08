@@ -13,6 +13,7 @@ from uaclient import (
     exceptions,
     http,
     messages,
+    secret_manager,
     system,
     util,
 )
@@ -93,12 +94,48 @@ class RepoEntitlement(base.UAEntitlement):
         )
 
     @property
+    def snapshot_urls(self) -> List[str]:
+        return (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("aptSnapshotURLs", [])
+        )
+
+    @property
     def apt_suites(self) -> Optional[str]:
         return (
             self.entitlement_cfg.get("entitlement", {})
             .get("directives", {})
             .get("suites")
         )
+
+    def get_resource_token(self) -> str:
+        token = self.entitlement_cfg.get("resourceToken")
+        if not token:
+            machine_token = self.machine_token_file.machine_token[
+                "machineToken"
+            ]
+            obligations = self.entitlement_cfg["entitlement"].get(
+                "obligations", {}
+            )
+            if not obligations.get("enableByDefault"):
+                # services that are not enableByDefault need to obtain specific
+                # resource access for tokens. We want to refresh this every
+                # enable call because it is not refreshed by `pro refresh`.
+                client = contract.UAContractClient(self.cfg)
+                machine_access = client.get_resource_machine_access(
+                    machine_token, self.name
+                )
+                if machine_access:
+                    token = machine_access.get("resourceToken")
+            if not token:
+                token = machine_token
+                LOG.warning(
+                    "No resourceToken present in contract for service %s."
+                    " Using machine token as credentials",
+                    self.title,
+                )
+        return token
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
@@ -481,7 +518,9 @@ class RepoEntitlement(base.UAEntitlement):
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
             if old_url:
                 # Remove original aptURL and auth and rewrite
-                apt.remove_auth_apt_repo(self.repo_file, old_url)
+                apt.remove_auth_apt_repo(
+                    self.repo_file, old_url, self.snapshot_urls
+                )
 
             self.remove_apt_config(api.ProgressWrapper())
             self.setup_apt_config(api.ProgressWrapper())
@@ -599,29 +638,7 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_file
         resource_cfg = self.entitlement_cfg
         directives = resource_cfg["entitlement"].get("directives", {})
-        obligations = resource_cfg["entitlement"].get("obligations", {})
-        token = resource_cfg.get("resourceToken")
-        if not token:
-            machine_token = self.machine_token_file.machine_token[
-                "machineToken"
-            ]
-            if not obligations.get("enableByDefault"):
-                # services that are not enableByDefault need to obtain specific
-                # resource access for tokens. We want to refresh this every
-                # enable call because it is not refreshed by `pro refresh`.
-                client = contract.UAContractClient(self.cfg)
-                machine_access = client.get_resource_machine_access(
-                    machine_token, self.name
-                )
-                if machine_access:
-                    token = machine_access.get("resourceToken")
-            if not token:
-                token = machine_token
-                LOG.warning(
-                    "No resourceToken present in contract for service %s."
-                    " Using machine token as credentials",
-                    self.title,
-                )
+        token = self.get_resource_token()
         aptKey = directives.get("aptKey")
         if not aptKey:
             raise exceptions.RepoNoAptKey(entitlement_name=self.name)
@@ -669,6 +686,7 @@ class RepoEntitlement(base.UAEntitlement):
             token,
             repo_suites,
             self.repo_key_file,
+            self.snapshot_urls,
         )
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
@@ -680,6 +698,30 @@ class RepoEntitlement(base.UAEntitlement):
         except exceptions.UbuntuProError:
             self.remove_apt_config(api.ProgressWrapper(), run_apt_update=False)
             raise
+
+    def update_apt_auth(
+        self, override_snapshot_urls: Optional[List[str]] = None
+    ):
+        if override_snapshot_urls is not None:
+            snapshot_urls = override_snapshot_urls
+        else:
+            snapshot_urls = self.snapshot_urls
+        credentials = self.get_resource_token()
+        repo_url = (
+            self.entitlement_cfg.get("entitlement", {})
+            .get("directives", {})
+            .get("aptURL")
+        )
+        repo_url = self.repo_url_tmpl.format(repo_url)
+        try:
+            username, password = credentials.split(":")
+        except ValueError:  # Then we have a bearer token
+            username = "bearer"
+            password = credentials
+        secret_manager.secrets.add_secret(password)
+        for url in [repo_url] + snapshot_urls:
+            if url:
+                apt.add_apt_auth_conf_entry(url, username, password)
 
     def remove_apt_config(
         self,
@@ -706,7 +748,9 @@ class RepoEntitlement(base.UAEntitlement):
         progress.progress(
             messages.REMOVING_APT_CONFIGURATION.format(title=self.title)
         )
-        apt.remove_auth_apt_repo(repo_filename, repo_url, self.repo_key_file)
+        apt.remove_auth_apt_repo(
+            repo_filename, repo_url, self.snapshot_urls, self.repo_key_file
+        )
         apt.remove_apt_list_files(repo_url, series)
 
         if self.repo_pin_priority:

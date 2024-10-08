@@ -272,6 +272,7 @@ class TestProcessContractDeltas:
                     file_extension
                 ),
                 "http://old",
+                [],
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
@@ -459,6 +460,7 @@ class TestRepoEnable:
                 "repotest-token",
                 ["xenial"],
                 entitlement.repo_key_file,
+                entitlement.snapshot_urls,
             )
         ]
         assert add_apt_calls == m_apt_add.call_args_list
@@ -956,6 +958,42 @@ class TestPurge:
         assert m_apt_install.call_args_list == expected_install
 
 
+class TestUpdateAptAuth:
+    @mock.patch(M_PATH + "apt.add_apt_auth_conf_entry")
+    def test_update_apt_auth_self_snapshot_urls(
+        self, m_add_apt_auth_conf_entry, entitlement_factory
+    ):
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            directives={
+                "aptURL": "http://REPOTEST",
+                "aptSnapshotURLs": ["one", "two", "three"],
+            },
+        )
+        entitlement.update_apt_auth()
+        assert m_add_apt_auth_conf_entry.call_args_list == [
+            mock.call("http://REPOTEST/ubuntu", "bearer", "repotest-token"),
+            mock.call("one", "bearer", "repotest-token"),
+            mock.call("two", "bearer", "repotest-token"),
+            mock.call("three", "bearer", "repotest-token"),
+        ]
+
+    @mock.patch(M_PATH + "apt.add_apt_auth_conf_entry")
+    def test_update_apt_auth_override_snapshot_urls(
+        self, m_add_apt_auth_conf_entry, entitlement_factory
+    ):
+        entitlement = entitlement_factory(RepoTestEntitlement)
+        entitlement.update_apt_auth(
+            override_snapshot_urls=["one", "two", "three"]
+        )
+        assert m_add_apt_auth_conf_entry.call_args_list == [
+            mock.call("http://REPOTEST/ubuntu", "bearer", "repotest-token"),
+            mock.call("one", "bearer", "repotest-token"),
+            mock.call("two", "bearer", "repotest-token"),
+            mock.call("three", "bearer", "repotest-token"),
+        ]
+
+
 class TestRemoveAptConfig:
     def test_missing_aptURL(self, entitlement_factory):
         # Make aptURL missing
@@ -1004,6 +1042,7 @@ class TestRemoveAptConfig:
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-repotest.list",
                 "http://REPOTEST/ubuntu",
+                [],
                 "test.gpg",
             )
         ] == m_remove_auth_apt_repo.call_args_list
