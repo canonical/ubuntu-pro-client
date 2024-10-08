@@ -2700,8 +2700,8 @@ E_INVALID_OPTION_COMBINATION = FormattedNamedMessage(
     t.gettext("Error: Cannot use {option1} together with {option2}."),
 )
 
-E_DEPEDENT_OPTION = FormattedNamedMessage(
-    "depedent-option",
+E_DEPENDENT_OPTION = FormattedNamedMessage(
+    "dependent-option",
     t.gettext("Error: {option1} depends on {option2} to work properly."),
 )
 
