@@ -21,7 +21,7 @@ from uaclient.entitlements.usg import USGEntitlement
 from uaclient.exceptions import EntitlementNotFoundError
 
 
-def __get_entitlement_classes() -> List[Type[UAEntitlement]]:
+def get_entitlement_classes() -> List[Type[UAEntitlement]]:
     result = [
         AnboxEntitlement,
         CommonCriteriaEntitlement,
@@ -43,10 +43,7 @@ def __get_entitlement_classes() -> List[Type[UAEntitlement]]:
     else:
         result.append(USGEntitlement)
 
-    return result
-
-
-ENTITLEMENT_CLASSES = sorted(__get_entitlement_classes(), key=lambda x: x.name)
+    return sorted(result, key=lambda x: x.name)
 
 
 def entitlement_factory(
@@ -71,7 +68,7 @@ def entitlement_factory(
       name is found.
     """
 
-    for entitlement in ENTITLEMENT_CLASSES:
+    for entitlement in get_entitlement_classes():
         if name == entitlement.name:
             ent = entitlement(
                 cfg=cfg,
@@ -96,7 +93,7 @@ def valid_services(cfg: UAConfig) -> List[str]:
     return sorted(
         [
             entitlement_cls(cfg=cfg).presentation_name
-            for entitlement_cls in ENTITLEMENT_CLASSES
+            for entitlement_cls in get_entitlement_classes()
         ]
     )
 
@@ -173,7 +170,7 @@ def _sort_entitlements(cfg: UAConfig, sort_order: SortOrder) -> List[str]:
     order = []  # type: List[str]
     visited = {}  # type: Dict[str, bool]
 
-    for ent_cls in ENTITLEMENT_CLASSES:
+    for ent_cls in get_entitlement_classes():
         _sort_entitlements_visit(
             cfg=cfg,
             ent_cls=ent_cls,

@@ -24,7 +24,9 @@ class TestValidServices:
 
         ents = {m_cls_1, m_cls_2}
 
-        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes", return_value=ents
+        ):
             expected_services = ["ent1", "ent2"]
             assert expected_services == entitlements.valid_services(
                 cfg=FakeConfig()
@@ -47,7 +49,9 @@ class TestEntitlementFactory:
         ents = {m_cls_1, m_cls_2}
         cfg = FakeConfig()
 
-        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes", return_value=ents
+        ):
             assert m_obj_1 == entitlements.entitlement_factory(
                 cfg=cfg, name="ent1"
             )
@@ -118,8 +122,9 @@ class TestSortEntitlements:
             m_cls_6,
         ]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes",
+            return_value=m_entitlements,
         ):
             assert [
                 "ent1",
@@ -182,8 +187,9 @@ class TestSortEntitlements:
             m_cls_6,
         ]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes",
+            return_value=m_entitlements,
         ):
             assert [
                 "ent2",
@@ -246,8 +252,9 @@ class TestSortEntitlements:
             m_cls_6,
         ]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes",
+            return_value=m_entitlements,
         ):
             assert [
                 "ent2",
