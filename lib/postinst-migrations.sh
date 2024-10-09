@@ -81,4 +81,10 @@ if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "35~"; then
     if [ -f "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
         touch "/var/lib/ubuntu-advantage/marker-only-series-check"
     fi
+
+    # For attached machines, we need to ensure that the apt auth configuration
+    # is updated to include the snapshot urls for esm-infra and esm-apps
+    if [ -f "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
+        /usr/bin/python3 /usr/lib/ubuntu-advantage/add_esm_snapshot_auth.py
+    fi
 fi
