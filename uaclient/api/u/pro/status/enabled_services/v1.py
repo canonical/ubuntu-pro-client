@@ -62,7 +62,7 @@ def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
     """
     This endpoint shows the Pro services that are enabled on the machine.
     """
-    from uaclient.entitlements import ENTITLEMENT_CLASSES
+    from uaclient.entitlements import get_entitlement_classes
     from uaclient.entitlements.entitlement_status import UserFacingStatus
 
     if not _is_attached(cfg).is_attached:
@@ -70,7 +70,7 @@ def _enabled_services(cfg: UAConfig) -> EnabledServicesResult:
 
     enabled_services = []  # type: List[EnabledService]
     warnings = []  # type: List[ErrorWarningObject]
-    for ent_cls in ENTITLEMENT_CLASSES:
+    for ent_cls in get_entitlement_classes():
         ent = ent_cls(cfg)
         ent_status, details = ent.user_facing_status()
 

@@ -1,6 +1,5 @@
 import mock
 
-from uaclient import entitlements
 from uaclient.api.data_types import ErrorWarningObject
 from uaclient.api.u.pro.status.enabled_services.v1 import (
     EnabledService,
@@ -107,7 +106,9 @@ class TestEnabledServicesV1:
             )
         ]
 
-        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes", return_value=ents
+        ):
             enabled_services_ret = _enabled_services(cfg=mock.MagicMock())
 
         assert 1 == m_is_attached.call_count
