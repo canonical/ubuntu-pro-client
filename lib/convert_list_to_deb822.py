@@ -31,7 +31,7 @@ if __name__ == "__main__":
     setup_cli_logging(logging.DEBUG, defaults.CONFIG_DEFAULTS["log_file"])
     cfg = UAConfig()
 
-    for entitlement_class in entitlements.ENTITLEMENT_CLASSES:
+    for entitlement_class in entitlements.get_entitlement_classes():
         if not issubclass(
             entitlement_class, entitlements.repo.RepoEntitlement
         ):

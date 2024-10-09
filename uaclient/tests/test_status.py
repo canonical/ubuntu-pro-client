@@ -7,8 +7,8 @@ import pytest
 
 from uaclient import messages, status
 from uaclient.entitlements import (
-    ENTITLEMENT_CLASSES,
     entitlement_factory,
+    get_entitlement_classes,
     valid_services,
 )
 from uaclient.entitlements.base import EntitlementWithMessage
@@ -464,7 +464,7 @@ class TestStatus:
                     {"name": cls.name, "available": True} in avail_res
                 ),
             }
-            for cls in ENTITLEMENT_CLASSES
+            for cls in get_entitlement_classes()
         ]
         if avail_res:
             token["availableResources"] = available_resource_response
@@ -495,7 +495,7 @@ class TestStatus:
                 "warning": None,
                 "variants": {},
             }
-            for cls in ENTITLEMENT_CLASSES
+            for cls in get_entitlement_classes()
         ]
         expected_services.sort(key=lambda x: x.get("name", ""))
         expected = copy.deepcopy(DEFAULT_STATUS)
@@ -793,7 +793,7 @@ class TestStatus:
             },
         }
 
-        for cls in ENTITLEMENT_CLASSES:
+        for cls in get_entitlement_classes():
             if cls.name == "realtime-kernel":
                 if variants_in_contract:
                     m_contract_variants.return_value = set(
