@@ -1,3 +1,4 @@
+import re
 from functools import wraps
 from typing import Optional
 
@@ -13,6 +14,7 @@ from uaclient import (
     status,
     util,
 )
+from uaclient.api.u.pro.security.fix._common import CVE_OR_USN_REGEX
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.config import UAConfig
@@ -138,6 +140,24 @@ def assert_not_attached(f):
         return f(args, cfg=cfg, **kwargs)
 
     return new_f
+
+
+def assert_vulnerability_issue_valid(cmd):
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, cfg, **kwargs):
+            security_issue = getattr(args, "security_issue", "")
+            if not re.match(CVE_OR_USN_REGEX, security_issue):
+                raise exceptions.InvalidSecurityIssueIdFormat(
+                    issue=security_issue,
+                    cmd=cmd,
+                )
+
+            return f(args, cfg=cfg, **kwargs)
+
+        return new_f
+
+    return wrapper
 
 
 def _raise_enable_disable_unattached_error(command, service_names, cfg):

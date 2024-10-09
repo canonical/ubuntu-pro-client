@@ -19,6 +19,9 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   capability dac_read_search,
   # GH: 3079
   capability dac_override,
+  capability kill,
+  capability chown,
+  capability fowner,
 
   /etc/apt/** r,
   /etc/default/apport r,
@@ -41,7 +44,8 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /var/lib/ubuntu-advantage/messages/ rw,
   /var/lib/ubuntu-advantage/messages/* rw,
   /run/ubuntu-advantage/ rw,
-  /run/ubuntu-advantage/* rw,
+  /run/ubuntu-advantage/apt-news/ rw,
+  /run/ubuntu-advantage/apt-news/* rw,
 
   # LP: #2072489
   # the apt-news package selector needs access to packaging information

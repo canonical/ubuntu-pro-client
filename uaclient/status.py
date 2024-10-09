@@ -15,8 +15,10 @@ from uaclient import (
     util,
     version,
 )
+from uaclient.api.u.pro.access.v1 import _access
+from uaclient.api.u.pro.config.v1 import _config
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
-from uaclient.config import UA_CONFIGURABLE_KEYS, UAConfig
+from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlement_factory
@@ -26,12 +28,7 @@ from uaclient.entitlements.entitlement_status import (
     UserFacingConfigStatus,
     UserFacingStatus,
 )
-from uaclient.files import (
-    machine_token,
-    notices,
-    state_files,
-    user_config_file,
-)
+from uaclient.files import machine_token, notices, state_files
 from uaclient.files.notices import Notice
 from uaclient.messages import TxtColor
 
@@ -220,36 +217,29 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machine_token_file = machine_token.get_machine_token_file(cfg)
-    machineTokenInfo = machine_token_file.machine_token["machineTokenInfo"]
-    contractInfo = machineTokenInfo["contractInfo"]
+    accessInfo = _access(cfg)
     tech_support_level = UserFacingStatus.INAPPLICABLE.value
+    support_level = accessInfo.contract.tech_support_level
+    if support_level:
+        tech_support_level = support_level
     response.update(
         {
-            "machine_id": machineTokenInfo["machineId"],
+            "machine_id": accessInfo.machine_id,
             "attached": True,
-            "origin": contractInfo.get("origin"),
+            "origin": accessInfo.contract.origin,
             "notices": notices.list() or [],
             "contract": {
-                "id": contractInfo["id"],
-                "name": contractInfo["name"],
-                "created_at": contractInfo.get("createdAt", ""),
-                "products": contractInfo.get("products", []),
-                "tech_support_level": tech_support_level,
+                "id": accessInfo.contract.id,
+                "name": accessInfo.contract.name,
+                "created_at": accessInfo.contract.created_at,
+                "products": accessInfo.contract.products,
+                "tech_support_level": tech_support_level,  # noqa
             },
-            "account": {
-                "name": machine_token_file.account["name"],
-                "id": machine_token_file.account["id"],
-                "created_at": machine_token_file.account.get("createdAt", ""),
-                "external_account_ids": machine_token_file.account.get(
-                    "externalAccountIDs", []
-                ),
-            },
+            "account": accessInfo.account.to_dict(),
         }
     )
-    if contractInfo.get("effectiveTo"):
-        response["expires"] = machine_token_file.contract_expiry_datetime
-    if contractInfo.get("effectiveFrom"):
-        response["effective"] = contractInfo["effectiveFrom"]
+    response["expires"] = accessInfo.contract.expires
+    response["effective"] = accessInfo.contract.effective
 
     resources = machine_token_file.machine_token.get("availableResources")
     if not resources:
@@ -271,14 +261,6 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
             _attached_service_status(ent, inapplicable_resources, cfg)
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
-
-    support = (
-        machine_token_file.entitlements().get("support", {}).get("entitlement")
-    )
-    if support:
-        supportLevel = support.get("affordances", {}).get("supportLevel")
-        if supportLevel:
-            response["contract"]["tech_support_level"] = supportLevel
     return response
 
 
@@ -353,6 +335,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         status_desc = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation=operation
         )
+
     ret = {
         "execution_status": status_val,
         "execution_details": status_desc,
@@ -362,11 +345,7 @@ def _get_config_status(cfg) -> Dict[str, Any]:
         "features": cfg.features,
     }
     # LP: #2004280 maintain backwards compatibility
-    ua_config = user_config_file.user_config.public_config.to_dict()
-    for key in UA_CONFIGURABLE_KEYS:
-        if hasattr(cfg, key) and ua_config[key] is None:
-            ua_config[key] = getattr(cfg, key)
-    ret["config"]["ua_config"] = ua_config
+    ret["config"]["ua_config"] = _config(cfg).to_dict()
 
     return ret
 
@@ -401,7 +380,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
     return response
 
 
-def _get_entitlement_information(
+def _get_user_facing_entitlement_information(
     entitlements: List[Dict[str, Any]], entitlement_name: str
 ) -> Dict[str, Any]:
     """Extract information from the entitlements array."""
@@ -468,7 +447,7 @@ def simulate_status(
         expiration_datetime = response["expires"]
         delta = expiration_datetime - now
         if delta.total_seconds() <= 0:
-            message = messages.E_ATTACH_FORBIDDEN_EXPIRED.format(
+            message = messages.E_TOKEN_FORBIDDEN_EXPIRED.format(
                 contract_id=response["contract"]["id"],
                 date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
@@ -482,7 +461,7 @@ def simulate_status(
         effective_datetime = response["effective"]
         delta = now - effective_datetime
         if delta.total_seconds() <= 0:
-            message = messages.E_ATTACH_FORBIDDEN_NOT_YET.format(
+            message = messages.E_TOKEN_FORBIDDEN_NOT_YET.format(
                 contract_id=response["contract"]["id"],
                 date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
             )
@@ -506,7 +485,7 @@ def simulate_status(
             ent = entitlement_factory(cfg=cfg, name=entitlement_name)
         except exceptions.EntitlementNotFoundError:
             continue
-        entitlement_information = _get_entitlement_information(
+        entitlement_information = _get_user_facing_entitlement_information(
             entitlements, entitlement_name
         )
         response["services"].append(
@@ -522,7 +501,7 @@ def simulate_status(
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
 
-    support = _get_entitlement_information(entitlements, "support")
+    support = _get_user_facing_entitlement_information(entitlements, "support")
     if support["entitled"]:
         supportLevel = support["affordances"].get("supportLevel")
         if supportLevel:
