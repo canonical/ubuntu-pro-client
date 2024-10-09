@@ -4,6 +4,7 @@ import enum
 import json
 import os
 import re
+from functools import lru_cache
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from urllib.parse import urljoin
 
@@ -422,6 +423,7 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
 
         return False
 
+    @lru_cache(maxsize=None)
     def _get_installed_source_pkg_version(self, binary_pkg_name: str):
         out, _ = system.subp(
             [
