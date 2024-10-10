@@ -2,6 +2,7 @@
 
 from functools import partial
 
+import mock
 import pytest
 
 from uaclient import messages
@@ -20,6 +21,14 @@ class TestUSGEntitlement:
     def test_messages(self, usg_entitlement):
         entitlement = usg_entitlement()
 
-        assert {
-            "post_enable": [messages.USG_POST_ENABLE]
-        } == entitlement.messaging
+        with mock.patch.object(entitlement, "cis_version", False):
+            assert {
+                "pre_enable": None,
+                "post_enable": [messages.USG_POST_ENABLE],
+            } == entitlement.messaging
+
+        with mock.patch.object(entitlement, "cis_version", True):
+            assert {
+                "pre_enable": [messages.CIS_IS_NOW_USG],
+                "post_enable": [messages.USG_POST_ENABLE],
+            } == entitlement.messaging

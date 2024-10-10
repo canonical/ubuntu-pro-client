@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 
-from uaclient import entitlements, lock, messages, status, util
+from uaclient import entitlements, lock, messages, status, system, util
 from uaclient.api import AbstractProgress, ProgressWrapper, exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
@@ -78,9 +78,17 @@ def _disable(
     if not _is_attached(cfg).is_attached:
         raise exceptions.UnattachedError()
 
+    service_to_disable = options.service
+
+    if (
+        service_to_disable == "cis"
+        and system.get_release_info().series == "focal"
+    ):
+        service_to_disable = "usg"
+
     entitlement = entitlements.entitlement_factory(
         cfg=cfg,
-        name=options.service,
+        name=service_to_disable,
         purge=options.purge,
     )
 
@@ -88,7 +96,7 @@ def _disable(
 
     # Do this after getting the class so that the factory can raise an
     # exception for invalid service names
-    if options.service not in enabled_services_before:
+    if service_to_disable not in enabled_services_before:
         # nothing to do
         return DisableResult(
             disabled=[],
@@ -118,7 +126,7 @@ def _disable(
         else:
             reason = messages.GENERIC_UNKNOWN_ISSUE
         raise exceptions.EntitlementNotDisabledError(
-            service=options.service, reason=reason
+            service=service_to_disable, reason=reason
         )
 
     enabled_services_after = _enabled_services_names(cfg)
