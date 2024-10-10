@@ -470,7 +470,7 @@ Feature: Pro Client help text
       Allow users to better visualize the vulnerability issues that affects
       the system.
 
-      optional arguments:
+      <options_string>:
         -h, --help          show this help message and exit
 
       Available Commands:
@@ -491,7 +491,7 @@ Feature: Pro Client help text
         security_issue        Security vulnerability ID to display information.
                               Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd
 
-      optional arguments:
+      <options_string>:
         -h, --help            show this help message and exit
         --data-file DATA_FILE
                               Static vulnerability JSON data to be used in the
@@ -509,7 +509,7 @@ Feature: Pro Client help text
       By default, the command will only list CVEs. To display
       USNs instead, run the command with the --usns flag.
 
-      optional arguments:
+      <options_string>:
         -h, --help            show this help message and exit
         --data-file DATA_FILE
                               Static vulnerability JSON data to be used in the
@@ -533,7 +533,7 @@ Feature: Pro Client help text
       Updates the vulnerability data stored in the machine.
       If no vulnerability data exists yet, the command will download it
 
-      optional arguments:
+      <options_string>:
         -h, --help  show this help message and exit
       """
 
