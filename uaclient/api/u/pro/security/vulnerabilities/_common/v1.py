@@ -4,6 +4,7 @@ import enum
 import json
 import os
 import re
+from collections import defaultdict
 from functools import lru_cache
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from urllib.parse import urljoin
@@ -328,6 +329,37 @@ VulnerabilityParserResult = NamedTuple(
 )
 
 
+class VulnerabilitiesAlreadyFixed:
+    def __init__(self):
+        self._vulns = defaultdict(set)
+        self.priority_counter = defaultdict(
+            lambda: defaultdict(int)
+        )  # type: Dict[str, Dict[str, int]]
+
+    def add_vulnerability(
+        self,
+        vuln_name: str,
+        vuln_pocket: str,
+        vuln_priority: Optional[str] = None,
+    ):
+        if vuln_name not in self._vulns[vuln_pocket]:
+            self._vulns[vuln_pocket].add(vuln_name)
+
+            if vuln_priority:
+                self.priority_counter[vuln_pocket][vuln_priority] += 1
+
+    def to_dict(self):
+        dict_repr = {
+            "count": {},
+            "info": {},
+        }  # type: Dict[str, Dict[str, Any]]
+        for pocket, vulns in self._vulns.items():
+            dict_repr["count"][pocket] = len(vulns)
+            dict_repr["info"][pocket] = dict(self.priority_counter[pocket])
+
+        return dict_repr
+
+
 class VulnerabilityParser(metaclass=abc.ABCMeta):
     vulnerability_type = None  # type: str
 
@@ -510,39 +542,13 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
             ) in sorted(binary_pkgs.items()):
                 yield source_pkg, binary_pkg_name, binary_installed_version
 
-    def _add_info_to_fixed_vulnerabilities_count(
-        self,
-        pocket: str,
-        fixed_vulnerability_info: Dict[str, Any],
-        vulnerability_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        ubuntu_priority = vulnerability_info.get("ubuntu_priority")
-
-        if not ubuntu_priority:
-            return fixed_vulnerability_info
-
-        if pocket not in fixed_vulnerability_info:
-            fixed_vulnerability_info[pocket] = {ubuntu_priority: 1}
-        elif ubuntu_priority not in fixed_vulnerability_info[pocket]:
-            fixed_vulnerability_info[pocket][ubuntu_priority] = 1
-        else:
-            fixed_vulnerability_info[pocket][ubuntu_priority] += 1
-
-        return fixed_vulnerability_info
-
     def get_vulnerabilities_for_installed_pkgs(
         self,
         vulnerabilities_data: Dict[str, Any],
         installed_pkgs_by_source: Dict[str, Dict[str, str]],
     ):
         vulnerabilities = {}  # type: Dict[str, Any]
-        applied_fixes_count = {
-            "count": {
-                "ubuntu_security": 0,
-                "ubuntu_pro": 0,
-            },
-            "info": {},
-        }
+        vulnerabilities_already_fixed = VulnerabilitiesAlreadyFixed()
 
         affected_pkgs = vulnerabilities_data.get("packages", {})
         vulns_info = vulnerabilities_data.get("security_issues", {}).get(
@@ -651,16 +657,10 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                         if pocket in ("release", "updates", "security")
                         else "ubuntu_pro"
                     )
-                    applied_fixes_count["count"][
-                        ubuntu_pocket_translation
-                    ] += 1
-
-                    applied_fixes_count["info"] = (
-                        self._add_info_to_fixed_vulnerabilities_count(
-                            ubuntu_pocket_translation,
-                            applied_fixes_count["info"],
-                            vuln_info,
-                        )
+                    vulnerabilities_already_fixed.add_vulnerability(
+                        vuln_name=vuln_name,
+                        vuln_pocket=ubuntu_pocket_translation,
+                        vuln_priority=vuln_info.get("ubuntu_priority"),
                     )
 
                 continue
@@ -671,7 +671,7 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
             ),
             vulnerabilities_info={
                 "vulnerabilities": vulnerabilities,
-                "applied_fixes_count": applied_fixes_count,
+                "applied_fixes_count": vulnerabilities_already_fixed.to_dict(),
             },
         )
 
