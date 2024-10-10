@@ -3,11 +3,11 @@ from uaclient.entitlements import repo
 from uaclient.types import MessagingOperationsDict
 
 
-class CISEntitlement(repo.RepoEntitlement):
+class USGEntitlement(repo.RepoEntitlement):
 
     help_doc_url = messages.urls.USG_DOCS
-    name = "cis"
-    title = messages.CIS_TITLE
+    name = "usg"
+    title = messages.USG_TITLE
     description = messages.CIS_USG_DESCRIPTION
     help_text = messages.CIS_USG_HELP_TEXT
     repo_key_file = "ubuntu-pro-cis.gpg"
@@ -17,4 +17,4 @@ class CISEntitlement(repo.RepoEntitlement):
 
     @property
     def messaging(self) -> MessagingOperationsDict:
-        return {"post_enable": [messages.CIS_POST_ENABLE]}
+        return {"post_enable": [messages.USG_POST_ENABLE]}
