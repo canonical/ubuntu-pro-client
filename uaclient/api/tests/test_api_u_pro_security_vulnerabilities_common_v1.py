@@ -5,6 +5,7 @@ from uaclient import exceptions
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     ProManifestSourcePackage,
     SourcePackages,
+    VulnerabilitiesAlreadyFixed,
     VulnerabilityParser,
     VulnerabilityStatus,
     _get_source_package_from_vulnerabilities_data,
@@ -414,3 +415,60 @@ class TestSourcePackages:
                 vulnerabilities_data=vulnerabilities_data,
             ).get()
         )
+
+
+class TestVulnerabilitiesAlreadyFixed:
+
+    @pytest.mark.parametrize(
+        "vulnerabilities,expected_result",
+        (
+            (
+                [
+                    ("CVE-1234-5", "ubuntu_pro", "high"),
+                    ("CVE-1234-5", "ubuntu_pro", "high"),
+                    ("CVE-1234-5", "ubuntu_security", "high"),
+                    ("CVE-1234-5", "ubuntu_security", "high"),
+                    ("CVE-1552-5", "ubuntu_pro", "medium"),
+                    ("CVE-1382-5", "ubuntu_security", "low"),
+                ],
+                {
+                    "count": {
+                        "ubuntu_pro": 2,
+                        "ubuntu_security": 2,
+                    },
+                    "info": {
+                        "ubuntu_pro": {"high": 1, "medium": 1},
+                        "ubuntu_security": {"high": 1, "low": 1},
+                    },
+                },
+            ),
+            (
+                [
+                    ("USN-1234-5", "ubuntu_pro"),
+                    ("USN-1234-5", "ubuntu_security"),
+                    ("USN-1552-5", "ubuntu_pro"),
+                    ("USN-1382-5", "ubuntu_security"),
+                ],
+                {
+                    "count": {
+                        "ubuntu_pro": 2,
+                        "ubuntu_security": 2,
+                    },
+                    "info": {
+                        "ubuntu_pro": {},
+                        "ubuntu_security": {},
+                    },
+                },
+            ),
+        ),
+    )
+    def test_vulnerabilities_already_fixed_to_dict(
+        self,
+        vulnerabilities,
+        expected_result,
+    ):
+        vulnerabilities_already_fixed = VulnerabilitiesAlreadyFixed()
+        for vulnerability in vulnerabilities:
+            vulnerabilities_already_fixed.add_vulnerability(*vulnerability)
+
+        assert expected_result == vulnerabilities_already_fixed.to_dict()
