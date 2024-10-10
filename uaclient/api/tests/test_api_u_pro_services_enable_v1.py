@@ -17,6 +17,7 @@ M_PATH = "uaclient.api.u.pro.services.enable.v1."
 class TestEnable:
     @pytest.mark.parametrize(
         [
+            "series",
             "options",
             "we_are_currently_root",
             "is_attached",
@@ -25,15 +26,18 @@ class TestEnable:
             "enable_result",
             "messaging_ops",
             "reboot_required",
+            "expected_service_name",
             "expected_raises",
             "expected_result",
         ],
         [
             # not root
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 False,
                 False,
+                None,
                 None,
                 None,
                 None,
@@ -44,9 +48,11 @@ class TestEnable:
             ),
             # not attached
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 False,
+                None,
                 None,
                 None,
                 None,
@@ -57,9 +63,11 @@ class TestEnable:
             ),
             # landscape fail
             (
+                "any_series",
                 EnableOptions(service="landscape"),
                 True,
                 True,
+                None,
                 None,
                 None,
                 None,
@@ -70,6 +78,7 @@ class TestEnable:
             ),
             # generic enable failure
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -78,11 +87,13 @@ class TestEnable:
                 (False, None),
                 None,
                 None,
+                "s1",
                 pytest.raises(exceptions.EntitlementNotEnabledError),
                 None,
             ),
             # success
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -91,6 +102,7 @@ class TestEnable:
                 (True, None),
                 {},
                 False,
+                "s1",
                 does_not_raise(),
                 EnableResult(
                     enabled=["s1"],
@@ -99,8 +111,29 @@ class TestEnable:
                     messages=[],
                 ),
             ),
+            # cis on focal
+            (
+                "focal",
+                EnableOptions(service="cis"),
+                True,
+                True,
+                [],
+                ["usg"],
+                (True, None),
+                {},
+                False,
+                "usg",
+                does_not_raise(),
+                EnableResult(
+                    enabled=["usg"],
+                    disabled=[],
+                    reboot_required=False,
+                    messages=[],
+                ),
+            ),
             # success already enabled no variant
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -109,6 +142,7 @@ class TestEnable:
                         name="s1", variant_enabled=False, variant_name=""
                     )
                 ],
+                None,
                 None,
                 None,
                 None,
@@ -123,6 +157,7 @@ class TestEnable:
             ),
             # success already enabled no variant specified but variant enabled
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -131,6 +166,7 @@ class TestEnable:
                         name="s1", variant_enabled=True, variant_name="v1"
                     )
                 ],
+                None,
                 None,
                 None,
                 None,
@@ -145,6 +181,7 @@ class TestEnable:
             ),
             # success already enabled variant specified same variant enabled
             (
+                "any_series",
                 EnableOptions(service="s1", variant="v1"),
                 True,
                 True,
@@ -153,6 +190,7 @@ class TestEnable:
                         name="s1", variant_enabled=True, variant_name="v1"
                     )
                 ],
+                None,
                 None,
                 None,
                 None,
@@ -167,6 +205,7 @@ class TestEnable:
             ),
             # success with reboot required
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -175,6 +214,7 @@ class TestEnable:
                 (True, None),
                 {},
                 True,
+                "s1",
                 does_not_raise(),
                 EnableResult(
                     enabled=["s1"],
@@ -185,6 +225,7 @@ class TestEnable:
             ),
             # success with reboot required and different variant
             (
+                "any_series",
                 EnableOptions(service="s1", variant="v1"),
                 True,
                 True,
@@ -197,6 +238,7 @@ class TestEnable:
                 (True, None),
                 {},
                 True,
+                None,
                 does_not_raise(),
                 EnableResult(
                     enabled=[],
@@ -207,6 +249,7 @@ class TestEnable:
             ),
             # success with post enable messages
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -215,6 +258,7 @@ class TestEnable:
                 (True, None),
                 {"post_enable": ["one", "two", 3]},
                 False,
+                "s1",
                 does_not_raise(),
                 EnableResult(
                     enabled=["s1"],
@@ -225,6 +269,7 @@ class TestEnable:
             ),
             # success with additional enablements and disablements
             (
+                "any_series",
                 EnableOptions(service="s1"),
                 True,
                 True,
@@ -237,6 +282,7 @@ class TestEnable:
                 (True, None),
                 {},
                 False,
+                "s1",
                 does_not_raise(),
                 EnableResult(
                     enabled=["s1", "s3"],
@@ -256,8 +302,10 @@ class TestEnable:
     @mock.patch(M_PATH + "_enabled_services")
     @mock.patch(M_PATH + "_is_attached")
     @mock.patch(M_PATH + "util.we_are_currently_root")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_enable(
         self,
+        m_release_info,
         m_we_are_currently_root,
         m_is_attached,
         m_enabled_services,
@@ -267,6 +315,7 @@ class TestEnable:
         m_spin_lock,
         m_clear_lock_file_if_present,
         m_status,
+        series,
         options,
         is_attached,
         we_are_currently_root,
@@ -275,10 +324,12 @@ class TestEnable:
         enable_result,
         messaging_ops,
         reboot_required,
+        expected_service_name,
         expected_raises,
         expected_result,
         FakeConfig,
     ):
+        m_release_info.return_value.series = series
         m_we_are_currently_root.return_value = we_are_currently_root
         m_is_attached.return_value = mock.MagicMock(is_attached=is_attached)
         m_enabled_services.return_value.enabled_services = (
@@ -317,7 +368,7 @@ class TestEnable:
             assert m_entitlement_factory.call_args_list == [
                 mock.call(
                     cfg=cfg,
-                    name=options.service,
+                    name=expected_service_name,
                     variant=options.variant or "",
                     access_only=options.access_only,
                 )

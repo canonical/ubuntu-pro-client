@@ -12,6 +12,7 @@ from uaclient import (
     lock,
     messages,
     status,
+    system,
     util,
 )
 from uaclient.api.u.pro.services.dependencies.v1 import (
@@ -31,6 +32,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.parser import HelpCategory
+from uaclient.entitlements.usg import USGEntitlement
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -445,6 +447,13 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     ) = entitlements.get_valid_entitlement_names(names, cfg)
     enabled_services = _enabled_services(cfg).enabled_services
     all_dependencies = _dependencies(cfg).services
+
+    # On Focal, CIS transitioned to USG.
+    # If a user tries to enable CIS on Focal, they should get USG instead.
+    if "cis" in names and system.get_release_info().series == "focal":
+        entitlements_found.append("usg")
+        entitlements_not_found.remove("cis")
+        USGEntitlement.cis_version = True
 
     ret = True
     for ent_name in entitlements.order_entitlements_for_enabling(

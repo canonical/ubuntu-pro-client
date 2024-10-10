@@ -15,21 +15,25 @@ M_PATH = "uaclient.api.u.pro.services.disable.v1."
 class TestDisable:
     @pytest.mark.parametrize(
         [
+            "series",
             "options",
             "we_are_currently_root",
             "is_attached",
             "enabled_services_names_before",
             "enabled_services_names_after",
             "disable_result",
+            "expected_service",
             "expected_raises",
             "expected_result",
         ],
         [
             # not root
             (
+                "any_series",
                 DisableOptions(service="s1"),
                 False,
                 False,
+                None,
                 None,
                 None,
                 None,
@@ -38,9 +42,11 @@ class TestDisable:
             ),
             # not attached
             (
+                "any_series",
                 DisableOptions(service="s1"),
                 True,
                 False,
+                None,
                 None,
                 None,
                 None,
@@ -49,36 +55,57 @@ class TestDisable:
             ),
             # generic disable failure
             (
+                "any_series",
                 DisableOptions(service="s1"),
                 True,
                 True,
                 ["s1"],
                 None,
                 (False, None),
+                "s1",
                 pytest.raises(exceptions.EntitlementNotDisabledError),
                 None,
             ),
             # success
             (
+                "any_series",
                 DisableOptions(service="s1"),
                 True,
                 True,
                 ["s1"],
                 [],
                 (True, None),
+                "s1",
                 does_not_raise(),
                 DisableResult(
                     disabled=["s1"],
                 ),
             ),
+            # cis on focal
+            (
+                "focal",
+                DisableOptions(service="cis"),
+                True,
+                True,
+                ["usg"],
+                [],
+                (True, None),
+                "usg",
+                does_not_raise(),
+                DisableResult(
+                    disabled=["usg"],
+                ),
+            ),
             # success already disabled
             (
+                "any_series",
                 DisableOptions(service="s1"),
                 True,
                 True,
                 [],
                 None,
                 None,
+                "s1",
                 does_not_raise(),
                 DisableResult(
                     disabled=[],
@@ -86,12 +113,14 @@ class TestDisable:
             ),
             # success with additional disablements
             (
+                "any_series",
                 DisableOptions(service="s1"),
                 True,
                 True,
                 ["s1", "s2", "s3"],
                 ["s2"],
                 (True, None),
+                "s1",
                 does_not_raise(),
                 DisableResult(
                     disabled=["s1", "s3"],
@@ -106,8 +135,10 @@ class TestDisable:
     @mock.patch(M_PATH + "_enabled_services_names")
     @mock.patch(M_PATH + "_is_attached")
     @mock.patch(M_PATH + "util.we_are_currently_root")
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_disable(
         self,
+        m_get_release_info,
         m_we_are_currently_root,
         m_is_attached,
         m_enabled_services_names,
@@ -115,16 +146,19 @@ class TestDisable:
         m_spin_lock,
         m_clear_lock_file_if_present,
         m_status,
+        series,
         options,
         we_are_currently_root,
         is_attached,
         enabled_services_names_before,
         enabled_services_names_after,
         disable_result,
+        expected_service,
         expected_raises,
         expected_result,
         FakeConfig,
     ):
+        m_get_release_info.return_value.series = series
         m_we_are_currently_root.return_value = we_are_currently_root
         m_is_attached.return_value = mock.MagicMock(is_attached=is_attached)
         m_enabled_services_names.side_effect = [
@@ -149,7 +183,7 @@ class TestDisable:
             assert m_entitlement_factory.call_args_list == [
                 mock.call(
                     cfg=cfg,
-                    name=options.service,
+                    name=expected_service,
                     purge=options.purge,
                 )
             ]
