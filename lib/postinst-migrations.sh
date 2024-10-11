@@ -45,6 +45,7 @@
 set -e
 
 PREVIOUS_PKG_VER=$1
+VERSION_ID=$2
 
 if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "32~"; then
     # When we perform the write operation through
@@ -80,5 +81,16 @@ if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "35~"; then
     # contract check runs correctly
     if [ -f "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
         touch "/var/lib/ubuntu-advantage/marker-only-series-check"
+    fi
+
+    # On Focal and Jammy, the CIS service transitioned to USG from v35
+    # This changes the lists and authentication files to represent that
+    # in case CIS is enabled
+    if [ "$VERSION_ID" = "20.04" ] || [ "$VERSION_ID" = "22.04" ]; then
+        if [ -f /etc/apt/sources.list.d/ubuntu-cis.list ]; then
+            mv /etc/apt/sources.list.d/ubuntu-cis.list /etc/apt/sources.list.d/ubuntu-usg.list
+            sed -i 's#/cis/ubuntu#/usg/ubuntu#' /etc/apt/sources.list.d/ubuntu-usg.list
+            sed -i 's#/cis/ubuntu#/usg/ubuntu#' /etc/apt/auth.conf.d/90ubuntu-advantage
+        fi
     fi
 fi
