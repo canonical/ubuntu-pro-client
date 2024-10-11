@@ -45,6 +45,7 @@
 set -e
 
 PREVIOUS_PKG_VER=$1
+UBUNTU_RELEASE=$2
 
 if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "32~"; then
     # When we perform the write operation through
@@ -86,5 +87,16 @@ if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt "35~"; then
     # is updated to include the snapshot urls for esm-infra and esm-apps
     if [ -f "/var/lib/ubuntu-advantage/private/machine-token.json" ]; then
         /usr/bin/python3 /usr/lib/ubuntu-advantage/add_esm_snapshot_auth.py
+    fi
+
+    # On Focal and Jammy, the CIS service transitioned to USG from v35
+    # This changes the lists and authentication files to represent that
+    # in case CIS is enabled
+    if [ "$UBUNTU_RELEASE" = "20.04" ] || [ "$UBUNTU_RELEASE" = "22.04" ]; then
+        if [ -f /etc/apt/sources.list.d/ubuntu-cis.list ]; then
+            mv /etc/apt/sources.list.d/ubuntu-cis.list /etc/apt/sources.list.d/ubuntu-usg.list
+            sed -i 's#/cis/ubuntu#/usg/ubuntu#' /etc/apt/sources.list.d/ubuntu-usg.list
+            sed -i 's#/cis/ubuntu#/usg/ubuntu#' /etc/apt/auth.conf.d/90ubuntu-advantage
+        fi
     fi
 fi
