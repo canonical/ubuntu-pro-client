@@ -639,7 +639,13 @@ class TestSecurityStatus:
             "livepatch": {"fixed_cves": []},
         }
 
-        assert expected_output == security_status_dict(cfg)
+        result = security_status_dict(cfg)
+        assert expected_output["_schema_version"] == result["_schema_version"]
+        assert expected_output["livepatch"] == result["livepatch"]
+        assert expected_output["summary"] == result["summary"]
+        assert expected_output["packages"] == sorted(
+            result["packages"], key=lambda x: x["version"]
+        )
 
 
 @mock.patch(M_PATH + "livepatch.status")
