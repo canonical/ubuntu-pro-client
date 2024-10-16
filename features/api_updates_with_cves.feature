@@ -5,8 +5,8 @@ Feature: Client behaviour for updates with CVEs API
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I apt install `jq`
-    And I push static file `security_issues_xenial` to machine
-    And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial` as non-root
+    And I push static file `security_issues_xenial.json` to machine
+    And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial.json` as non-root
     And I apply this jq filter `.data.attributes.updates[] | select (.package == "bash")` to the output
     Then stdout matches regexp:
       """
@@ -22,7 +22,7 @@ Feature: Client behaviour for updates with CVEs API
         "version": ".*"
       }
       """
-    When I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial` as non-root
+    When I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial.json` as non-root
     And I apply this jq filter `.data.attributes.cves[] | select (.name == "CVE-2019-18276")` to the output
     Then stdout matches regexp:
       """
@@ -39,7 +39,7 @@ Feature: Client behaviour for updates with CVEs API
       }
       """
     When I apt install `bash`
-    And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial` as non-root
+    And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial.json` as non-root
     Then stdout does not contain substring:
       """
       "CVE-2019-18276",
@@ -79,7 +79,7 @@ Feature: Client behaviour for updates with CVEs API
         "warnings": []
       }
       """
-    And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial updates_data=/tmp/updates` as non-root
+    And I run `pro api u.pro.packages.updates_with_cves.v1 --args data_file=/tmp/security_issues_xenial.json updates_data=/tmp/updates` as non-root
     Then API data field output matches regexp
       """
       {
