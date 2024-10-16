@@ -59,6 +59,12 @@ class VulnerabilityStatus(enum.Enum):
     FULL_FIX_AVAILABLE = "yes"
 
 
+@lru_cache(maxsize=None)
+def get_vulnerability_data_published_date(vulnerability_url):
+    resp = http.readurl(url=vulnerability_url, method="HEAD")
+    return resp.headers["last-modified"]
+
+
 class VulnerabilityData:
 
     def __init__(
@@ -102,8 +108,9 @@ class VulnerabilityData:
 
     def _get_published_date(self):
         if not self._last_published_date:
-            resp = http.readurl(url=self._get_data_url(), method="HEAD")
-            self._last_published_date = resp.headers["last-modified"]
+            self._last_published_date = get_vulnerability_data_published_date(
+                self._get_data_url()
+            )
 
         return self._last_published_date
 

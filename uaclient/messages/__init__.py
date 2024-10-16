@@ -1308,6 +1308,10 @@ List the fixable vulnerabilities that affects the system.
 By default, the command will only list CVEs. To display
 USNs instead, run the command with the --usns flag."""
 )
+CLI_VULNERABILITY_LIST_SPINNER_MSG = t.gettext(
+    """\
+Processing vulnerability data..."""
+)
 CLI_VULNERABILITY_LIST_CVE_HEADER = (
     TxtColor.DISABLEGREY
     + t.gettext("Common vulnerabilities and exposures (CVE):")
