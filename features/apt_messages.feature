@@ -1158,6 +1158,22 @@ Feature: APT Messages
       # | oracular | lxd-container | jammy         | libcurl4t64     | 8.8.0-3ubuntu3    |
       | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
 
+  Scenario Outline: APT Hook does not error when run as non-root
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `apt upgrade --simulate` as non-root
+    Then I will see the following on stderr
+      """
+      WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
