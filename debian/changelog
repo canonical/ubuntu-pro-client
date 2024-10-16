@@ -28,6 +28,7 @@ ubuntu-advantage-tools (35) oracular; urgency=medium
       + always ensure the ESM cache is present (GH: #3132)
       + silence warnings when fetching apt-news (GH: #3209, LP: #2070095)
       + update logging for apt errors (GH: #3299)
+      + only run the apt upgrade hook when run as root (LP: #2084677)
     - cli:
       + add support for vulnerability commands:
         * pro vulnerability list: List fixable vulnerabilities in the machine
