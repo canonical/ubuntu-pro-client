@@ -31,7 +31,7 @@ class LXDAutoAttachInstance(AutoAttachInstance):
             LXD_INSTANCE_API_ENDPOINT_UBUNTU_PRO,
         )
         if resp.code != 200:
-            LOG.warning(
+            LOG.error(
                 "LXD instance API returned error for ubuntu-pro query",
                 extra=log.extra(code=resp.code, body=resp.body),
             )
