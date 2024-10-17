@@ -398,6 +398,8 @@ def readurl(
             json_dict = json_body
         elif isinstance(json_body, list):
             json_list = json_body
+        else:
+            LOG.warning("unexpected JSON response: %s", str(json_body))
 
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
@@ -453,6 +455,8 @@ def unix_socket_request(
             json_dict = json_body
         elif isinstance(json_body, list):
             json_list = json_body
+        else:
+            LOG.warning("unexpected JSON response: %s", str(json_body))
 
     return HTTPResponse(
         code=resp.status,
