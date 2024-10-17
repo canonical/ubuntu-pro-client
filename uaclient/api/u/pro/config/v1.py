@@ -101,7 +101,7 @@ class ConfigInfo(DataObject, AdditionalInfo):
                 " 'available'. If set to 'on', the guest will attach using the"
                 " host's Pro access automatically on launch. If set to 'off',"
                 " the guest will not be allowed to attach using the host's Pro"
-                " lx access. If set to 'available', the guest will be allowed"
+                " access. If set to 'available', the guest will be allowed"
                 " to attach using the host's Pro access, but it will not be"
                 " automatic."
             ),
