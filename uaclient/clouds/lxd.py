@@ -36,8 +36,15 @@ class LXDAutoAttachInstance(AutoAttachInstance):
                 extra=log.extra(code=resp.code, body=resp.body),
             )
             return False
+
         # returning True will cause auto-attach on launch, so only "on" counts
-        return resp.json_dict.get("guest_attach", "off") == "on"
+        if resp.json_dict.get("guest_attach", "off") != "on":
+            LOG.info(
+                "guest_attach config is not turned on. The machine will not try to auto-attach."  # noqa
+            )
+            return False
+
+        return True
 
     def acquire_pro_token(self, cfg: config.UAConfig) -> str:
         """
