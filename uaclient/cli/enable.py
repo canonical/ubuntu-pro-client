@@ -12,6 +12,7 @@ from uaclient import (
     lock,
     messages,
     status,
+    system,
     util,
 )
 from uaclient.api.u.pro.services.dependencies.v1 import (
@@ -59,7 +60,6 @@ def _enable_landscape(
     progress = api.ProgressWrapper(progress_object)
     landscape = entitlements.LandscapeEntitlement(
         cfg,
-        called_name="landscape",
         access_only=access_only,
         extra_args=extra_args,
     )
@@ -93,7 +93,6 @@ def prompt_for_dependency_handling(
     service: str,
     all_dependencies: List[ServiceWithDependencies],
     enabled_services: List[EnabledService],
-    called_name: str,
     variant: str,
     service_title: str,
 ):
@@ -268,7 +267,6 @@ def _enable_one_service(
                 real_name,
                 all_dependencies,
                 enabled_services,
-                called_name=ent_name,
                 variant=variant,
                 service_title=ent_title,
             )
@@ -448,6 +446,13 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     ) = entitlements.get_valid_entitlement_names(names, cfg)
     enabled_services = _enabled_services(cfg).enabled_services
     all_dependencies = _dependencies(cfg).services
+
+    # On Focal, CIS transitioned to USG.
+    # If a user tries to enable CIS on Focal, they should get USG instead.
+    if "cis" in names and system.get_release_info().series == "focal":
+        entitlements_found.append("usg")
+        entitlements_not_found.remove("cis")
+        interactive_only_print(messages.CIS_IS_NOW_USG)
 
     ret = True
     for ent_name in entitlements.order_entitlements_for_enabling(

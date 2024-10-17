@@ -1,7 +1,7 @@
 import json
 import logging
 import textwrap
-from typing import Dict, List  # noqa: F401
+from typing import Any, Dict, List  # noqa: F401
 
 from uaclient import (
     config,
@@ -33,7 +33,6 @@ def prompt_for_dependency_handling(
     service: str,
     all_dependencies: List[ServiceWithDependencies],
     enabled_service_names: List[str],
-    called_name: str,
     service_title: str,
 ):
     dependent_services = []
@@ -116,7 +115,7 @@ def action_disable(args, *, cfg, **kwargs):
     """
     processed_services = []
     failed_services = []
-    errors = []
+    errors = []  # type: List[Dict[str, Any]]
     warnings = []  # type: List[Dict[str, str]]
 
     json_response = {
@@ -171,7 +170,6 @@ def action_disable(args, *, cfg, **kwargs):
                     ent.name,
                     all_dependencies,
                     enabled_service_names,
-                    called_name=ent_name,
                     service_title=ent.title,
                 )
             except exceptions.UbuntuProError as e:

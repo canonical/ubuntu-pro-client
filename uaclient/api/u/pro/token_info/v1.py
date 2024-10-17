@@ -192,7 +192,7 @@ def _get_token_info(
         )
         services.append(
             ServiceInfo(
-                name=resource.get("presentedAs", ent.name),
+                name=ent.name,
                 description=ent.description,
                 entitled=entitlement_information["entitled"],
                 auto_enabled=entitlement_information["auto_enabled"],
