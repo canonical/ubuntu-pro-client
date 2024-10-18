@@ -1,11 +1,11 @@
 # Use the contracts staging environment
 
 You can change the contract server that the Pro Client will use by setting the
-following option in your `uaclient.conf` configuration file, (by default located at
-`/etc/ubuntu-advantage/uaclient.conf`).
+following option in your `uaclient.conf` configuration file, (by default
+located at `/etc/ubuntu-advantage/uaclient.conf`).
 
 ```yaml
-contract_url: https://contracts.staging.canonical.com
+  contract_url: https://contracts.staging.canonical.com
 ```
 
 > **Note**

@@ -2,7 +2,7 @@
 
 Below are the versioning schemes used for publishing debs:
 
-| Build target                                                                      | Version Format                             |
+| Build target                                                                      | Version format                             |
 | --------------------------------------------------------------------------------- | ------------------------------------------ |
 | [Daily PPA](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily) | `XX.YY-<revno>~g<commitish>~ubuntu22.04.1` |
 | Staging PPA                                                                       | `XX.YY~22.04~rc1`                        |
@@ -12,9 +12,12 @@ Below are the versioning schemes used for publishing debs:
 
 ## Supported upgrade paths on same upstream version
 
-Regardless of source, the latest available "upstream version" (e.g. 27.4) will always be installed, because the upstream version comes first followed by a tilde in all version formats.
+Regardless of source, the latest available "upstream version" (e.g. 27.4) will
+always be installed, because the upstream version comes first followed by a
+tilde (`~`) in all version formats.
 
-This table demonstrates upgrade paths between sources for one particular upstream version.
+This table demonstrates upgrade paths between sources for one particular
+upstream version.
 
 | Upgrade path                    | Version diff example                                                    |
 | ------------------------------- | ----------------------------------------------------------------------- |

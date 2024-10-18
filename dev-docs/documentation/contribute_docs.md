@@ -18,15 +18,15 @@ in the same repository as the codebase, there are two separate branches for the
 docs:
 
 - The `docs` branch, where the latest documentation is kept. This branch is
-  used to track releases and is published in `Read The Docs`;
+  used to track releases and is published in
+  [Read The Docs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest);
 - The `docs-devel` branch, where the documentation of upcoming features and
   changes is kept until they are ready to be released.
 
-When a pull request with improvements or new content to the documentation
-contains features which are not released yet, it should target the
-`docs-devel` branch. Fixes, improvements, and content for existing features can
-target the `docs` branch directly, so they are published immediately after the
-pull request is merged.
+When a pull request with documentation improvements or new content is related to
+not-yet-released features, it should target the `docs-devel` branch. Fixes,
+improvements, and content for existing features can target the `docs` branch
+directly, so they are published immediately after the pull request is merged.
 
 ## Building the docs locally
 
@@ -57,18 +57,23 @@ command:
 $ make run
 ```
 
-This will build *and serve* the documentation at http://127.0.0.1:8000 -- this
-gives you a live preview of any changes you make (and save) to the
+This will build *and serve* the documentation at `http://127.0.0.1:8000` --
+this gives you a live preview of any changes you make (and save) to the
 documentation without needing to continually rebuild.
 
 ## Doc testing
 
-Before running the `make` command, make sure to download the Python venv module by running the following command:
+Before running the `make` command, make sure to download the Python `venv`
+module by running the following command:
+
 ```sh
 apt install python3-venv
 ```
-When working with any `docs` branch and making updates, you can run the documentation tests using the Makefile. 
-The `make` command lists all targets to test. You can run individual targets using the command:
+
+When working with any `docs` branch and making updates, you can run the
+documentation tests using the Makefile. The `make` command lists all targets to
+test. You can run individual targets using the command:
+
 ```bash
 make target
 ```

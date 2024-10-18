@@ -7,10 +7,10 @@ from the architecture of the project to how you should test any code changes.
 
 ### How to Guides
 
-* [How to build](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/building.md)
-* [How to run the code formatting tools](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/code_formatting.md)
-* [How to run the tests](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/testing.md)
-* [How to release a new version](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/how_to_release_a_new_version_of_ua.md)
+* [How to build](/dev-docs/howtoguides/building.md)
+* [How to run the code formatting tools](/dev-docs/howtoguides/code_formatting.md)
+* [How to run the tests](/dev-docs/howtoguides/testing.md)
+* [How to release a new version](/dev-docs/howtoguides/release_a_new_version.md)
 * [How to use the contract staging environment](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/use_staging_environment.md)
 * [How to use the magic attach endpoints](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/how_to_use_magic_attach_endpoints.md)
 * [How to spellcheck messages](https://github.com/canonical/ubuntu-pro-client/blob/docs/dev-docs/howtoguides/spellcheck.md)
