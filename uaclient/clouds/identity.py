@@ -57,7 +57,7 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
 
 def cloud_instance_factory(
     cloud_override: Optional[str] = None,
-) -> clouds.AutoAttachCloudInstance:
+) -> clouds.AutoAttachInstance:
     """
     :raises CloudFactoryError: if no cloud instance object can be constructed
     :raises CloudFactoryNoCloudError: if no cloud instance object can be
@@ -67,15 +67,16 @@ def cloud_instance_factory(
     :raises CloudFactoryNonViableCloudError: if no cloud instance object can be
         constructed because we explicitly do not support the cloud we're on
     """
-    from uaclient.clouds import aws, azure, gcp
+    from uaclient.clouds import aws, azure, gcp, lxd
 
     cloud_instance_map = {
-        "aws": aws.UAAutoAttachAWSInstance,
-        "aws-china": aws.UAAutoAttachAWSInstance,
-        "aws-gov": aws.UAAutoAttachAWSInstance,
-        "azure": azure.UAAutoAttachAzureInstance,
-        "gce": gcp.UAAutoAttachGCPInstance,
-    }  # type: Dict[str, Type[clouds.AutoAttachCloudInstance]]
+        "aws": aws.AWSAutoAttachInstance,
+        "aws-china": aws.AWSAutoAttachInstance,
+        "aws-gov": aws.AWSAutoAttachInstance,
+        "azure": azure.AzureAutoAttachInstance,
+        "gce": gcp.GCPAutoAttachInstance,
+        "lxd": lxd.LXDAutoAttachInstance,
+    }  # type: Dict[str, Type[clouds.AutoAttachInstance]]
 
     if cloud_override is not None:
         cloud_type = cloud_override

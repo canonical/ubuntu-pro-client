@@ -42,6 +42,11 @@ ALL_BINARY_PACKAGE_NAMES = [
     "ubuntu-advantage-tools",
     "ubuntu-advantage-pro",
 ]
+NORMAL_BINARY_PACKAGE_NAMES = [
+    "ubuntu-pro-client",
+    "ubuntu-pro-client-l10n",
+    "ubuntu-advantage-tools",
+]
 
 
 @dataclass
@@ -52,12 +57,18 @@ class ProDebPaths:
     ubuntu_advantage_tools: str
     ubuntu_advantage_pro: str
 
-    def non_cloud_pro_image_debs(self) -> List[Tuple[str, str]]:
-        return [
-            ("ubuntu-pro-client", self.ubuntu_pro_client),
-            ("ubuntu-advantage-tools", self.ubuntu_advantage_tools),
-            ("ubuntu-pro-client-l10n", self.ubuntu_pro_client_l10n),
-        ]
+    def non_cloud_pro_image_debs(self, series: str) -> List[Tuple[str, str]]:
+        if series in ("xenial", "bionic", "focal", "jammy"):
+            return [
+                ("ubuntu-pro-client", self.ubuntu_pro_client),
+                ("ubuntu-advantage-tools", self.ubuntu_advantage_tools),
+                ("ubuntu-pro-client-l10n", self.ubuntu_pro_client_l10n),
+            ]
+        else:
+            return [
+                ("ubuntu-pro-client", self.ubuntu_pro_client),
+                ("ubuntu-pro-client-l10n", self.ubuntu_pro_client_l10n),
+            ]
 
     def cloud_pro_image_debs(self) -> List[Tuple[str, str]]:
         return [
@@ -68,8 +79,10 @@ class ProDebPaths:
             ("ubuntu-advantage-pro", self.ubuntu_advantage_pro),
         ]
 
-    def all_debs(self) -> List[Tuple[str, str]]:
-        return self.non_cloud_pro_image_debs() + self.cloud_pro_image_debs()
+    def all_debs(self, series: str) -> List[Tuple[str, str]]:
+        return (
+            self.non_cloud_pro_image_debs(series) + self.cloud_pro_image_debs()
+        )
 
 
 class InstallationSource(Enum):
@@ -411,6 +424,13 @@ def process_template_vars(
                 processed_template,
                 match.group(0),
                 dt_str,
+                logger_fn,
+            )
+        elif function_name == "contract_token_staging_expired":
+            processed_template = _replace_and_log(
+                processed_template,
+                match.group(0),
+                context.pro_config.contract_token_staging_expired,
                 logger_fn,
             )
         elif function_name == "contract_token_staging":

@@ -1,0 +1,66 @@
+{
+  "type": "object",
+  "required": ["account", "contract", "services"],
+  "properties": {
+    "account": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "contract": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "effective": {
+          "type": ["null", "string"]
+        },
+        "expires": {
+          "type": ["null", "string"]
+        }
+      },
+      "required": ["id", "name", "effective", "expires"]
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "auto_enabled": {
+            "type": "boolean"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "entitled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "auto_enabled",
+          "available",
+          "description",
+          "entitled",
+          "name"
+        ]
+      }
+    }
+  }
+}
