@@ -32,6 +32,7 @@ from uaclient.files.state_files import (
     AttachmentData,
     attachment_data_file,
     machine_id_file,
+    only_series_check_marker_file,
     timer_jobs_state_file,
 )
 
@@ -184,6 +185,7 @@ def attach_with_token(
             release=allowed_release.release,
             series_codename=allowed_release.series_codename,
         )
+        only_series_check_marker_file.write(only_series)
 
     machine_token_file.write(new_machine_token)
     try:
@@ -217,7 +219,7 @@ def attach_with_token(
 
 def auto_attach(
     cfg: config.UAConfig,
-    cloud: clouds.AutoAttachCloudInstance,
+    cloud: clouds.AutoAttachInstance,
     allow_enable=True,
 ) -> None:
     """
@@ -228,13 +230,7 @@ def auto_attach(
     :raise NonAutoAttachImageError: If this cloud type does not have
         auto-attach support.
     """
-    contract_client = contract.UAContractClient(cfg)
-    tokenResponse = contract_client.get_contract_token_for_cloud_instance(
-        instance=cloud
-    )
-
-    token = tokenResponse["contractToken"]
-
+    token = cloud.acquire_pro_token(cfg)
     attach_with_token(cfg, token=token, allow_enable=allow_enable)
 
 

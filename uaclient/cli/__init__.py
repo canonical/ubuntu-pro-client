@@ -30,6 +30,7 @@ from uaclient.cli.refresh import refresh_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.cli.status import status_command
 from uaclient.cli.system import system_command
+from uaclient.cli.vulnerability import vulnerability_command
 from uaclient.config import UAConfig
 from uaclient.log import get_user_or_root_log_file_path
 
@@ -53,6 +54,7 @@ COMMANDS = [
     security_status_command,
     status_command,
     system_command,
+    vulnerability_command,
 ]
 
 

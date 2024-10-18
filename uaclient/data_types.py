@@ -38,7 +38,7 @@ class IncorrectEnumValueError(IncorrectTypeError):
     _formatted_msg = messages.E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE
 
     def __init__(self, *, values: List[Union[str, int]], enum_class: Any):
-        super().__init__(values=values, enum_class=repr(enum_class))
+        super().__init__(values=values, enum_class=enum_class.__name__)
         self.expected_type = "one of: {}".format(
             ", ".join([str(v) for v in values])
         )
@@ -110,6 +110,24 @@ class IntDataValue(DataValue):
                 expected_type="int", got_type=type(val).__name__
             )
         return val
+
+
+class FloatDataValue(DataValue):
+    """
+    To be used for parsing float values
+    from_value raises an error if the value is not a float and returns
+    the float itself if it is a float.
+    """
+
+    python_type_name = "float"
+
+    @staticmethod
+    def from_value(val: Any) -> float:
+        if not isinstance(val, float) and not isinstance(val, int):
+            raise IncorrectTypeError(
+                expected_type="float", got_type=type(val).__name__
+            )
+        return float(val)
 
 
 class BoolDataValue(DataValue):

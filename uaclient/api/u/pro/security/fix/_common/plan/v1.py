@@ -742,7 +742,7 @@ def _get_cve_data(
 ) -> Tuple[CVE, List[USN]]:
     try:
         cve = client.get_cve(cve_id=issue_id)
-        usns = client.get_notices(cves=issue_id)
+        usns = cve.notices
     except exceptions.SecurityAPIError as e:
         if e.code == 404:
             raise exceptions.SecurityIssueNotFound(issue_id=issue_id)
