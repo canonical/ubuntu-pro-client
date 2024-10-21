@@ -59,6 +59,21 @@ Messaging
    
    Messages... <explanations/index_messages>
 
+CVE Commands
+======================
+
+Here we'll show you the information related to CVE related commands.
+
+On any of the listed commands, we consider a CVE vulnerability as **fixable**,
+if and only if, at least **one** affected installed package associated with it can
+be fixed. That means that a vulnerability is unfixable if no affected installed packages
+related to the vulnerability can be fixed at the moment.
+
+..  toctree::
+    :maxdepth: 1
+
+    explanations/how_to_interpret_output_of_pro_cves.md
+
 Public Cloud Ubuntu Pro
 =======================
 
