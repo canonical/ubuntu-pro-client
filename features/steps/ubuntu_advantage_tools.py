@@ -314,6 +314,7 @@ def create_local_ppa(context, release):
     )
 
 
+@when("I install ubuntu-pro-auto-attach")
 @when("I install ubuntu-advantage-pro")
 def when_i_install_pro(context, machine_name=SUT):
     if context.pro_config.install_from is InstallationSource.LOCAL:
