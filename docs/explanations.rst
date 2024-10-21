@@ -34,6 +34,17 @@ selection of some of the commands -- what they do, and how they work.
     explanations/what_refresh_does.md
     explanations/purging_services.md
 
+Vulnerability Commands
+======================
+
+Here we'll show you the information related to ``pro vulnerability`` commands.
+
+..  toctree::
+    :maxdepth: 1
+
+    explanations/how_to_interpret_output_of_pro_vulnerability_list.md
+    explanations/what_is_a_fixable_vulnerability.md
+
 Public Cloud Ubuntu Pro
 =======================
 
