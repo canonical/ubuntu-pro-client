@@ -68,6 +68,8 @@ If we take a look at a CVE object, we will see the following structure:
 * **title**: The title of the CVE.
 * **error**: Any error captured when creating the CVE plan will appear here.
   The error object will be detailed in a following section.
+* **current_status**: The current status of the CVE showing if the system is
+  currently affected by the CVE before the plan is executed.
 * **expected_status**: The expected status of the CVE if the plan was to be
   executed. There are three possible scenarios: **fixed**, **still-affected**
   and **not-affected**.
