@@ -43,6 +43,7 @@ Here we'll show you the information related to ``pro vulnerability`` commands.
     :maxdepth: 1
 
     explanations/how_to_interpret_output_of_pro_vulnerability_list.md
+    explanations/how_to_interpret_output_of_pro_vulnerability_show.md
     explanations/what_is_a_fixable_vulnerability.md
 
 Public Cloud Ubuntu Pro
