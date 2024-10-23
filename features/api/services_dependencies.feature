@@ -64,26 +64,6 @@ Feature: u.pro.services.dependencies
               "depends_on": [],
               "incompatible_with": [
                 {
-                  "name": "fips",
-                  "reason": {
-                    "code": "fips-invalidates-fips-updates",
-                    "title": "FIPS Updates cannot be enabled if FIPS is enabled. FIPS Updates installs security patches that aren't officially certified."
-                  }
-                },
-                {
-                  "name": "realtime-kernel",
-                  "reason": {
-                    "code": "realtime-fips-updates-incompatible",
-                    "title": "Realtime and FIPS Updates require different kernels, so you cannot enable both at the same time."
-                  }
-                }
-              ],
-              "name": "fips-updates"
-            },
-            {
-              "depends_on": [],
-              "incompatible_with": [
-                {
                   "name": "livepatch",
                   "reason": {
                     "code": "livepatch-invalidates-fips",
@@ -113,6 +93,26 @@ Feature: u.pro.services.dependencies
                 }
               ],
               "name": "fips-preview"
+            },
+            {
+              "depends_on": [],
+              "incompatible_with": [
+                {
+                  "name": "fips",
+                  "reason": {
+                    "code": "fips-invalidates-fips-updates",
+                    "title": "FIPS Updates cannot be enabled if FIPS is enabled. FIPS Updates installs security patches that aren't officially certified."
+                  }
+                },
+                {
+                  "name": "realtime-kernel",
+                  "reason": {
+                    "code": "realtime-fips-updates-incompatible",
+                    "title": "Realtime and FIPS Updates require different kernels, so you cannot enable both at the same time."
+                  }
+                }
+              ],
+              "name": "fips-updates"
             },
             {
               "depends_on": [],
@@ -268,19 +268,6 @@ Feature: u.pro.services.dependencies
         name: fips
       - depends_on: []
         incompatible_with:
-        - name: fips
-          reason:
-            code: fips-invalidates-fips-updates
-            title: FIPS Updates cannot be enabled if FIPS is enabled. FIPS Updates installs
-              security patches that aren't officially certified.
-        - name: realtime-kernel
-          reason:
-            code: realtime-fips-updates-incompatible
-            title: Realtime and FIPS Updates require different kernels, so you cannot enable
-              both at the same time.
-        name: fips-updates
-      - depends_on: []
-        incompatible_with:
         - name: livepatch
           reason:
             code: livepatch-invalidates-fips
@@ -303,6 +290,19 @@ Feature: u.pro.services.dependencies
             title: FIPS Updates cannot be enabled if FIPS is enabled. FIPS Updates installs
               security patches that aren't officially certified.
         name: fips-preview
+      - depends_on: []
+        incompatible_with:
+        - name: fips
+          reason:
+            code: fips-invalidates-fips-updates
+            title: FIPS Updates cannot be enabled if FIPS is enabled. FIPS Updates installs
+              security patches that aren't officially certified.
+        - name: realtime-kernel
+          reason:
+            code: realtime-fips-updates-incompatible
+            title: Realtime and FIPS Updates require different kernels, so you cannot enable
+              both at the same time.
+        name: fips-updates
       - depends_on: []
         incompatible_with: []
         name: landscape
