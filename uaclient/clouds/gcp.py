@@ -24,12 +24,12 @@ LAST_ETAG = "&last_etag={etag}"
 DMI_PRODUCT_NAME = "/sys/class/dmi/id/product_name"
 GCP_PRODUCT_NAME = "Google Compute Engine"
 
-GCP_LICENSES = {
-    "xenial": "8045211386737108299",
-    "bionic": "6022427724719891830",
-    "focal": "599959289349842382",
-    "jammy": "2592866803419978320",
-    "noble": "2176054482269786025",
+GCP_LICENSES = {  # Base [0], Minimal [1]
+    "xenial": ["8045211386737108299"],
+    "bionic": ["6022427724719891830", "7427070211152946628"],
+    "focal": ["599959289349842382", "7818678586103571931"],
+    "jammy": ["2592866803419978320", "160084055690847662"],
+    "noble": ["2176054482269786025", "4168323874790319525"],
 }
 
 
