@@ -60,7 +60,7 @@ Messaging
    Messages... <explanations/index_messages>
 
 CVE Commands
-======================
+=============
 
 Here we'll show you the information related to CVE related commands.
 
@@ -73,6 +73,7 @@ related to the vulnerability can be fixed at the moment.
     :maxdepth: 1
 
     explanations/how_to_interpret_output_of_pro_cves.md
+    explanations/how_to_interpret_output_of_pro_cve.md
 
 Public Cloud Ubuntu Pro
 =======================
