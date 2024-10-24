@@ -465,19 +465,35 @@ Feature: Pro Client help text
     When I run `pro vulnerability --help` as non-root
     Then I will see the following on stdout
       """
-      usage: pro vulnerability [-h] {show,update,list} ...
+      usage: pro vulnerability [-h] [--data-file DATA_FILE] [--all] [--usns]
+                               [--unfixable] [--manifest-file MANIFEST_FILE]
+                               [--series SERIES] [--update]
+                               {show,update,list} ...
 
       Allow users to better visualize the vulnerability issues that affects
-      the system.
+      the system. By default, this command will execute pro vulnerability list
 
       <options_string>:
-        -h, --help          show this help message and exit
+        -h, --help            show this help message and exit
+        --data-file DATA_FILE
+                              Static vulnerability JSON data to be used in the
+                              command
+        --all                 List all vulnerabilities that affect the machine, even
+                              if they can't be fixed
+        --usns                List USNs vulnerabilities instead of CVEs
+        --unfixable           List only vulnerabilities that don't have a fix
+                              available
+        --manifest-file MANIFEST_FILE
+                              Manifest file to be used by the command
+        --series SERIES       When a manifest file is provided, specify the series
+                              that generated using this parameter
+        --update              update the vulnerability data in your machine
 
       Available Commands:
         {show,update,list}
-          show              show information about a vulnerability
-          update            update the vulnerability data in your machine
-          list              list the vulnerabilities that affect the system
+          show                show information about a vulnerability
+          update              update the vulnerability data in your machine
+          list                list the vulnerabilities that affect the system
       """
     When I run `pro vulnerability show --help` as non-root
     Then I will see the following on stdout
