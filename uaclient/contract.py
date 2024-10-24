@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
-    clouds,
     event_logger,
     exceptions,
     http,
@@ -23,6 +22,7 @@ from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.files.state_files import attachment_data_file, machine_id_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
+from uaclient.system import cpu_type
 
 # Here we describe every endpoint from the ua-contracts
 # service that is used by this client implementation.
@@ -46,6 +46,10 @@ API_V1_GET_CONTRACT_USING_TOKEN = "/v1/contract"
 API_V1_GET_MAGIC_ATTACH_TOKEN_INFO = "/v1/magic-attach"
 API_V1_NEW_MAGIC_ATTACH = "/v1/magic-attach"
 API_V1_REVOKE_MAGIC_ATTACH = "/v1/magic-attach"
+
+API_V1_GET_GUEST_TOKEN = (
+    "/v1/contracts/{contract}/context/machines/{machine}/guest-token"
+)
 
 OVERRIDE_SELECTOR_WEIGHTS = {
     "series_overrides": 1,
@@ -152,7 +156,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def get_contract_token_for_cloud_instance(
-        self, *, instance: clouds.AutoAttachCloudInstance
+        self, *, cloud_type: str, data: Dict[str, Any]
     ):
         """Requests contract token for auto-attach images for Pro clouds.
 
@@ -162,9 +166,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         response = self.request_url(
             API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
-                cloud_type=instance.cloud_type
+                cloud_type=cloud_type
             ),
-            data=instance.identity_doc,
+            data=data,
         )
         if response.code != 200:
             msg = response.json_dict.get("message", "")
@@ -418,6 +422,41 @@ class UAContractClient(serviceclient.UAServiceClient):
             response.json_dict["expires"] = response.headers["expires"]
         return response.json_dict
 
+    def get_guest_token(
+        self,
+        machine_token: str,
+        contract_id: str,
+        machine_id: str,
+    ) -> Dict:
+        """Request guest token associated with this machine's contract
+        @param machine_token: The machine token needed to talk to
+            this contract service endpoint.
+        @param contract_id: Unique contract id provided by contract service
+        @param machine_id: Unique machine id that was registered with the pro
+            backend on attach.
+        @return: Dict of the JSON response containing the guest token
+        """
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
+        url = API_V1_GET_GUEST_TOKEN.format(
+            contract=contract_id,
+            machine=machine_id,
+        )
+        response = self.request_url(url, headers=headers, method="GET")
+        if response.code == 400:
+            # defined response code for when machine has a v1 or v2 token
+            # this will only be true for old attachments (2020 or earlier)
+            raise exceptions.FeatureNotSupportedOldTokenError(
+                feature_name="get_guest_token"
+            )
+        elif response.code != 200:
+            raise exceptions.ContractAPIError(
+                url=url,
+                code=response.code,
+                body=response.body,
+            )
+        return response.json_dict
+
     def _get_activity_info(self):
         """Return a dict of activity info data for contract requests"""
 
@@ -429,6 +468,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             "desktop": system.is_desktop(),
             "virt": system.get_virt_type(),
             "clientVersion": version.get_version(),
+            "cpu_type": cpu_type.get_cpu_type(),
         }
 
         if _is_attached(self.cfg).is_attached:

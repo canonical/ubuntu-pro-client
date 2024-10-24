@@ -46,6 +46,8 @@ class UAClientBehaveConfig:
         A valid contract token to use during attach scenarios
     :param contract_token_staging:
         A valid staging contract token to use during attach scenarios
+    :param contract_token_staging_expired:
+        An expired staging contract token to use during attach scenarios
     :param machine_types:
         A comma-separated string of machine_types to test: lxd-container,
             lxd-vm, azure.pro, azure.pro-fips, azure.generic, aws.pro,
@@ -529,6 +531,12 @@ def _get_relevant_apparmor_logs(context):
                     "Unable to pull syslog. Skipping apparmor log check."
                 )
                 return None
+            except FileNotFoundError:
+                logging.warning(
+                    "syslog file doesn't exist. Skipping apparmor log check."
+                )
+                return None
+
             with open(syslog_dest, "r") as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
             apparmor_denied = [

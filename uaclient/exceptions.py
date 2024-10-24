@@ -320,6 +320,14 @@ class MissingAptURLDirective(UbuntuProError):
     _formatted_msg = messages.E_MISSING_APT_URL_DIRECTIVE
 
 
+class TokenForbiddenExpired(UbuntuProError):
+    _formatted_msg = messages.E_TOKEN_FORBIDDEN_EXPIRED
+
+
+class TokenForbiddenNotYet(UbuntuProError):
+    _formatted_msg = messages.E_TOKEN_FORBIDDEN_NOT_YET
+
+
 class UnattachedError(UbuntuProError):
     """An exception to be raised when a machine needs to be attached."""
 
@@ -443,7 +451,7 @@ class NonInteractiveKernelPurgeDisallowed(UbuntuProError):
 
 
 ###############################################################################
-#                              CLOUD PRO                                      #
+#                              CLOUD AUTO-ATTACH                              #
 ###############################################################################
 
 
@@ -483,6 +491,14 @@ class NonAutoAttachImageError(CloudFactoryError):
 
     exit_code = 0
     _formatted_msg = messages.E_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE
+
+
+class LXDAutoAttachNotAvailable(UbuntuProError):
+    _msg = messages.E_LXD_AUTO_ATTACH_NOT_AVAILABLE
+
+
+class LXDAutoAttachNotAllowed(UbuntuProError):
+    _msg = messages.E_LXD_AUTO_ATTACH_NOT_ALLOWED
 
 
 ###############################################################################
@@ -542,6 +558,10 @@ class MissingSeriesInDistroInfoFile(UbuntuProError):
     _formatted_msg = messages.E_MISSING_SERIES_IN_DISTRO_INFO_FILE
 
 
+class UnsupportedManifestFile(UbuntuProError):
+    _formatted_msg = messages.E_UNSUPPORTED_MANIFEST_FILE
+
+
 ###############################################################################
 #                              CLI                                            #
 ###############################################################################
@@ -549,6 +569,10 @@ class MissingSeriesInDistroInfoFile(UbuntuProError):
 
 class InvalidOptionCombination(UbuntuProError):
     _formatted_msg = messages.E_INVALID_OPTION_COMBINATION
+
+
+class DepedentOptionError(UbuntuProError):
+    _formatted_msg = messages.E_DEPENDENT_OPTION
 
 
 class NoHelpContent(UbuntuProError):
@@ -600,6 +624,15 @@ class PromptDeniedError(UbuntuProError):
 
 
 ###############################################################################
+#                              VULNERABILITIES                                #
+###############################################################################
+
+
+class ManifestParseError(UbuntuProError):
+    _formatted_msg = messages.E_MANIFEST_PARSE_ERROR
+
+
+###############################################################################
 #                              MISCELLANEOUS                                  #
 ###############################################################################
 
@@ -634,3 +667,11 @@ class SecurityIssueNotFound(UbuntuProError):
 
 class GPGKeyNotFound(UbuntuProError):
     _formatted_msg = messages.E_GPG_KEY_NOT_FOUND
+
+
+class UnknownProcessorType(UbuntuProError):
+    _formatted_msg = messages.E_UNKNOWN_PROCESSOR_TYPE
+
+
+class FeatureNotSupportedOldTokenError(UbuntuProError):
+    _formatted_msg = messages.E_FEATURE_NOT_SUPPORTED_OLD_TOKEN

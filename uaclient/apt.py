@@ -59,8 +59,9 @@ CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 APT_UPDATE_SUCCESS_STAMP_PATH = "/var/lib/apt/periodic/update-success-stamp"
+DPKG_STATUS_PATH = "/var/lib/dpkg/status"
 
-SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy", "mantic")
+SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy")
 
 DEB822_REPO_FILE_CONTENT = """\
 # Written by ubuntu-pro-client
@@ -153,6 +154,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
                 retry_sleeps=APT_RETRIES,
             )
     except exceptions.ProcessExecutionError as e:
+        LOG.error("Error running apt-helper: %s", str(e))
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
             if re.search(r"401\s+unauthorized|httperror401", stderr):
@@ -227,6 +229,7 @@ def run_apt_command(
             override_env_vars=override_env_vars,
         )
     except exceptions.ProcessExecutionError as e:
+        LOG.warning("Error running apt command %s: %s", str(cmd), str(e))
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             raise exceptions.APTProcessConflictError()
         else:
@@ -290,6 +293,13 @@ def get_apt_pkg_cache():
 
 def get_esm_apt_pkg_cache():
     try:
+        # If the rootdir folder doesn't contain any apt source info, the
+        # cache will be empty
+        # apt_pkg recently changed behvior: when the cache structure isn't
+        # present, instead of having an exception raised we only get a
+        # stderr warning. So we need to ensure all is there, our side.
+        _ensure_esm_cache_structure()
+
         # Take care to initialize the cache with only the
         # Acquire configuration preserved
         for key in apt_pkg.config.keys():
@@ -297,12 +307,10 @@ def get_esm_apt_pkg_cache():
                 apt_pkg.config.clear(key)
         apt_pkg.config.set("Dir", ESM_APT_ROOTDIR)
         apt_pkg.init()
-        # If the rootdir folder doesn't contain any apt source info, the
-        # cache will be empty
-        # If the structure in the rootdir folder does not exist or is
-        # incorrect, an exception will be raised
+
         return apt_pkg.Cache(None)
     except Exception:
+        # We don't mind if there is any exception while trying to get the cache
         # The empty dictionary will act as an empty cache
         return {}
 
@@ -371,7 +379,8 @@ def run_apt_update_command(
         out = run_apt_command(
             cmd=["apt-get", "update"], override_env_vars=override_env_vars
         )
-    except exceptions.APTProcessConflictError:
+    except exceptions.APTProcessConflictError as e:
+        LOG.warning("Error running apt-get update: %s", str(e))
         raise exceptions.APTUpdateProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTUpdateInvalidRepoError(repo_msg=e.msg)
@@ -419,7 +428,8 @@ def update_sources_list(sources_list_path: str):
             with lock:
                 cache.update(fetch_progress, sources_list, 0)
         # No apt_pkg.Error on Xenial
-        except getattr(apt_pkg, "Error", ()):
+        except getattr(apt_pkg, "Error", ()) as e:
+            LOG.error("Error updating apt cache: %s", str(e))
             raise exceptions.APTProcessConflictError()
         except SystemError as e:
             raise exceptions.APTUpdateFailed(detail=str(e))
@@ -443,6 +453,7 @@ def run_apt_install_command(
             override_env_vars=override_env_vars,
         )
     except exceptions.APTProcessConflictError:
+        LOG.error("Error running apt install for packages %s", packages)
         raise exceptions.APTInstallProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTInstallInvalidRepoError(repo_msg=e.msg)
@@ -571,6 +582,7 @@ def add_auth_apt_repo(
     credentials: str,
     suites: List[str],
     keyring_file: str,
+    snapshot_urls: List[str],
 ) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
@@ -603,7 +615,8 @@ def add_auth_apt_repo(
         updates_enabled = True
         break
 
-    add_apt_auth_conf_entry(repo_url, username, password)
+    for url in [repo_url] + snapshot_urls:
+        add_apt_auth_conf_entry(url, username, password)
 
     if series in SERIES_NOT_USING_DEB822:
         source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
@@ -624,7 +637,10 @@ def add_auth_apt_repo(
 def add_apt_auth_conf_entry(repo_url, login, password):
     """Add or replace an apt auth line in apt's auth.conf file or conf.d."""
     apt_auth_file = get_apt_auth_file_from_apt_config()
-    _protocol, repo_path = repo_url.split("://")
+    if "://" in repo_url:
+        _protocol, repo_path = repo_url.split("://")
+    else:
+        repo_path = repo_url
     if not repo_path.endswith("/"):  # ensure trailing slash
         repo_path += "/"
     if os.path.exists(apt_auth_file):
@@ -667,7 +683,10 @@ def add_apt_auth_conf_entry(repo_url, login, password):
 
 def remove_repo_from_apt_auth_file(repo_url):
     """Remove a repo from the shared apt auth file"""
-    _protocol, repo_path = repo_url.split("://")
+    if "://" in repo_url:
+        _protocol, repo_path = repo_url.split("://")
+    else:
+        repo_path = repo_url
     if repo_path.endswith("/"):  # strip trailing slash
         repo_path = repo_path[:-1]
     apt_auth_file = get_apt_auth_file_from_apt_config()
@@ -684,7 +703,10 @@ def remove_repo_from_apt_auth_file(repo_url):
 
 
 def remove_auth_apt_repo(
-    repo_filename: str, repo_url: str, keyring_file: Optional[str] = None
+    repo_filename: str,
+    repo_url: str,
+    snapshot_urls: List[str],
+    keyring_file: Optional[str] = None,
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
     system.ensure_file_absent(repo_filename)
@@ -697,7 +719,8 @@ def remove_auth_apt_repo(
     if keyring_file:
         keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
         system.ensure_file_absent(keyring_file)
-    remove_repo_from_apt_auth_file(repo_url)
+    for url in [repo_url] + snapshot_urls:
+        remove_repo_from_apt_auth_file(url)
 
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
@@ -842,6 +865,13 @@ def get_apt_cache_time() -> Optional[float]:
     if os.path.exists(APT_UPDATE_SUCCESS_STAMP_PATH):
         cache_time = os.stat(APT_UPDATE_SUCCESS_STAMP_PATH).st_mtime
     return cache_time
+
+
+def get_dpkg_status_time() -> Optional[float]:
+    status_time = None
+    if os.path.exists(DPKG_STATUS_PATH):
+        status_time = os.stat(DPKG_STATUS_PATH).st_mtime
+    return status_time
 
 
 def get_apt_cache_datetime() -> Optional[datetime.datetime]:

@@ -11,6 +11,7 @@ from uaclient.data_types import (
     DatetimeDataValue,
     EnumDataValue,
     Field,
+    FloatDataValue,
     IncorrectEnumValueError,
     IncorrectFieldTypeError,
     IncorrectListElementTypeError,
@@ -55,6 +56,12 @@ class TestDataValues:
         result = IntDataValue.from_value(val)
         assert val == result
         assert isinstance(result, int)
+
+    @pytest.mark.parametrize("val", (1, 1.0, 0.5, -1.1))
+    def test_float_data_value_success(self, val):
+        result = FloatDataValue.from_value(val)
+        assert val == result
+        assert isinstance(result, float)
 
     @pytest.mark.parametrize(
         "val, error",

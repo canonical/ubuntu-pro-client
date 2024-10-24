@@ -25,11 +25,12 @@ from uaclient import (
     http,
     lock,
     log,
+    update_contract_info,
     upgrade_lts_contract,
 )
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.entitlements.fips import FIPSEntitlement
-from uaclient.files import notices, state_files
+from uaclient.files import machine_token, notices, state_files
 
 LOG = logging.getLogger("ubuntupro.lib.reboot_cmds")
 
@@ -76,27 +77,53 @@ def refresh_contract(cfg: config.UAConfig):
         raise
 
 
-def main(cfg: config.UAConfig) -> int:
-    if not state_files.reboot_cmd_marker_file.is_present:
-        LOG.info("Skipping reboot_cmds. Marker file not present")
-        notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
-        return 0
-
+def handle_unattached_state(cfg: config.UAConfig):
     if not _is_attached(cfg).is_attached:
         LOG.info("Skipping reboot_cmds. Machine is unattached")
-        state_files.reboot_cmd_marker_file.delete()
+        if state_files.reboot_cmd_marker_file.is_present:
+            state_files.reboot_cmd_marker_file.delete()
         notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
         return 0
+    return None
 
-    LOG.info("Running reboot commands...")
+
+def run_reboot_commands(cfg: config.UAConfig):
+    fix_pro_pkg_holds(cfg)
+    refresh_contract(cfg)
+    upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
+    state_files.reboot_cmd_marker_file.delete()
+    notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+
+
+def handle_only_series_marker_file(cfg: config.UAConfig):
+    """Handle the only_series marker file.
+    Checks if the market file is present,
+    validates the release series and
+    deletes the marker file if the field is not present.""
+    """
+    if state_files.only_series_check_marker_file.is_present:
+        machine_token_file = machine_token.get_machine_token_file()
+        only_series = machine_token_file.only_series
+        if only_series:
+            update_contract_info.validate_release_series(cfg, only_series)
+        else:
+            state_files.only_series_check_marker_file.delete()
+
+
+def main(cfg: config.UAConfig) -> int:
+    ret = handle_unattached_state(cfg)
+    if ret is not None:
+        return ret
     try:
+        LOG.info("Running commands on reboot")
         with lock.RetryLock(lock_holder="pro-reboot-cmds"):
-            fix_pro_pkg_holds(cfg)
-            refresh_contract(cfg)
-            upgrade_lts_contract.process_contract_delta_after_apt_lock(cfg)
-            # cleanup state after a succesful run
-            state_files.reboot_cmd_marker_file.delete()
-            notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+            handle_only_series_marker_file(cfg)
+            if state_files.reboot_cmd_marker_file.is_present:
+                run_reboot_commands(cfg)
+            else:
+                LOG.info("Skipping reboot_cmds. Marker file not present")
+                notices.remove(notices.Notice.REBOOT_SCRIPT_FAILED)
+                return 0
 
     except exceptions.LockHeldError as e:
         LOG.warning("Lock not released. %s", str(e.msg))
