@@ -1216,7 +1216,7 @@ CLI_ROOT_VULNERABILITY = t.gettext(
 CLI_VULNERABILITY_DESC = t.gettext(
     """\
 Allow users to better visualize the vulnerability issues that affects
-the system."""
+the system. By default, this command will execute pro vulnerability list"""
 )
 
 CLI_VULNERABILITY_DATA_FILE = t.gettext(
