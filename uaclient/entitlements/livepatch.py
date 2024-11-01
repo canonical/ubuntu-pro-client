@@ -72,7 +72,8 @@ class LivepatchEntitlement(UAEntitlement):
                 messages.SERVICE_ERROR_INSTALL_ON_CONTAINER.format(
                     title=self.title
                 ),
-                lambda: system.is_container(),
+                lambda: system.is_container()
+                or system.get_virt_type() == "wsl",
                 False,
             ),
             (
