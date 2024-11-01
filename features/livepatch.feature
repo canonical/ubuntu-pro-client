@@ -338,3 +338,27 @@ Feature: Livepatch
       | release | machine_type |
       | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
+
+  Scenario Outline: Livepatch doesn't enable on wsl from a systemd service
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/lib/systemd/system/test.service` with the following
+      """
+      [Unit]
+      Description=test
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/pro attach <contract_token>
+      PrivateMounts=yes
+      """
+    When I replace `<contract_token>` in `/lib/systemd/system/test.service` with token `contract_token`
+    When I run `systemctl start test.service` with sudo
+    Then I verify that running `canonical-livepatch` `with sudo` exits `1`
+    Then I will see the following on stderr
+      """
+      sudo: canonical-livepatch: command not found
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | jammy   | wsl          |
