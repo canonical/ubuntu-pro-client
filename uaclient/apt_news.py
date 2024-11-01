@@ -263,11 +263,11 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
 
 
 def format_news_for_apt_update(news: str) -> str:
-    result = "#\n"
-    for line in news.split("\n"):
-        result += "# {}\n".format(line)
-    result += "#\n"
-    return result
+    prefix = "" if system.get_release_info().series == "oracular" else "#"
+    lines = [
+        (prefix + " " + line) if prefix else line for line in news.split("\n")
+    ]
+    return "{0}\n{1}\n{0}\n".format(prefix, "\n".join(lines))
 
 
 def update_apt_news(cfg: UAConfig):
