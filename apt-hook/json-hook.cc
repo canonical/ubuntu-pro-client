@@ -10,6 +10,7 @@
 #include "json-hook.hh"
 #include "esm-counts.hh"
 
+// Written
 bool read_jsonrpc_request(std::istream &in, jsonrpc_request &req) {
     std::string msg_line;
     std::string empty_line;
@@ -193,7 +194,7 @@ bool collect_pro_packages_from_pre_prompt_json(json_object *pre_prompt, std::vec
             continue;
         }
         std::string package_mode(json_object_get_string(tmp));
-        
+
         has_key = json_object_object_get_ex(package, "name", &tmp);
         if (!has_key) {
             continue;
