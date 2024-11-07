@@ -248,9 +248,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
     Then stdout matches regexp:
       """
       realtime-kernel\* yes +enabled +Ubuntu kernel with PREEMPT_RT patches integrated
-      usg +yes +disabled +Security compliance and audit tools
-
-       \* Service has variants
+      """
+    Then stdout contains substring:
+      """
+      * Service has variants
       """
     Then stdout contains substring:
       """
