@@ -34,17 +34,34 @@ selection of some of the commands -- what they do, and how they work.
     explanations/what_refresh_does.md
     explanations/purging_services.md
 
-Vulnerability Commands
+Vulnerability commands
 ======================
 
 Here we'll show you the information related to ``pro vulnerability`` commands.
 
+On any ``pro vulnerability`` command, we consider a vulnerability (CVE or USN) as **fixable**,
+if and only if, at least **one** affected installed package associated with it can
+be fixed. That means that a vulnerability is unfixable if no affected installed packages
+related to the vulnerability can be fixed at the moment.
+
 ..  toctree::
     :maxdepth: 1
 
-    explanations/how_to_interpret_output_of_pro_vulnerability_list.md
-    explanations/how_to_interpret_output_of_pro_vulnerability_show.md
-    explanations/what_is_a_fixable_vulnerability.md
+    explanations/pro_vulnerability_list.md
+    explanations/pro_vulnerability_show.md
+
+Handling CVEs and USNs
+==============================
+
+In this section we explain the output of ``pro fix`` and its API interface
+as well as some details related to it like CVEs and USNs.
+
+..  toctree::
+    :maxdepth: 1
+
+    explanations/cves_and_usns_explained.md
+    explanations/fix_scenarios.rst
+    explanations/how_to_interpret_output_of_fix_plan_api.md
 
 Public Cloud Ubuntu Pro
 =======================
@@ -59,18 +76,6 @@ tooling: the ``ubuntu-pro-auto-attach`` package.
     explanations/what_is_the_ubuntu_advantage_pro_package.md
 
 
-Handling CVEs and USNs
-==============================
-
-In this section we explain the output of ``pro fix`` and its API interface
-as well as some details related to it like CVEs and USNs.
-
-..  toctree::
-    :maxdepth: 1
-
-    explanations/cves_and_usns_explained.md
-    explanations/fix_scenarios.rst
-    explanations/how_to_interpret_output_of_fix_plan_api.md
 
 Other Pro features explained
 ============================

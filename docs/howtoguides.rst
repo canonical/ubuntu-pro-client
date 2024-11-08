@@ -36,6 +36,17 @@ Enable services
       
    Enable... <howtoguides/enable_index>
 
+Vulnerability commands
+======================
+
+.. toctree::
+   :maxdepth: 1
+
+   Display USNs that affect the system... <howtoguides/how_to_display_usns_that_affect_the_system>
+   Provide manifest file to commands...  <howtoguides/how_to_use_manifest_file_for_pro_vulnerability>
+   Update vulnerability data... <howtoguides/how_to_update_vulnerability_data>
+
+
 Fix vulnerabilities
 ===================
 
@@ -48,16 +59,6 @@ Fix vulnerabilities
    :hidden:
 
    Fix vulnerabilities... <howtoguides/fix_index>
-
-Vulnerability commands
-======================
-
-.. toctree::
-   :maxdepth: 1
-
-   Display USNs that affectt the system... <howtoguides/how_to_display_usns_that_affect_the_system>
-   Provide manifest file to commands...  <howtoguides/how_to_use_manifest_file_for_pro_vulnerability>
-   Update vulnerability data... <howtoguides/how_to_update_vulnerability_data>
 
 Use the Pro Client
 ==================
