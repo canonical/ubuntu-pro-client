@@ -2,5 +2,11 @@
 
 set -ex
 
-ua --help | grep --silent services
-ua version
+pro --help | grep --silent services
+pro version
+
+# These calls are used to ensure that the
+# way we interact with APT is still working
+# if python3-apt receives an upgrade
+pro api u.pro.packages.summary.v1
+pro api u.pro.packages.updates.v1

@@ -5,60 +5,55 @@ import pytest
 
 from uaclient import entitlements, exceptions, messages
 from uaclient.entitlements.entitlement_status import ApplicabilityStatus
+from uaclient.entitlements.repo import RepoEntitlement
 
 
 class TestValidServices:
-    @pytest.mark.parametrize("show_all_names", ((True), (False)))
-    def test_valid_services(
-        self,
-        show_all_names,
-        FakeConfig,
-    ):
+    def test_valid_services(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
         m_inst_1 = mock.MagicMock()
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
         m_inst_1.presentation_name = "ent1"
-        m_inst_1.valid_names = ["ent1", "othername"]
         m_cls_1.return_value = m_inst_1
 
         m_cls_2 = mock.MagicMock()
         m_inst_2 = mock.MagicMock()
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
         m_inst_2.presentation_name = "ent2"
-        m_inst_2.valid_names = ["ent2"]
         m_cls_2.return_value = m_inst_2
 
         ents = {m_cls_1, m_cls_2}
 
-        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes", return_value=ents
+        ):
             expected_services = ["ent1", "ent2"]
-            if show_all_names:
-                expected_services.append("othername")
-
             assert expected_services == entitlements.valid_services(
-                cfg=FakeConfig(), all_names=show_all_names
+                cfg=FakeConfig()
             )
 
 
 class TestEntitlementFactory:
     def test_entitlement_factory(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
+        m_cls_1.name = "ent1"
         m_variant = mock.MagicMock()
         m_variant_obj = m_variant.return_value
-        m_cls_1.return_value.valid_names = ["ent1", "othername"]
         m_cls_1.return_value.variants = {"variant1": m_variant}
         m_obj_1 = m_cls_1.return_value
 
         m_cls_2 = mock.MagicMock()
-        m_cls_2.return_value.valid_names = ["ent2"]
+        m_cls_2.name = "ent2"
         m_obj_2 = m_cls_2.return_value
 
         ents = {m_cls_1, m_cls_2}
         cfg = FakeConfig()
 
-        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes", return_value=ents
+        ):
             assert m_obj_1 == entitlements.entitlement_factory(
-                cfg=cfg, name="othername"
+                cfg=cfg, name="ent1"
             )
             assert m_obj_2 == entitlements.entitlement_factory(
                 cfg=cfg, name="ent2"
@@ -66,10 +61,9 @@ class TestEntitlementFactory:
             assert m_variant_obj == entitlements.entitlement_factory(
                 cfg=cfg, name="ent1", variant="variant1"
             )
-        with pytest.raises(exceptions.EntitlementNotFoundError):
-            entitlements.entitlement_factory(cfg=cfg, name="nonexistent")
+            with pytest.raises(exceptions.EntitlementNotFoundError):
+                entitlements.entitlement_factory(cfg=cfg, name="nonexistent")
 
-        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
             with pytest.raises(exceptions.EntitlementNotFoundError) as excinfo:
                 entitlements.entitlement_factory(
                     cfg=cfg, name="ent1", variant="nonexistent"
@@ -87,19 +81,16 @@ class TestSortEntitlements:
     def test_disable_order(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
-        m_obj_1.valid_names = ["ent1"]
         type(m_obj_1).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_1).name = mock.PropertyMock(return_value="ent1")
 
         m_cls_2 = mock.MagicMock()
         m_obj_2 = m_cls_2.return_value
-        m_obj_2.valid_names = ["ent2"]
         type(m_obj_2).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
-        m_obj_3.valid_names = ["ent3"]
         type(m_obj_3).dependent_services = mock.PropertyMock(
             return_value=(m_cls_1, m_cls_2)
         )
@@ -107,19 +98,16 @@ class TestSortEntitlements:
 
         m_cls_5 = mock.MagicMock()
         m_obj_5 = m_cls_5.return_value
-        m_obj_5.valid_names = ["ent5"]
         type(m_obj_5).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
         m_obj_6 = m_cls_6.return_value
-        m_obj_6.valid_names = ["ent6"]
         type(m_obj_6).dependent_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
 
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
-        m_obj_4.valid_names = ["ent4"]
         type(m_obj_4).dependent_services = mock.PropertyMock(
             return_value=(m_cls_5, m_cls_6)
         )
@@ -134,8 +122,9 @@ class TestSortEntitlements:
             m_cls_6,
         ]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes",
+            return_value=m_entitlements,
         ):
             assert [
                 "ent1",
@@ -149,13 +138,11 @@ class TestSortEntitlements:
     def test_enable_order(self, FakeConfig):
         m_cls_2 = mock.MagicMock()
         m_obj_2 = m_cls_2.return_value
-        m_obj_2.valid_names = ["ent2"]
         type(m_obj_2).required_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
-        m_obj_1.valid_names = ["ent1"]
         type(m_obj_1).required_services = mock.PropertyMock(
             return_value=(mock.MagicMock(entitlement=m_cls_2),)
         )
@@ -163,7 +150,6 @@ class TestSortEntitlements:
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
-        m_obj_3.valid_names = ["ent3"]
         type(m_obj_3).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_1),
@@ -174,19 +160,16 @@ class TestSortEntitlements:
 
         m_cls_5 = mock.MagicMock()
         m_obj_5 = m_cls_5.return_value
-        m_obj_5.valid_names = ["ent5"]
         type(m_obj_5).required_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
         m_obj_6 = m_cls_6.return_value
-        m_obj_6.valid_names = ["ent6"]
         type(m_obj_6).required_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
 
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
-        m_obj_4.valid_names = ["ent4"]
         type(m_obj_4).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_5),
@@ -204,8 +187,9 @@ class TestSortEntitlements:
             m_cls_6,
         ]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes",
+            return_value=m_entitlements,
         ):
             assert [
                 "ent2",
@@ -219,13 +203,11 @@ class TestSortEntitlements:
     def test_order_entitlements_for_enabling(self, FakeConfig):
         m_cls_2 = mock.MagicMock()
         m_obj_2 = m_cls_2.return_value
-        m_obj_2.valid_names = ["ent2"]
         type(m_obj_2).required_services = mock.PropertyMock(return_value=())
         type(m_cls_2).name = mock.PropertyMock(return_value="ent2")
 
         m_cls_1 = mock.MagicMock()
         m_obj_1 = m_cls_1.return_value
-        m_obj_1.valid_names = ["ent1"]
         type(m_obj_1).required_services = mock.PropertyMock(
             return_value=(mock.MagicMock(entitlement=m_cls_2),)
         )
@@ -233,7 +215,6 @@ class TestSortEntitlements:
 
         m_cls_3 = mock.MagicMock()
         m_obj_3 = m_cls_3.return_value
-        m_obj_3.valid_names = ["ent3"]
         type(m_obj_3).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_1),
@@ -244,19 +225,16 @@ class TestSortEntitlements:
 
         m_cls_5 = mock.MagicMock()
         m_obj_5 = m_cls_5.return_value
-        m_obj_5.valid_names = ["ent5"]
         type(m_obj_5).required_services = mock.PropertyMock(return_value=())
         type(m_cls_5).name = mock.PropertyMock(return_value="ent5")
 
         m_cls_6 = mock.MagicMock()
         m_obj_6 = m_cls_6.return_value
-        m_obj_6.valid_names = ["ent6"]
         type(m_obj_6).required_services = mock.PropertyMock(return_value=())
         type(m_cls_6).name = mock.PropertyMock(return_value="ent6")
 
         m_cls_4 = mock.MagicMock()
         m_obj_4 = m_cls_4.return_value
-        m_obj_4.valid_names = ["ent4"]
         type(m_obj_4).required_services = mock.PropertyMock(
             return_value=(
                 mock.MagicMock(entitlement=m_cls_5),
@@ -274,8 +252,9 @@ class TestSortEntitlements:
             m_cls_6,
         ]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASSES", m_entitlements
+        with mock.patch(
+            "uaclient.entitlements.get_entitlement_classes",
+            return_value=m_entitlements,
         ):
             assert [
                 "ent2",
@@ -348,16 +327,12 @@ class TestCheckEntitlementAPTDefinitionsAreUnique:
             ),
         ),
     )
-    @mock.patch(
-        "uaclient.entitlements._is_repo_entitlement", return_value=True
-    )
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
     def test_check_entitlement_definitions_are_unique(
         self,
         m_valid_services,
         m_ent_factory,
-        _m_is_repo_ent,
         applicability_status1,
         applicability_status2,
         apt_url1,
@@ -368,13 +343,13 @@ class TestCheckEntitlementAPTDefinitionsAreUnique:
     ):
         m_valid_services.return_value = ["ent1", "ent2"]
 
-        m_ent1_obj = mock.MagicMock()
+        m_ent1_obj = mock.MagicMock(RepoEntitlement)
         m_ent1_obj.applicability_status.return_value = applicability_status1
         type(m_ent1_obj).apt_url = apt_url1
         type(m_ent1_obj).apt_suites = suite1
         type(m_ent1_obj).repo_policy_check_tmpl = "{}/ubuntu {}"
 
-        m_ent2_obj = mock.MagicMock()
+        m_ent2_obj = mock.MagicMock(RepoEntitlement)
         m_ent2_obj.applicability_status.return_value = applicability_status2
         type(m_ent2_obj).apt_url = apt_url2
         type(m_ent2_obj).apt_suites = suite2

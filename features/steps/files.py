@@ -24,6 +24,13 @@ def _get_file_contents(
     return context.process.stdout
 
 
+@when("I push static file `{file_name}` to machine")
+def when_i_push_file(context, file_name, machine_name=SUT):
+    context.machines[machine_name].instance.push_file(
+        os.path.join("features/files/", file_name), "/tmp/{}".format(file_name)
+    )
+
+
 @when("I add this text on `{file_name}` on `{machine_name}` above `{line}`")
 def when_i_add_this_text_on_file_above_line(
     context, file_name, machine_name, line

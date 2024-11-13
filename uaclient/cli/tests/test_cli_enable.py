@@ -38,9 +38,11 @@ class TestActionEnable:
             "dependencies",
             "entitlements_for_enabling",
             "enable_one_service_side_effect",
+            "expected_order_entitlements_calls",
             "expected_enable_one_service_calls",
             "expected_print_json_output_calls",
             "expected_raises",
+            "series",
         ],
         (
             # assume-yes required for json output
@@ -66,7 +68,9 @@ class TestActionEnable:
                 None,
                 [],
                 [],
+                [],
                 pytest.raises(exceptions.CLIJSONFormatRequireAssumeYes),
+                mock.ANY,
             ),
             # variant + access-only not allowed
             (
@@ -91,7 +95,9 @@ class TestActionEnable:
                 None,
                 [],
                 [],
+                [],
                 pytest.raises(exceptions.InvalidOptionCombination),
+                mock.ANY,
             ),
             # contract not valid
             (
@@ -115,6 +121,7 @@ class TestActionEnable:
                 None,
                 None,
                 [],
+                [],
                 [
                     mock.call(
                         False,
@@ -133,6 +140,7 @@ class TestActionEnable:
                     )
                 ],
                 does_not_raise(),
+                mock.ANY,
             ),
             # contract not valid, json output
             (
@@ -156,6 +164,7 @@ class TestActionEnable:
                 None,
                 None,
                 [],
+                [],
                 [
                     mock.call(
                         True,
@@ -174,6 +183,7 @@ class TestActionEnable:
                     )
                 ],
                 does_not_raise(),
+                mock.ANY,
             ),
             # contract not valid, json output, contract refresh warning
             (
@@ -196,6 +206,7 @@ class TestActionEnable:
                 None,
                 None,
                 None,
+                [],
                 [],
                 [
                     mock.call(
@@ -221,6 +232,7 @@ class TestActionEnable:
                     )
                 ],
                 does_not_raise(),
+                mock.ANY,
             ),
             # success multiple services, one needs reboot
             (
@@ -254,6 +266,7 @@ class TestActionEnable:
                         success=True, needs_reboot=False, error=None
                     ),
                 ],
+                [mock.call(mock.ANY, ["one", "two", "three"])],
                 [
                     mock.call(
                         mock.ANY,
@@ -301,6 +314,7 @@ class TestActionEnable:
                     )
                 ],
                 does_not_raise(),
+                mock.ANY,
             ),
             # some services not found
             (
@@ -328,6 +342,7 @@ class TestActionEnable:
                         success=True, needs_reboot=False, error=None
                     ),
                 ],
+                [mock.call(mock.ANY, ["two"])],
                 [
                     mock.call(
                         mock.ANY,
@@ -365,6 +380,7 @@ class TestActionEnable:
                     )
                 ],
                 does_not_raise(),
+                mock.ANY,
             ),
             # one success, one fail, one not found
             (
@@ -397,6 +413,7 @@ class TestActionEnable:
                         success=True, needs_reboot=False, error=None
                     ),
                 ],
+                [mock.call(mock.ANY, ["one", "two"])],
                 [
                     mock.call(
                         mock.ANY,
@@ -446,6 +463,111 @@ class TestActionEnable:
                     )
                 ],
                 does_not_raise(),
+                mock.ANY,
+            ),
+            # CIS on Focal
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    service=["cis"],
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                None,
+                ([], ["cis"]),
+                EnabledServicesResult(enabled_services=[]),
+                DependenciesResult(services=mock.sentinel.dependencies),
+                ["usg"],
+                [
+                    _EnableOneServiceResult(
+                        success=True, needs_reboot=False, error=None
+                    ),
+                ],
+                [mock.call(mock.ANY, ["usg"])],
+                [
+                    mock.call(
+                        mock.ANY,
+                        "usg",
+                        "",
+                        False,
+                        True,
+                        True,
+                        None,
+                        [],
+                        mock.sentinel.dependencies,
+                    ),
+                ],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        ["usg"],
+                        [],
+                        [],
+                        [],
+                        success=True,
+                    )
+                ],
+                does_not_raise(),
+                "focal",
+            ),
+            # CIS on Jammy
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    service=["cis"],
+                    format="json",
+                    variant="",
+                    access_only=False,
+                    assume_yes=True,
+                ),
+                {},
+                None,
+                ([], ["cis"]),
+                EnabledServicesResult(enabled_services=[]),
+                DependenciesResult(services=mock.sentinel.dependencies),
+                [],
+                [],
+                [mock.call(mock.ANY, [])],
+                [],
+                [
+                    mock.call(
+                        True,
+                        {"_schema_version": "0.1", "needs_reboot": False},
+                        [],
+                        ["cis"],
+                        [
+                            {
+                                "type": "system",
+                                "service": None,
+                                "message": mock.ANY,
+                                "message_code": "invalid-service-or-failure",
+                                "additional_info": {
+                                    "operation": "enable",
+                                    "invalid_service": "cis",
+                                    "service_msg": mock.ANY,
+                                },
+                            },
+                        ],
+                        [],
+                        success=False,
+                    )
+                ],
+                does_not_raise(),
+                "jammy",
             ),
         ),
     )
@@ -460,8 +582,10 @@ class TestActionEnable:
     @mock.patch("uaclient.cli.cli_util.create_interactive_only_print_function")
     @mock.patch("uaclient.util.we_are_currently_root", return_value=True)
     @mock.patch("uaclient.cli.enable._is_attached")
+    @mock.patch("uaclient.system.get_release_info")
     def test_action_enable(
         self,
+        m_release_info,
         m_is_attached,
         m_we_are_currently_root,
         m_create_interactive_only_print_function,
@@ -482,9 +606,11 @@ class TestActionEnable:
         dependencies,
         entitlements_for_enabling,
         enable_one_service_side_effect,
+        expected_order_entitlements_calls,
         expected_enable_one_service_calls,
         expected_print_json_output_calls,
         expected_raises,
+        series,
         FakeConfig,
         fake_machine_token_file,
     ):
@@ -498,9 +624,15 @@ class TestActionEnable:
         )
         m_enable_one_service.side_effect = enable_one_service_side_effect
         fake_machine_token_file.attached = True
+        m_release_info.return_value.series = series
 
         with expected_raises:
             enable_command.action(args, cfg=FakeConfig(), **kwargs)
+
+        assert (
+            expected_order_entitlements_calls
+            == m_order_entitlements_for_enabling.call_args_list
+        )
 
         assert (
             expected_enable_one_service_calls
@@ -577,7 +709,6 @@ class TestActionEnable:
                         "one",
                         [],
                         [],
-                        called_name="one",
                         variant="",
                         service_title=mock.sentinel.ent_title,
                     )
@@ -805,7 +936,6 @@ class TestActionEnable:
         assert [
             mock.call(
                 mock.ANY,
-                called_name="landscape",
                 access_only=mock.sentinel.access_only,
                 extra_args=mock.sentinel.extra_args,
             )
@@ -835,7 +965,6 @@ class TestPromptForDependencyHandling:
             "service",
             "all_dependencies",
             "enabled_services",
-            "called_name",
             "service_title",
             "variant",
             "cfg_block_disable_on_enable",
@@ -853,7 +982,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -876,7 +1004,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -899,7 +1026,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -922,7 +1048,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 True,
@@ -945,7 +1070,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -971,7 +1095,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="three")],
-                "one",
                 "One",
                 "",
                 False,
@@ -994,7 +1117,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -1017,7 +1139,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -1040,7 +1161,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
-                "one",
                 "One",
                 "",
                 False,
@@ -1066,7 +1186,6 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [EnabledService(name="two")],
-                "one",
                 "One",
                 "",
                 False,
@@ -1083,7 +1202,6 @@ class TestPromptForDependencyHandling:
                         name="two", variant_enabled=True, variant_name="one"
                     )
                 ],
-                "two",
                 "Two",
                 "two",
                 False,
@@ -1126,7 +1244,6 @@ class TestPromptForDependencyHandling:
                     EnabledService(name="four"),
                     EnabledService(name="six"),
                 ],
-                "one",
                 "One",
                 "",
                 False,
@@ -1152,7 +1269,6 @@ class TestPromptForDependencyHandling:
         service,
         all_dependencies,
         enabled_services,
-        called_name,
         service_title,
         variant,
         cfg_block_disable_on_enable,
@@ -1173,7 +1289,6 @@ class TestPromptForDependencyHandling:
                 service,
                 all_dependencies,
                 enabled_services,
-                called_name,
                 variant,
                 service_title,
             )

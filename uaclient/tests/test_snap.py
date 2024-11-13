@@ -210,117 +210,76 @@ class TestSnapPackagesInstalled:
 
 
 class TestGetSnapInfo:
-    @mock.patch("socket.socket")
-    @mock.patch("http.client.HTTPConnection")
-    def test_get_snap_info_error_parsing_json(
-        self, m_http_connection, m_socket
-    ):
-        socket_mock = mock.MagicMock()
-        m_socket.return_value = socket_mock
-        http_mock = mock.MagicMock()
-        http_response_mock = mock.MagicMock()
-        http_mock.getresponse.return_value = http_response_mock
-        http_response_mock.read.return_value = b"invalid-json"
-        m_http_connection.return_value = http_mock
-
-        with pytest.raises(exceptions.InvalidJson):
-            get_snap_info(snap="test")
-
-        assert 1 == m_http_connection.call_count
-        assert 1 == http_mock.getresponse.call_count
-        assert 1 == http_response_mock.read.call_count
-        assert 1 == http_response_mock.read.call_count
-        assert 1 == http_response_mock.read.call_count
-        assert 1 == socket_mock.close.call_count
-        assert 1 == http_mock.close.call_count
-
     @pytest.mark.parametrize(
         "status_code,response_data,expected_exception",
         (
             (
                 404,
-                b'{"result": {"kind": "snap-not-found"}}',
+                {"result": {"kind": "snap-not-found"}},
                 exceptions.SnapNotInstalledError,
             ),
             (
                 404,
-                b'{"result": {"kind": ""}}',
+                {"result": {"kind": ""}},
                 exceptions.UnexpectedSnapdAPIError,
             ),
             (
                 500,
-                b'{"result": {"message": "error"}}',
+                {"result": {"message": "error"}},
                 exceptions.UnexpectedSnapdAPIError,
             ),
             (
                 401,
-                b"{}",
+                {},
                 exceptions.UnexpectedSnapdAPIError,
             ),
         ),
     )
-    @mock.patch("socket.socket")
-    @mock.patch("http.client.HTTPConnection")
+    @mock.patch("uaclient.snap.http.unix_socket_request")
     def test_get_snap_info_unexpected_api_error(
         self,
-        m_http_connection,
-        m_socket,
+        m_unix_socket_request,
         status_code,
         response_data,
         expected_exception,
     ):
-        socket_mock = mock.MagicMock()
-        m_socket.return_value = socket_mock
-        http_mock = mock.MagicMock()
-        http_response_mock = mock.MagicMock(status=status_code)
-        http_mock.getresponse.return_value = http_response_mock
-        http_response_mock.read.return_value = response_data
-        m_http_connection.return_value = http_mock
+        m_unix_socket_request.return_value = mock.MagicMock(
+            code=status_code, json_dict=response_data
+        )
 
         with pytest.raises(expected_exception):
             get_snap_info(snap="test")
 
-        assert 1 == m_http_connection.call_count
-        assert 1 == http_mock.getresponse.call_count
-        assert 1 == http_response_mock.read.call_count
-        assert 1 == socket_mock.close.call_count
-        assert 1 == http_mock.close.call_count
+        assert 1 == m_unix_socket_request.call_count
 
-    @mock.patch("socket.socket")
-    @mock.patch("http.client.HTTPConnection")
+    @mock.patch("uaclient.snap.http.unix_socket_request")
     def test_get_snap_info_connection_refused(
         self,
-        m_http_connection,
-        m_socket,
+        m_unix_socket_request,
     ):
-        socket_mock = mock.MagicMock()
-        m_socket.return_value = socket_mock
-        http_mock = mock.MagicMock()
-        http_mock.request.side_effect = ConnectionRefusedError()
-        m_http_connection.return_value = http_mock
+        m_unix_socket_request.side_effect = ConnectionRefusedError()
 
         with pytest.raises(exceptions.SnapdAPIConnectionRefused):
             get_snap_info(snap="test")
 
-        assert 1 == m_http_connection.call_count
-        assert 1 == http_mock.request.call_count
-        assert 1 == socket_mock.close.call_count
-        assert 1 == http_mock.close.call_count
+        assert 1 == m_unix_socket_request.call_count
 
-    @mock.patch("socket.socket")
-    @mock.patch("http.client.HTTPConnection")
+    @mock.patch("uaclient.snap.http.unix_socket_request")
     def test_get_snap_info(
         self,
-        m_http_connection,
-        m_socket,
+        m_unix_socket_request,
     ):
-        socket_mock = mock.MagicMock()
-        m_socket.return_value = socket_mock
-        http_mock = mock.MagicMock()
-        http_response_mock = mock.MagicMock(status=200)
-        http_mock.getresponse.return_value = http_response_mock
-        http_response_mock.read.return_value = b'{"result": {"channel": "stable", "revision": "120", "name": "test", "publisher": {"username": "canonical"}}}'  # noqa
-        m_http_connection.return_value = http_mock
+        m_unix_socket_request.return_value = mock.MagicMock(
+            code=200,
+            json_dict={
+                "result": {
+                    "channel": "stable",
+                    "revision": "120",
+                    "name": "test",
+                    "publisher": {"username": "canonical"},
+                }
+            },
+        )
 
         expected_result = SnapPackage(
             name="test",
@@ -331,8 +290,4 @@ class TestGetSnapInfo:
         )
         assert expected_result == get_snap_info(snap="test")
 
-        assert 1 == m_http_connection.call_count
-        assert 1 == http_mock.getresponse.call_count
-        assert 1 == http_response_mock.read.call_count
-        assert 1 == socket_mock.close.call_count
-        assert 1 == http_mock.close.call_count
+        assert 1 == m_unix_socket_request.call_count

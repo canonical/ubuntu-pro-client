@@ -117,21 +117,135 @@ Feature: auto-attach retries periodically on failures
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | aws.generic   |
       | xenial  | azure.generic |
       | xenial  | gcp.generic   |
-      | bionic  | aws.generic   |
       | bionic  | azure.generic |
       | bionic  | gcp.generic   |
-      | focal   | aws.generic   |
       | focal   | azure.generic |
       | focal   | gcp.generic   |
-      | jammy   | aws.generic   |
       | jammy   | azure.generic |
       | jammy   | gcp.generic   |
-      | noble   | aws.generic   |
       | noble   | azure.generic |
       | noble   | gcp.generic   |
+
+  Scenario Outline: auto-attach retries for a month and updates status
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I change contract to staging with sudo
+    And I create the file `/run/ubuntu-advantage/flags/auto-attach-failed` with the following:
+      """
+      """
+    And I create the file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json` with the following:
+      """
+      {"interval_index": 0, "failure_reason": "failure"}
+      """
+    And I run `systemctl start ubuntu-advantage.service` with sudo
+    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
+    Then stdout matches regexp:
+      """
+      Active: active \(running\)
+      """
+    Then stdout matches regexp:
+      """
+      mode: retry auto attach
+      """
+    Then stdout does not match regexp:
+      """
+      mode: poll for pro license
+      """
+    When I run `run-parts /etc/update-motd.d/` with sudo
+    Then stdout matches regexp:
+      """
+      Failed to automatically attach to an Ubuntu Pro subscription 1 time\(s\).
+      The failure was due to: failure.
+      The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
+      You can try manually with `sudo pro auto-attach`.
+      """
+    When I run `pro status` with sudo
+    Then stdout matches regexp:
+      """
+      NOTICES
+      Failed to automatically attach to an Ubuntu Pro subscription 1 time\(s\).
+      The failure was due to: failure.
+      The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
+      You can try manually with `sudo pro auto-attach`.
+      """
+    # simulate a middle attempt with different reason
+    When I set `interval_index` = `10` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+    When I set `failure_reason` = `"an unknown error"` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+    When I run `systemctl restart ubuntu-advantage.service` with sudo
+    And I wait `5` seconds
+    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
+    Then stdout matches regexp:
+      """
+      Active: active \(running\)
+      """
+    Then stdout matches regexp:
+      """
+      mode: retry auto attach
+      """
+    Then stdout does not match regexp:
+      """
+      mode: poll for pro license
+      """
+    When I run `run-parts /etc/update-motd.d/` with sudo
+    Then stdout matches regexp:
+      """
+      Failed to automatically attach to an Ubuntu Pro subscription 11 time\(s\).
+      The failure was due to: an unknown error.
+      The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
+      You can try manually with `sudo pro auto-attach`.
+      """
+    When I run `pro status` with sudo
+    Then stdout matches regexp:
+      """
+      NOTICES
+      Failed to automatically attach to an Ubuntu Pro subscription 11 time\(s\).
+      The failure was due to: an unknown error.
+      The next attempt is scheduled for \d+-\d+-\d+T\d+:\d+:00.*.
+      You can try manually with `sudo pro auto-attach`.
+      """
+    # simulate all attempts failing
+    When I set `interval_index` = `18` in json file `/var/lib/ubuntu-advantage/retry-auto-attach-state.json`
+    When I run `systemctl restart ubuntu-advantage.service` with sudo
+    And I wait `5` seconds
+    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+    Then stdout contains substring
+      """
+      Active: inactive (dead)
+      """
+    Then stdout matches regexp:
+      """
+      mode: retry auto attach
+      """
+    Then stdout does not match regexp:
+      """
+      mode: poll for pro license
+      """
+    When I run `run-parts /etc/update-motd.d/` with sudo
+    Then stdout matches regexp:
+      """
+      Failed to automatically attach to an Ubuntu Pro subscription 19 time\(s\).
+      The most recent failure was due to: an unknown error.
+      Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
+      You can try manually with `sudo pro auto-attach`.
+      """
+    When I run `pro status` with sudo
+    Then stdout matches regexp:
+      """
+      NOTICES
+      Failed to automatically attach to an Ubuntu Pro subscription 19 time\(s\).
+      The most recent failure was due to: an unknown error.
+      Try re-launching the instance or report this issue by running `ubuntu-bug ubuntu-advantage-tools`
+      You can try manually with `sudo pro auto-attach`.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
 
   Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

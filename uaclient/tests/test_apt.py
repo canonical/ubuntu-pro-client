@@ -379,6 +379,7 @@ class TestAddAuthAptRepo:
             credentials="mycreds",
             suites=(series,),
             keyring_file="keyring",
+            snapshot_urls=[],
         )
 
         if series in SERIES_NOT_USING_DEB822:
@@ -446,6 +447,7 @@ class TestAddAuthAptRepo:
                 "trusty-gone",
             ),
             keyring_file="keyring",
+            snapshot_urls=[],
         )
 
         if series in SERIES_NOT_USING_DEB822:
@@ -508,6 +510,7 @@ class TestAddAuthAptRepo:
                 "trusty-gone",
             ),
             keyring_file="keyring",
+            snapshot_urls=[],
         )
 
         if series in SERIES_NOT_USING_DEB822:
@@ -562,6 +565,7 @@ class TestAddAuthAptRepo:
             credentials="user:password",
             suites=("xenial",),
             keyring_file="keyring",
+            snapshot_urls=[],
         )
 
         expected_content = (
@@ -599,6 +603,7 @@ class TestAddAuthAptRepo:
             credentials="SOMELONGTOKEN",
             suites=("xenia",),
             keyring_file="keyring",
+            snapshot_urls=[],
         )
 
         expected_content = (
@@ -737,7 +742,7 @@ class TestRemoveAuthAptRepo:
         repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
-            repo_filename, repo_url, **remove_auth_apt_repo_kwargs
+            repo_filename, repo_url, [], **remove_auth_apt_repo_kwargs
         )
 
         assert mock.call(repo_filename) in m_ensure_file_absent.call_args_list
@@ -753,7 +758,7 @@ class TestRemoveAuthAptRepo:
         repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
-            repo_filename, repo_url, **remove_auth_apt_repo_kwargs
+            repo_filename, repo_url, [], **remove_auth_apt_repo_kwargs
         )
 
         assert mock.call(repo_filename) in m_ensure_file_absent.call_args_list
@@ -774,7 +779,7 @@ class TestRemoveAuthAptRepo:
         repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
-            repo_filename, repo_url, **remove_auth_apt_repo_kwargs
+            repo_filename, repo_url, [], **remove_auth_apt_repo_kwargs
         )
 
         assert mock.call(repo_url) in m_remove_repo.call_args_list
@@ -791,7 +796,7 @@ class TestRemoveAuthAptRepo:
         repo_url = mock.sentinel.url
 
         remove_auth_apt_repo(
-            repo_filename, repo_url, **remove_auth_apt_repo_kwargs
+            repo_filename, repo_url, [], **remove_auth_apt_repo_kwargs
         )
 
         keyring_file = remove_auth_apt_repo_kwargs.get("keyring_file")

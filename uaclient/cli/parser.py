@@ -52,9 +52,11 @@ class ProArgumentParser(argparse.ArgumentParser):
         help_string: str,
         position: int = 0,
     ):
-        cls.help_entries[category].append(
-            HelpEntry(position=position, name=name, help_string=help_string)
+        entry = HelpEntry(
+            position=position, name=name, help_string=help_string
         )
+        if entry not in cls.help_entries[category]:
+            cls.help_entries[category].append(entry)
 
     def __init__(self, *args, use_main_help: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
