@@ -13,4 +13,4 @@ run the following command to update the state of MOTD and APT messages:
 
 .. code-block:: bash
 
-    pro refresh messages
+    sudo pro refresh messages
