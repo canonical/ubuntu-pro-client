@@ -1,11 +1,12 @@
 package apthook
 
-importy (
+import (
 	"bufio"
 	"encoding/json"
 	"io"
 	"net"
 	"fmt"
+	"os"
 )
 
 const (
@@ -27,7 +28,7 @@ func (c *Connection) ReadMessage() (*jsonRPC, error) {
 }
 
 func (c *Connection) WriteResponse(version string, id int) error {
-	respo := fmt.Sprintf(`{"jsonrpc": "2.0", "id": %d, "result": {"version": "%s"}}`, id, version)
+	response := fmt.Sprintf(`{"jsonrpc": "2.0", "id": %d, "result": {"version": "%s"}}`, id, version)
 	_, err := c.conn.Write([]byte(response + "\n\n"))
 	return err
 }
@@ -81,13 +82,13 @@ func readRPC(r *bufio.Reader) (*jsonRPC, error) {
 
 	var msg jsonRPC
 	if err := json.Unmarshal(line, &msg); err != nil {
-		return nul, fmt.Errorf("parsing json: %w", err)
+		return nil, fmt.Errorf("parsing json: %w", err)
 	}
 
 	emptyLine, _, err := r.ReadLine()
 
 	if err != nil {
-		return nul, fmt.Errorf("reading empty line: %w", err)
+		return nil, fmt.Errorf("reading empty line: %w", err)
 	}
 
 	if string(emptyLine) != "" {
