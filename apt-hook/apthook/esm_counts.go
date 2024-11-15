@@ -2,42 +2,65 @@ package apthook
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
+	"bufio"
+	"os"
+	"os/exec"
 )
 
 const (
-	systemPkgStatus = "/var/lib/dpkg/status"
-	esmPkgStatus	= "/var/lib/ubuntu-advantage/apt-esm/var/lib/dpkg/status"
+	systemPkgPath = "/var/lib/dpkg/status"
 )
-// Instead of esmPkgStatus
-// we need to use the following from var/lib/ubuntu-advantage/apt-esm/var/lib/apt/lists:
-// esmAppsSecurityList
-// esmAppsUpdatesList
-// esmInfraSecurityList
-// esmInfraUpdatesList
 
-
-type PackageStatus struct {
+type PkgStatus struct {
 	Name	string
 	Version string
 	Status  string
 	Source  string
 }
 
-// Func to get file pathes for esm packages
-// Based on os release codename
+type ESMUpdates struct {
+	InfraPackages []string
+	AppsPackages  []string
+}
 
-// Packages need to be read and parsed from all above files
-// and then returned as a slice of PackageStatus
-func readPackages(filepath string) ([]PackageStatus, error) {
+func getDpkgArch() string {
+	cmd := exec.Command("dpkg", "--print-architecture")
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	arch := strings.TrimSpace(string(out))
+	return arch
+}
+
+func getEsmPackagesFilePath(osRelease OSRelease) (string, string) {
+    curSeries := osRelease.VersionCodename
+    curArch := getDpkgArch()
+
+    const baseDir = "/var/lib/ubuntu-advantage/apt-esm/var/lib/apt/lists"
+
+    security := filepath.Join(baseDir,
+        fmt.Sprintf("esm.ubuntu.com_apps_ubuntu_dists_%s-apps-security_main_binary-%s_Packages",
+            curSeries, curArch))
+
+    updates := filepath.Join(baseDir,
+        fmt.Sprintf("esm.ubuntu.com_apps_ubuntu_dists_%s-apps-updates_main_binary-%s_Packages",
+            curSeries, curArch))
+
+    return security, updates
+}
+
+func readPackages(filepath string) ([]PkgStatus, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, error
+		return nil, err
 	}
 	defer file.Close()
 
-	var packages []PackageStatus
-	var curPackage PackageStatus
+	var packages []PkgStatus
+	var curPackage PkgStatus
 
 	scanner := bufio.NewScanner(file)
 	parsingPackage := false
@@ -47,10 +70,10 @@ func readPackages(filepath string) ([]PackageStatus, error) {
 
 		if strings.HasPrefix(line, "Package:") {
 			if parsingPackage {
-				packages = append(packages, currentPackage)
+				packages = append(packages, curPackage)
 			}
 
-			curPackage = PackageStatus{}
+			curPackage = PkgStatus{}
 			curPackage.Name = strings.TrimSpace(strings.TrimPrefix(line, "Package:"))
 			parsingPackage = true
 		} else if strings.HasPrefix(line, "Version:") {
@@ -70,5 +93,64 @@ func readPackages(filepath string) ([]PackageStatus, error) {
 		packages = append(packages, curPackage)
 	}
 
+	// Can return a dict (map) for faster lookup instead of iterating?
 	return packages, nil
+}
+
+// GetPotentialESMUpdates returns a list of packages that are available for
+// updates in the ESM repo
+func GetPotentialESMUpdates() (*ESMUpdates, error) {
+	updates := &ESMUpdates{}
+
+	systemPkgs, err := readPackages(systemPkgPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading system packages: %w", err)
+	}
+
+	// Get ESM package list paths (currently only apps)
+	osRelease := ParseOSRelease()
+	securityPath, updatesPath := getEsmPackagesFilePath(osRelease)
+
+	securityPkgs, err := readPackages(securityPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading security packages: %w", err)
+	}
+
+	updatesPkgs, err := readPackages(updatesPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading updates packages: %w", err)
+	}
+
+	for _, sysPkg := range systemPkgs {
+		// If installed
+		if !strings.Contains(sysPkg.Status, "installed") {
+			continue
+		}
+
+		// Check security packages path
+		for _, secPkg := range securityPkgs {
+			if secPkg.Name == sysPkg.Name && CompareVersions(secPkg.Version, sysPkg.Version) < 0{
+				// Check ESM Source
+				if strings.Contains(secPkg.Source, "UbuntuESMApps") {
+					updates.AppsPackages = append(updates.AppsPackages, secPkg.Name)
+				} else if strings.Contains(secPkg.Source, "UbuntuESM") {
+					updates.InfraPackages = append(updates.InfraPackages, secPkg.Name)
+				}
+			}
+		}
+
+		// Check updates packages path
+		for _, updatesPkg := range updatesPkgs {
+			if updatesPkg.Name == sysPkg.Name && CompareVersions(updatesPkg.Version, sysPkg.Version) < 0{
+				// Check ESM Source
+				if strings.Contains(updatesPkg.Source, "UbuntuESMApps") {
+					updates.AppsPackages = append(updates.AppsPackages, updatesPkg.Name)
+				} else if strings.Contains(updatesPkg.Source, "UbuntuESM") {
+					updates.InfraPackages = append(updates.InfraPackages, updatesPkg.Name)
+				}
+			}
+		}
+	}
+
+	return updates, nil
 }
