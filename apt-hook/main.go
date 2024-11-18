@@ -2,6 +2,7 @@ package apthook
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 )
@@ -13,36 +14,43 @@ const (
 	expiredNotice = "/var/lib/ubuntu-advantage/notices/5-contract_expired"
 )
 
-func main() error {
+func main() {
 	sockFd := os.Getenv("APT_HOOK_SOCKET")
 	if sockFd == "" {
-		return fmt.Errorf("pro-apt-hook: missing socket fd")
+		fmt.Println("NO APT SOCKET")
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: missing socket fd\n")
+		os.Exit(1)
 	}
 
 	fd, err := strconv.Atoi(sockFd)
 	if err != nil {
-		return fmt.Errorf("pro-apt-hook: invalid socket fd: %w", err)
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: invalid socket fd: %v\n", err)
+		os.Exit(1)
 	}
 
 	file := os.NewFile(uintptr(fd), "apt-hook-socket")
 	if file == nil {
-		return fmt.Errorf("pro-apt-hook: cannot open file descriptor %d", fd)
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: cannot open file descriptor %d\n", fd)
+		os.Exit(1)
 	}
 	defer file.Close()
 
 	conn, err := NewConnection(file)
 	if err != nil {
-		return fmt.Errorf("pro-apt-hook: failed to create connection: %w", err)
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: failed to create connection: %v\n", err)
+		os.Exit(1)
 	}
 	defer conn.Close()
 
 	if err := conn.Handshake(); err != nil {
-		return fmt.Errorf("pro-apt-hook: handshake failed: %w", err)
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: handshake failed: %v\n", err)
+		os.Exit(1)
 	}
 
 	msg, err := conn.ReadMessage()
 	if err != nil {
-		return fmt.Errorf("pro-apt-hook: reading message: %w", err)
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: reading message: %v\n", err)
+		os.Exit(1)
 	}
 
 	switch msg.Method {
@@ -63,7 +71,7 @@ func main() error {
 			}
 		}
 
-		if news, err := os.ReadFile(aptNewsFile); err == nil {
+		if news, err := ioutil.ReadFile(aptNewsFile); err == nil {
 			fmt.Print(string(news))
 		}
 
@@ -76,8 +84,7 @@ func main() error {
 	}
 
 	if err := conn.Bye(); err != nil {
-		return fmt.Errorf("pro-apt-hook: bye failed: %w", err)
+		fmt.Fprintf(os.Stderr, "pro-apt-hook: bye failed: %v\n", err)
+		os.Exit(1)
 	}
-
-	return nil
 }
