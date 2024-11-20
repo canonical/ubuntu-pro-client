@@ -1,4 +1,4 @@
-package apthook
+package main
 
 import (
 	"fmt"
@@ -17,7 +17,6 @@ const (
 func main() {
 	sockFd := os.Getenv("APT_HOOK_SOCKET")
 	if sockFd == "" {
-		fmt.Println("NO APT SOCKET")
 		fmt.Fprintf(os.Stderr, "pro-apt-hook: missing socket fd\n")
 		os.Exit(1)
 	}
@@ -71,10 +70,12 @@ func main() {
 			}
 		}
 
+		// ioutil for older go versions backport
 		if news, err := ioutil.ReadFile(aptNewsFile); err == nil {
 			fmt.Print(string(news))
 		}
 
+		// Check if expired
 		if _, err := os.Stat(expiredNotice); err == nil {
 			expiredPkgs := CollectProPackagesFromRPC(msg)
 			if len(expiredPkgs) > 0 {
