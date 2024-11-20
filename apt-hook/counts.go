@@ -1,4 +1,4 @@
-package apthook
+package main
 
 import (
 	"bufio"
@@ -32,7 +32,7 @@ func verifyOrigin(version jsonRPCPackageVersion, origin string) bool {
 // verifyOriginAndArchive checks if the package is from a specific origin and archive.
 func verifyOriginAndArchive(version jsonRPCPackageVersion, origin, archive string) bool {
 	for _, packageOrigin := range version.Origins {
-		if packageOrigin.Origin == origin && packageOrigin.Archive == archive {
+		if packageOrigin.Origin == origin && strings.HasSuffix(packageOrigin.Archive, archive) {
 			return true
 		}
 	}
@@ -164,7 +164,7 @@ func CountSecurityUpdates(rpc *jsonRPC) *SecurityCounts {
 			if verifyOriginAndArchive(pkg.Versions.Install, "UbuntuESM", "-infra-security") {
 				counts.ESMInfra++
 			}
-			if verifyOriginAndArchive(pkg.Versions.Install, "UbuntuStandard", "-security") {
+			if verifyOriginAndArchive(pkg.Versions.Install, "Ubuntu", "-security") {
 				counts.Standard++
 			}
 		}

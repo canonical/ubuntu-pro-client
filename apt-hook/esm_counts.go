@@ -1,4 +1,4 @@
-package apthook
+package main
 
 import (
 	"fmt"

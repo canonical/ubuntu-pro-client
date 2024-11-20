@@ -1,6 +1,6 @@
 // From the chisel library for debian  version comparison
 
-package apthook
+package main
 
 import (
 	"strings"

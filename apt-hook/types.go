@@ -1,4 +1,4 @@
-package apthook
+package main
 
 type jsonRPC struct {
 	JsonRPC string `json:"jsonrpc"`
