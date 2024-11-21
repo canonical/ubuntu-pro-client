@@ -1,3 +1,5 @@
+.. _network_requirements:
+
 Ubuntu Pro Client network requirements
 **************************************
 

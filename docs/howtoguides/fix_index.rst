@@ -1,3 +1,5 @@
+.. _fix_index:
+
 Fix vulnerabilities
 *******************
 

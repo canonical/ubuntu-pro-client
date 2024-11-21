@@ -1,3 +1,5 @@
+.. _attach_index:
+
 Attach a machine to a subscription
 **********************************
 

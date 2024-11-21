@@ -24,27 +24,26 @@ Explore our documentation
 
    .. grid-item-card:: :ref:`Tutorials <tutorial>`
 
-       Get started with our hands-on introduction to Ubuntu Pro Client for new users
+       Get started with our :ref:`hands-on introduction <tutorial-commands>` and explore the ways Ubuntu Pro helps to :ref:`secure your system <security-tutorial>`
 
    .. grid-item-card:: :ref:`How-to guides <how-to>`
 
-       Step-by-step guides covering key operations and common tasks
+       Step-by-step guides covering key operations and common tasks such as :ref:`attaching your machine <attach_index>`, :ref:`enabling services <enable_index>` and :ref:`fixing vulnerabilities <fix_index>`
 
    .. grid-item-card:: :ref:`Explanation <explanation>`
 
-       Discussion and clarification of key topics
+       Discussion and clarification of key topics like :ref:`how machines are counted <pro_token_and_machine_usage>`, :ref:`ESM-Apps and ESM-Infra <expl-ESM>`, and :ref:`using Pro in airgapped <pro-airgapped>` environments
 
    .. grid-item-card:: :ref:`Reference <reference>`
 
-       Technical information - specifications, APIs, architecture
+       Technical information such as :ref:`network requirements <network_requirements>`, :ref:`API reference <api>`, and available :ref:`CLI commands <commands>`
 
 ---------
 
 Getting help
 ============
 
-Ubuntu Pro is a new product, and we're keen to know about your experience of
-using it!
+We're keen to know about your experience of using Ubuntu Pro!
 
 - **Have questions?**
   You might find the answers `in our FAQ <FAQ_>`_.
@@ -86,18 +85,18 @@ constructive feedback.
    :maxdepth: 2
    
    How-to guides <howtoguides.rst>
-   
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
-   Explanation <explanations.rst>
 
 .. toctree::
    :hidden:
    :maxdepth: 2
 
    Reference <references.rst>
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   Explanation <explanations.rst>
 
 .. LINKS
 

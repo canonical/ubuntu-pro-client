@@ -14,7 +14,7 @@ Attach a machine to a subscription
 ==================================
 
 .. include:: howtoguides/attach_index.rst
-   :start-line: 3
+   :start-line: 4
    :end-before: .. TOC
 
 .. toctree::
@@ -27,7 +27,7 @@ Enable services
 ===============
 
 .. include:: howtoguides/enable_index.rst
-   :start-line: 3
+   :start-line: 4
    :end-before: .. TOC
 
 .. toctree::
@@ -40,7 +40,7 @@ Fix vulnerabilities
 ===================
 
 .. include:: howtoguides/fix_index.rst
-   :start-line: 3
+   :start-line: 4
    :end-before: .. TOC
    
 .. toctree::

@@ -1,3 +1,5 @@
+.. _enable_index:
+
 Enable services
 ***************
 
