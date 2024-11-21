@@ -1,3 +1,5 @@
+(compatibility_matrix)=
+
 # Compatibility matrix for Ubuntu Pro services
 
 Some Ubuntu Pro services are compatible with each other. The following

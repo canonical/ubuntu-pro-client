@@ -1,3 +1,5 @@
+.. _support_matrix:
+
 Support matrix for the Ubuntu Pro Client
 ****************************************
 

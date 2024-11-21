@@ -1,3 +1,5 @@
+.. _PPAs:
+
 Ubuntu Pro Client PPAs
 **********************
 

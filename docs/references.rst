@@ -4,19 +4,50 @@ Ubuntu Pro Client reference
 ***************************
 
 Our reference section contains technical information for the Ubuntu Pro Client.
-This includes details of the network requirements, API definitions, and other
-related tools.
 
-Reference
-=========
+System and other requirements
+=============================
+
+The Ubuntu Pro Client is lightweight and has very few requirements. 
+
+* :ref:`Network requirements <network_requirements>`
+
+Interacting with the Client
+===========================
+
+There are two main ways to interact with the Pro Client: on the command line
+interface (CLI) in your terminal, or automatically via the API.
+
+* :ref:`CLI reference guide <commands>`
+* :ref:`API reference guide <api>`
+
+You may, in a production environment, also wish to test upcoming changes. For
+this, you can use the available Personal Package Archives (PPA) for the Ubuntu
+Pro Client.
+
+* :ref:`Personal Package Archives (PPAs) <PPAs>`
+
+Support and compatibility
+=========================
+
+The Pro Client comes pre-installed on all Ubuntu LTS systems and is used to
+manage additional Ubuntu Pro services and offerings. However, some services
+cannot be enabled at the same time.
+
+In this section, you can check if your chosen release is supported, and whether
+the services you want to use are compatible with each other.
+
+* :ref:`Supported Ubuntu releases <support_matrix>`
+* :ref:`Compatible Ubuntu Pro services <compatibility_matrix>`
 
 ..  toctree::
     :maxdepth: 1
-    :glob:
+    :hidden:
 
+    Network requirements <references/network_requirements.md>
     CLI reference guide <references/commands.rst>
     API reference guide <references/api.rst>
-    Network requirements <references/network_requirements.md>
     Personal Package Archives (PPAs) <references/ppas.md>
-    Support matrix <references/support_matrix.md>
-    Compatibility matrix <references/compatibility_matrix.md>
+    Supported Ubuntu releases <references/support_matrix.md>
+    Service compatibility matrix <references/compatibility_matrix.md>
+
