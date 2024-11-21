@@ -1,3 +1,5 @@
+.. _host-own-apt-news:
+
 Host your own APT news
 **********************
 
