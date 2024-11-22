@@ -64,9 +64,9 @@ func main() {
 		// Get ESM updates
 		if updates, err := GetPotentialESMUpdates(); err == nil {
 			if len(updates.InfraPackages) > 0 {
-				PrintESMPackages("INFRA", updates.InfraPackages)
+				PrintESMPackages("infra", updates.InfraPackages)
 			} else if len(updates.AppsPackages) > 0 {
-				PrintESMPackages("APPS", updates.AppsPackages)
+				PrintESMPackages("apps", updates.AppsPackages)
 			}
 		}
 

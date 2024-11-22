@@ -19,7 +19,6 @@ type SecurityCounts struct {
 	ESMApps  int
 }
 
-// verifyOrigin checks if the package is from a specific origin.
 func verifyOrigin(version jsonRPCPackageVersion, origin string) bool {
 	for _, packageOrigin := range version.Origins {
 		if packageOrigin.Origin == origin {
@@ -29,7 +28,6 @@ func verifyOrigin(version jsonRPCPackageVersion, origin string) bool {
 	return false
 }
 
-// verifyOriginAndArchive checks if the package is from a specific origin and archive.
 func verifyOriginAndArchive(version jsonRPCPackageVersion, origin, archive string) bool {
 	for _, packageOrigin := range version.Origins {
 		if packageOrigin.Origin == origin && strings.HasSuffix(packageOrigin.Archive, archive) {
@@ -39,7 +37,7 @@ func verifyOriginAndArchive(version jsonRPCPackageVersion, origin, archive strin
 	return false
 }
 
-// getCloudID retrieves the cloud ID.
+
 func getCloudID() string {
 	file, err := os.Open(cloudIDFile)
 	if err != nil {
@@ -62,7 +60,7 @@ func getCloudID() string {
 	return ""
 }
 
-// ParseOSRelease processes OS release information into a struct.
+// ParseOSRelease processes OS release information and returns a struct.
 func ParseOSRelease() OSRelease {
 	file, err := os.Open(osReleaseFile)
 	if err != nil {
@@ -92,7 +90,6 @@ func ParseOSRelease() OSRelease {
 	}
 }
 
-// printPackageNames prints package names from a list.
 func printPackageNames(packageNames []string) {
 	currLine := " "
 	for _, pkg := range packageNames {
@@ -107,7 +104,6 @@ func printPackageNames(packageNames []string) {
 	}
 }
 
-// getESMInfraSeries checks if the OS series is esm_infra.
 func getESMInfraSeries() string {
 	osRelease := ParseOSRelease()
 	switch osRelease.VersionCodename {
@@ -264,15 +260,16 @@ func PrintExpiredProPackages(packageNames []string) {
 	fmt.Println("Renew your subscription or run `sudo pro detach` to remove these errors")
 }
 
-// printESMPackages prints expired ESM packages.
+// PrintESMPackages prints the expired packages for ESM Apps and Infra with a message and added content.
 func PrintESMPackages(esmType string, packageNames []string) {
-	if esmType == "APPS" {
+	if esmType == "apps" {
 		if len(packageNames) == 1 {
 			fmt.Println("Get another security update through Ubuntu Pro with 'esm-apps' enabled:")
 		} else {
 			fmt.Println("Get more security updates through Ubuntu Pro with 'esm-apps' enabled:")
 		}
-	} else if esmType == "INFRA" {
+	} else if esmType == "infra" {
+		fmt.Println("PACKAGES: ", len(packageNames))
 		if len(packageNames) == 1 {
 			fmt.Println("The following security update requires Ubuntu Pro with 'esm-infra' enabled:")
 		} else {
