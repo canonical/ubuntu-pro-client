@@ -1,3 +1,5 @@
+.. _apt-messages:
+
 Ubuntu Pro-related APT messages
 *******************************
 

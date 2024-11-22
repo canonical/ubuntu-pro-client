@@ -31,6 +31,16 @@ and security hardening enabled. These images are available as
 `AWS Ubuntu Pro FIPS <fips_AWS_>`_,
 `Azure Ubuntu Pro FIPS <fips_Azure_>`_ and `GCP Ubuntu Pro FIPS <fips_GCP_>`_.
 
+.. _what-is-auto-attach:
+
+The ``ubuntu-pro-auto-attach`` package
+======================================
+
+The ``ubuntu-pro-auto-attach`` package is used by
+:ref:`Public Cloud Ubuntu Pro <expl-about-pro-cpc>` machines to automate the
+process of attaching a machine on boot. This package ships a ``systemd`` unit
+that runs an auto-attach command on first boot.
+
 .. LINKS
 
 .. include:: ../links.txt

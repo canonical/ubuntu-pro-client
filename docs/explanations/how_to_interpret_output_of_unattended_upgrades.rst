@@ -1,3 +1,5 @@
+.. _unattended-upgrades:
+
 How to interpret the output of unattended-upgrades
 **************************************************
 

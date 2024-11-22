@@ -1,3 +1,5 @@
+.. _what-data-is-collected:
+
 What data is collected from active Ubuntu Pro machines?
 *******************************************************
 

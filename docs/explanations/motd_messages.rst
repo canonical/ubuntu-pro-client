@@ -1,3 +1,5 @@
+.. _motd-messages:
+
 Ubuntu Pro-related MOTD messages
 ********************************
 
