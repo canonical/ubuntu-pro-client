@@ -1,7 +1,7 @@
 .. _pro-fix-dry-run:
 
-How to know what the ``fix`` command would change?
-**************************************************
+How to preview the result of pro fix
+************************************
 
 As outlined in our explanation of the different scenarios encountered when
 :ref:`using pro fix to solve a CVE/USN <pro-fix-howto>`,
