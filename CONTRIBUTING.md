@@ -9,18 +9,18 @@ This section contains developer documentation for the Ubuntu Pro Client project.
 
 ## How-to guides
 
-* [Run the code formatting tools](dev-docs/code_formatting.md)
-* [How to spellcheck messages](dev-docs/spellcheck.md)
-* [Release a new version](dev-docs/release_a_new_version.md)
-* [Release a hotfix](dev-docs/release_a_hotfix.md)
-* [Use the contract staging environment](dev-docs/use_staging_environment.md)
-* [Use the magic attach endpoints](dev-docs/magic_attach_endpoints.md)
-* [Permanently detach Pro instances](dev-docs/detach_pro_instances.md)
-* [Troubleshoot security confinement](dev-docs/troubleshoot_security_confinement.md)
-* [Troubleshoot APT news security confinement](dev-docs/troubleshoot_apt_news_security_confinement.md)
-* [Set up a Windows machine for WSL testing](dev-docs/wsl_testing_setup.md)
-* [Run unit tests](dev-docs/unit_testing.md)
-* [Run integration tests](dev-docs/integration_testing.md)
+* [Run the code formatting tools](dev-docs/how-to/code_formatting.md)
+* [How to spellcheck messages](dev-docs/how-to/spellcheck.md)
+* [Release a new version](dev-docs/how-to/release_a_new_version.md)
+* [Release a hotfix](dev-docs/how-to/release_a_hotfix.md)
+* [Use the contract staging environment](dev-docs/how-to/use_staging_environment.md)
+* [Use the magic attach endpoints](dev-docs/how-to/magic_attach_endpoints.md)
+* [Permanently detach Pro instances](dev-docs/how-to/detach_pro_instances.md)
+* [Troubleshoot security confinement](dev-docs/how-to/troubleshoot_security_confinement.md)
+* [Troubleshoot APT news security confinement](dev-docs/how-to/troubleshoot_apt_news_security_confinement.md)
+* [Set up a Windows machine for WSL testing](dev-docs/how-to/wsl_testing_setup.md)
+* [Run unit tests](dev-docs/how-to/unit_testing.md)
+* [Run integration tests](dev-docs/how-to/integration_testing.md)
 * [Run dep8 tests](dev-docs/how-to/run_dep8_tests.md)
 
 ## Reference
