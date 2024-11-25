@@ -25,12 +25,15 @@ The currently available endpoints are:
 - `u.pro.detach.v1`_
 - `u.pro.packages.summary.v1`_
 - `u.pro.packages.updates.v1`_
+- `u.pro.packages.updates_with_cves.v1`_
 - `u.pro.security.fix.cve.execute.v1`_
 - `u.pro.security.fix.cve.plan.v1`_
 - `u.pro.security.fix.usn.execute.v1`_
 - `u.pro.security.fix.usn.plan.v1`_
 - `u.pro.security.status.livepatch_cves.v1`_
 - `u.pro.security.status.reboot_required.v1`_
+- `u.pro.security.vulnerabilities.cve.v1`_
+- `u.pro.security.vulnerabilities.usn.v1`_
 - `u.pro.services.dependencies.v1`_
 - `u.pro.services.disable.v1`_
 - `u.pro.services.enable.v1`_
@@ -1010,6 +1013,205 @@ Arguments:
              ]
          }
 
+u.pro.packages.updates_with_cves.v1
+===================================
+
+This endpoint shows available updates for packages in a system including
+the CVEs that are tied to each update.
+
+- Introduced in Ubuntu Pro Client Version: ``35~``
+- Requires network access: Yes
+
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``data_file``
+     - ``Optional[str]``
+     - Path for a local vulnerabilities JSON data.
+   * - ``series``
+     - ``Optional[str]``
+     - When provided, the API will download the JSON vulnerabilities data for the given series.
+   * - ``updates_data``
+     - ``Optional[str]``
+     - The updates data collected from u.pro.packages.updates.v1.When used, the API will not collect local available updates, but instead rely on the updates data for this information
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      **Calling from Python code:**
+
+      .. code-block:: python
+
+         from uaclient.api.u.pro.packages.updates_with_cves.v1 import updates, UpdatesInfoWithCVEsOptions
+
+         options = UpdatesInfoWithCVEsOptions()
+         result = updates(options)
+
+      **Expected return object:**
+
+      - ``uaclient.api.u.pro.packages.updates_with_cves.v1.PackageUpdatesWithCVEsResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``summary``
+             - ``UpdateSummary``
+             - Summary of all available updates
+           * - ``updates``
+             - ``List[UpdateInfoWithCVES]``
+             - Detailed list of all available updates
+           * - ``cves``
+             - ``List[CVEInfo]``
+             - A list of CVEs that affect the system
+           * - ``vulnerability_data_published_at``
+             - ``datetime``
+             - The date the JSON vulnerability data was published at
+
+      - ``uaclient.api.u.pro.packages.updates.v1.UpdateSummary``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``num_updates``
+             - ``int``
+             - Total count of available updates
+           * - ``num_esm_apps_updates``
+             - ``int``
+             - Count of available updates from ``esm-apps``
+           * - ``num_esm_infra_updates``
+             - ``int``
+             - Count of available updates from ``esm-infra``
+           * - ``num_standard_security_updates``
+             - ``int``
+             - Count of available updates from the ``-security`` pocket
+           * - ``num_standard_updates``
+             - ``int``
+             - Count of available updates from the ``-updates`` pocket
+
+      - ``uaclient.api.u.pro.packages.updates_with_cves.v1.UpdateInfoWithCVES``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``download_size``
+             - ``int``
+             - Download size for the update in bytes
+           * - ``origin``
+             - ``str``
+             - Where the update is downloaded from
+           * - ``package``
+             - ``str``
+             - Name of the package to be updated
+           * - ``provided_by``
+             - ``str``
+             - Service which provides the update
+           * - ``status``
+             - ``str``
+             - Whether this update is ready for download or not
+           * - ``version``
+             - ``str``
+             - Version of the update
+           * - ``related_cves``
+             - ``List[str]``
+             - A list of CVEs that are tied to this package update
+
+      - ``uaclient.api.u.pro.packages.updates_with_cves.v1.CVEInfo``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the CVE
+           * - ``description``
+             - ``str``
+             - The CVE description
+           * - ``published_at``
+             - ``datetime``
+             - The CVE published date
+           * - ``ubuntu_priority``
+             - ``str``
+             - The ubuntu priority for the CVE
+           * - ``notes``
+             - ``Optional[List[str]]``
+             - A list of notes for the CVE
+           * - ``cvss_score``
+             - ``Optional[float]``
+             - The CVE cvss score
+           * - ``cvss_severity``
+             - ``Optional[str]``
+             - The CVE cvss severity
+
+      **Raised exceptions:**
+
+      - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      **Calling from the CLI:**
+
+      .. code-block:: bash
+
+         pro api u.pro.packages.updates_with_cves.v1
+
+      
+
+      **Expected attributes in JSON structure:**
+
+      .. code-block:: js
+
+         {
+             "summary": {
+                 "num_updates": 1,
+                 "num_esm_apps_updates": 2,
+                 "num_esm_infra_updates": 3,
+                 "num_standard_security_updates": 4,
+                 "num_standard_updates": 5,
+             },
+             "updates": [
+                 {
+                     "download_size": 6,
+                     "origin": "<some site>",
+                     "package": "<package name>",
+                     "provided_by": "<service name>",
+                     "status": "<update status>",
+                     "version": "<updated version>",
+                     "related_cves": ["CVE-5678-123"],
+                 },
+             ],
+             "cves": [
+               {
+                 "name": "CVE-5678-123",
+                 "cvss_score": 8.1,
+                 "cvss_severity": "high",
+                 "description": "CVE description",
+                 "notes": [],
+                 "published_at": "2024-07-23T20:53:55.708438+00:00",
+                 "ubuntu_priority": "medium"
+               }
+             ],
+             "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
+         }
 
 
 
@@ -2473,7 +2675,493 @@ Arguments:
              "reboot_required": "yes|no|yes-kernel-livepatches-applied"
          }
 
+u.pro.security.vulnerabilities.cve.v1
+=====================================
 
+This endpoint shows the CVE vulnerabilites in the system.
+By default, this API will only show fixable CVEs in the system.
+
+- Introduced in Ubuntu Pro Client Version: ``35~``
+- Requires network access: Yes
+
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``all``
+     - ``Optional[bool]``
+     - Show all CVE vulnerabilities, even unfixable ones.
+   * - ``unfixable``
+     - ``Optional[bool]``
+     - Show only unfixable CVES.
+   * - ``data_file``
+     - ``Optional[str]``
+     - Path for a local vulnerabilities JSON data.
+   * - ``manifest_file``
+     - ``Optional[str]``
+     - Path for manifest file to be used instead of locally installed packages.
+   * - ``series``
+     - ``Optional[str]``
+     - When provided, the API will download the JSON vulnerabilities data for the given series.
+   * - ``update``
+     - ``Optional[bool]``
+     - If the vulnerability data should automatically be updated when running the command (default=True)
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      **Calling from Python code:**
+
+      .. code-block:: python
+
+         from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import vulnerabilites, CVEVulnerabilitesOptions
+
+         options = CVEVulnerabilitiesOptions()
+         result = vulnerabilities(options)
+
+      **Expected return object:**
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.cve.v1.CVEVulnerabilitiesResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``cves``
+             - ``List[CVEVulnerabilityResult]``
+             - A list of CVEs that affect the system
+           * - ``vulnerability_data_published_at``
+             - ``datetime``
+             - The date the JSON vulnerability data was published at
+           * - ``apt_updated_at``
+             - ``Optional[datetime]``
+             - The date of the last apt update operation in the system
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.cve.v1.CVEVulnerabilityResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the CVE
+           * - ``description``
+             - ``str``
+             - The CVE description
+           * - ``published_at``
+             - ``datetime``
+             - The CVE published date
+           * - ``ubuntu_priority``
+             - ``str``
+             - The ubuntu priority for the CVE
+           * - ``notes``
+             - ``Optional[List[str]]``
+             - A list of notes for the CVE
+           * - ``affected_packages``
+             - ``List[CVEAffectedPackage]``
+             - A list of affected packages for this CVE
+           * - ``fixable``
+             - ``str``
+             - The fixable status of the CVE
+           * - ``related_usns``
+             - ``List[RelatedUSN]``
+             - The related USNs for this CVE
+           * - ``cvss_score``
+             - ``Optional[float]``
+             - The CVE cvss score
+           * - ``cvss_severity``
+             - ``Optional[str]``
+             - The CVE cvss severity
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.cve.v1.CVEAffectedPackage``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the package
+           * - ``current_version``
+             - ``str``
+             - The current version of the package
+           * - ``fix_version``
+             - ``Optional[str]``
+             - The version that fixes the CVE for the package
+           * - ``fix_status``
+             - ``Optional[str]``
+             - The status of the CVE fix for the package
+           * - ``fix_available_from``
+             - ``str``
+             - The pocket where the fix is available from
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.cve.v1.RelatedUSN``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The USN name
+           * - ``title``
+             - ``str``
+             - The USN title
+           * - ``affected_installed_packages``
+             - ``List[str]``
+             - A list of installed packages affected by the USN
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.cve.v1.CVEAffectedPackage``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the package
+           * - ``current_version``
+             - ``str``
+             - The current version of the package
+           * - ``fix_version``
+             - ``Optional[str]``
+             - The version that fixes the CVE for the package
+           * - ``fix_status``
+             - ``Optional[str]``
+             - The status of the CVE fix for the package
+           * - ``fix_available_from``
+             - ``str``
+             - The pocket where the fix is available from
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.cve.v1.CVEVulnerabilityResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the CVE
+           * - ``description``
+             - ``str``
+             - The CVE description
+           * - ``published_at``
+             - ``datetime``
+             - The CVE published date
+           * - ``ubuntu_priority``
+             - ``str``
+             - The ubuntu priority for the CVE
+           * - ``notes``
+             - ``Optional[List[str]]``
+             - A list of notes for the CVE
+           * - ``affected_packages``
+             - ``List[CVEAffectedPackage]``
+             - A list of affected packages for this CVE
+           * - ``fixable``
+             - ``str``
+             - The fixable status of the CVE
+           * - ``related_usns``
+             - ``List[RelatedUSN]``
+             - The related USNs for this CVE
+           * - ``cvss_score``
+             - ``Optional[float]``
+             - The CVE cvss score
+           * - ``cvss_severity``
+             - ``Optional[str]``
+             - The CVE cvss severity
+
+      **Raised exceptions:**
+
+      - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      **Calling from the CLI:**
+
+      .. code-block:: bash
+
+         pro api u.pro.security.vulnerabilities.cve.v1
+
+      **Expected attributes in JSON structure:**
+
+      .. code-block:: js
+
+         {
+             "apt_updated_at": "2024-07-26T20:53:55.708438+00:00",
+             "cves": [
+               {
+                 "affected_packages": [
+                   {
+                     "current_version": "1.3.1+dfsg-1~ubuntu0.16.04.1",
+                     "fix_available_from": "esm-infra",
+                     "fix_status": "fixed",
+                     "fix_version": ".*",
+                     "name": "libzstd1"
+                   }
+                 ],
+                 "cvss_score": 8.1,
+                 "cvss_severity": "high",
+                 "description": "CVE description",
+                 "fixable": "yes",
+                 "name": "CVE-2019-11922",
+                 "notes": [],
+                 "published_at": "2024-07-23T20:53:55.708438+00:00",
+                 "ubuntu_priority": "medium"
+               }
+             ],
+             "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
+         }
+
+u.pro.security.vulnerabilities.usn.v1
+=====================================
+
+This endpoint shows the USN vulnerabilites in the system.
+By default, this API will only show fixable USNs in the system.
+
+- Introduced in Ubuntu Pro Client Version: ``35~``
+- Requires network access: Yes
+
+Arguments:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+   * - ``all``
+     - ``Optional[bool]``
+     - Show all USN vulnerabilities, even unfixable ones.
+   * - ``unfixable``
+     - ``Optional[bool]``
+     - Show only unfixable USNs.
+   * - ``data_file``
+     - ``Optional[str]``
+     - Path for a local vulnerabilities JSON data.
+   * - ``manifest_file``
+     - ``Optional[str]``
+     - Path for manifest file to be used instead of locally installed packages.
+   * - ``series``
+     - ``Optional[str]``
+     - When provided, the API will download the JSON vulnerabilities data for the given series.
+   * - ``update``
+     - ``Optional[bool]``
+     - If the vulnerability data should automatically be updated when running the command (default=True)
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      **Calling from Python code:**
+
+      .. code-block:: python
+
+         from uaclient.api.u.pro.security.vulnerabilities.usn.v1 import vulnerabilites,
+         USNVulnerabilitesOptions
+
+         options = USNVulnerabilitiesOptions()
+         result = vulnerabilities(options)
+
+      **Expected return object:**
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.usn.v1.USNVulnerabilitiesResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``usns``
+             - ``List[USNVulnerabilityResult]``
+             - A list of USNs that affect the system
+           * - ``vulnerability_data_published_at``
+             - ``datetime``
+             - The date the JSON vulnerability data was published at
+           * - ``apt_updated_at``
+             - ``Optional[datetime]``
+             - The date of the last apt update operation in the system
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.usn.v1.USNVulnerabilityResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the CVE
+           * - ``description``
+             - ``str``
+             - The CVE description
+           * - ``published_at``
+             - ``datetime``
+             - The CVE published date
+           * - ``affected_packages``
+             - ``List[USNAffectedPackage]``
+             - A list of affected packages for this USN
+           * - ``fixable``
+             - ``str``
+             - The fixable status of the CVE
+           * - ``related_cves``
+             - ``List[RelatedCVE]``
+             - A list of CVEs related to this USN
+           * - ``related_launchpad_bugs``
+             - ``List[str]``
+             - A list of Launchpad bugs related to this USN
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.usn.v1.USNAffectedPackage``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the package
+           * - ``current_version``
+             - ``str``
+             - The current version of the package
+           * - ``fix_version``
+             - ``Optional[str]``
+             - The version that fixes the CVE for the package
+           * - ``fix_available_from``
+             - ``str``
+             - The pocket where the fix is available from
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.usn.v1.RelatedCVE``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The CVE name
+           * - ``priority``
+             - ``str``
+             - The CVE ubuntu priority
+           * - ``affected_installed_packages``
+             - ``List[str]``
+             - A list of installed packages affected by the CVE
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.usn.v1.USNAffectedPackage``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the package
+           * - ``current_version``
+             - ``str``
+             - The current version of the package
+           * - ``fix_version``
+             - ``Optional[str]``
+             - The version that fixes the CVE for the package
+           * - ``fix_available_from``
+             - ``str``
+             - The pocket where the fix is available from
+
+      - ``uaclient.api.u.pro.security.vulnerabilities.usn.v1.USNVulnerabilityResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``name``
+             - ``str``
+             - The name of the CVE
+           * - ``description``
+             - ``str``
+             - The CVE description
+           * - ``published_at``
+             - ``datetime``
+             - The CVE published date
+           * - ``affected_packages``
+             - ``List[USNAffectedPackage]``
+             - A list of affected packages for this USN
+           * - ``fixable``
+             - ``str``
+             - The fixable status of the CVE
+           * - ``related_cves``
+             - ``List[RelatedCVE]``
+             - A list of CVEs related to this USN
+           * - ``related_launchpad_bugs``
+             - ``List[str]``
+             - A list of Launchpad bugs related to this USN
+
+      **Raised exceptions:**
+
+      - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      **Calling from the CLI:**
+
+      .. code-block:: bash
+
+         pro api u.pro.security.vulnerabilities.usn.v1
+
+      
+
+      **Expected attributes in JSON structure:**
+
+      .. code-block:: js
+
+         {
+             "apt_updated_at": "2024-07-26T20:53:55.708438+00:00",
+             "cves": [
+               {
+                 "affected_packages": [
+                   {
+                     "current_version": "1.3.1+dfsg-1~ubuntu0.16.04.1",
+                     "fix_available_from": "esm-infra",
+                     "fix_version": ".*",
+                     "name": "libzstd1"
+                   }
+                 ],
+                 "description": "USN description",
+                 "fixable": "yes",
+                 "name": "USN-4822-1",
+                 "published_at": "2024-07-23T20:53:55.708438+00:00"
+               }
+             ],
+             "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
+         }
 
 
 u.pro.services.dependencies.v1

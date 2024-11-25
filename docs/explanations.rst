@@ -34,18 +34,21 @@ selection of some of the commands -- what they do, and how they work.
     explanations/what_refresh_does.md
     explanations/purging_services.md
 
-Public Cloud Ubuntu Pro
-=======================
+Vulnerability commands
+======================
 
-Here we talk about Ubuntu Pro images for AWS, Azure and GCP, and the related
-tooling: the ``ubuntu-pro-auto-attach`` package.
+Here we'll show you the information related to ``pro vulnerability`` commands.
+
+On any ``pro vulnerability`` command, we consider a vulnerability (CVE or USN) as **fixable**,
+if and only if, at least **one** affected installed package associated with it can
+be fixed. That means that a vulnerability is unfixable if no affected installed packages
+related to the vulnerability can be fixed at the moment.
 
 ..  toctree::
     :maxdepth: 1
 
-    explanations/what_are_ubuntu_pro_cloud_instances.md
-    explanations/what_is_the_ubuntu_advantage_pro_package.md
-
+    explanations/pro_vulnerability_list.md
+    explanations/pro_vulnerability_show.md
 
 Handling CVEs and USNs
 ==============================
@@ -59,6 +62,20 @@ as well as some details related to it like CVEs and USNs.
     explanations/cves_and_usns_explained.md
     explanations/fix_scenarios.rst
     explanations/how_to_interpret_output_of_fix_plan_api.md
+
+Public Cloud Ubuntu Pro
+=======================
+
+Here we talk about Ubuntu Pro images for AWS, Azure and GCP, and the related
+tooling: the ``ubuntu-pro-auto-attach`` package.
+
+..  toctree::
+    :maxdepth: 1
+
+    explanations/what_are_ubuntu_pro_cloud_instances.md
+    explanations/what_is_the_ubuntu_advantage_pro_package.md
+
+
 
 Other Pro features explained
 ============================
