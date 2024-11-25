@@ -1,44 +1,7 @@
 # Contributing to Ubuntu Pro Client
 
-## Developer Documentation
+## Developer documentation
 
-Developer documentation for the Ubuntu Pro Client project. The topics cover
-from the architecture of the project to how you should test any code changes.
-
-### Tutorials
-
-* [Get started developing for Ubuntu Pro Client](./dev-docs/tutorials/getting-started.md)
-
-### How to Guides
-
-* [How to run the code formatting tools](./dev-docs/howtoguides/code_formatting.md)
-* [How to run unit tests](./dev-docs/howtoguides/unit_testing.md)
-* [How to run integration tests](./dev-docs/howtoguides/integration_testing.md)
-* [How to release a new version](./dev-docs/howtoguides/release_a_new_version.md)
-* [How to release a hotfix](./dev-docs/howtoguides/release_a_hotfix.md)
-* [How to use the contract staging environment](./dev-docs/howtoguides/use_staging_environment.md)
-* [How to use the magic attach endpoints](./dev-docs/howtoguides/how_to_use_magic_attach_endpoints.md)
-* [How to spellcheck messages](./dev-docs/howtoguides/spellcheck.md)
-
-### Reference
-
-* [Terminology](./dev-docs/references/terminology.md)
-* [Architecture](./dev-docs/references/architecture.md)
-* [Early review sign-off](./dev-docs/references/early_review_signoff.md)
-* [What happens during attach](./dev-docs/references/what_happens_during_attach.md)
-* [Enabling a service](./dev-docs/references/enabling_a_service.md)
-* [Directory layout](./dev-docs/references/directory_layout.md)
-* [Daily Builds](./dev-docs/references/daily_builds.md)
-* [Version String Formatting](./dev-docs/references/version_string_formatting.md)
-* [PR review policy](./dev-docs/references/pr_review_policy.md)
-
-### Explanation
-
-* [How auto-attach works](./dev-docs/explanations/how_auto_attach_works.md)
-* [Translations](./dev-docs/explanations/translations.md)
-* [Policy on string changes](./dev-docs/explanations/string_changes_policy.md)
-
-### Documentation
-
-* [How to contribute to our documentation](./dev-docs/documentation/contribute_docs.md)
-* [Our style guide](./dev-docs/documentation/styleguide.md)
+Developer documentation for the Ubuntu Pro Client project is found on
+our `main` branch, inside the `dev-docs` directory. This includes instructions
+on how to build the documentation locally.
