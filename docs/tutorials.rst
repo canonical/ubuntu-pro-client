@@ -17,19 +17,17 @@ use them to manage Pro on your system. We will also take a look at the security
 offerings and how Pro helps to secure your system.
 
 * :ref:`Part 1: Introduction to the main Pro Client commands <tutorial-commands>`
-
 * :ref:`Part 2: Explore your system's security with Pro <security-tutorial>`
 
 Further tutorials
 =================
 
-These stand-alone tutorials provide a bit more experience with common tasks.
 Once you are comfortable with the basics and want to start exploring other
-things you can do with ``pro``, these tutorials are ideal.
+things you can do with the Ubuntu Pro Client, you can work through our further
+tutorials.
 
 They are not sequential, so you can approach them in any order you like!
 
-* :ref:`Create an Ubuntu FIPS Docker image <tutorial-fips-docker-image>`
 * :ref:`Host your own APT news <host-own-apt-news>`
 
 ..  toctree::
@@ -38,5 +36,4 @@ They are not sequential, so you can approach them in any order you like!
 
     Introduction to the Pro Client commands <tutorials/basic_commands.rst>
     Explore your system's security with Pro <tutorials/security-with-pro.rst>
-    tutorials/create_a_fips_docker_image.rst
     tutorials/host_apt_news.rst

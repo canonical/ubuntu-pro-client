@@ -86,6 +86,7 @@ There are several Ubuntu Pro services that may be useful in a Docker image.
    :maxdepth: 1
 
    Enable Ubuntu Pro services in a Dockerfile <howtoguides/enable_in_dockerfile>
+   Create an Ubuntu FIPS Docker image <howtoguides/create_a_fips_docker_image.rst>
 
 Ubuntu Pro Client for Clouds
 ============================
