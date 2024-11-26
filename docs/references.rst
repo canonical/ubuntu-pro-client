@@ -21,9 +21,9 @@ interface (CLI) in your terminal, or automatically via the API.
 * :ref:`CLI reference guide <commands>`
 * :ref:`API reference guide <api>`
 
-You may, in a production environment, also wish to test upcoming changes. For
-this, you can use the available Personal Package Archives (PPA) for the Ubuntu
-Pro Client.
+You may, in a staging or canary environment, also wish to test upcoming
+changes. For this, you can use the available Personal Package Archives (PPA)
+for the Ubuntu Pro Client.
 
 * :ref:`Personal Package Archives (PPAs) <PPAs>`
 

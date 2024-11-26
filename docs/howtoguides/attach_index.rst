@@ -11,7 +11,7 @@ subscription. The most commonly used way is to attach a single machine using
 
 If you have a paid subscription and want to check a specific token to see what
 will happen if you attach to it, you can simulate the attach operation (without
-attaching anything):
+making changes to your machine):
 
 * :ref:`How to simulate attaching <simulate-attach>`
 

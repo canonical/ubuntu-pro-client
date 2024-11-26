@@ -10,8 +10,8 @@ can be applied to a wider range of situations.
 They will help you to achieve a particular end result, but may require you to
 understand and adapt the steps to fit your specific requirements.
 
-The Pro Client comes pre-installed on every Ubuntu LTS so you do not need to
-install it.
+The Pro Client comes pre-installed on every Ubuntu release so you do not need
+to install it.
 
 Attach a machine to a subscription
 ==================================
