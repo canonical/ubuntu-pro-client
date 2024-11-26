@@ -28,7 +28,7 @@ for the Ubuntu Pro Client.
 * :ref:`Personal Package Archives (PPAs) <PPAs>`
 
 You may occasionally encounter an error message when interacting with the
-Pro Client. If you do, this page will help you to resolve the error.
+Pro Client. If you do, check this page to find more details about the error.
 
 * :ref:`Error messages <error-messages>`
 
