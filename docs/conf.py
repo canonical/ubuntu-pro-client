@@ -54,7 +54,6 @@ html_extra_path = ["googleaf254801a5285c31.html", "sitemap-index.xml"]
 rediraffe_branch = "docs"
 rediraffe_redirects = "redirects.txt"
 
-
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
