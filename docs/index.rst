@@ -103,4 +103,4 @@ constructive feedback.
 
 .. include:: links.txt
 
-.. _contribute: https://github.com/canonical/ubuntu-pro-client/blob/docs/CONTRIBUTING.md
+.. _contribute: https://github.com/canonical/ubuntu-pro-client/blob/-/CONTRIBUTING.md
