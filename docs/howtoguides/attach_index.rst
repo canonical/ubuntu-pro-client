@@ -4,7 +4,7 @@ Attach a machine to a subscription
 **********************************
 
 To access Ubuntu Pro services, you need to attach your machine to a
-subscription. The most commonly used way is to attach a single machine using
+subscription. The most common way to attach a single machine is using
 ``pro attach``:
 
 * :ref:`How to attach <attach>`

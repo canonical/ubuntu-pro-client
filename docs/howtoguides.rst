@@ -10,8 +10,8 @@ can be applied to a wider range of situations.
 They will help you to achieve a particular end result, but may require you to
 understand and adapt the steps to fit your specific requirements.
 
-The Pro Client comes pre-installed on every Ubuntu release so you do not need
-to install it.
+The Pro Client comes pre-installed on every Ubuntu release. To access your
+Ubuntu Pro services, you first need to attach your machine to your subscription.
 
 Attach a machine to a subscription
 ==================================
@@ -104,8 +104,7 @@ will direct you in setting up your Public Cloud environment.
 Troubleshooting
 ===============
 
-We hope that your experience of using the Pro Client is an enjoyable one. You
-may occasionally need to check the version of the Pro Client, collect logs
+You may occasionally need to check the version of the Pro Client, collect logs
 in order to report a bug, or release a corrupted lock on a file.
 
 .. toctree::
