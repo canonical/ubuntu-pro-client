@@ -1,3 +1,5 @@
+.. _pro-airgapped:
+
 Using Ubuntu Pro airgapped
 **************************
 

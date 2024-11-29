@@ -1,3 +1,5 @@
+.. _deprecation-policy:
+
 Ubuntu Pro Client feature deprecation policy
 ********************************************
 

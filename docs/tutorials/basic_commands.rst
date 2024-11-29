@@ -204,7 +204,7 @@ made, and ``cis`` will then be enabled.
 
     The ``refresh`` command does more than just update the contract in your
     machine. If you would like more information about the command, take a look
-    at :ref:`this deeper explanation<expl-pro-refresh>`.
+    at our :ref:`CLI reference page <commands>`.
 
 enable
 ------

@@ -1,41 +1,54 @@
 .. _pro-check-list-cves:
 
-Check if a system is affected by a list of CVEs?
-*********************************************************
+Check if a system is affected by a list of CVEs
+***********************************************
 
 .. include:: ../includes/pro-fix-intro.txt
 
-If you have a list of `Common Vulnerabilities and Exposure <cve_>`_ (CVEs) and `Ubuntu Security Notice <usn_>`_ (USNs) and want to check if your Ubuntu system is affected by it, you can check using the ``u.pro.security.fix.cve.plan.v1`` API endpoint as we'll show you in this guide.
+If you have a list of CVEs and/or USNs and want to check if your Ubuntu
+system is affected by them, you can check using the
+``u.pro.security.fix.cve.plan.v1`` API endpoint as we'll show you in this guide.
 
 .. note::
-    The ``u.pro.security.fix.cve.plan`` API is provided as a part of the Ubuntu Pro Client (``pro``), which is a security tool for Ubuntu systems. The Ubuntu Pro Client comes pre-installed on every Ubuntu system. You can run ``pro help`` in your terminal window to see a list of the ``pro`` services and commands available.
+   The ``u.pro.security.fix.cve.plan`` API endpoint is provided as part of the
+   Ubuntu Pro Client (``pro``), which is a security tool for Ubuntu systems.
+   The Ubuntu Pro Client comes pre-installed on every Ubuntu system. You can
+   run ``pro help`` in your terminal window to see a list of the ``pro``
+   services and commands available.
 
 Using the ``pro.fix.cve.plan`` API
 ----------------------------------
 
-To check if your system is affected by a list of CVEs, you need to use the ``u.pro.security.fix.cve.plan.v1`` API endpoint since the
-``pro fix --dry-run`` CLI command is only used to check individual CVEs. This endpoint will output a JSON blob containing the current status of each CVE, as can be seen :ref:`in the endpoint documentation<references/api:u.pro.security.fix.cve.execute.v1>`.
+To check if your system is affected by a list of CVEs, you need to use the
+``u.pro.security.fix.cve.plan.v1`` API endpoint, since the
+``pro fix --dry-run`` CLI command is only used to check individual CVEs. The
+API endpoint will output a JSON blob containing the current status of each CVE,
+as can be seen :ref:`in the endpoint documentation<references/api:u.pro.security.fix.cve.execute.v1>`.
 
-To better visualise the current status of each CVE from the JSON output we can use a ``jq`` filter.
-The ``jq`` command can parse JSON data directly in the terminal, creating a more readable output.
-To know more about it, please refer to `the jq manpage <https://manpages.ubuntu.com/manpages/xenial/man1/jq.1.html>`_
+To better visualise the current status of each CVE from the JSON output we can
+use a ``jq`` filter. The ``jq`` command can parse JSON data directly in the
+terminal, creating a more readable output. For more details about ``jq``, refer
+to `the manual page <https://manpages.ubuntu.com/manpages/xenial/man1/jq.1.html>`_
 
 First, we need to install ``jq`` by running the following command:
 
 .. code-block:: bash
 
-    sudo apt update & sudo apt install jq -y
+   sudo apt update & sudo apt install jq -y
 
 Once ``jq`` is installed, we can parse the JSON data returned from the plan API.
 
-For example, if we want to see if our system is affected by the following CVEs: **CVE-2020-28196, CVE-2020-15180**
-and **CVE-2017-9233**.
+For example, if we want to see if our system is affected by the CVEs:
+
+* **CVE-2020-28196**
+* **CVE-2020-15180**
+* **CVE-2017-9233**
 
 We make use of the plan API by running the following command:
 
 .. code-block:: bash
 
-    pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196", "CVE-2020-15180", "CVE-2017-9233"]}' \ 
+   pro api u.pro.security.fix.cve.plan.v1 --data '{"cves": ["CVE-2020-28196", "CVE-2020-15180", "CVE-2017-9233"]}' \ 
         | jq -r '.data.attributes.cves_data.cves[] | "\(.title) (\(.description)) - Current Status: \(.current_status)"'
 
 This command returns output with the following structure:

@@ -1,5 +1,7 @@
+.. _the-pro-daemon:
+
 What is the Pro daemon?
-*******************************
+***********************
 
 Ubuntu Pro Client sets up a daemon for two types of machines:
 
@@ -12,7 +14,7 @@ If a Pro license is detected, then the machine is automatically attached.
 
 For the Pro cloud images, the daemon is responsible for retrying the auto-attach
 operation if it fails on first boot. When that happens, users will be notified in
-MOTD or when they run `pro status` with a message like:
+MOTD or when they run ``pro status`` with a message like:
 
 .. code-block:: text
 
@@ -21,8 +23,8 @@ MOTD or when they run `pro status` with a message like:
    The next attempt is scheduled for RETRY_DATE
    You can try manually with `sudo pro auto-attach`.
 
-The "retry auto-attach" operation will keep retrying for a **month**. If at the end, we cannot attach
-to the machine, we display the following message to the user:
+The "retry auto-attach" operation will keep retrying for a **month**. If we
+still cannot attach to the machine by then, we display the following message:
 
 .. code-block:: text
 
@@ -32,7 +34,7 @@ to the machine, we display the following message to the user:
    You can try manually with `sudo pro auto-attach`.
 
 Disabling the daemon
----------------------
+====================
 
 If you are not interested in Ubuntu Pro services and don't want your machine to
 be automatically attached to your subscription, you can safely stop and disable

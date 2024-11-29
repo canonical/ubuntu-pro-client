@@ -1,12 +1,24 @@
+.. _attach_index:
+
 Attach a machine to a subscription
 **********************************
 
-* :ref:`How to attach <attach>` shows you how to perform the attach process.
-* :ref:`How to simulate the attach operation <simulate-attach>` to check a
-  specific token to see what will happen if you attach to it (before
-  attaching anything).
-* :ref:`How to attach with a config file <attach-with-config>` to pass a
-  specific token to your machine using a configuration file.
+To access Ubuntu Pro services, you need to attach your machine to a
+subscription. The most common way to attach a single machine is using
+``pro attach``:
+
+* :ref:`How to attach <attach>`
+
+If you have a paid subscription and want to check a specific token to see what
+will happen if you attach to it, you can simulate the attach operation (without
+making changes to your machine):
+
+* :ref:`How to simulate attaching <simulate-attach>`
+
+It's also possible to pass a specific token to your machine using a
+configuration file:
+
+* :ref:`Attach using a config file <attach-with-config>`
 
 .. TOC
 
@@ -15,5 +27,5 @@ Attach a machine to a subscription
    :hidden:
    
    How to attach <how_to_attach>
-   How to simulate attaching <how_to_simulate_attach>
-   How to attach with a configuration file <how_to_attach_with_config_file>
+   Simulate attaching <how_to_simulate_attach>
+   Attach with a configuration file <how_to_attach_with_config_file>

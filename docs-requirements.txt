@@ -11,3 +11,4 @@ sphinxcontrib-mermaid
 sphinxcontrib-jquery
 sphinxext-opengraph
 watchfiles
+sphinxext-rediraffe

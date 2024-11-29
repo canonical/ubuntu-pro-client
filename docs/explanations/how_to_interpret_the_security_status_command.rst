@@ -1,3 +1,5 @@
+.. _pro-security-status:
+
 What does ``security-status`` do?
 *********************************
 

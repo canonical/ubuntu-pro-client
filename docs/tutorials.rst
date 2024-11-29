@@ -3,40 +3,37 @@
 Ubuntu Pro Client tutorial
 **************************
 
-This section of our documentation contains step-by-step tutorials to help
-outline what the Ubuntu Pro Client (``pro``) is capable of, while helping you
-to achieve specific aims.
+This section contains step-by-step tutorials to show what the Ubuntu Pro Client
+(``pro``) is capable of, while helping you to achieve specific aims.
 
 We hope our tutorials make as few assumptions as possible and are accessible
-to anyone with an interest in ``pro``. They should be a great place to start
-learning about ``pro``, how it works, and what it's capable of.
-
------
+to anyone with an interest in ``pro``. They should be a great place to start!
 
 Getting started
 ===============
 
-This tutorial will help you get started with ``pro``. It introduces the main
-commands available and helps to orient you with the basics of ``pro``.
-It is the ideal starting place if you're unfamiliar with ``pro`` and how it
-works.
+These tutorials introduce you to the Pro Client, its main commands and how to
+use them to manage Pro on your system. We will also take a look at Pro's
+security offerings and how they help to secure your system.
 
-..  toctree::
-    :maxdepth: 1
-
-    Introduction to the Pro Client commands <tutorials/basic_commands.rst>
-    Explore your system's security with Pro <tutorials/security-with-pro.rst>
+* :ref:`Part 1: Introduction to the main Pro Client commands <tutorial-commands>`
+* :ref:`Part 2: Explore your system's security with Pro <security-tutorial>`
 
 Further tutorials
 =================
 
-These tutorials provide a bit more experience with common tasks. If you are
-already comfortable with the basics and want to start exploring some of the
-other things you can do with ``pro``, these tutorials are the ideal place to
-start. They are not sequential, so you can approach them in any order you like!
+Once you are comfortable with the basics and want to start exploring other
+things you can do with the Ubuntu Pro Client, you can work through our
+additional tutorials.
+
+They are not sequential, so you can approach them in any order you like!
+
+* :ref:`Host your own APT news <host-own-apt-news>`
 
 ..  toctree::
     :maxdepth: 1
+    :hidden:
 
-    tutorials/create_a_fips_docker_image.rst
+    Introduction to the Pro Client commands <tutorials/basic_commands.rst>
+    Explore your system's security with Pro <tutorials/security-with-pro.rst>
     tutorials/host_apt_news.rst

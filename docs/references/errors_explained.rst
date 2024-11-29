@@ -1,8 +1,10 @@
+.. _error-messages:
+
 Errors you may encounter and their meaning
 ******************************************
 
 If you encounter an error or warning message from Pro Client that you don't
-understand and cannot find on this page, please click the "Give feedback?"
+understand and cannot find on this page, please click the "Give feedback"
 button at the top of the page and let us know so that we can add it.
 
 User Configuration Migration in version 27.14

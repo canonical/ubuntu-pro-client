@@ -1,11 +1,16 @@
-Use the Pro Client
+.. _configure_index:
+
+Configure messages
 ******************
 
-* :ref:`Check Ubuntu Pro Client version <check_pro_version>`
-* :ref:`Display APT News <disable_enable_apt_news>`
+There are plenty of configuration options for showing or hiding messages.
+You can choose whether to display APT and MOTD messages, set timer jobs, or use
+your own custom configuration.
+
+* :ref:`Display or hide APT News <disable_enable_apt_news>`
+* :ref:`Use custom APT configuration <custom_apt_config>`
+* :ref:`Refresh MOTD and APT messages <update_motd_apt>`
 * :ref:`Configure a timer job <configuring_timer_jobs>`
-* :ref:`Update MOTD and APT messages <update_motd_apt>`
-* :ref:`How to use custom APT configuration <custom_apt_config>`
 
 .. TOC
 
@@ -13,8 +18,8 @@ Use the Pro Client
    :titlesonly:
    :hidden:
 
-   Check Ubuntu Pro Client version <check_pro_version>
    Display APT News <disable_enable_apt_news>
-   Configure a timer job <configuring_timer_jobs>
-   Update MOTD and APT messages <update_motd_messages>
    How to use custom APT configuration <use_custom_apt_config>
+   Refresh MOTD and APT messages <update_motd_messages>
+   Configure a timer job <configuring_timer_jobs>
+

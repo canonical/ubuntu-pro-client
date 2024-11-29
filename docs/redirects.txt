@@ -1,0 +1,9 @@
+# Redirects: from -> to
+# newline for each redirect
+# make sure you put a trailing slash to avoid errors
+tutorials/fix_intro/ howtoguides/fix_how_to_resolve_given_cve/
+tutorials/create_a_fips_docker_image/ howtoguides/create_a_fips_docker_image/
+howtoguides/get_token_and_attach/ howtoguides/how_to_attach/
+explanations/what_is_the_ubuntu_advantage_pro_package/ explanations/what_are_ubuntu_pro_cloud_instances/
+explanations/what_refresh_does/ references/commands/
+explanations/errors_explained/ references/errors_explained/

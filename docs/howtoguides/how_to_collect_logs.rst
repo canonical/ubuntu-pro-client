@@ -28,3 +28,6 @@ the command must be run as root.
 
 Running the command creates a ``pro_logs.tar.gz`` file in the current directory.
 The output file path/name can be changed using the ``-o`` option.
+
+You can then attach these logs when
+`reporting a bug on Launchpad <https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug>`_.

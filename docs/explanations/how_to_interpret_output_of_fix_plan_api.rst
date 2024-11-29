@@ -1,3 +1,5 @@
+.. _fix-plan-api-output:
+
 How to interpret the output of the fix plan API endpoint
 ********************************************************
 
