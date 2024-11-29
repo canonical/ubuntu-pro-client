@@ -10,47 +10,54 @@ to expand your knowledge and become better at using and configuring ``pro``.
 Pro services
 ============
 
-Ubuntu Pro is a portal to many other services offered by Canonical. Here you
-can discover more about the services available through Pro and how you can
-manage them with the Pro Client.
+.. include:: explanations/index_services.rst
+   :start-line: 4
+   :end-before: .. TOC
 
-* Find out :ref:`which services we recommend <which-services>` for different
-  situations
-* Use the ``pro status`` command
-  :ref:`to monitor active services <pro-status-output>` on your machine
-* Learn :ref:`about ESM <expl-ESM>` security services (``esm-apps`` and
-  ``esm-infra``)
-* :ref:`disable_and_purge` explains how to disable services and remove them
-  from your machine
-
-..  toctree::
-    :maxdepth: 1
-    :hidden:
-
-    explanations/which_services.rst
-    Checking active services <explanations/status_columns.rst>
-    explanations/about_esm.rst
-    explanations/purging_services.rst
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   Pro services... <explanations/index_services>
 
 Handling security vulnerabilities
 =================================
 
-Ubuntu Pro provides security fixes for vulnerabilities (CVEs and USNs). This
-section explains what those are, how to find out if your machine is affected,
-and the different uses of the ``pro fix`` command.
+.. include:: explanations/index_security.rst
+   :start-line: 4
+   :end-before: .. TOC
 
-* :ref:`About CVEs and USNs <expl-cve-usn>`
-* :ref:`Understand the security coverage <pro-security-status>` on your
-  installed packages using ``pro security-status``
-* :ref:`Common scenarios <pro-fix-howto>` when using the ``pro fix`` command
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   Security... <explanations/index_security>
 
-..  toctree::
-    :maxdepth: 1
-    :hidden:
+Ubuntu Pro policies
+===================
 
-    About CVEs and USNs <explanations/cves_and_usns_explained.rst>
-    Monitoring security coverage <explanations/how_to_interpret_the_security_status_command.rst>
-    Using pro fix to solve CVEs/USNs <explanations/fix_scenarios.rst>
+.. include:: explanations/index_policies.rst
+   :start-line: 4
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   Policies... <explanations/index_policies>
+
+Messaging
+=========
+
+.. include:: explanations/index_messages.rst
+   :start-line: 4
+   :end-before: .. TOC
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   Messages... <explanations/index_messages>
 
 Public Cloud Ubuntu Pro
 =======================
@@ -68,45 +75,6 @@ contract by the Ubuntu Pro daemon.
 
     Public Cloud Ubuntu Pro images <explanations/what_are_ubuntu_pro_cloud_instances.rst>
     About the Pro daemon <explanations/what_is_the_daemon.rst>
-
-Ubuntu Pro policies
-===================
-
-Here we explain our usage policies for features such as using Pro offline or
-airgapped, how machines are counted against tokens, how we deprecate features
-and what data is collected from active machines.
-
-* :ref:`Using Ubuntu Pro airgapped or offline <pro-airgapped>`
-* :ref:`How machines are counted <pro_token_and_machine_usage>`
-* :ref:`Feature deprecation policy <deprecation-policy>`
-* :ref:`Data collection policy <what-data-is-collected>`
-
-..  toctree::
-    :maxdepth: 1
-    :hidden:
-
-    Ubuntu Pro airgapped/offline <explanations/using_pro_offline.rst>
-    How machines are counted <explanations/pro_token_and_machine_usage.rst>
-    Feature deprecation policy <explanations/deprecation_policy.rst>
-    Data collection policy <explanations/data_collection.rst>
-
-Messaging
-=========
-
-Here you'll find details about Ubuntu Pro Client-related APT and MOTD messages
--- what they are, when they are used and how they work.
-
-* :ref:`apt-messages`
-* :ref:`motd-messages`
-* :ref:`expl-timer-jobs`
-
-..  toctree::
-    :maxdepth: 1
-    :hidden:
-
-    Pro-related APT messages <explanations/apt_messages.rst>
-    Pro-related MOTD messages <explanations/motd_messages.rst>
-    explanations/what_are_the_timer_jobs.rst
 
 API endpoints explained
 ========================

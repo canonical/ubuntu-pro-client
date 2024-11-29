@@ -6,7 +6,7 @@ Handle vulnerabilities
 Using the Pro Client, you can handle individual vulnerabilities (both CVEs and
 USNs) that may be affecting your machine. You can also preview what will happen
 if you run the ``pro fix`` command on a specific vulnerability, and control
-is related USNs are fixed.
+if related USNs are fixed.
 
 * :ref:`Check if a system is affected <pro-fix-check-cve>`
 * :ref:`Use pro fix to resolve a CVE or USN <pro-fix-resolve-cve>`
