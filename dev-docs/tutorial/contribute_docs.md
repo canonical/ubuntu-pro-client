@@ -14,24 +14,22 @@ to contribute!
 ## Our branch structure
 
 To facilitate the package release process and keep the documentation maintained
-in the same repository as the codebase, there are two separate branches for the
-docs:
-
-- The `docs` branch, where the latest documentation is kept. This branch is
-  used to track releases and is published in
-  [Read The Docs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest);
-- The `docs-devel` branch, where the documentation of upcoming features and
-  changes is kept until they are ready to be released.
+in the same repository as the codebase, the documentation is kept on the `docs`
+branch. This branch is used to track releases and is published in
+[Read The Docs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest).
 
 When a pull request with documentation improvements or new content is related to
-not-yet-released features, it should target the `docs-devel` branch. Fixes,
+not-yet-released features, it should target the current development branch. Fixes,
 improvements, and content for existing features can target the `docs` branch
 directly, so they are published immediately after the pull request is merged.
+
+Internal documentation is kept on the current development branch in the
+`dev-docs` directory. 
 
 ## Building the docs locally
 
 To build the docs for Ubuntu Pro Client, you can use the `make` command.
-Switch to the `docs` (or `docs-devel`) branch and install the dependencies:
+Switch to the `docs` branch and install the dependencies:
 
 ```bash
 $ git checkout docs
@@ -59,7 +57,7 @@ $ make run
 
 This will build *and serve* the documentation at `http://127.0.0.1:8000` --
 this gives you a live preview of any changes you make (and save) to the
-documentation without needing to continually rebuild.
+documentation without needing to manually rebuild.
 
 ## Doc testing
 
@@ -101,6 +99,14 @@ please submit an issue so that we can have a discussion about it.
 Whether you are editing an existing page, or creating a new one, you should
 follow our [style guide](styleguide.md) to ensure that any delays in publishing
 are not due to minor inconsistencies in style. 
+
+## Redirects
+
+Redirects are handled within the codebase, rather than via readthedocs. This
+means that if you wish to move, rename or delete an existing file as part of a
+documentation pull request, you will be asked to set up a corresponding redirect
+in the `docs/redirects.txt` file to ensure that traffic is immediately redirected
+as soon as the documentation change is published.
 
 ### Getting advice
 
