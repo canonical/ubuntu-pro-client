@@ -1,7 +1,7 @@
 .. _how-to:
 
-Ubuntu Pro Client how-to guides
-*******************************
+How-to guides
+*************
 
 If you have a specific goal and are already familiar with the Ubuntu Pro Client
 (``pro``), our how-to guides have more in-depth detail than our tutorials and
@@ -13,8 +13,8 @@ understand and adapt the steps to fit your specific requirements.
 The Pro Client comes pre-installed on every Ubuntu release. To access your
 Ubuntu Pro services, you first need to attach your machine to your subscription.
 
-Attach a machine to a subscription
-==================================
+Attaching machines
+==================
 
 .. include:: howtoguides/attach_index.rst
    :start-line: 4
@@ -26,8 +26,8 @@ Attach a machine to a subscription
    
    Attach... <howtoguides/attach_index>
 
-Enable services
-===============
+Enabling services
+=================
 
 .. include:: howtoguides/enable_index.rst
    :start-line: 4
@@ -39,8 +39,8 @@ Enable services
       
    Enable... <howtoguides/enable_index>
 
-Handle vulnerabilities
-======================
+Handling vulnerabilities
+========================
 
 .. include:: howtoguides/fix_index.rst
    :start-line: 4
@@ -52,8 +52,8 @@ Handle vulnerabilities
 
    Handle vulnerabilities... <howtoguides/fix_index>
 
-Configure messages
-==================
+Configuring messages
+====================
 
 .. include:: howtoguides/configure_index.rst
    :start-line: 4
@@ -65,8 +65,8 @@ Configure messages
 
    Configure messages... <howtoguides/configure_index>
 
-Proxies
-=======
+Setting up proxies
+==================
 
 The Ubuntu Pro Client supports proxy setups. These guides will help you to
 configure your proxies correctly.
@@ -77,8 +77,8 @@ configure your proxies correctly.
    Configure a proxy <howtoguides/configure_proxies>
    Configure TLS-in-TLS proxy <howtoguides/configure_tls_in_tls_proxy>
 
-Pro Client with Docker
-======================
+Using Pro Client with Docker
+============================
 
 There are several Ubuntu Pro services that may be useful in a Docker image.
 

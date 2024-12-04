@@ -3,9 +3,8 @@
 Configure messages
 ******************
 
-There are plenty of configuration options for showing or hiding messages.
-You can choose whether to display APT and MOTD messages, set timer jobs, or use
-your own custom configuration.
+You can choose whether (and how) to display APT and MOTD messages, set timer
+jobs, or use your own custom configuration.
 
 * :ref:`Display or hide APT News <disable_enable_apt_news>`
 * :ref:`Use custom APT configuration <custom_apt_config>`

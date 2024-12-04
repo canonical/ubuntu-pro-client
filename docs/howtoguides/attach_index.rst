@@ -1,17 +1,15 @@
 .. _attach_index:
 
-Attach a machine to a subscription
-**********************************
+Attaching machines
+******************
 
-To access Ubuntu Pro services, you need to attach your machine to a
-subscription. The most common way to attach a single machine is using
-``pro attach``:
+To access Ubuntu Pro services, you need to first attach your machine to a
+subscription:
 
 * :ref:`How to attach <attach>`
 
-If you have a paid subscription and want to check a specific token to see what
-will happen if you attach to it, you can simulate the attach operation (without
-making changes to your machine):
+You can also simulate attaching to a specific token, to check what will happen
+without making changes to your machine:
 
 * :ref:`How to simulate attaching <simulate-attach>`
 
