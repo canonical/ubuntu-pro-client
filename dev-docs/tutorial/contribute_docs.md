@@ -19,9 +19,10 @@ branch. This branch is used to track releases and is published in
 [Read The Docs](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest).
 
 When a pull request with documentation improvements or new content is related to
-not-yet-released features, it should target the current development branch. Fixes,
-improvements, and content for existing features can target the `docs` branch
-directly, so they are published immediately after the pull request is merged.
+not-yet-released features, it should target the `docs` branch but stay in a Draft
+state until the documented feature is released. Fixes, improvements, and content
+or existing features can target the `docs` branch directly, so they are published
+immediately after the pull request is merged.
 
 Internal documentation is kept on the current development branch in the
 `dev-docs` directory. 
