@@ -3,8 +3,8 @@
 Enable services
 ***************
 
-Find out how to enable, disable or check the status of the following services
-with the Pro Client.
+Enable, disable or check the status of the following services with the Pro
+Client:
 
 * :ref:`Anbox Cloud <manage-anbox>`
 * :ref:`CC EAL <manage-cc>`

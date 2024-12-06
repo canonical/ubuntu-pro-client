@@ -1,7 +1,7 @@
 .. _tutorial:
 
-Ubuntu Pro Client tutorial
-**************************
+Tutorial
+********
 
 This section contains step-by-step tutorials to show what the Ubuntu Pro Client
 (``pro``) is capable of, while helping you to achieve specific aims.

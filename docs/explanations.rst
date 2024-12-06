@@ -1,7 +1,7 @@
 .. _explanation:
 
-Ubuntu Pro Client explanation
-*****************************
+Explanation
+***********
 
 Our explanatory and conceptual guides are written to provide a better
 understanding of how the Ubuntu Pro Client (``pro``) works. They enable you
