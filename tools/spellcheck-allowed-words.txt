@@ -1,5 +1,6 @@
 0m
 1m
+208m
 37m
 500MB
 91m
@@ -40,6 +41,7 @@ customizable
 CVE
 CVEs
 CVES
+CVSS
 datestring
 depedent
 DISA
@@ -90,6 +92,8 @@ LIVEPATCH
 livepatches
 Livepatches
 LTS
+lxd
+LXD
 METAPACKAGE
 MOTD
 msg
@@ -165,6 +169,7 @@ telco
 THIRDPARTY
 tmpl
 TMPL
+triaging
 ttach
 TxtColor
 UA
@@ -174,6 +179,8 @@ ubscribe
 ubuntu
 unbootable
 UNENTITLED
+unfixable
+UNFIXABLE
 url
 urls
 usg

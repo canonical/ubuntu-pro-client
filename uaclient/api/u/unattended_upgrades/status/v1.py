@@ -160,15 +160,16 @@ def _is_unattended_upgrades_running(
     if not systemd_apt_timer_enabled:
         return (False, messages.UNATTENDED_UPGRADES_SYSTEMD_JOB_DISABLED)
 
-    for key, value in unattended_upgrades_cfg.items():
-        if not value:
+    for key in UNATTENDED_UPGRADES_CONFIG_KEYS:
+        value = unattended_upgrades_cfg.get(key)
+        if isinstance(value, list) and not value:
             return (
                 False,
                 messages.UNATTENDED_UPGRADES_CFG_LIST_VALUE_EMPTY.format(
                     cfg_name=key
                 ),
             )
-        if isinstance(value, str) and value == "0":
+        if value == "0" or not value:
             return (
                 False,
                 messages.UNATTENDED_UPGRADES_CFG_VALUE_TURNED_OFF.format(
@@ -237,6 +238,11 @@ def _status(cfg: UAConfig) -> UnattendedUpgradesStatusResult:
         unattended_upgrades_cfg["APT::Periodic::Enable"] or "1"
     )
 
+    # This should be a list, even if the key is missing.
+    unattended_upgrades_cfg["Unattended-Upgrade::Allowed-Origins"] = (
+        unattended_upgrades_cfg["Unattended-Upgrade::Allowed-Origins"] or []
+    )
+
     (
         unattended_upgrades_running,
         disabled_reason,
@@ -260,13 +266,15 @@ def _status(cfg: UAConfig) -> UnattendedUpgradesStatusResult:
         == "1",
         package_lists_refresh_frequency_days=int(
             unattended_upgrades_cfg.get(  # type: ignore
-                "APT::Periodic::Update-Package-Lists", 0
+                "APT::Periodic::Update-Package-Lists"
             )
+            or 0
         ),
         unattended_upgrades_frequency_days=int(
             unattended_upgrades_cfg.get(  # type: ignore
-                "APT::Periodic::Unattended-Upgrade", 0
+                "APT::Periodic::Unattended-Upgrade"
             )
+            or 0
         ),
         unattended_upgrades_allowed_origins=list(
             unattended_upgrades_cfg.get("Unattended-Upgrade::Allowed-Origins")

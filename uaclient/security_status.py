@@ -17,6 +17,7 @@ from uaclient.apt import (
     get_apt_cache_datetime,
     get_apt_pkg_cache,
     get_esm_apt_pkg_cache,
+    get_pkg_candidate_version,
 )
 from uaclient.config import UAConfig
 from uaclient.entitlements import ESMAppsEntitlement, ESMInfraEntitlement
@@ -39,6 +40,7 @@ ESM_SERVICES = ("esm-infra", "esm-apps")
 class UpdateStatus(Enum):
     "Represents the availability of a security package."
     AVAILABLE = "upgrade_available"
+    AVAILABLE_NOT_PREFERRED = "upgrade_available_not_preferred"
     UNATTACHED = "pending_attach"
     NOT_ENABLED = "pending_enable"
     UNAVAILABLE = "upgrade_unavailable"
@@ -118,7 +120,20 @@ def get_origin_for_installed_package(
     return "third-party"
 
 
-def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
+@lru_cache(maxsize=None)
+def _is_candidate_version(pkg: str, version: str) -> bool:
+    """Returns True if the package version is a candidate version."""
+    candidate_version = get_pkg_candidate_version(pkg, check_esm_cache=False)
+    if candidate_version:
+        return version == candidate_version
+    return False
+
+
+def get_update_status(
+    service_name: str,
+    ua_info: Dict[str, Any],
+    version: apt_pkg.Version,
+) -> str:
     """Defines the update status for a package based on the service name.
 
     For ESM-[Infra|Apps] packages, first checks if Pro is attached. If this is
@@ -127,7 +142,14 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
     if service_name in ("standard-security", "standard-updates") or (
         ua_info["attached"] and service_name in ua_info["enabled_services"]
     ):
-        return UpdateStatus.AVAILABLE.value
+        is_candidate = _is_candidate_version(
+            version.parent_pkg.name, version.ver_str
+        )
+        return (
+            UpdateStatus.AVAILABLE.value
+            if is_candidate
+            else UpdateStatus.AVAILABLE_NOT_PREFERRED.value
+        )
     if not ua_info["attached"]:
         return UpdateStatus.UNATTACHED.value
     if service_name in ua_info["entitled_services"]:
@@ -262,8 +284,8 @@ def create_updates_list(
 ) -> List[Dict[str, Any]]:
     updates = []
     for service, version_list in upgradable_versions.items():
-        status = get_update_status(service, ua_info)
         for version, origin in version_list:
+            status = get_update_status(service, ua_info, version)
             updates.append(
                 {
                     "package": version.parent_pkg.name,
