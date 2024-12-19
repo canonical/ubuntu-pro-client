@@ -92,7 +92,20 @@ class TestIntelIOTGVariannt:
         "cpu_info,expected_status,expected_msg",
         (
             (
-                CpuInfo(vendor_id="test", model=None, stepping=None),
+                CpuInfo(
+                    vendor_id="test",
+                    model="",
+                    stepping="",
+                    cpu="",
+                    cpu_family="",
+                    cpu_implementer="",
+                    cpu_part="",
+                    cpu_revision="",
+                    cpu_variant="",
+                    model_name="",
+                    sysinfo_model="",
+                    sys_firmware_devicetree_base_model="",
+                ),
                 ApplicabilityStatus.INAPPLICABLE,
                 messages.INAPPLICABLE_VENDOR_NAME.format(
                     title=IntelIotgRealtime.title,
@@ -101,7 +114,20 @@ class TestIntelIOTGVariannt:
                 ),
             ),
             (
-                CpuInfo(vendor_id="intel", model=None, stepping=None),
+                CpuInfo(
+                    vendor_id="GenuineIntel",
+                    model="",
+                    stepping="",
+                    cpu="",
+                    cpu_family="",
+                    cpu_implementer="",
+                    cpu_part="",
+                    cpu_revision="",
+                    cpu_variant="",
+                    model_name="",
+                    sysinfo_model="",
+                    sys_firmware_devicetree_base_model="",
+                ),
                 ApplicabilityStatus.APPLICABLE,
                 None,
             ),
