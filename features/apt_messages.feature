@@ -701,9 +701,10 @@ Feature: APT Messages
       Building dependency tree...
       Reading state information...
       Calculating upgrade...
-      #
-      # one
-      #
+
+      APT news:
+        one
+
       Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
