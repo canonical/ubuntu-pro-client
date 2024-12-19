@@ -1438,9 +1438,9 @@ class TestGetCpuInfo:
                 model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
                 stepping        : 10"""
                 ),
-                "intel",
-                142,
-                10,
+                "GenuineIntel",
+                "142",
+                "10",
             ),
             (
                 textwrap.dedent(
@@ -1460,8 +1460,8 @@ class TestGetCpuInfo:
                 stepping        : 10"""
                 ),
                 "test",
-                148,
-                12,
+                "148",
+                "12",
             ),
             (
                 textwrap.dedent(
@@ -1475,8 +1475,8 @@ class TestGetCpuInfo:
                 model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz"""
                 ),
                 "",
-                None,
-                None,
+                "",
+                "",
             ),
         ),
     )

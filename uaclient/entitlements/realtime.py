@@ -13,6 +13,8 @@ from uaclient.types import (  # noqa: F401
 event = event_logger.get_event_logger()
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
+CPU_VENDOR_MAP = {"GenuineIntel": "intel"}
+
 
 class RealtimeKernelEntitlement(repo.RepoEntitlement):
     name = "realtime-kernel"
@@ -207,6 +209,7 @@ class IntelIotgRealtime(RealtimeVariant):
         self, platform_checks: Dict[str, Any]
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         vendor_id = system.get_cpu_info().vendor_id
+        vendor_id = CPU_VENDOR_MAP.get(vendor_id, vendor_id)
         cpu_vendor_ids = platform_checks.get("cpu_vendor_ids", [])
         if vendor_id in cpu_vendor_ids:
             return True, None
