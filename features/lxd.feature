@@ -7,7 +7,7 @@ Feature: LXD Pro features
       """
       lxd_guest_attach +off
       """
-    Then I verify that no files exist matching `/var/lib/ubuntu-advantage/interfaces/lxd-config.json`
+    Then I verify that no files exist matching `/var/lib/ubuntu-pro/interfaces/lxd-config.json`
     Then I verify that running `pro config set lxd_guest_attach=available` `with sudo` exits `1`
     Then I will see the following on stderr:
       """
@@ -25,14 +25,14 @@ Feature: LXD Pro features
       """
       lxd_guest_attach +off
       """
-    Then I verify that no files exist matching `/var/lib/ubuntu-advantage/interfaces/lxd-config.json`
+    Then I verify that no files exist matching `/var/lib/ubuntu-pro/interfaces/lxd-config.json`
     When I run `pro config set lxd_guest_attach=available` with sudo
     When I run `pro config show` with sudo
     Then stdout matches regexp:
       """
       lxd_guest_attach +available
       """
-    When I run `cat /var/lib/ubuntu-advantage/interfaces/lxd-config.json` with sudo
+    When I run `cat /var/lib/ubuntu-pro/interfaces/lxd-config.json` with sudo
     When I apply this jq filter `.guest_attach` to the output
     Then I will see the following on stdout:
       """
@@ -44,7 +44,7 @@ Feature: LXD Pro features
       """
       lxd_guest_attach +off
       """
-    When I run `cat /var/lib/ubuntu-advantage/interfaces/lxd-config.json` with sudo
+    When I run `cat /var/lib/ubuntu-pro/interfaces/lxd-config.json` with sudo
     When I apply this jq filter `.guest_attach` to the output
     Then I will see the following on stdout:
       """
@@ -56,7 +56,7 @@ Feature: LXD Pro features
       """
       lxd_guest_attach +on
       """
-    When I run `cat /var/lib/ubuntu-advantage/interfaces/lxd-config.json` with sudo
+    When I run `cat /var/lib/ubuntu-pro/interfaces/lxd-config.json` with sudo
     When I apply this jq filter `.guest_attach` to the output
     Then I will see the following on stdout:
       """
@@ -68,7 +68,7 @@ Feature: LXD Pro features
       """
       lxd_guest_attach +off
       """
-    When I run `cat /var/lib/ubuntu-advantage/interfaces/lxd-config.json` with sudo
+    When I run `cat /var/lib/ubuntu-pro/interfaces/lxd-config.json` with sudo
     When I apply this jq filter `.guest_attach` to the output
     Then I will see the following on stdout:
       """
@@ -80,7 +80,7 @@ Feature: LXD Pro features
       Value provided was not found in LXDGuestAttachEnum's allowed: value: ['on', 'off', 'available']
       """
     When I run `pro detach --assume-yes` with sudo
-    Then I verify that no files exist matching `/var/lib/ubuntu-advantage/interfaces/lxd-config.json`
+    Then I verify that no files exist matching `/var/lib/ubuntu-pro/interfaces/lxd-config.json`
     When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following
       """
       {"lxd_guest_attach": "on"}
