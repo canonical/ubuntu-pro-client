@@ -2886,8 +2886,8 @@ E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
 E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-enum-value",
     t.gettext(
-        "Value provided was not found in {enum_class}'s allowed: "
-        "value: {values}"
+        "Value provided was not found in {enum_class}'s allowed "
+        "values: {values}"
     ),
 )
 
