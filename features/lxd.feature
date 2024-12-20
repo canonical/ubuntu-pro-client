@@ -77,7 +77,7 @@ Feature: LXD Pro features
     Then I verify that running `pro config set lxd_guest_attach=somethingelse` `with sudo` exits `1`
     Then I will see the following on stderr:
       """
-      Value provided was not found in LXDGuestAttachEnum's allowed: value: ['on', 'off', 'available']
+      Value provided was not found in LXDGuestAttachEnum's allowed values: ['on', 'off', 'available']
       """
     When I run `pro detach --assume-yes` with sudo
     Then I verify that no files exist matching `/var/lib/ubuntu-pro/interfaces/lxd-config.json`
