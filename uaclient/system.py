@@ -81,18 +81,20 @@ ReleaseInfo = NamedTuple(
 CpuInfo = NamedTuple(
     "CpuInfo",
     [
-        ("cpu", str),
-        ("cpu_family", str),
-        ("cpu_implementer", str),
-        ("cpu_part", str),
-        ("cpu_revision", str),
-        ("cpu_variant", str),
-        ("model", str),
-        ("model_name", str),
-        ("stepping", str),
-        ("sys_firmware_devicetree_base_model", str),
-        ("sysinfo_model", str),
-        ("vendor_id", str),
+        ("cpuinfo_cpu", Optional[str]),
+        ("cpuinfo_cpu_architecture", Optional[str]),
+        ("cpuinfo_cpu_family", Optional[str]),
+        ("cpuinfo_cpu_implementer", Optional[str]),
+        ("cpuinfo_cpu_part", Optional[str]),
+        ("cpuinfo_cpu_revision", Optional[str]),
+        ("cpuinfo_cpu_variant", Optional[str]),
+        ("cpuinfo_model", Optional[str]),
+        ("cpuinfo_model_name", Optional[str]),
+        ("cpuinfo_stepping", Optional[str]),
+        ("cpuinfo_vendor_id", Optional[str]),
+        ("sys_firmware_devicetree_base_model", Optional[str]),
+        ("sysinfo_model", Optional[str]),
+        ("sysinfo_type", Optional[str]),
     ],
 )
 
@@ -262,74 +264,62 @@ def get_virt_type() -> str:
 
 @lru_cache(maxsize=None)
 def get_cpu_info() -> CpuInfo:
-    CPUINFO_FIELDS = [
-        "cpu",
-        "cpu family",
-        "CPU implementer",
-        "CPU part",
-        "CPU revision",
-        "CPU variant",
-        "model",
-        "model name",
-        "stepping",
-        "vendor_id",
-    ]
-    SYSINFO_FIELD = "Model"
     CPUINFO_FILE = "/proc/cpuinfo"
     SYSINFO_FILE = "/proc/sysinfo"
     DEVICETREE_FILE = "/sys/firmware/devicetree/base/model"
 
-    cpu_info_values = {}
-    sysinfo_model = ""
-    devicetree_base_model = ""
+    cpuinfo_values = {}
+    sysinfo_values = {}
+    devicetree_base_model = None
 
     try:
-        cpu_info_content = load_file(CPUINFO_FILE)
+        cpuinfo_content = load_file(CPUINFO_FILE)
     except FileNotFoundError:
-        LOG.warning("could not open {}".format(CPUINFO_FILE))
+        LOG.info("could not open {}".format(CPUINFO_FILE))
     else:
-        for field in CPUINFO_FIELDS:
-            cpu_match = re.search(
-                r"^{}\s*:\s*(?P<info>.*)$".format(field),
-                cpu_info_content,
-                re.MULTILINE,
-            )
-            if cpu_match:
-                value = cpu_match.group("info")
-                cpu_info_values[field] = value
+        # There may be more than one cpu, we want the first.
+        # Each cpu section is separated by a blank line.
+        # The very first section may not be processor info, so we look for the
+        # first section that starts with "processor"
+        cpuinfo_sections = cpuinfo_content.split("\n\n")
+        first_cpu_content = next(
+            (s for s in cpuinfo_sections if s.startswith("processor")), ""
+        )
+        for line in first_cpu_content.split("\n"):
+            if ":" in line:
+                key, value = line.split(":", 1)
+                cpuinfo_values[key.strip()] = value.strip()
 
     try:
         sysinfo_content = load_file(SYSINFO_FILE)
     except FileNotFoundError:
-        LOG.warning("could not open {}".format(SYSINFO_FILE))
+        LOG.info("could not open {}".format(SYSINFO_FILE))
     else:
-        sysinfo_match = re.search(
-            r"{}:\s+(?P<info>.+)".format(SYSINFO_FIELD),
-            sysinfo_content,
-            re.MULTILINE,
-        )
-        if sysinfo_match:
-            value = sysinfo_match.group("info")
-            sysinfo_model = value
+        for line in sysinfo_content.split("\n"):
+            if ":" in line:
+                key, value = line.split(":", 1)
+                sysinfo_values[key.strip()] = value.strip()
 
     try:
         devicetree_base_model = load_file(DEVICETREE_FILE)
     except FileNotFoundError:
-        LOG.warning("could not open {}".format(DEVICETREE_FILE))
+        LOG.info("could not open {}".format(DEVICETREE_FILE))
 
     return CpuInfo(
-        cpu=cpu_info_values.get("cpu", ""),
-        cpu_family=cpu_info_values.get("cpu family", ""),
-        cpu_implementer=cpu_info_values.get("CPU implementer", ""),
-        cpu_part=cpu_info_values.get("CPU part", ""),
-        cpu_revision=cpu_info_values.get("CPU revision", ""),
-        cpu_variant=cpu_info_values.get("CPU variant", ""),
-        model=cpu_info_values.get("model", ""),
-        model_name=cpu_info_values.get("model name", ""),
-        stepping=cpu_info_values.get("stepping", ""),
+        cpuinfo_cpu=cpuinfo_values.get("cpu"),
+        cpuinfo_cpu_architecture=cpuinfo_values.get("CPU architecture"),
+        cpuinfo_cpu_family=cpuinfo_values.get("cpu family"),
+        cpuinfo_cpu_implementer=cpuinfo_values.get("CPU implementer"),
+        cpuinfo_cpu_part=cpuinfo_values.get("CPU part"),
+        cpuinfo_cpu_revision=cpuinfo_values.get("CPU revision"),
+        cpuinfo_cpu_variant=cpuinfo_values.get("CPU variant"),
+        cpuinfo_model=cpuinfo_values.get("model"),
+        cpuinfo_model_name=cpuinfo_values.get("model name"),
+        cpuinfo_stepping=cpuinfo_values.get("stepping"),
+        cpuinfo_vendor_id=cpuinfo_values.get("vendor_id"),
         sys_firmware_devicetree_base_model=devicetree_base_model,
-        sysinfo_model=sysinfo_model,
-        vendor_id=cpu_info_values.get("vendor_id", ""),
+        sysinfo_model=sysinfo_values.get("Model"),
+        sysinfo_type=sysinfo_values.get("Type"),
     )
 
 

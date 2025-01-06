@@ -2,7 +2,6 @@ import datetime
 import logging
 import os
 import subprocess
-import textwrap
 import uuid
 
 import mock
@@ -1419,75 +1418,185 @@ class TestGetSystemdUnitActiveState:
 
 class TestGetCpuInfo:
     @pytest.mark.parametrize(
-        "cpuinfo,vendor_id,model,stepping",
-        (
+        [
+            "cpuinfo_load_side_effect",
+            "sysinfo_load_side_effect",
+            "devicetree_base_model_load_side_effect",
+            "expected_cpuinfo",
+        ],
+        [
             (
-                textwrap.dedent(
-                    """
-                processor       : 6
-                vendor_id       : GenuineIntel
-                cpu family      : 6
-                model           : 142
-                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
-                stepping        : 10
-
-                processor       : 7
-                vendor_id       : GenuineIntel
-                cpu family      : 6
-                model           : 142
-                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
-                stepping        : 10"""
+                # x86_64
+                (
+                    "bogomips        : 4199.88\n"
+                    "clflush size    : 64\n"
+                    "cache_alignment : 64\n"
+                    "address sizes   : 39 bits physical, 48 bits virtual\n"
+                    "\n"
+                    "processor          : 0\n"
+                    "vendor_id          : GenuineIntel\n"
+                    "cpu family         : 6\n"
+                    "model              : 142\n"
+                    "model name         : Test Intel 1\n"
+                    "stepping           : 10\n"
+                    "microcode          : 0xf4\n"
+                    "cpu MHz            : 1600.020\n"
+                    "cache size         : 8192 KB\n"
+                    "physical id        : 0\n"
+                    "siblings           : 8\n"
+                    "core id            : 0\n"
+                    "cpu cores          : 4\n"
+                    "apicid             : 0\n"
+                    "initial apicid     : 0\n"
+                    "fpu                : yes\n"
+                    "fpu_exception      : yes\n"
+                    "cpuid level        : 22\n"
+                    "wp                 : yes\n"
+                    "flags              : fpu vme de pse tsc msr pae mce cx8\n"
+                    "\n"
+                    "processor          : 1\n"
+                    "vendor_id          : GenuineIntel\n"
+                    "cpu family         : 6\n"
+                    "model              : 142\n"
+                    "model name         : Test Intel 2\n"
                 ),
-                "GenuineIntel",
-                "142",
-                "10",
+                FileNotFoundError(),
+                FileNotFoundError(),
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family="6",
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model="142",
+                    cpuinfo_model_name="Test Intel 1",
+                    cpuinfo_stepping="10",
+                    cpuinfo_vendor_id="GenuineIntel",
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
             ),
             (
-                textwrap.dedent(
-                    """
-                processor       : 6
-                vendor_id       : test
-                cpu family      : 6
-                model           : 148
-                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
-                stepping        : 12
-
-                processor       : 7
-                vendor_id       : GenuineIntel
-                cpu family      : 6
-                model           : 142
-                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
-                stepping        : 10"""
+                # PPC
+                (
+                    "processor   : 0\n"
+                    "cpu         : POWER10\n"
+                    "clock       : 2800.000000MHz\n"
+                    "revision    : 2.0 (pvr 0080 0200)\n"
+                    "\n"
+                    "processor   : 1\n"
+                    "cpu         : TEST\n"
+                    "clock       : 2800.000000MHz\n"
+                    "revision    : 2.0 (pvr 0080 0200)\n"
                 ),
-                "test",
-                "148",
-                "12",
+                FileNotFoundError(),
+                FileNotFoundError(),
+                system.CpuInfo(
+                    cpuinfo_cpu="POWER10",
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model=None,
+                    cpuinfo_model_name=None,
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
             ),
             (
-                textwrap.dedent(
-                    """
-                processor       : 6
-                cpu family      : 6
-                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
-
-                processor       : 7
-                cpu family      : 6
-                model name      : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz"""
+                # S390X
+                FileNotFoundError(),
+                (
+                    "Manufacturer:         IBM\n"
+                    "Type:                 2964\n"
+                    "Model:                400           N63\n"
+                    "Sequence Code:        00000000000B8F67\n"
+                    "Plant:                02\n"
+                    "Model Capacity:       400           00000000\n"
+                    "Capacity Adj. Ind.:   100\n"
+                    "Capacity Ch. Reason:  0\n"
+                    "Capacity Transient:   0\n"
+                    "Type 1 Percentage:    0\n"
+                    "Type 2 Percentage:    0\n"
+                    "Type 3 Percentage:    0\n"
+                    "Type 4 Percentage:    0\n"
+                    "Type 5 Percentage:    0\n"
                 ),
-                "",
-                "",
-                "",
+                FileNotFoundError(),
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model=None,
+                    cpuinfo_model_name=None,
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model="400           N63",
+                    sysinfo_type="2964",
+                ),
             ),
-        ),
+            (
+                # ARM
+                (
+                    "processor        : 0\n"
+                    "model name       : ARMv7 Processor rev 3 (v7l)\n"
+                    "BogoMIPS         : 144.00\n"
+                    "Features         : half thumb fastmult vfp edsp neon \n"
+                    "CPU implementer  : 0x41\n"
+                    "CPU architecture : 7\n"
+                    "CPU variant      : 0x0\n"
+                    "CPU part         : 0xd08\n"
+                    "CPU revision     : 3\n"
+                ),
+                FileNotFoundError(),
+                "ARM CPU Type",
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture="7",
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer="0x41",
+                    cpuinfo_cpu_part="0xd08",
+                    cpuinfo_cpu_revision="3",
+                    cpuinfo_cpu_variant="0x0",
+                    cpuinfo_model=None,
+                    cpuinfo_model_name="ARMv7 Processor rev 3 (v7l)",
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model="ARM CPU Type",
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
+            ),
+        ],
     )
     @mock.patch("uaclient.system.load_file")
-    def test_get_cpu_vendor(
-        self, m_load_file, cpuinfo, vendor_id, model, stepping
+    def test_get_cpu_info(
+        self,
+        m_load_file,
+        cpuinfo_load_side_effect,
+        sysinfo_load_side_effect,
+        devicetree_base_model_load_side_effect,
+        expected_cpuinfo,
     ):
-        m_load_file.return_value = cpuinfo
-        assert vendor_id == system.get_cpu_info.__wrapped__().vendor_id
-        assert model == system.get_cpu_info.__wrapped__().model
-        assert stepping == system.get_cpu_info.__wrapped__().stepping
+        m_load_file.side_effect = [
+            cpuinfo_load_side_effect,
+            sysinfo_load_side_effect,
+            devicetree_base_model_load_side_effect,
+        ]
+        assert expected_cpuinfo == system.get_cpu_info.__wrapped__()
 
 
 class TestGetUserCacheDir:

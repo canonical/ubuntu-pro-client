@@ -208,7 +208,7 @@ class IntelIotgRealtime(RealtimeVariant):
     def verify_platform_checks(
         self, platform_checks: Dict[str, Any]
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
-        vendor_id = system.get_cpu_info().vendor_id
+        vendor_id = system.get_cpu_info().cpuinfo_vendor_id or ""
         vendor_id = CPU_VENDOR_MAP.get(vendor_id, vendor_id)
         cpu_vendor_ids = platform_checks.get("cpu_vendor_ids", [])
         if vendor_id in cpu_vendor_ids:
