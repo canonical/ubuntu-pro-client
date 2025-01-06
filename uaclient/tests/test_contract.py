@@ -745,7 +745,7 @@ class TestUAContractClient:
             "is_desktop",
             "virt_type",
             "version",
-            "cpu_type",
+            "cpu_info",
             "is_attached",
             "enabled_services",
             "attachment_data",
@@ -777,7 +777,22 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
-                "cpu type",
+                system.CpuInfo(
+                    cpuinfo_cpu="cpuinfo_cpu",
+                    cpuinfo_cpu_architecture="cpuinfo_cpu_architecture",
+                    cpuinfo_cpu_family="cpuinfo_cpu_family",
+                    cpuinfo_cpu_implementer="cpuinfo_cpu_implementer",
+                    cpuinfo_cpu_part="cpuinfo_cpu_part",
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model=None,
+                    cpuinfo_model_name=None,
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
                 IsAttachedResult(
                     is_attached=False,
                     contract_status="none",
@@ -797,7 +812,13 @@ class TestUAContractClient:
                     "desktop": True,
                     "virt": "lxc",
                     "clientVersion": "8001",
-                    "cpu_type": "cpu type",
+                    "cpu_type": {
+                        "cpuinfo_cpu": "cpuinfo_cpu",
+                        "cpuinfo_cpu_architecture": "cpuinfo_cpu_architecture",
+                        "cpuinfo_cpu_family": "cpuinfo_cpu_family",
+                        "cpuinfo_cpu_implementer": "cpuinfo_cpu_implementer",
+                        "cpuinfo_cpu_part": "cpuinfo_cpu_part",
+                    },
                 },
             ),
             (
@@ -822,7 +843,22 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
-                "cpu type",
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision="cpuinfo_cpu_revision",
+                    cpuinfo_cpu_variant="cpuinfo_cpu_variant",
+                    cpuinfo_model="cpuinfo_model",
+                    cpuinfo_model_name="cpuinfo_model_name",
+                    cpuinfo_stepping="cpuinfo_stepping",
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
                 IsAttachedResult(
                     is_attached=True,
                     contract_status="active",
@@ -854,7 +890,13 @@ class TestUAContractClient:
                     "desktop": True,
                     "virt": "lxc",
                     "clientVersion": "8001",
-                    "cpu_type": "cpu type",
+                    "cpu_type": {
+                        "cpuinfo_cpu_revision": "cpuinfo_cpu_revision",
+                        "cpuinfo_cpu_variant": "cpuinfo_cpu_variant",
+                        "cpuinfo_model": "cpuinfo_model",
+                        "cpuinfo_model_name": "cpuinfo_model_name",
+                        "cpuinfo_stepping": "cpuinfo_stepping",
+                    },
                     "activityID": "activity_id",
                     "activityToken": "activity_token",
                     "resources": ["one"],
@@ -884,7 +926,22 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
-                "cpu type",
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model=None,
+                    cpuinfo_model_name=None,
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id="cpuinfo_vendor_id",
+                    sys_firmware_devicetree_base_model="sys_firmware_devicetree_base_model",  # noqa: E501
+                    sysinfo_model="sysinfo_model",
+                    sysinfo_type="sysinfo_type",
+                ),
                 IsAttachedResult(
                     is_attached=True,
                     contract_status="active",
@@ -921,7 +978,12 @@ class TestUAContractClient:
                     "desktop": True,
                     "virt": "lxc",
                     "clientVersion": "8001",
-                    "cpu_type": "cpu type",
+                    "cpu_type": {
+                        "cpuinfo_vendor_id": "cpuinfo_vendor_id",
+                        "sys_firmware_devicetree_base_model": "sys_firmware_devicetree_base_model",  # noqa: E501
+                        "sysinfo_model": "sysinfo_model",
+                        "sysinfo_type": "sysinfo_type",
+                    },
                     "activityID": "machine_id",
                     "activityToken": "activity_token",
                     "resources": ["one", "two"],
@@ -931,7 +993,7 @@ class TestUAContractClient:
             ),
         ],
     )
-    @mock.patch("uaclient.contract.cpu_type.get_cpu_type")
+    @mock.patch("uaclient.contract.system.get_cpu_info")
     @mock.patch("uaclient.contract.attachment_data_file.read")
     @mock.patch("uaclient.contract._enabled_services")
     @mock.patch("uaclient.contract._is_attached")
@@ -952,7 +1014,7 @@ class TestUAContractClient:
         m_is_attached,
         m_enabled_services,
         m_attachment_data_file_read,
-        m_get_cpu_type,
+        m_get_cpu_info,
         m_get_machine_id,
         _m_request_url,
         release_info,
@@ -961,7 +1023,7 @@ class TestUAContractClient:
         is_desktop,
         virt_type,
         version,
-        cpu_type,
+        cpu_info,
         is_attached,
         enabled_services,
         attachment_data,
@@ -971,7 +1033,7 @@ class TestUAContractClient:
         expected,
         fake_machine_token_file,
     ):
-        m_get_cpu_type.return_value = cpu_type
+        m_get_cpu_info.return_value = cpu_info
         m_get_release_info.return_value = release_info
         m_get_kernel_info.return_value = kernel_info
         m_get_dpkg_arch.return_value = dpkg_arch

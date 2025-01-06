@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
+    data_types,
     event_logger,
     exceptions,
     http,
@@ -22,7 +23,6 @@ from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.files.state_files import attachment_data_file, machine_id_file
 from uaclient.http import serviceclient
 from uaclient.log import get_user_or_root_log_file_path
-from uaclient.system import cpu_type
 
 # Here we describe every endpoint from the ua-contracts
 # service that is used by this client implementation.
@@ -65,6 +65,93 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 EnableByDefaultService = namedtuple(
     "EnableByDefaultService", ["name", "variant"]
 )
+
+
+class CPUTypeData(data_types.DataObject):
+    fields = [
+        data_types.Field(
+            "cpuinfo_cpu", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_architecture",
+            data_types.StringDataValue,
+            required=False,
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_family", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_implementer",
+            data_types.StringDataValue,
+            required=False,
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_part", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_revision", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_variant", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_model", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_model_name", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_stepping", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_vendor_id", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "sys_firmware_devicetree_base_model",
+            data_types.StringDataValue,
+            required=False,
+        ),
+        data_types.Field(
+            "sysinfo_model", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "sysinfo_type", data_types.StringDataValue, required=False
+        ),
+    ]
+
+    def __init__(
+        self,
+        cpuinfo_cpu: Optional[str] = None,
+        cpuinfo_cpu_architecture: Optional[str] = None,
+        cpuinfo_cpu_family: Optional[str] = None,
+        cpuinfo_cpu_implementer: Optional[str] = None,
+        cpuinfo_cpu_part: Optional[str] = None,
+        cpuinfo_cpu_revision: Optional[str] = None,
+        cpuinfo_cpu_variant: Optional[str] = None,
+        cpuinfo_model: Optional[str] = None,
+        cpuinfo_model_name: Optional[str] = None,
+        cpuinfo_stepping: Optional[str] = None,
+        cpuinfo_vendor_id: Optional[str] = None,
+        sys_firmware_devicetree_base_model: Optional[str] = None,
+        sysinfo_model: Optional[str] = None,
+        sysinfo_type: Optional[str] = None,
+    ):
+        self.cpuinfo_cpu = cpuinfo_cpu
+        self.cpuinfo_cpu_architecture = cpuinfo_cpu_architecture
+        self.cpuinfo_cpu_family = cpuinfo_cpu_family
+        self.cpuinfo_cpu_implementer = cpuinfo_cpu_implementer
+        self.cpuinfo_cpu_part = cpuinfo_cpu_part
+        self.cpuinfo_cpu_revision = cpuinfo_cpu_revision
+        self.cpuinfo_cpu_variant = cpuinfo_cpu_variant
+        self.cpuinfo_model = cpuinfo_model
+        self.cpuinfo_model_name = cpuinfo_model_name
+        self.cpuinfo_stepping = cpuinfo_stepping
+        self.cpuinfo_vendor_id = cpuinfo_vendor_id
+        self.sys_firmware_devicetree_base_model = (
+            sys_firmware_devicetree_base_model
+        )
+        self.sysinfo_model = sysinfo_model
+        self.sysinfo_type = sysinfo_type
 
 
 class UAContractClient(serviceclient.UAServiceClient):
@@ -460,6 +547,7 @@ class UAContractClient(serviceclient.UAServiceClient):
     def _get_activity_info(self):
         """Return a dict of activity info data for contract requests"""
 
+        cpuinfo = system.get_cpu_info()
         machine_info = {
             "distribution": system.get_release_info().distribution,
             "kernel": system.get_kernel_info().uname_release,
@@ -468,7 +556,22 @@ class UAContractClient(serviceclient.UAServiceClient):
             "desktop": system.is_desktop(),
             "virt": system.get_virt_type(),
             "clientVersion": version.get_version(),
-            "cpu_type": cpu_type.get_cpu_type(),
+            "cpu_type": CPUTypeData(
+                cpuinfo_cpu=cpuinfo.cpuinfo_cpu,
+                cpuinfo_cpu_architecture=cpuinfo.cpuinfo_cpu_architecture,
+                cpuinfo_cpu_family=cpuinfo.cpuinfo_cpu_family,
+                cpuinfo_cpu_implementer=cpuinfo.cpuinfo_cpu_implementer,
+                cpuinfo_cpu_part=cpuinfo.cpuinfo_cpu_part,
+                cpuinfo_cpu_revision=cpuinfo.cpuinfo_cpu_revision,
+                cpuinfo_cpu_variant=cpuinfo.cpuinfo_cpu_variant,
+                cpuinfo_model=cpuinfo.cpuinfo_model,
+                cpuinfo_model_name=cpuinfo.cpuinfo_model_name,
+                cpuinfo_stepping=cpuinfo.cpuinfo_stepping,
+                cpuinfo_vendor_id=cpuinfo.cpuinfo_vendor_id,
+                sys_firmware_devicetree_base_model=cpuinfo.sys_firmware_devicetree_base_model,  # noqa: E501
+                sysinfo_model=cpuinfo.sysinfo_model,
+                sysinfo_type=cpuinfo.sysinfo_type,
+            ).to_dict(keep_none=False),
         }
 
         if _is_attached(self.cfg).is_attached:
