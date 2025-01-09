@@ -30,7 +30,6 @@ class TestProFormatterConfig:
 
         assert POFC.use_utf8 is expected_use_utf8
 
-    @pytest.mark.parametrize("config_value", (True, False))
     @pytest.mark.parametrize("is_tty", (True, False))
     @pytest.mark.parametrize("env_no_color", ("True", None))
     @mock.patch(M_PATH + "sys.stdout.isatty")
@@ -39,13 +38,11 @@ class TestProFormatterConfig:
         self,
         m_getenv,
         m_is_tty,
-        config_value,
         is_tty,
         env_no_color,
         FakeConfig,
     ):
         cfg = FakeConfig()
-        cfg.user_config.cli_color = config_value
 
         m_is_tty.return_value = is_tty
 
@@ -54,7 +51,7 @@ class TestProFormatterConfig:
         POFC.init(cfg)
 
         expected_result = True
-        if any((config_value is False, not is_tty, env_no_color)):
+        if any((not is_tty, env_no_color)):
             expected_result = False
 
         assert POFC.use_color is expected_result
@@ -62,14 +59,11 @@ class TestProFormatterConfig:
         POFC.disable_color()
         assert POFC.use_color is False
 
-    @pytest.mark.parametrize("config_value", (True, False))
-    def test_suggestions_config(self, config_value, FakeConfig):
+    def test_suggestions_config(self, FakeConfig):
         cfg = FakeConfig()
-        cfg.user_config.cli_suggestions = config_value
 
         POFC.init(cfg)
-
-        assert POFC.show_suggestions is config_value
+        assert POFC.show_suggestions is True
 
         POFC.disable_suggestions()
         assert POFC.show_suggestions is False

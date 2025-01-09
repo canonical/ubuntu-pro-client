@@ -50,8 +50,6 @@ UA_CONFIGURABLE_KEYS = (
     "metering_timer",
     "apt_news",
     "apt_news_url",
-    "cli_color",
-    "cli_suggestions",
     "vulnerability_data_url_prefix",
     "lxd_guest_attach",
 )
@@ -303,30 +301,6 @@ class UAConfig:
     @apt_news_url.setter
     def apt_news_url(self, value: str):
         self.user_config.apt_news_url = value
-        user_config_file.user_config.write(self.user_config)
-
-    @property
-    def cli_color(self) -> bool:
-        val = self.user_config.cli_color
-        if val is None:
-            return True
-        return val
-
-    @cli_color.setter
-    def cli_color(self, value: bool):
-        self.user_config.cli_color = value
-        user_config_file.user_config.write(self.user_config)
-
-    @property
-    def cli_suggestions(self) -> bool:
-        val = self.user_config.cli_suggestions
-        if val is None:
-            return True
-        return val
-
-    @cli_suggestions.setter
-    def cli_suggestions(self, value: bool):
-        self.user_config.cli_suggestions = value
         user_config_file.user_config.write(self.user_config)
 
     @property
