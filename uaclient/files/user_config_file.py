@@ -53,8 +53,6 @@ class UserConfigData(DataObject):
         Field("polling_error_retry_delay", IntDataValue, required=False),
         Field("metering_timer", IntDataValue, required=False),
         Field("update_messaging_timer", IntDataValue, required=False),
-        Field("cli_color", BoolDataValue, required=False),
-        Field("cli_suggestions", BoolDataValue, required=False),
         Field(
             "vulnerability_data_url_prefix", StringDataValue, required=False
         ),
@@ -77,8 +75,6 @@ class UserConfigData(DataObject):
         polling_error_retry_delay: Optional[int] = None,
         metering_timer: Optional[int] = None,
         update_messaging_timer: Optional[int] = None,
-        cli_color: Optional[bool] = None,
-        cli_suggestions: Optional[bool] = None,
         vulnerability_data_url_prefix: Optional[str] = None,
         lxd_guest_attach: Optional[LXDGuestAttachEnum] = None,
     ):
@@ -96,8 +92,6 @@ class UserConfigData(DataObject):
         self.polling_error_retry_delay = polling_error_retry_delay
         self.metering_timer = metering_timer
         self.update_messaging_timer = update_messaging_timer
-        self.cli_color = cli_color
-        self.cli_suggestions = cli_suggestions
         self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
         self.lxd_guest_attach = lxd_guest_attach
 

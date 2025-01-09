@@ -19,8 +19,6 @@ Feature: CLI config command
       metering_timer                 14400
       apt_news                       True
       apt_news_url                   https://motd.ubuntu.com/aptnews.json
-      cli_color                      True
-      cli_suggestions                True
       vulnerability_data_url_prefix  https://security-metadata.canonical.com/oval/
       lxd_guest_attach               off
       """
@@ -46,8 +44,6 @@ Feature: CLI config command
       metering_timer                 14400
       apt_news                       False
       apt_news_url                   https://motd.ubuntu.com/aptnews.json
-      cli_color                      True
-      cli_suggestions                True
       vulnerability_data_url_prefix  https://security-metadata.canonical.com/oval/
       lxd_guest_attach               off
       """

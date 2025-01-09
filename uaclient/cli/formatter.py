@@ -38,13 +38,9 @@ class ProOutputFormatterConfig:
             and "UTF-8" in sys.stdout.encoding.upper()
         )
 
-        cls.use_color = (
-            sys.stdout.isatty()
-            and os.getenv("NO_COLOR") is None
-            and cfg.cli_color
-        )
+        cls.use_color = sys.stdout.isatty() and os.getenv("NO_COLOR") is None
 
-        cls.show_suggestions = cfg.cli_suggestions
+        cls.show_suggestions = True
 
     @classmethod
     def disable_color(cls) -> None:
