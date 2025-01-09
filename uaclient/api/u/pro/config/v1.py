@@ -74,18 +74,6 @@ class ConfigInfo(DataObject, AdditionalInfo):
             doc="Update messaging timer",
         ),
         Field(
-            "cli_color",
-            BoolDataValue,
-            required=False,
-            doc="Show colors in the CLI",
-        ),
-        Field(
-            "cli_suggestions",
-            BoolDataValue,
-            required=False,
-            doc="Show suggestions in the CLI",
-        ),
-        Field(
             "vulnerability_data_url_prefix",
             StringDataValue,
             required=False,
@@ -121,8 +109,6 @@ class ConfigInfo(DataObject, AdditionalInfo):
         metering_timer: Optional[int] = None,
         apt_news: Optional[bool] = None,
         apt_news_url: Optional[str] = None,
-        cli_color: Optional[bool] = None,
-        cli_suggestions: Optional[bool] = None,
         vulnerability_data_url_prefix: Optional[str] = None,
         lxd_guest_attach: Optional[LXDGuestAttachEnum] = None
     ):
@@ -136,8 +122,6 @@ class ConfigInfo(DataObject, AdditionalInfo):
         self.metering_timer = metering_timer
         self.apt_news = apt_news
         self.apt_news_url = apt_news_url
-        self.cli_color = cli_color
-        self.cli_suggestions = cli_suggestions
         self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
         self.lxd_guest_attach = lxd_guest_attach
 

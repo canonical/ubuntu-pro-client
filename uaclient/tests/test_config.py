@@ -178,8 +178,6 @@ USER_CFG_DICT = {
     "https_proxy": None,
     "update_messaging_timer": 21600,
     "metering_timer": 14400,
-    "cli_color": True,
-    "cli_suggestions": True,
     "vulnerability_data_url_prefix": "https://security-metadata.canonical.com/oval/",  # noqa
     "lxd_guest_attach": user_config_file.LXDGuestAttachEnum.OFF,
 }
