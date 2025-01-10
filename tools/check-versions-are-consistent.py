@@ -18,9 +18,12 @@ changelog_version = (
 # GH: 32.3ubuntu1~1.gbp761c11~noble1 -> 32.3
 # backports: 32.3~22.04 -> 32.3
 # ppa test builds: 32.3~22.04~ppa1 -> 32.3
-# devel: 1:1+devel -> 1:1+devel
+# daily ppa: 1:1+devel-35-3475~gc001b39f~ubuntu24.10.1 -> 35
 #
-m = re.match(r"((\d+:\d+\+devel)|\d+(\.\d+)*)", changelog_version)
+# focal and earlier don't have `removeprefix`
+if changelog_version.startswith("1:1+devel-"):
+    changelog_version = changelog_version[10:]
+m = re.match(r"(\d+(\.\d+)*)", changelog_version)
 if m:
     base_changelog_version = m.group()
 else:
