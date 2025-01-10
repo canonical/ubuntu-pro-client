@@ -18,12 +18,17 @@ configuration file:
 
 * :ref:`Attach using a config file <attach-with-config>`
 
+You can also use your Ubuntu Pro subscription across multiple machines:
+
+* :ref:`Configure Ubuntu Pro across multiple machines <roll_out_multiple_machines>`
+
 .. TOC
 
 .. toctree::
    :titlesonly:
    :hidden:
-   
+
    How to attach <how_to_attach>
    Simulate attaching <how_to_simulate_attach>
    Attach with a configuration file <how_to_attach_with_config_file>
+   Configure Ubuntu Pro across multiple machines <how_to_roll_out_across_multiple_machines>
