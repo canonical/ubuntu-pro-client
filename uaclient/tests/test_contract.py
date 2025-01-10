@@ -156,6 +156,73 @@ class TestUAContractClient:
             )
         ] == m_request_url.call_args_list
 
+    @pytest.mark.parametrize(
+        [
+            "request_url_return_value",
+            "expected_raises",
+            "expected_result",
+        ],
+        [
+            (
+                [
+                    http.HTTPResponse(
+                        code=200,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                helpers.does_not_raise(),
+                {"test": "value"},
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=404,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                pytest.raises(exceptions.ContractAPIError),
+                None,
+            ),
+            (
+                [
+                    http.HTTPResponse(
+                        code=400,
+                        headers={},
+                        body="",
+                        json_list=[],
+                        json_dict={"test": "value"},
+                    )
+                ],
+                pytest.raises(exceptions.FeatureNotSupportedOldTokenError),
+                None,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.contract.UAContractClient.headers")
+    def test_get_guest_token(
+        self,
+        m_headers,
+        m_get_machine_id,
+        m_request_url,
+        request_url_return_value,
+        expected_raises,
+        expected_result,
+    ):
+        m_headers.return_value = {"header": "headerval"}
+        m_request_url.side_effect = request_url_return_value
+
+        client = UAContractClient(mock.MagicMock())
+        with expected_raises:
+            assert expected_result == client.get_guest_token(
+                "mToken", "contractId", "machineId"
+            )
+
     @pytest.mark.parametrize("machine_id_param", (("attach-machine-id")))
     @pytest.mark.parametrize(
         "machine_id_response", (("contract-machine-id"), None)
@@ -678,6 +745,7 @@ class TestUAContractClient:
             "is_desktop",
             "virt_type",
             "version",
+            "cpu_info",
             "is_attached",
             "enabled_services",
             "attachment_data",
@@ -709,6 +777,22 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
+                system.CpuInfo(
+                    cpuinfo_cpu="cpuinfo_cpu",
+                    cpuinfo_cpu_architecture="cpuinfo_cpu_architecture",
+                    cpuinfo_cpu_family="cpuinfo_cpu_family",
+                    cpuinfo_cpu_implementer="cpuinfo_cpu_implementer",
+                    cpuinfo_cpu_part="cpuinfo_cpu_part",
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model=None,
+                    cpuinfo_model_name=None,
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
                 IsAttachedResult(
                     is_attached=False,
                     contract_status="none",
@@ -728,6 +812,13 @@ class TestUAContractClient:
                     "desktop": True,
                     "virt": "lxc",
                     "clientVersion": "8001",
+                    "cpu_type": {
+                        "cpuinfo_cpu": "cpuinfo_cpu",
+                        "cpuinfo_cpu_architecture": "cpuinfo_cpu_architecture",
+                        "cpuinfo_cpu_family": "cpuinfo_cpu_family",
+                        "cpuinfo_cpu_implementer": "cpuinfo_cpu_implementer",
+                        "cpuinfo_cpu_part": "cpuinfo_cpu_part",
+                    },
                 },
             ),
             (
@@ -752,6 +843,22 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision="cpuinfo_cpu_revision",
+                    cpuinfo_cpu_variant="cpuinfo_cpu_variant",
+                    cpuinfo_model="cpuinfo_model",
+                    cpuinfo_model_name="cpuinfo_model_name",
+                    cpuinfo_stepping="cpuinfo_stepping",
+                    cpuinfo_vendor_id=None,
+                    sys_firmware_devicetree_base_model=None,
+                    sysinfo_model=None,
+                    sysinfo_type=None,
+                ),
                 IsAttachedResult(
                     is_attached=True,
                     contract_status="active",
@@ -783,6 +890,13 @@ class TestUAContractClient:
                     "desktop": True,
                     "virt": "lxc",
                     "clientVersion": "8001",
+                    "cpu_type": {
+                        "cpuinfo_cpu_revision": "cpuinfo_cpu_revision",
+                        "cpuinfo_cpu_variant": "cpuinfo_cpu_variant",
+                        "cpuinfo_model": "cpuinfo_model",
+                        "cpuinfo_model_name": "cpuinfo_model_name",
+                        "cpuinfo_stepping": "cpuinfo_stepping",
+                    },
                     "activityID": "activity_id",
                     "activityToken": "activity_token",
                     "resources": ["one"],
@@ -812,6 +926,22 @@ class TestUAContractClient:
                 True,
                 "lxc",
                 "8001",
+                system.CpuInfo(
+                    cpuinfo_cpu=None,
+                    cpuinfo_cpu_architecture=None,
+                    cpuinfo_cpu_family=None,
+                    cpuinfo_cpu_implementer=None,
+                    cpuinfo_cpu_part=None,
+                    cpuinfo_cpu_revision=None,
+                    cpuinfo_cpu_variant=None,
+                    cpuinfo_model=None,
+                    cpuinfo_model_name=None,
+                    cpuinfo_stepping=None,
+                    cpuinfo_vendor_id="cpuinfo_vendor_id",
+                    sys_firmware_devicetree_base_model="sys_firmware_devicetree_base_model",  # noqa: E501
+                    sysinfo_model="sysinfo_model",
+                    sysinfo_type="sysinfo_type",
+                ),
                 IsAttachedResult(
                     is_attached=True,
                     contract_status="active",
@@ -848,6 +978,12 @@ class TestUAContractClient:
                     "desktop": True,
                     "virt": "lxc",
                     "clientVersion": "8001",
+                    "cpu_type": {
+                        "cpuinfo_vendor_id": "cpuinfo_vendor_id",
+                        "sys_firmware_devicetree_base_model": "sys_firmware_devicetree_base_model",  # noqa: E501
+                        "sysinfo_model": "sysinfo_model",
+                        "sysinfo_type": "sysinfo_type",
+                    },
                     "activityID": "machine_id",
                     "activityToken": "activity_token",
                     "resources": ["one", "two"],
@@ -857,6 +993,7 @@ class TestUAContractClient:
             ),
         ],
     )
+    @mock.patch("uaclient.contract.system.get_cpu_info")
     @mock.patch("uaclient.contract.attachment_data_file.read")
     @mock.patch("uaclient.contract._enabled_services")
     @mock.patch("uaclient.contract._is_attached")
@@ -877,6 +1014,7 @@ class TestUAContractClient:
         m_is_attached,
         m_enabled_services,
         m_attachment_data_file_read,
+        m_get_cpu_info,
         m_get_machine_id,
         _m_request_url,
         release_info,
@@ -885,6 +1023,7 @@ class TestUAContractClient:
         is_desktop,
         virt_type,
         version,
+        cpu_info,
         is_attached,
         enabled_services,
         attachment_data,
@@ -894,6 +1033,7 @@ class TestUAContractClient:
         expected,
         fake_machine_token_file,
     ):
+        m_get_cpu_info.return_value = cpu_info
         m_get_release_info.return_value = release_info
         m_get_kernel_info.return_value = kernel_info
         m_get_dpkg_arch.return_value = dpkg_arch
@@ -1097,7 +1237,8 @@ class TestCreateAttachForbiddenMessage:
                 messages.NamedMessage(
                     name=messages.E_ATTACH_FORBIDDEN_EXPIRED.name,
                     msg=messages.E_ATTACH_FORBIDDEN_EXPIRED.format(
-                        contract_id="contract-id", date="May 07, 2021"
+                        contract_id="contract-id",
+                        date="May 07, 2021",
                     ).msg,
                 ),
                 {
@@ -1134,7 +1275,8 @@ class TestCreateAttachForbiddenMessage:
                 messages.NamedMessage(
                     name=messages.E_ATTACH_FORBIDDEN_NOT_YET.name,
                     msg=messages.E_ATTACH_FORBIDDEN_NOT_YET.format(
-                        contract_id="contract-id", date="May 07, 2021"
+                        contract_id="contract-id",
+                        date="May 07, 2021",
                     ).msg,
                 ),
                 {
@@ -1573,7 +1715,7 @@ class TestRequestAutoAttach:
 
         with pytest.raises(exceptions.InvalidProImage) as exc_error:
             contract.get_contract_token_for_cloud_instance(
-                instance=mock.MagicMock()
+                cloud_type=mock.MagicMock(), data=mock.MagicMock()
             )
 
         expected_message = messages.E_INVALID_PRO_IMAGE.format(

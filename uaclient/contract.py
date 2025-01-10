@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
-    clouds,
+    data_types,
     event_logger,
     exceptions,
     http,
@@ -47,6 +47,10 @@ API_V1_GET_MAGIC_ATTACH_TOKEN_INFO = "/v1/magic-attach"
 API_V1_NEW_MAGIC_ATTACH = "/v1/magic-attach"
 API_V1_REVOKE_MAGIC_ATTACH = "/v1/magic-attach"
 
+API_V1_GET_GUEST_TOKEN = (
+    "/v1/contracts/{contract}/context/machines/{machine}/guest-token"
+)
+
 OVERRIDE_SELECTOR_WEIGHTS = {
     "series_overrides": 1,
     "series": 2,
@@ -61,6 +65,93 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 EnableByDefaultService = namedtuple(
     "EnableByDefaultService", ["name", "variant"]
 )
+
+
+class CPUTypeData(data_types.DataObject):
+    fields = [
+        data_types.Field(
+            "cpuinfo_cpu", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_architecture",
+            data_types.StringDataValue,
+            required=False,
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_family", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_implementer",
+            data_types.StringDataValue,
+            required=False,
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_part", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_revision", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_cpu_variant", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_model", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_model_name", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_stepping", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "cpuinfo_vendor_id", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "sys_firmware_devicetree_base_model",
+            data_types.StringDataValue,
+            required=False,
+        ),
+        data_types.Field(
+            "sysinfo_model", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "sysinfo_type", data_types.StringDataValue, required=False
+        ),
+    ]
+
+    def __init__(
+        self,
+        cpuinfo_cpu: Optional[str] = None,
+        cpuinfo_cpu_architecture: Optional[str] = None,
+        cpuinfo_cpu_family: Optional[str] = None,
+        cpuinfo_cpu_implementer: Optional[str] = None,
+        cpuinfo_cpu_part: Optional[str] = None,
+        cpuinfo_cpu_revision: Optional[str] = None,
+        cpuinfo_cpu_variant: Optional[str] = None,
+        cpuinfo_model: Optional[str] = None,
+        cpuinfo_model_name: Optional[str] = None,
+        cpuinfo_stepping: Optional[str] = None,
+        cpuinfo_vendor_id: Optional[str] = None,
+        sys_firmware_devicetree_base_model: Optional[str] = None,
+        sysinfo_model: Optional[str] = None,
+        sysinfo_type: Optional[str] = None,
+    ):
+        self.cpuinfo_cpu = cpuinfo_cpu
+        self.cpuinfo_cpu_architecture = cpuinfo_cpu_architecture
+        self.cpuinfo_cpu_family = cpuinfo_cpu_family
+        self.cpuinfo_cpu_implementer = cpuinfo_cpu_implementer
+        self.cpuinfo_cpu_part = cpuinfo_cpu_part
+        self.cpuinfo_cpu_revision = cpuinfo_cpu_revision
+        self.cpuinfo_cpu_variant = cpuinfo_cpu_variant
+        self.cpuinfo_model = cpuinfo_model
+        self.cpuinfo_model_name = cpuinfo_model_name
+        self.cpuinfo_stepping = cpuinfo_stepping
+        self.cpuinfo_vendor_id = cpuinfo_vendor_id
+        self.sys_firmware_devicetree_base_model = (
+            sys_firmware_devicetree_base_model
+        )
+        self.sysinfo_model = sysinfo_model
+        self.sysinfo_type = sysinfo_type
 
 
 class UAContractClient(serviceclient.UAServiceClient):
@@ -152,7 +243,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     @util.retry(socket.timeout, retry_sleeps=[1, 2, 2])
     def get_contract_token_for_cloud_instance(
-        self, *, instance: clouds.AutoAttachCloudInstance
+        self, *, cloud_type: str, data: Dict[str, Any]
     ):
         """Requests contract token for auto-attach images for Pro clouds.
 
@@ -162,9 +253,9 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         response = self.request_url(
             API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
-                cloud_type=instance.cloud_type
+                cloud_type=cloud_type
             ),
-            data=instance.identity_doc,
+            data=data,
         )
         if response.code != 200:
             msg = response.json_dict.get("message", "")
@@ -418,9 +509,45 @@ class UAContractClient(serviceclient.UAServiceClient):
             response.json_dict["expires"] = response.headers["expires"]
         return response.json_dict
 
+    def get_guest_token(
+        self,
+        machine_token: str,
+        contract_id: str,
+        machine_id: str,
+    ) -> Dict:
+        """Request guest token associated with this machine's contract
+        @param machine_token: The machine token needed to talk to
+            this contract service endpoint.
+        @param contract_id: Unique contract id provided by contract service
+        @param machine_id: Unique machine id that was registered with the pro
+            backend on attach.
+        @return: Dict of the JSON response containing the guest token
+        """
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
+        url = API_V1_GET_GUEST_TOKEN.format(
+            contract=contract_id,
+            machine=machine_id,
+        )
+        response = self.request_url(url, headers=headers, method="GET")
+        if response.code == 400:
+            # defined response code for when machine has a v1 or v2 token
+            # this will only be true for old attachments (2020 or earlier)
+            raise exceptions.FeatureNotSupportedOldTokenError(
+                feature_name="get_guest_token"
+            )
+        elif response.code != 200:
+            raise exceptions.ContractAPIError(
+                url=url,
+                code=response.code,
+                body=response.body,
+            )
+        return response.json_dict
+
     def _get_activity_info(self):
         """Return a dict of activity info data for contract requests"""
 
+        cpuinfo = system.get_cpu_info()
         machine_info = {
             "distribution": system.get_release_info().distribution,
             "kernel": system.get_kernel_info().uname_release,
@@ -429,6 +556,22 @@ class UAContractClient(serviceclient.UAServiceClient):
             "desktop": system.is_desktop(),
             "virt": system.get_virt_type(),
             "clientVersion": version.get_version(),
+            "cpu_type": CPUTypeData(
+                cpuinfo_cpu=cpuinfo.cpuinfo_cpu,
+                cpuinfo_cpu_architecture=cpuinfo.cpuinfo_cpu_architecture,
+                cpuinfo_cpu_family=cpuinfo.cpuinfo_cpu_family,
+                cpuinfo_cpu_implementer=cpuinfo.cpuinfo_cpu_implementer,
+                cpuinfo_cpu_part=cpuinfo.cpuinfo_cpu_part,
+                cpuinfo_cpu_revision=cpuinfo.cpuinfo_cpu_revision,
+                cpuinfo_cpu_variant=cpuinfo.cpuinfo_cpu_variant,
+                cpuinfo_model=cpuinfo.cpuinfo_model,
+                cpuinfo_model_name=cpuinfo.cpuinfo_model_name,
+                cpuinfo_stepping=cpuinfo.cpuinfo_stepping,
+                cpuinfo_vendor_id=cpuinfo.cpuinfo_vendor_id,
+                sys_firmware_devicetree_base_model=cpuinfo.sys_firmware_devicetree_base_model,  # noqa: E501
+                sysinfo_model=cpuinfo.sysinfo_model,
+                sysinfo_type=cpuinfo.sysinfo_type,
+            ).to_dict(keep_none=False),
         }
 
         if _is_attached(self.cfg).is_attached:

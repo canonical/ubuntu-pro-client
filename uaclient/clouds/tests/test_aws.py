@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 
@@ -13,15 +14,15 @@ from uaclient.clouds.aws import (
     IMDS_IPV6_ADDRESS,
     IMDS_URL,
     IMDS_V2_TOKEN_URL,
-    UAAutoAttachAWSInstance,
+    AWSAutoAttachInstance,
 )
 
 M_PATH = "uaclient.clouds.aws."
 
 
-class TestUAAutoAttachAWSInstance:
+class TestAWSAutoAttachInstance:
     def test_cloud_type(self):
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         assert "aws" == instance.cloud_type
 
     @mock.patch(M_PATH + "http.readurl")
@@ -34,7 +35,7 @@ class TestUAAutoAttachAWSInstance:
             json_dict={},
             json_list=[],
         )
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         assert None is instance._get_imds_v2_token_headers(
             ip_address=IMDS_IPV4_ADDRESS
         )
@@ -46,7 +47,7 @@ class TestUAAutoAttachAWSInstance:
     @mock.patch(M_PATH + "http.readurl")
     def test__get_imds_v2_token_headers_caches_response(self, readurl):
         """Return API token headers for IMDSv2 access. Response is cached."""
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         url = "http://169.254.169.254/latest/api/token"
         readurl.return_value = http.HTTPResponse(
             code=200,
@@ -96,7 +97,7 @@ class TestUAAutoAttachAWSInstance:
             )
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         if exception:
             with pytest.raises(exceptions.CloudMetadataError):
                 instance._get_imds_v2_token_headers(
@@ -130,7 +131,7 @@ class TestUAAutoAttachAWSInstance:
             json_dict={},
             json_list=[],
         )
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
         url = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
         token_url = "http://169.254.169.254/latest/api/token"
@@ -182,7 +183,7 @@ class TestUAAutoAttachAWSInstance:
             )
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         if exception:
             with pytest.raises(exceptions.CloudMetadataError) as excinfo:
                 instance.identity_doc
@@ -206,7 +207,7 @@ class TestUAAutoAttachAWSInstance:
     def test_is_viable_based_on_sys_hypervisor_uuid(self, load_file, uuid):
         """Viable ec2 platform is determined by /sys/hypervisor/uuid prefix"""
         load_file.return_value = uuid
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         assert True is instance.is_viable
 
     @pytest.mark.parametrize(
@@ -240,7 +241,7 @@ class TestUAAutoAttachAWSInstance:
             raise AssertionError("Invalid load_file of {}".format(f_name))
 
         load_file.side_effect = fake_load_file
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -248,7 +249,7 @@ class TestUAAutoAttachAWSInstance:
     def test_identity_doc_default_to_ipv6_if_ipv4_fail(
         self, readurl, caplog_text
     ):
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS
 
@@ -307,7 +308,7 @@ class TestUAAutoAttachAWSInstance:
         self, readurl, caplog_text
     ):
 
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS
 
@@ -348,11 +349,162 @@ class TestUAAutoAttachAWSInstance:
 
     def test_unsupported_should_poll_for_pro_license(self):
         """Unsupported"""
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         assert not instance.should_poll_for_pro_license()
 
     def test_unsupported_is_pro_license_present(self):
         """Unsupported"""
-        instance = UAAutoAttachAWSInstance()
+        instance = AWSAutoAttachInstance()
         with pytest.raises(exceptions.InPlaceUpgradeNotSupportedError):
             instance.is_pro_license_present(wait_for_change=False)
+
+    def test__get_ii_doc_ok(self):
+        instance = AWSAutoAttachInstance()
+        instance._ip_address = "169.254.169.254"
+        headers = {"X-aws-ec2-metadata-token": "token"}
+        instance._request_imds_v2_token_headers = mock.MagicMock(
+            return_value=headers
+        )
+
+        ii_doc = {
+            "accountId": "937157663530",
+            "architecture": "x86_64",
+            "availabilityZone": "eu-south-2b",
+            "billingProducts": ["bp-66a5400f"],
+            "devpayProductCodes": None,
+            "marketplaceProductCodes": None,
+            "imageId": "ami-0691695a958575df9",
+            "instanceId": "i-09d1747b6cf64cdb9",
+            "instanceType": "t3.micro",
+            "kernelId": None,
+            "pendingTime": "2024-08-26T09:27:51Z",
+            "privateIp": "192.168.2.157",
+            "ramdiskId": None,
+            "region": "eu-south-2",
+            "version": "2017-09-30",
+        }
+        instance._get_imds_url_response = mock.MagicMock(
+            return_value=json.dumps(ii_doc)
+        )
+
+        assert ii_doc == instance._get_ii_doc()
+
+        assert [
+            mock.call(
+                "http://169.254.169.254/latest/dynamic/instance-identity"
+                "/document",
+                headers=headers,
+            ),
+        ] == instance._get_imds_url_response.call_args_list
+
+    def test__get_ii_doc_json_error(self):
+        """test behavior when json.load fails"""
+        instance = AWSAutoAttachInstance()
+        instance._ip_address = "169.254.169.254"
+        headers = {"X-aws-ec2-metadata-token": "token"}
+        instance._request_imds_v2_token_headers = mock.MagicMock(
+            return_value=headers
+        )
+        instance._get_imds_url_response = mock.MagicMock(
+            return_value="{invalidjson"
+        )
+        assert {} == instance._get_ii_doc()
+        assert [
+            mock.call(
+                "http://169.254.169.254/latest/dynamic/instance-identity"
+                "/document",
+                headers=headers,
+            ),
+        ] == instance._get_imds_url_response.call_args_list
+
+    @pytest.mark.parametrize(
+        "ii_doc, is_likely_pro",
+        [
+            (
+                {
+                    "accountId": "937157663530",
+                    "architecture": "x86_64",
+                    "availabilityZone": "eu-south-2b",
+                    "billingProducts": ["bp-66a5400f"],
+                    "devpayProductCodes": None,
+                    "marketplaceProductCodes": None,
+                    "imageId": "ami-0691695a958575df9",
+                    "instanceId": "i-09d1747b6cf64cdb9",
+                    "instanceType": "t3.micro",
+                    "kernelId": None,
+                    "pendingTime": "2024-08-26T09:27:51Z",
+                    "privateIp": "192.168.2.157",
+                    "ramdiskId": None,
+                    "region": "eu-south-2",
+                    "version": "2017-09-30",
+                },
+                True,
+            ),
+            (
+                {
+                    "accountId": "937157663530",
+                    "architecture": "x86_64",
+                    "availabilityZone": "eu-south-2b",
+                    "billingProducts": ["bp-66a5400f"],
+                    "devpayProductCodes": None,
+                    "marketplaceProductCodes": ["mp-66a5400f"],
+                    "imageId": "ami-0691695a958575df9",
+                    "instanceId": "i-09d1747b6cf64cdb9",
+                    "instanceType": "t3.micro",
+                    "kernelId": None,
+                    "pendingTime": "2024-08-26T09:27:51Z",
+                    "privateIp": "192.168.2.157",
+                    "ramdiskId": None,
+                    "region": "eu-south-2",
+                    "version": "2017-09-30",
+                },
+                True,
+            ),
+            (
+                {
+                    "accountId": "937157663530",
+                    "architecture": "x86_64",
+                    "availabilityZone": "eu-south-2b",
+                    "billingProducts": None,
+                    "devpayProductCodes": None,
+                    "marketplaceProductCodes": ["mp-66a5400f"],
+                    "imageId": "ami-0691695a958575df9",
+                    "instanceId": "i-09d1747b6cf64cdb9",
+                    "instanceType": "t3.micro",
+                    "kernelId": None,
+                    "pendingTime": "2024-08-26T09:27:51Z",
+                    "privateIp": "192.168.2.157",
+                    "ramdiskId": None,
+                    "region": "eu-south-2",
+                    "version": "2017-09-30",
+                },
+                True,
+            ),
+            (
+                {
+                    "billingProducts": None,
+                    "marketplaceProductCodes": ["mp-66a5400f"],
+                },
+                True,
+            ),
+            (
+                {
+                    "billingProducts": None,
+                    "marketplaceProductCodes": None,
+                },
+                False,
+            ),
+            (
+                {
+                    "billingProducts": [],
+                    "marketplaceProductCodes": [],
+                },
+                False,
+            ),
+            ({}, False),
+        ],
+    )
+    def test_is_likely_pro(self, ii_doc, is_likely_pro):
+        instance = AWSAutoAttachInstance()
+        instance._get_ii_doc = mock.MagicMock(return_value=ii_doc)
+        assert is_likely_pro == instance.is_likely_pro

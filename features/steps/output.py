@@ -3,6 +3,7 @@ import logging
 import re
 import textwrap
 
+import jq  # type: ignore
 import jsonschema  # type: ignore
 import yaml
 from behave import then, when
@@ -33,11 +34,31 @@ def then_conditional_stdout_matches_regexp(context, value1, value2):
         then_stream_matches_regexp(context, "stdout")
 
 
+@then("if `{value1}` in `{value2}` and stdout contains substring")
+def then_conditional_stdout_contains_substring(context, value1, value2):
+    if value1 in value2.split(" or "):
+        then_stream_contains_substring(context, "stdout")
+
+
+@then("if `{value1}` in `{value2}` and stderr matches regexp")
+def then_conditional_stderr_matches_regexp(context, value1, value2):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 in value2.split(" or "):
+        then_stream_matches_regexp(context, "stderr")
+
+
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
 def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_stream_does_not_match_regexp(context, "stdout")
+
+
+@then("if `{value1}` in `{value2}` then output is")
+def then_conditional_stdout_is(context, value1, value2):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 in value2.split(" or "):
+        then_i_will_see_on_stream(context, "stdout")
 
 
 @then("if `{value1}` not in `{value2}` and stdout matches regexp")
@@ -237,3 +258,39 @@ def i_verify_field_is_redacted_in_the_logs(context, field):
     )
     context.text = field + "<REDACTED>"
     then_stream_contains_substring(context, "stdout")
+
+
+@when("I apply this jq filter `{jq_filter}` to the output")
+def i_apply_jq_filter(context, jq_filter):
+    context.process.stdout = json.dumps(
+        json.loads(
+            jq.compile(jq_filter)
+            .input_text(context.process.stdout.strip())
+            .text()
+        ),
+        indent=2,
+    )
+
+
+@when("I apply this jq filter `{jq_filter}` to the API data field output")
+def i_apply_jq_filter_to_api_data(context, jq_filter):
+    content = process_api_data(context, api_key="data", escape=False)
+    context.process.stdout = jq.compile(jq_filter).input_text(content).text()
+
+
+@when("I remove colors from output")
+def i_remove_colors_from_output(context):
+    COLOR_FORMATTING_PATTERN = r"\033\[.*?m"
+    context.process.stdout = re.sub(
+        COLOR_FORMATTING_PATTERN, "", context.process.stdout.strip()
+    )
+
+
+@when("I remove links from output")
+def i_remove_links_from_output(context):
+    LINK_START_PATTERN = r"\033]8;;.+?\033\\+"
+    LINK_END = "\033]8;;\033\\"
+    context.process.stdout = re.sub(
+        LINK_START_PATTERN, "", context.process.stdout.strip()
+    )
+    context.process.stdout = context.process.stdout.replace(LINK_END, "")

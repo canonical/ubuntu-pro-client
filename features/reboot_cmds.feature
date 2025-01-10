@@ -1,4 +1,4 @@
-@uses.config.contract_token
+@uses.config.contract_token @arm64
 Feature: Reboot Commands
 
   Scenario Outline: reboot-cmds removes fips package holds and updates packages

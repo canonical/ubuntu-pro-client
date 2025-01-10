@@ -11,6 +11,7 @@ import os
 UAC_ETC_PATH = "/etc/ubuntu-advantage"
 UAC_RUN_PATH = "/run/ubuntu-advantage"
 DEFAULT_DATA_DIR = "/var/lib/ubuntu-advantage"
+NEW_DEFAULT_DATA_DIR = "/var/lib/ubuntu-pro"
 DEFAULT_LOG_DIR = "/var/log"
 
 
@@ -22,15 +23,24 @@ CANDIDATE_VERSION_FILE = "candidate-version"
 DEFAULT_LOG_FILE_BASE_NAME = "ubuntu-advantage"
 PRIVATE_SUBDIR = "private"
 MESSAGES_SUBDIR = "messages"
+INTERFACE_FILES_SUBDIR = "interfaces"
 USER_CACHE_SUBDIR = "ubuntu-pro"
 NOTICES_SUBDIR = "notices"
 PRIVATE_ESM_CACHE_SUBDIR = "apt-esm"
+VULNERABILITY_SUBDIR = "vulnerability-data"
+VULNERABILITY_DATA_CACHE = "vulnerability-cache.json"
+VULNERABILITY_RESULT_CACHE = "vulnerability-result.json"
+VULNERABILITY_PUBLISH_DATE_CACHE = "vulnerability-publish-date"
+VULNERABILITY_DPKG_STATUS_DATE_CACHE = "vulnerability-dpkg-status-date"
 
 DEFAULT_PRIVATE_MACHINE_TOKEN_PATH = os.path.join(
     DEFAULT_DATA_DIR, PRIVATE_SUBDIR, MACHINE_TOKEN_FILE
 )
 DEFAULT_PRIVATE_DATA_DIR = os.path.join(DEFAULT_DATA_DIR, PRIVATE_SUBDIR)
 MESSAGES_DIR = os.path.join(DEFAULT_DATA_DIR, MESSAGES_SUBDIR)
+INTERFACE_FILES_DIR = os.path.join(
+    NEW_DEFAULT_DATA_DIR, INTERFACE_FILES_SUBDIR
+)
 DEFAULT_CONFIG_FILE = os.path.join(UAC_ETC_PATH, CONFIG_FILE)
 CANDIDATE_CACHE_PATH = os.path.join(UAC_RUN_PATH, CANDIDATE_VERSION_FILE)
 DEFAULT_USER_CONFIG_JSON_FILE = os.path.join(
@@ -40,13 +50,18 @@ DEFAULT_LOG_PREFIX = os.path.join(DEFAULT_LOG_DIR, DEFAULT_LOG_FILE_BASE_NAME)
 ESM_APT_ROOTDIR = os.path.join(DEFAULT_DATA_DIR, PRIVATE_ESM_CACHE_SUBDIR)
 NOTICES_PERMANENT_DIRECTORY = os.path.join(DEFAULT_DATA_DIR, NOTICES_SUBDIR)
 NOTICES_TEMPORARY_DIRECTORY = os.path.join(UAC_RUN_PATH, NOTICES_SUBDIR)
-
+APT_NEWS_PATH = os.path.join(UAC_RUN_PATH, "apt-news")
 
 # URLs
 BASE_CONTRACT_URL = "https://contracts.canonical.com"
 BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_LIVEPATCH_URL = "https://livepatch.canonical.com"
+BASE_VULNERABILITY_DATA_URL = "https://security-metadata.canonical.com/oval/"
 APT_NEWS_URL = "https://motd.ubuntu.com/aptnews.json"
+
+# VULNERABILITY DATA
+VULNERABILITY_DATA_TMPL = "com.ubuntu.{series}.pkg.json.xz"
+VULNERABILITY_CACHE_PATH = os.path.join(DEFAULT_DATA_DIR, VULNERABILITY_SUBDIR)
 
 PRINT_WRAP_WIDTH = 80
 CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14

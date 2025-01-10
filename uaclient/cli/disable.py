@@ -1,7 +1,7 @@
 import json
 import logging
 import textwrap
-from typing import Dict, List  # noqa: F401
+from typing import Any, Dict, List  # noqa: F401
 
 from uaclient import (
     config,
@@ -11,6 +11,7 @@ from uaclient import (
     exceptions,
     messages,
     status,
+    system,
     util,
 )
 from uaclient.api import ProgressWrapper
@@ -33,7 +34,6 @@ def prompt_for_dependency_handling(
     service: str,
     all_dependencies: List[ServiceWithDependencies],
     enabled_service_names: List[str],
-    called_name: str,
     service_title: str,
 ):
     dependent_services = []
@@ -116,7 +116,7 @@ def action_disable(args, *, cfg, **kwargs):
     """
     processed_services = []
     failed_services = []
-    errors = []
+    errors = []  # type: List[Dict[str, Any]]
     warnings = []  # type: List[Dict[str, str]]
 
     json_response = {
@@ -145,6 +145,11 @@ def action_disable(args, *, cfg, **kwargs):
         entitlements_found,
         entitlements_not_found,
     ) = entitlements.get_valid_entitlement_names(names, cfg)
+
+    if "cis" in names and system.get_release_info().series == "focal":
+        entitlements_found.append("usg")
+        entitlements_not_found.remove("cis")
+
     enabled_service_names = [
         s.name for s in _enabled_services(cfg).enabled_services
     ]
@@ -171,7 +176,6 @@ def action_disable(args, *, cfg, **kwargs):
                     ent.name,
                     all_dependencies,
                     enabled_service_names,
-                    called_name=ent_name,
                     service_title=ent.title,
                 )
             except exceptions.UbuntuProError as e:
