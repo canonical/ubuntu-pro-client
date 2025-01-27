@@ -1262,7 +1262,6 @@ CLI_VULNERABILITY_SHOW_CVSS_SEVERITY = t.gettext("CVSS severity: {}")
 CLI_VULNERABILITY_SHOW_DESCRIPTION = t.gettext("[DESCRIPTION]\n{}")
 CLI_VULNERABILITY_SHOW_NOTES = t.gettext("[NOTES]\n{}")
 CLI_VULNERABILITY_SHOW_RELATED_USNS = t.gettext("[RELATED USNs]\n")
-CLI_VULNERABILITY_SHOW_RELATED_CVES = t.gettext("[RELATED CVEs]\n")
 CLI_VULNERABILITY_SHOW_AFFECTED_PKGS = t.gettext(
     "[AFFECTED INSTALLED PACKAGES]\n"
 )
@@ -1324,9 +1323,6 @@ CLI_VULNERABILITY_LIST_USN_HEADER = (
 )
 CLI_VULNERABILITY_LIST_ALL = t.gettext(
     "List all vulnerabilities that affect the machine, even if they can't be fixed"  # noqa
-)
-CLI_VULNERABILITY_LIST_USNS = t.gettext(
-    "List USNs vulnerabilities instead of CVEs"
 )
 CLI_VULNERABILITY_LIST_UNFIXABLE = t.gettext(
     "List only vulnerabilities that don't have a fix available"
