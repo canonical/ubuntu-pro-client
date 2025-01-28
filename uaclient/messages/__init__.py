@@ -1219,10 +1219,6 @@ Allow users to better visualize the vulnerability issues that affects
 the system. By default, this command will execute pro vulnerability list"""
 )
 
-CLI_VULNERABILITY_DATA_FILE = t.gettext(
-    """\
-Static vulnerability JSON data to be used in the command"""
-)
 CLI_VULNERABILITY_DATE_OUTDATED = t.gettext(
     """\
 The vulnerabilities data used in the system is outdated by {t_diff} days/hours

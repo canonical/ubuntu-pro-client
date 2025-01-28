@@ -3,13 +3,12 @@ import datetime
 import enum
 import json
 import os
-import re
 from collections import defaultdict
 from functools import lru_cache
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from urllib.parse import urljoin
 
-from uaclient import apt, exceptions, http, system, util
+from uaclient import apt, http, system, util
 from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
@@ -70,14 +69,10 @@ class VulnerabilityData:
     def __init__(
         self,
         cfg: UAConfig,
-        data_file: Optional[str] = None,
         series: Optional[str] = None,
-        update_data: bool = True,
     ):
         self.cfg = cfg
-        self.data_file = data_file
         self.series = series or system.get_release_info().series
-        self.update_data = update_data
         self._last_published_date = None  # type: Optional[str]
 
     def _get_cache_data_path(self):
@@ -115,9 +110,6 @@ class VulnerabilityData:
         return self._last_published_date
 
     def is_cache_valid(self) -> Tuple[bool, Optional[datetime.datetime]]:
-        if self.data_file:
-            return (False, None)
-
         last_published_date = self._get_published_date()
         cache_date_file = self._get_cache_file()
 
@@ -190,10 +182,7 @@ class VulnerabilityData:
         return vulnerability_json_data["published_at"]
 
     def get(self):
-        if self.data_file:
-            return json.loads(system.load_file(self.data_file))
-
-        if not self.update_data and self.cache_exists():
+        if self.cache_exists():
             return self._get_cache_data()
 
         last_published_date = self._get_published_date()
@@ -206,7 +195,7 @@ class VulnerabilityData:
         if cache_valid:
             return self._get_cache_data()
 
-        if self.update_data or not self.cache_exists():
+        if not self.cache_exists():
             json_data = json.loads(
                 http.download_xz_file_from_url(self._get_data_url()).decode(
                     "utf-8"
@@ -233,81 +222,15 @@ def _get_source_package_from_vulnerabilities_data(
     return ""
 
 
-class ProManifestSourcePackage:
-    name = "Pro manifest"
-
-    # This pkg part of this regex was created accordingly to the debian
-    # name pattern defined here:
-    # https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-source
-    PKG_RE = re.compile(r"^(?P<pkg>[\w\-\.\+]+)(:\w+)?\s+(?P<version>.+)$")
-
-    @staticmethod
-    def parse(manifest_file: str) -> Dict[str, str]:
-        pkgs = {}
-
-        with open(manifest_file, "r") as f:
-            for line in f.readlines():
-                re_match = ProManifestSourcePackage.PKG_RE.match(line)
-                if re_match:
-                    match_groups = re_match.groupdict()
-                    pkg = match_groups["pkg"]
-
-                    if pkg == "snap":
-                        continue
-
-                    pkgs[pkg] = match_groups["version"]
-                else:
-                    raise exceptions.ManifestParseError(
-                        name=ProManifestSourcePackage.name, error_line=line
-                    )
-
-        return pkgs
-
-
 class SourcePackages:
-    SUPPORTED_MANIFESTS = [ProManifestSourcePackage]
-
     def __init__(
         self,
         vulnerabilities_data: Dict[str, Any],
-        manifest_file: Optional[str] = None,
     ):
-        self.manifest_file = manifest_file
         self.vulnerabilities_data = vulnerabilities_data
 
     def get(self):
-        if not self.manifest_file:
-            return query_installed_source_pkg_versions()
-        else:
-            return self.parse_manifest_file()
-
-    def parse_manifest_file(self) -> Dict[str, Dict[str, str]]:
-        if not self.manifest_file:
-            return {}
-
-        manifest_pkgs = None
-
-        for manifest_parser_cls in self.SUPPORTED_MANIFESTS:
-            try:
-                manifest_pkgs = manifest_parser_cls.parse(self.manifest_file)
-                break
-            except exceptions.ManifestParseError:
-                continue
-
-        if not manifest_pkgs:
-            raise exceptions.UnsupportedManifestFile
-
-        source_pkgs = {}  # type: Dict[str, Dict[str, str]]
-        for pkg, version in manifest_pkgs.items():
-            source_pkg = _get_source_package_from_vulnerabilities_data(
-                self.vulnerabilities_data, pkg
-            )
-            if source_pkg in source_pkgs:
-                source_pkgs[source_pkg][pkg] = version
-            else:
-                source_pkgs[source_pkg] = {pkg: version}
-
-        return source_pkgs
+        return query_installed_source_pkg_versions()
 
 
 def _get_vulnerability_fix_status(
@@ -748,35 +671,28 @@ class VulnerabilityResultCache:
 def get_vulnerabilities(
     parser: VulnerabilityParser,
     cfg: UAConfig,
-    update_json_data: bool,
     series: Optional[str],
-    data_file: Optional[str],
-    manifest_file: Optional[str],
 ):
     vulnerabilities_data = VulnerabilityData(
         cfg=cfg,
-        data_file=data_file,
         series=series,
-        update_data=update_json_data,
     )
     vulnerabilities_result = VulnerabilityResultCache(
         series=series,
         vulnerability_type=parser.vulnerability_type,
     )
 
-    if not manifest_file:
-        is_cache_valid, _ = vulnerabilities_data.is_cache_valid()
-        if is_cache_valid:
-            if vulnerabilities_result.is_cache_valid():
-                return VulnerabilityParserResult(
-                    vulnerability_data_published_at=vulnerabilities_data.get_published_date(),  # noqa
-                    vulnerabilities_info=vulnerabilities_result.get_result_cache(),  # noqa
-                )
+    is_cache_valid, _ = vulnerabilities_data.is_cache_valid()
+    if is_cache_valid:
+        if vulnerabilities_result.is_cache_valid():
+            return VulnerabilityParserResult(
+                vulnerability_data_published_at=vulnerabilities_data.get_published_date(),  # noqa
+                vulnerabilities_info=vulnerabilities_result.get_result_cache(),  # noqa
+            )
 
     vulnerabilities_json_data = vulnerabilities_data.get()
     installed_pkgs_by_source = SourcePackages(
         vulnerabilities_data=vulnerabilities_json_data,
-        manifest_file=manifest_file,
     ).get()
 
     vulnerabilities_parser_result = (
@@ -786,9 +702,8 @@ def get_vulnerabilities(
         )
     )
 
-    if not manifest_file and not data_file:
-        vulnerabilities_result.save_result_cache(
-            vulnerabilities_parser_result.vulnerabilities_info
-        )
+    vulnerabilities_result.save_result_cache(
+        vulnerabilities_parser_result.vulnerabilities_info
+    )
 
     return vulnerabilities_parser_result
