@@ -29,21 +29,6 @@ from uaclient.data_types import (
 class UpdatesInfoWithCVEsOptions(DataObject):
     fields = [
         Field(
-            "data_file",
-            StringDataValue,
-            False,
-            doc="Path for a local vulnerabilities JSON data.",
-        ),
-        Field(
-            "series",
-            StringDataValue,
-            False,
-            doc=(
-                "When provided, the API will download the JSON "
-                "vulnerabilities data for the given series."
-            ),
-        ),
-        Field(
             "updates_data",
             StringDataValue,
             False,
@@ -55,15 +40,7 @@ class UpdatesInfoWithCVEsOptions(DataObject):
         ),
     ]
 
-    def __init__(
-        self,
-        *,
-        data_file: Optional[str] = None,
-        series: Optional[str] = None,
-        updates_data: Optional[str] = None
-    ):
-        self.data_file = data_file
-        self.series = series
+    def __init__(self, *, updates_data: Optional[str] = None):
         self.updates_data = updates_data
 
 
@@ -223,9 +200,7 @@ def _updates_with_cves(
     """
 
     package_updates = _get_pkg_updates(cfg, options.updates_data)
-    vulnerabilities_json_data = VulnerabilityData(
-        cfg=cfg, data_file=options.data_file, series=options.series
-    ).get()
+    vulnerabilities_json_data = VulnerabilityData(cfg=cfg).get()
     package_updates_with_cves = []
     cves_info = []
     all_cves = set()
