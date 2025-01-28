@@ -24,7 +24,6 @@ VALID_ENDPOINTS = [
     "u.pro.detach.v1",
     "u.pro.packages.summary.v1",
     "u.pro.packages.updates.v1",
-    "u.pro.packages.updates_with_cves.v1",
     "u.pro.security.fix.cve.execute.v1",
     "u.pro.security.fix.cve.plan.v1",
     "u.pro.security.fix.usn.execute.v1",
