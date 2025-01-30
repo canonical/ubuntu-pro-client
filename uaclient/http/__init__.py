@@ -10,7 +10,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from urllib import error, request
 from urllib.parse import ParseResult, urlparse
 
-from uaclient import defaults, exceptions, util
+from uaclient import defaults, exceptions, system, util
 
 UA_NO_PROXY_URLS = ("169.254.169.254", "metadata", "[fd00:ec2::254]")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
@@ -333,9 +333,29 @@ def _parse_https_proxy(https_proxy) -> Optional[ParseResult]:
     return urlparse(https_proxy) if https_proxy else None
 
 
+def _get_overlay_data(cfg, url: str):
+    response_overlay_path = cfg.features.get("serviceclient_url_responses")
+
+    response_overlay = {}  # type: Dict[str, Any]
+    if not response_overlay_path:
+        response_overlay = {}
+    elif not os.path.exists(response_overlay_path):
+        response_overlay = {}
+    else:
+        response_overlay = json.loads(system.load_file(response_overlay_path))
+
+    return response_overlay.get(url, [])
+
+
 def download_xz_file_from_url(
-    url: str, timeout: Optional[int] = None
+    cfg, url: str, timeout: Optional[int] = None
 ) -> bytes:
+    overlay_response = _get_overlay_data(cfg, url)
+    if overlay_response:
+        # We only consider the first response for mock xz related requests
+        response = overlay_response.pop(0)
+        return lzma.open(response["response"]["file_path"]).read()
+
     if not is_service_url(url):
         raise exceptions.InvalidUrl(url=url)
 
