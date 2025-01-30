@@ -2868,6 +2868,13 @@ E_INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
     t.gettext("Got value with incorrect type at index {index}:\n{nested_msg}"),
 )
 
+E_INCORRECT_DICT_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-dict-element-type",
+    t.gettext(
+        "Got value with incorrect type for {key}:{value_type}\n{nested_msg}"
+    ),
+)
+
 E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-field-type",
     t.gettext(
