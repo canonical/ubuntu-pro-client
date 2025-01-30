@@ -2,7 +2,7 @@ import datetime
 import json
 import logging
 from enum import Enum
-from typing import Any, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 from uaclient import exceptions, messages, util
 
@@ -20,6 +20,17 @@ class IncorrectListElementTypeError(IncorrectTypeError):
 
     def __init__(self, *, err: IncorrectTypeError, at_index: int):
         super().__init__(index=at_index, nested_msg=err.msg)
+        self.expected_type = err.expected_type
+        self.got_type = err.got_type
+
+
+class IncorrectDictElementTypeError(IncorrectTypeError):
+    _formatted_msg = messages.E_INCORRECT_DICT_ELEMENT_TYPE_ERROR_MESSAGE
+
+    def __init__(self, *, err: IncorrectTypeError, key: str, value: Any):
+        super().__init__(
+            key=key, value_type=type(value).__name__, nested_msg=err.msg
+        )
         self.expected_type = err.expected_type
         self.got_type = err.got_type
 
@@ -193,6 +204,35 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
     return _DataList
 
 
+def data_dict(value_cls: Type[DataValue]) -> Type[DataValue]:
+    """
+    To be used for parsing dicts of a certain DataValue type.
+    Returns a class that extends DataValue and validates that
+    each key, value is the correct type in its from_value.
+    """
+
+    class _DataDict(DataValue):
+        @staticmethod
+        def from_value(val: Any) -> Dict:
+            if not isinstance(val, dict):
+                raise IncorrectTypeError(
+                    expected_type="dict", got_type=type(val).__name__
+                )
+            new_val = {}
+            for key, value in val.items():
+                try:
+                    new_val[StringDataValue.from_value(key)] = (
+                        value_cls.from_value(value)
+                    )
+                except IncorrectTypeError as e:
+                    raise IncorrectDictElementTypeError(
+                        err=e, key=key, value=value
+                    )
+            return new_val
+
+    return _DataDict
+
+
 def data_list_to_list(
     val: List[Union["DataObject", list, str, int, bool, Enum]],
     keep_none: bool = True,
@@ -203,10 +243,31 @@ def data_list_to_list(
             new_val.append(item.to_dict(keep_none))
         elif isinstance(item, list):
             new_val.append(data_list_to_list(item, keep_none))
+        elif isinstance(item, dict):
+            new_val.append(data_dict_to_dict(item, keep_none))
         elif isinstance(item, Enum):
             new_val.append(item.value)
         else:
             new_val.append(item)
+    return new_val
+
+
+def data_dict_to_dict(
+    val: Dict["DataValue", "DataValue"],
+    keep_none: bool = True,
+) -> dict:
+    new_val = {}  # type: Dict[Any, Any]
+    for key, value in val.items():
+        if isinstance(value, DataObject):
+            new_val[key] = value.to_dict(keep_none)
+        elif isinstance(value, dict):
+            new_val[key] = data_dict_to_dict(value, keep_none)
+        elif isinstance(value, list):
+            new_val[key] = data_list_to_list(value, keep_none)
+        elif isinstance(value, Enum):
+            new_val[key] = value.value
+        else:
+            new_val[key] = value
     return new_val
 
 
@@ -282,6 +343,8 @@ class DataObject(DataValue):
                 new_val = val.to_dict(keep_none)
             elif isinstance(val, list):
                 new_val = data_list_to_list(val, keep_none)
+            elif isinstance(val, dict):
+                new_val = data_dict_to_dict(val, keep_none)
             elif isinstance(val, Enum):
                 new_val = val.value
             else:
