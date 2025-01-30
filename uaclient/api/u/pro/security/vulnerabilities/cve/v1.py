@@ -1,13 +1,12 @@
 import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from uaclient import system, util
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
+from uaclient.api.exceptions import InvalidOptionCombination
 from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     VulnerabilityParser,
-    VulnerabilityStatus,
-    _get_vulnerability_fix_status,
     get_vulnerabilities,
 )
 from uaclient.apt import get_apt_cache_datetime
@@ -19,6 +18,7 @@ from uaclient.data_types import (
     Field,
     FloatDataValue,
     StringDataValue,
+    data_dict,
     data_list,
 )
 
@@ -31,10 +31,22 @@ class CVEVulnerabilitiesOptions(DataObject):
             False,
             doc="Show only unfixable CVES.",
         ),
+        Field(
+            "fixable",
+            BoolDataValue,
+            False,
+            doc="Show only fixable CVES.",
+        ),
     ]
 
-    def __init__(self, *, unfixable: Optional[bool] = False):
+    def __init__(
+        self,
+        *,
+        unfixable: Optional[bool] = False,
+        fixable: Optional[bool] = False
+    ):
         self.unfixable = unfixable
+        self.fixable = fixable
 
 
 class CVEAffectedPackage(DataObject):
@@ -42,12 +54,8 @@ class CVEAffectedPackage(DataObject):
         Field(
             "name",
             StringDataValue,
-            doc="The name of the package",
-        ),
-        Field(
-            "current_version",
-            StringDataValue,
-            doc="The current version of the package",
+            False,
+            doc="The CVE name",
         ),
         Field(
             "fix_version",
@@ -62,26 +70,40 @@ class CVEAffectedPackage(DataObject):
             doc="The status of the CVE fix for the package",
         ),
         Field(
-            "fix_available_from",
+            "fix_origin",
             StringDataValue,
             doc="The pocket where the fix is available from",
         ),
     ]
 
     def __init__(
-        self,
-        *,
-        name: str,
-        current_version: str,
-        fix_status: str,
-        fix_version: Optional[str] = None,
-        fix_available_from: Optional[str] = None
+        self, name: str, fix_version: str, fix_status: str, fix_origin: str
     ):
         self.name = name
-        self.current_version = current_version
         self.fix_version = fix_version
         self.fix_status = fix_status
-        self.fix_available_from = fix_available_from
+        self.fix_origin = fix_origin
+
+
+class AffectedPackage(DataObject):
+    fields = [
+        Field(
+            "current_version",
+            StringDataValue,
+            doc="The current version of the package",
+        ),
+        Field(
+            "cves",
+            data_list(CVEAffectedPackage),
+            doc="The CVE that affects the package",
+        ),
+    ]
+
+    def __init__(
+        self, *, current_version: str, cves: List[CVEAffectedPackage]
+    ):
+        self.current_version = current_version
+        self.cves = cves
 
 
 class RelatedUSN(DataObject):
@@ -96,28 +118,15 @@ class RelatedUSN(DataObject):
             StringDataValue,
             doc="The USN title",
         ),
-        Field(
-            "affected_installed_packages",
-            data_list(StringDataValue),
-            doc="A list of installed packages affected by the USN",
-        ),
     ]
 
-    def __init__(
-        self, *, name: str, title: str, affected_installed_packages: List[str]
-    ):
+    def __init__(self, name: str, title: str):
         self.name = name
         self.title = title
-        self.affected_installed_packages = affected_installed_packages
 
 
-class CVEVulnerabilityResult(DataObject):
+class CVEInfo(DataObject):
     fields = [
-        Field(
-            "name",
-            StringDataValue,
-            doc="The name of the CVE",
-        ),
         Field(
             "description",
             StringDataValue,
@@ -129,7 +138,7 @@ class CVEVulnerabilityResult(DataObject):
             doc="The CVE published date",
         ),
         Field(
-            "ubuntu_priority",
+            "priority",
             StringDataValue,
             doc="The ubuntu priority for the CVE",
         ),
@@ -138,21 +147,6 @@ class CVEVulnerabilityResult(DataObject):
             data_list(StringDataValue),
             False,
             doc="A list of notes for the CVE",
-        ),
-        Field(
-            "affected_packages",
-            data_list(CVEAffectedPackage),
-            doc="A list of affected packages for this CVE",
-        ),
-        Field(
-            "fixable",
-            StringDataValue,
-            doc="The fixable status of the CVE",
-        ),
-        Field(
-            "related_usns",
-            data_list(RelatedUSN),
-            doc="The related USNs for this CVE",
         ),
         Field(
             "cvss_score",
@@ -166,39 +160,44 @@ class CVEVulnerabilityResult(DataObject):
             False,
             doc="The CVE cvss severity",
         ),
+        Field(
+            "related_usns",
+            data_list(RelatedUSN),
+            False,
+            doc="A list of related USNs to the CVE",
+        ),
     ]
 
     def __init__(
         self,
         *,
-        name: str,
         description: str,
         published_at: datetime.datetime,
-        ubuntu_priority: str,
-        fixable: str,
+        priority: str,
         notes: Optional[List[str]] = None,
-        affected_packages: List[CVEAffectedPackage],
-        related_usns: List[RelatedUSN],
         cvss_score: Optional[float] = None,
-        cvss_severity: Optional[str] = None
+        cvss_severity: Optional[str] = None,
+        related_usns: Optional[List[RelatedUSN]] = None
     ):
-        self.name = name
         self.description = description
         self.published_at = published_at
-        self.ubuntu_priority = ubuntu_priority
-        self.fixable = fixable
+        self.priority = priority
         self.notes = notes
-        self.affected_packages = affected_packages
-        self.related_usns = related_usns
         self.cvss_score = cvss_score
         self.cvss_severity = cvss_severity
+        self.related_usns = related_usns
 
 
-class CVEVulnerabilitiesResult(DataObject, AdditionalInfo):
+class PackageVulnerabilitiesResult(DataObject, AdditionalInfo):
     fields = [
         Field(
+            "packages",
+            data_dict(value_cls=AffectedPackage),
+            doc="A list of installed packages affected by CVEs",
+        ),
+        Field(
             "cves",
-            data_list(CVEVulnerabilityResult),
+            data_dict(value_cls=CVEInfo),
             doc="A list of CVEs that affect the system",
         ),
         Field(
@@ -217,10 +216,12 @@ class CVEVulnerabilitiesResult(DataObject, AdditionalInfo):
     def __init__(
         self,
         *,
-        cves: List[CVEVulnerabilityResult],
+        packages: Dict[str, AffectedPackage],
+        cves: Dict[str, CVEInfo],
         vulnerability_data_published_at: datetime.datetime,
         apt_updated_at: Optional[datetime.datetime] = None
     ):
+        self.packages = packages
         self.cves = cves
         self.vulnerability_data_published_at = vulnerability_data_published_at
         self.apt_updated_at = apt_updated_at
@@ -236,7 +237,6 @@ class CVEParser(VulnerabilityParser):
 
     def _post_process_vulnerability_info(
         self,
-        installed_pkgs_by_source: Dict[str, Dict[str, str]],
         vulnerability_info: Dict[str, Any],
         vulnerabilities_data: Dict[str, Any],
     ) -> Dict[str, Any]:
@@ -246,34 +246,14 @@ class CVEParser(VulnerabilityParser):
             usn_info = vulnerabilities_data.get("security_issues", {}).get(
                 "usns", {}
             )
-            cves_info = vulnerabilities_data.get("security_issues", {}).get(
-                "cves", {}
-            )
 
             for related_usn in vulnerability_info["related_usns"]:
-                related_cves = usn_info.get(related_usn, {}).get(
-                    "related_cves", []
-                )
-                affected_installed_pkgs = []
-
-                for cve in related_cves:
-                    related_pkgs = cves_info.get(cve, {}).get(
-                        "related_packages", []
-                    )
-
-                    affected_installed_pkgs = [
-                        pkg
-                        for pkg in related_pkgs
-                        if pkg in installed_pkgs_by_source
-                    ]
-
                 related_usns.append(
                     {
                         "name": related_usn,
                         "title": usn_info.get(related_usn, {}).get(
                             "title", ""
                         ),
-                        "affected_installed_packages": affected_installed_pkgs,
                     }
                 )
 
@@ -282,92 +262,98 @@ class CVEParser(VulnerabilityParser):
         return vulnerability_info
 
 
+def cve_status_match_options(cve, options) -> bool:
+    is_fixable = cve.get("fix_version") and cve.get("fix_origin")
+
+    if options.unfixable and is_fixable:
+        return False
+    elif options.fixable and not is_fixable:
+        return False
+    return True
+
+
 def vulnerabilities(
     options: CVEVulnerabilitiesOptions,
-) -> CVEVulnerabilitiesResult:
+) -> PackageVulnerabilitiesResult:
     return _vulnerabilities(options, UAConfig())
 
 
 def _parse_vulnerabilities(
     options: CVEVulnerabilitiesOptions,
-    cve_vulnerabilities: Dict[str, Any],
+    vulnerabilities: Dict[str, Any],
     vulnerability_data_published_at: str,
-) -> CVEVulnerabilitiesResult:
-    if options.unfixable:
-        block_fixable_cves = True
-        block_unfixable_cves = False
-    else:
-        block_fixable_cves = False
-        block_unfixable_cves = True
-
-    cves = []
-    for cve_name, cve in sorted(cve_vulnerabilities.items()):
-        cve_fix_status = _get_vulnerability_fix_status(
-            cve["affected_packages"]
-        )
-
-        if (
-            cve_fix_status != VulnerabilityStatus.NO_FIX_AVAILABLE
-            and block_fixable_cves
+) -> PackageVulnerabilitiesResult:
+    packages = {}
+    blocked_cves = set()
+    for pkg_name, package_info in sorted(
+        vulnerabilities.get("packages", {}).items()
+    ):
+        pkg_cves = []
+        for cve in sorted(
+            package_info.get("cves", []), key=lambda cve: cve["name"]
         ):
-            continue
-
-        if (
-            cve_fix_status == VulnerabilityStatus.NO_FIX_AVAILABLE
-            and block_unfixable_cves
-        ):
-            continue
-
-        cves.append(
-            CVEVulnerabilityResult(
-                name=cve_name,
-                description=cve["description"],
-                published_at=util.parse_rfc3339_date(cve["published_at"]),
-                ubuntu_priority=cve["ubuntu_priority"],
-                notes=cve["notes"],
-                affected_packages=[
+            if cve_status_match_options(cve, options):
+                pkg_cves.append(
                     CVEAffectedPackage(
-                        name=pkg["name"],
-                        current_version=pkg["current_version"],
-                        fix_version=pkg["fix_version"],
-                        fix_status=pkg["status"],
-                        fix_available_from=pkg["fix_available_from"],
+                        name=cve["name"],
+                        fix_version=cve["fix_version"],
+                        fix_status=cve["fix_status"],
+                        fix_origin=cve["fix_origin"],
                     )
-                    for pkg in cve["affected_packages"]
-                ],
-                fixable=cve_fix_status.value,
-                related_usns=[
-                    RelatedUSN(
-                        name=usn["name"],
-                        title=usn["title"],
-                        affected_installed_packages=usn[
-                            "affected_installed_packages"
-                        ],
-                    )
-                    for usn in cve["related_usns"]
-                ],
-                cvss_score=cve["cvss_score"],
-                cvss_severity=cve["cvss_severity"],
-            )
-        )
+                )
+            else:
+                blocked_cves.add(cve["name"])
 
-    return CVEVulnerabilitiesResult(
+        if pkg_cves:
+            packages[pkg_name] = AffectedPackage(
+                current_version=package_info["current_version"],
+                cves=pkg_cves,
+            )
+
+    cves = {
+        cve_name: CVEInfo(
+            description=cve["description"],
+            published_at=util.parse_rfc3339_date(cve["published_at"]),
+            priority=cve["ubuntu_priority"],
+            notes=cve["notes"],
+            cvss_score=cve["cvss_score"],
+            cvss_severity=cve["cvss_severity"],
+            related_usns=[
+                RelatedUSN(
+                    name=related_usn.get("name", ""),
+                    title=related_usn.get("title", ""),
+                )
+                for related_usn in cve.get("related_usns", [])
+            ],
+        )
+        for cve_name, cve in sorted(
+            vulnerabilities.get("vulnerabilities", {}).items(),
+            key=lambda v: v[0],
+        )
+        if cve_name not in blocked_cves
+    }
+
+    return PackageVulnerabilitiesResult(
+        packages=packages,
         cves=cves,
         vulnerability_data_published_at=util.parse_rfc3339_date(
             vulnerability_data_published_at
         ),
-        apt_updated_at=(get_apt_cache_datetime()),
+        apt_updated_at=get_apt_cache_datetime(),
     )
 
 
 def _vulnerabilities(
     options: CVEVulnerabilitiesOptions,
     cfg: UAConfig,
-) -> CVEVulnerabilitiesResult:
+) -> PackageVulnerabilitiesResult:
     """
     This endpoint shows the CVE vulnerabilites in the system.
     By default, this API will only show fixable CVEs in the system.
     """
+    if options.unfixable and options.fixable:
+        raise InvalidOptionCombination(option1="unfixable", option2="fixable")
+
     series = system.get_release_info().series
 
     cve_vulnerabilities_result = get_vulnerabilities(
@@ -375,45 +361,12 @@ def _vulnerabilities(
         cfg=cfg,
         series=series,
     )
-    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities_info.get(
-        "vulnerabilities", {}
-    )
+    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities_info
 
     return _parse_vulnerabilities(
         options=options,
-        cve_vulnerabilities=cve_vulnerabilities,
+        vulnerabilities=cve_vulnerabilities,
         vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
-    )
-
-
-def _vulnerabilities_with_applied_fixes_count(
-    options: CVEVulnerabilitiesOptions,
-    cfg: UAConfig,
-) -> Tuple[CVEVulnerabilitiesResult, Dict[str, Any]]:
-    """
-    This endpoint shows the CVE vulnerabilites in the system.
-    By default, this API will only show fixable CVEs in the system.
-    """
-    series = system.get_release_info().series
-
-    cve_vulnerabilities_result = get_vulnerabilities(
-        parser=CVEParser(),
-        cfg=cfg,
-        series=series,
-    )
-    cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities_info.get(
-        "vulnerabilities", {}
-    )
-
-    return (
-        _parse_vulnerabilities(
-            options=options,
-            cve_vulnerabilities=cve_vulnerabilities,
-            vulnerability_data_published_at=cve_vulnerabilities_result.vulnerability_data_published_at,  # noqa
-        ),
-        cve_vulnerabilities_result.vulnerabilities_info.get(
-            "applied_fixes_count", {}
-        ),
     )
 
 
@@ -433,11 +386,10 @@ from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import vulnerabilites, C
 options = CVEVulnerabilitiesOptions()
 result = vulnerabilities(options)
 """,  # noqa: E501
-    "result_class": CVEVulnerabilitiesResult,
+    "result_class": PackageVulnerabilitiesResult,
     "ignore_result_classes": [DataObject],
     "extra_result_classes": [
-        CVEAffectedPackage,
-        CVEVulnerabilityResult,
+        PackageVulnerabilitiesResult,
     ],
     "exceptions": [],
     "example_cli": "pro api u.pro.security.vulnerabilities.cve.v1",

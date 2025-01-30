@@ -5,7 +5,6 @@ from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
     VulnerabilitiesAlreadyFixed,
     VulnerabilityParser,
     VulnerabilityStatus,
-    _get_source_package_from_vulnerabilities_data,
     _get_vulnerability_fix_status,
 )
 
@@ -117,7 +116,6 @@ class ConcreteVulnerabilityParser(VulnerabilityParser):
 
     def _post_process_vulnerability_info(
         self,
-        installed_pkgs_by_source,
         vulnerability_info,
         vulnerabilities_data,
     ):
@@ -138,77 +136,79 @@ class TestVulnerabilityParser:
                     }
                 },
                 {
-                    "CVE-2022-12345": {
-                        "affected_packages": [
-                            {
-                                "name": "test1-bin",
-                                "current_version": "1.1.4",
-                                "fix_version": None,
-                                "status": "vulnerable",
-                                "fix_available_from": None,
-                            },
-                            {
-                                "name": "test1-bin1",
-                                "current_version": "1.1.1",
-                                "fix_version": None,
-                                "status": "vulnerable",
-                                "fix_available_from": None,
-                            },
-                        ],
-                        "description": "description",
-                        "published_at": "date",
-                        "notes": ["hint"],
-                        "mitigation": "hint",
-                        "cvss_severity": "low",
-                        "cvss_score": 4.2,
+                    "packages": {
+                        "test1-bin1": {
+                            "current_version": "1.1.1",
+                            "cves": [
+                                {
+                                    "name": "CVE-2022-12345",
+                                    "fix_version": None,
+                                    "fix_status": "vulnerable",
+                                    "fix_origin": None,
+                                },
+                                {
+                                    "name": "CVE-2022-56789",
+                                    "fix_version": "1.1.2",
+                                    "fix_status": "fixed",
+                                    "fix_origin": "esm-infra",
+                                },
+                                {
+                                    "name": "CVE-2022-86782",
+                                    "fix_version": "1.1.5",
+                                    "fix_status": "fixed",
+                                    "fix_origin": "esm-infra",
+                                },
+                            ],
+                        },
+                        "test1-bin": {
+                            "current_version": "1.1.4",
+                            "cves": [
+                                {
+                                    "name": "CVE-2022-12345",
+                                    "fix_version": None,
+                                    "fix_status": "vulnerable",
+                                    "fix_origin": None,
+                                },
+                                {
+                                    "name": "CVE-2022-56789",
+                                    "fix_version": "1.1.5",
+                                    "fix_status": "fixed",
+                                    "fix_origin": "esm-infra",
+                                },
+                                {
+                                    "name": "CVE-2022-86782",
+                                    "fix_version": None,
+                                    "fix_status": "unknown",
+                                    "fix_origin": None,
+                                },
+                            ],
+                        },
                     },
-                    "CVE-2022-56789": {
-                        "affected_packages": [
-                            {
-                                "name": "test1-bin",
-                                "current_version": "1.1.4",
-                                "fix_version": "1.1.5",
-                                "status": "fixed",
-                                "fix_available_from": "esm-infra",
-                            },
-                            {
-                                "name": "test1-bin1",
-                                "current_version": "1.1.1",
-                                "fix_version": "1.1.2",
-                                "status": "fixed",
-                                "fix_available_from": "esm-infra",
-                            },
-                        ],
-                        "description": "description",
-                        "published_at": "date",
-                        "notes": ["hint"],
-                        "mitigation": "hint",
-                        "cvss_severity": "low",
-                        "cvss_score": 4.2,
-                    },
-                    "CVE-2022-86782": {
-                        "affected_packages": [
-                            {
-                                "name": "test1-bin",
-                                "current_version": "1.1.4",
-                                "fix_version": None,
-                                "status": "unknown",
-                                "fix_available_from": None,
-                            },
-                            {
-                                "name": "test1-bin1",
-                                "current_version": "1.1.1",
-                                "fix_version": "1.1.5",
-                                "status": "fixed",
-                                "fix_available_from": "esm-infra",
-                            },
-                        ],
-                        "description": "description",
-                        "published_at": "date",
-                        "notes": ["hint"],
-                        "mitigation": "hint",
-                        "cvss_severity": "low",
-                        "cvss_score": 4.2,
+                    "vulnerabilities": {
+                        "CVE-2022-12345": {
+                            "description": "description",
+                            "published_at": "date",
+                            "notes": ["hint"],
+                            "mitigation": "hint",
+                            "cvss_severity": "low",
+                            "cvss_score": 4.2,
+                        },
+                        "CVE-2022-56789": {
+                            "description": "description",
+                            "published_at": "date",
+                            "notes": ["hint"],
+                            "mitigation": "hint",
+                            "cvss_severity": "low",
+                            "cvss_score": 4.2,
+                        },
+                        "CVE-2022-86782": {
+                            "description": "description",
+                            "published_at": "date",
+                            "notes": ["hint"],
+                            "mitigation": "hint",
+                            "cvss_severity": "low",
+                            "cvss_score": 4.2,
+                        },
                     },
                 },
             ),
@@ -229,7 +229,7 @@ class TestVulnerabilityParser:
         assert (
             parser.get_vulnerabilities_for_installed_pkgs(
                 vulnerabilities_data, installed_pkgs_by_source
-            ).vulnerabilities_info["vulnerabilities"]
+            ).vulnerabilities_info
             == expected_result
         )
 
@@ -285,46 +285,6 @@ class TestGetVulnerabilityFixStatus:
         expected_state,
     ):
         assert _get_vulnerability_fix_status(affected_pkgs) == expected_state
-
-
-class TestGetSourcePackageFromVulnerabilitiesData:
-    @pytest.mark.parametrize(
-        "vulnerabilities_data,bin_pkg,expected_source_pkg",
-        (
-            (
-                VULNERABILITIES_DATA,
-                "test1-bin1",
-                "test1",
-            ),
-            (
-                VULNERABILITIES_DATA,
-                "test1-bin",
-                "test1",
-            ),
-            (
-                VULNERABILITIES_DATA,
-                "test1-bin2",
-                "test1",
-            ),
-            (
-                VULNERABILITIES_DATA,
-                "non-existant",
-                "",
-            ),
-        ),
-    )
-    def test_get_source_package_from_vulnerabilities(
-        self,
-        vulnerabilities_data,
-        bin_pkg,
-        expected_source_pkg,
-    ):
-        assert (
-            _get_source_package_from_vulnerabilities_data(
-                vulnerabilities_data, bin_pkg
-            )
-            == expected_source_pkg
-        )
 
 
 class TestVulnerabilitiesAlreadyFixed:
