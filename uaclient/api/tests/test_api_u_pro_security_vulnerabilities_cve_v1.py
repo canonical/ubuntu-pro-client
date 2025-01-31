@@ -61,6 +61,7 @@ VULNEBILITIES_DATA = {
                 "cvss_severity": "low",
                 "cvss_score": 4.2,
                 "related_usns": ["USN-1582-1"],
+                "related_packages": ["test1-bin", "test1-bin1"],
             },
             "CVE-2022-56789": {
                 "description": "description",
@@ -158,6 +159,7 @@ class TestCVEVulnerabilities:
                                     title="USN Title",
                                 )
                             ],
+                            related_packages=["test1-bin", "test1-bin1"],
                         ),
                         "CVE-2022-56789": CVEInfo(
                             description="description",
@@ -175,6 +177,7 @@ class TestCVEVulnerabilities:
                             cvss_severity="low",
                             cvss_score=4.2,
                             related_usns=[],
+                            related_packages=[],
                         ),
                     },
                     vulnerability_data_published_at=datetime.datetime(
@@ -234,6 +237,7 @@ class TestCVEVulnerabilities:
                                     title="USN Title",
                                 )
                             ],
+                            related_packages=["test1-bin", "test1-bin1"],
                         ),
                     },
                     vulnerability_data_published_at=datetime.datetime(
@@ -288,6 +292,7 @@ class TestCVEVulnerabilities:
                             cvss_severity="low",
                             cvss_score=4.2,
                             related_usns=[],
+                            related_packages=[],
                         ),
                     },
                     vulnerability_data_published_at=datetime.datetime(

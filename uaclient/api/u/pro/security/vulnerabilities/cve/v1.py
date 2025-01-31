@@ -166,6 +166,12 @@ class CVEInfo(DataObject):
             False,
             doc="A list of related USNs to the CVE",
         ),
+        Field(
+            "related_packages",
+            data_list(StringDataValue),
+            False,
+            doc="A list of related packages to the CVE",
+        ),
     ]
 
     def __init__(
@@ -177,7 +183,8 @@ class CVEInfo(DataObject):
         notes: Optional[List[str]] = None,
         cvss_score: Optional[float] = None,
         cvss_severity: Optional[str] = None,
-        related_usns: Optional[List[RelatedUSN]] = None
+        related_usns: Optional[List[RelatedUSN]] = None,
+        related_packages: Optional[List[str]] = None
     ):
         self.description = description
         self.published_at = published_at
@@ -186,6 +193,7 @@ class CVEInfo(DataObject):
         self.cvss_score = cvss_score
         self.cvss_severity = cvss_severity
         self.related_usns = related_usns
+        self.related_packages = related_packages
 
 
 class PackageVulnerabilitiesResult(DataObject, AdditionalInfo):
@@ -325,6 +333,7 @@ def _parse_vulnerabilities(
                 )
                 for related_usn in cve.get("related_usns", [])
             ],
+            related_packages=cve.get("related_packages", []),
         )
         for cve_name, cve in sorted(
             vulnerabilities.get("vulnerabilities", {}).items(),

@@ -52,6 +52,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               "notes": [],
               "priority": "low",
               "published_at": ".*",
+              "related_packages": [
+                "accountsservice"
+              ],
               "related_usns": [
                 {
                   "name": "USN-6687-1",
@@ -68,6 +71,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               ],
               "priority": "low",
               "published_at": ".*",
+              "related_packages": [
+                "bash"
+              ],
               "related_usns": [
                 {
                   "name": "USN-5380-1",
@@ -85,6 +91,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               ],
               "priority": "medium",
               "published_at": ".*",
+              "related_packages": [
+                "accountsservice"
+              ],
               "related_usns": [
                 {
                   "name": "USN-6190-1",
@@ -166,6 +175,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               "notes": [],
               "priority": "low",
               "published_at": ".*",
+              "related_packages": [
+                "accountsservice"
+              ],
               "related_usns": [
                 {
                   "name": "USN-6687-1",
@@ -222,6 +234,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               ],
               "priority": "low",
               "published_at": ".*",
+              "related_packages": [
+                "bash"
+              ],
               "related_usns": [
                 {
                   "name": "USN-5380-1",
@@ -239,6 +254,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               ],
               "priority": "medium",
               "published_at": ".*",
+              "related_packages": [
+                "accountsservice"
+              ],
               "related_usns": [
                 {
                   "name": "USN-6190-1",
@@ -309,6 +327,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               "notes": [],
               "priority": "low",
               "published_at": ".*",
+              "related_packages": [
+                "accountsservice"
+              ],
               "related_usns": [
                 {
                   "name": "USN-6687-1",
@@ -325,6 +346,9 @@ Feature: Client behaviour for CVE vulnerabilities API
               ],
               "priority": "low",
               "published_at": ".*",
+              "related_packages": [
+                "bash"
+              ],
               "related_usns": [
                 {
                   "name": "USN-5380-1",
