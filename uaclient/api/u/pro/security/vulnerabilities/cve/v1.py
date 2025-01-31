@@ -405,27 +405,55 @@ result = vulnerabilities(options)
     "example_json": """
 {
     "apt_updated_at": "2024-07-26T20:53:55.708438+00:00",
-    "cves": [
-      {
-        "affected_packages": [
-          {
-            "current_version": "1.3.1+dfsg-1~ubuntu0.16.04.1",
-            "fix_available_from": "esm-infra",
-            "fix_status": "fixed",
-            "fix_version": ".*",
-            "name": "libzstd1"
-          }
-        ],
+    "cves": {
+      "CVE-2023-5678": {
         "cvss_score": 8.1,
         "cvss_severity": "high",
-        "description": "CVE description",
-        "fixable": "yes",
-        "name": "CVE-2019-11922",
-        "notes": [],
-        "published_at": "2024-07-23T20:53:55.708438+00:00",
-        "ubuntu_priority": "medium"
+        "description": "description example",
+        "notes": [
+          "note example",
+        ],
+        "priority": "medium",
+        "published_at": ".*",
+        "related_packages": [
+          "accountsservice"
+        ],
+        "related_usns": [
+          {
+            "name": "USN-6190-1",
+            "title": ""
+          },
+          {
+            "name": "USN-6190-2",
+            "title": "AccountsService vulnerability"
+          }
+        ]
       }
-    ],
+    },
+    "packages": {
+      "accountsservice": {
+        "current_version": "0.6.40-2ubuntu11.6",
+        "cves": [
+          {
+            "fix_origin": "esm-infra",
+            "fix_status": "fixed",
+            "fix_version": "0.6.40-2ubuntu11.6+esm1",
+            "name": "CVE-2023-5678"
+          }
+        ]
+      },
+      "libaccountsservice0": {
+        "current_version": "0.6.40-2ubuntu11.6",
+        "cves": [
+          {
+            "fix_origin": "esm-infra",
+            "fix_status": "fixed",
+            "fix_version": "0.6.40-2ubuntu11.6+esm1",
+            "name": "CVE-2023-5678"
+          }
+        ]
+      }
+    },
     "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
 }
 """,
