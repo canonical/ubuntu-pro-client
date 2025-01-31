@@ -20,6 +20,7 @@ from uaclient.cli.attach import attach_command
 from uaclient.cli.auto_attach import auto_attach_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.config import config_command
+from uaclient.cli.cves import cves_command
 from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
 from uaclient.cli.enable import enable_command
@@ -30,7 +31,6 @@ from uaclient.cli.refresh import refresh_command
 from uaclient.cli.security_status import security_status_command
 from uaclient.cli.status import status_command
 from uaclient.cli.system import system_command
-from uaclient.cli.vulnerability import vulnerability_command
 from uaclient.config import UAConfig
 from uaclient.log import get_user_or_root_log_file_path
 
@@ -44,6 +44,7 @@ COMMANDS = [
     attach_command,
     auto_attach_command,
     collect_logs_command,
+    cves_command,
     config_command,
     detach_command,
     disable_command,
@@ -54,7 +55,6 @@ COMMANDS = [
     security_status_command,
     status_command,
     system_command,
-    vulnerability_command,
 ]
 
 

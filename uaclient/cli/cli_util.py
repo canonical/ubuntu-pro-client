@@ -1,4 +1,8 @@
+import itertools
 import re
+import sys
+import threading
+import time
 from functools import wraps
 from typing import Optional
 
@@ -21,6 +25,9 @@ from uaclient.config import UAConfig
 from uaclient.files import machine_token
 
 event = event_logger.get_event_logger()
+
+
+CLEAR_LINE_ANSI_CODE = "\033[K"
 
 
 class CLIEnableDisableProgress(api.AbstractProgress):
@@ -230,3 +237,43 @@ def configure_apt_proxy(
     setup_apt_proxy(
         http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
     )
+
+
+def run_spinner(stop_spinner, msg):
+    spinner = itertools.cycle(["|", "/", "-", "\\"])
+    while not stop_spinner.is_set():
+        sys.stdout.write(
+            "\r{}{}{}".format(msg, next(spinner), CLEAR_LINE_ANSI_CODE)
+        )
+        sys.stdout.flush()
+        time.sleep(0.1)
+        sys.stdout.write("\b")
+
+
+def with_spinner(msg: Optional[str] = ""):
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, *, cfg, **kwargs):
+            if not sys.stdout.isatty():
+                return f(args, cfg=cfg, **kwargs)
+
+            stop_spinner = threading.Event()
+
+            spinner_thread = threading.Thread(
+                target=run_spinner, args=(stop_spinner, msg)
+            )
+            spinner_thread.start()
+
+            retval = f(args, cfg=cfg, **kwargs)
+
+            stop_spinner.set()
+            spinner_thread.join()
+
+            sys.stdout.write("\r" + CLEAR_LINE_ANSI_CODE)
+            sys.stdout.flush()
+
+            return retval
+
+        return new_f
+
+    return wrapper
