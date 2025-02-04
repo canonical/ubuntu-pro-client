@@ -277,3 +277,18 @@ def with_spinner(msg: Optional[str] = ""):
         return new_f
 
     return wrapper
+
+
+def colorize_priority(priority):
+    if priority == "low":
+        return messages.TxtColor.INFOBLUE + priority + messages.TxtColor.ENDC
+    elif priority == "medium":
+        return (
+            messages.TxtColor.WARNINGYELLOW + priority + messages.TxtColor.ENDC
+        )
+    elif priority == "high":
+        return messages.TxtColor.ORANGE + priority + messages.TxtColor.ENDC
+    elif priority == "critical":
+        return messages.TxtColor.FAIL + priority + messages.TxtColor.ENDC
+    else:
+        return priority

@@ -1228,70 +1228,19 @@ To update the data please run with --update:
 """
 )
 
-CLI_VULNERABILITY_SHOW = t.gettext("show information about a vulnerability")
-CLI_VULNERABILITY_SHOW_DESC = t.gettext(
+CLI_CVE = t.gettext("show information about a CVE")
+CLI_CVE_DESC = t.gettext(
     """\
-Show all available information about a given security issue.
+Show all available information about a given CVE.
 """
 )
-CLI_VULNERABILITY_SHOW_ISSUE = t.gettext(
-    "Security vulnerability ID to display information."
-    " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
+CLI_CVE_ISSUE = t.gettext(
+    "CVE to display information." " Format: CVE-yyyy-nnnn orCVE-yyyy-nnnnnnn"
 )
-CLI_VULNERABILITY_SHOW_NOT_AFFECTED = t.gettext(
-    "{issue} does not affect your system."
-)
-CLI_VULNERABILITY_SHOW_PUBLIC_URL = t.gettext("Public URL: {}")
-CLI_VULNERABILITY_SHOW_PUBLISHED_AT = t.gettext("Published at: {}")
-CLI_VULNERABILITY_SHOW_JSON_PUBLISHED_AT = t.gettext(
-    "Ubuntu vulnerability data published at: {}"
-)
-CLI_VULNERABILITY_SHOW_APT_UPDATED_AT = t.gettext(
-    "APT package information updated at: {}"
-)
-CLI_VULNERABILITY_SHOW_APT_UPDATED_AT = t.gettext(
-    "APT package information updated at: {}"
-)
-CLI_VULNERABILITY_SHOW_UBUNTU_PRIORITY = t.gettext("Ubuntu priority: {}")
-CLI_VULNERABILITY_SHOW_CVSS_SCORE = t.gettext("CVSS score: {}")
-CLI_VULNERABILITY_SHOW_CVSS_SEVERITY = t.gettext("CVSS severity: {}")
-CLI_VULNERABILITY_SHOW_DESCRIPTION = t.gettext("[DESCRIPTION]\n{}")
-CLI_VULNERABILITY_SHOW_NOTES = t.gettext("[NOTES]\n{}")
-CLI_VULNERABILITY_SHOW_RELATED_USNS = t.gettext("[RELATED USNs]\n")
-CLI_VULNERABILITY_SHOW_AFFECTED_PKGS = t.gettext(
-    "[AFFECTED INSTALLED PACKAGES]\n"
-)
-
-CLI_VULNERABILITY_UPDATE = t.gettext(
-    "update the vulnerability data in your machine"
-)
-CLI_VULNERABILITY_UPDATE_DESC = t.gettext(
+CLI_CVE_NOT_FOUND_IN_DATA = t.gettext(
     """\
-Updates the vulnerability data stored in the machine.
-If no vulnerability data exists yet, the command will download it
-"""
-)
-CLI_VULNERABILITY_UPDATE_CHECK_NEW_DATA = t.gettext(
-    """\
-Checking for the availability of newer vulnerability data.
-Please wait a moment while we verify if a new version is ready for download.
-"""
-)
-CLI_VULNERABILITY_UPDATE_NEW_DATA_FOUND = t.gettext(
-    """\
-Found a newer version of the data.
-Fetching and processing the new data…
-"""
-)
-CLI_VULNERABILITY_UPDATE_NO_NEW_DATA_FOUND = OKGREEN_CHECK + t.gettext(
-    """\
- Vulnerability data in the system is already up-to-date
-"""
-)
-CLI_VULNERABILITY_UPDATE_DATA_UPDATED = OKGREEN_CHECK + t.gettext(
-    """\
- Vulnerability data in the system is now up-to-date
-"""
+{issue} not present in {series} security data.
+You may be able to find more information at:\n- {url}"""
 )
 
 CLI_CVES = t.gettext("list the vulnerabilities that affect the system")
