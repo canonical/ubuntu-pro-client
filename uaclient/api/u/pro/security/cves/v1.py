@@ -5,7 +5,7 @@ from uaclient import system, util
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
 from uaclient.api.exceptions import InvalidOptionCombination
-from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
+from uaclient.api.u.pro.security.cves._common.v1 import (
     VulnerabilityParser,
     get_vulnerabilities,
 )

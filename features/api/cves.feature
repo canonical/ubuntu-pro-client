@@ -5,8 +5,8 @@ Feature: Client behaviour for CVE vulnerabilities API
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     # Check we can download and parse the JSON data
-    And I run `pro api u.pro.security.vulnerabilities.cve.v1` as non-root
-    And I verify that running `pro api u.pro.security.vulnerabilities.cve.v1 --data '{"fixable": true, "unfixable": true}'` `as non-root` exits `1`
+    And I run `pro api u.pro.security.cves.v1` as non-root
+    And I verify that running `pro api u.pro.security.cves.v1 --data '{"fixable": true, "unfixable": true}'` `as non-root` exits `1`
     Then API errors field output is:
       """
       [
@@ -38,7 +38,7 @@ Feature: Client behaviour for CVE vulnerabilities API
       features:
         serviceclient_url_responses: "/tmp/response-overlay.json"
       """
-    And I run `pro api u.pro.security.vulnerabilities.cve.v1` as non-root
+    And I run `pro api u.pro.security.cves.v1` as non-root
     Then API data field output matches regexp:
       """
       {
@@ -161,7 +161,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "type": "CVEVulnerabilities"
       }
       """
-    When I run `pro api u.pro.security.vulnerabilities.cve.v1 --data '{"unfixable": true}'` as non-root
+    When I run `pro api u.pro.security.cves.v1 --data '{"unfixable": true}'` as non-root
     Then API data field output matches regexp:
       """
       {
@@ -218,7 +218,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "type": "CVEVulnerabilities"
       }
       """
-    When I run `pro api u.pro.security.vulnerabilities.cve.v1 --data '{"fixable": true}'` as non-root
+    When I run `pro api u.pro.security.cves.v1 --data '{"fixable": true}'` as non-root
     Then API data field output matches regexp:
       """
       {
@@ -313,7 +313,7 @@ Feature: Client behaviour for CVE vulnerabilities API
       }
       """
     When I apt install `accountsservice`
-    And I run `pro api u.pro.security.vulnerabilities.cve.v1` as non-root
+    And I run `pro api u.pro.security.cves.v1` as non-root
     Then API data field output matches regexp:
       """
       {
