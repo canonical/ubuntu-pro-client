@@ -1,14 +1,14 @@
 import mock
 import pytest
 
-from uaclient.api.u.pro.security.vulnerabilities._common.v1 import (
+from uaclient.api.u.pro.security.cves._common.v1 import (
     VulnerabilitiesAlreadyFixed,
     VulnerabilityParser,
     VulnerabilityStatus,
     _get_vulnerability_fix_status,
 )
 
-M_PATH = "uaclient.api.u.pro.security.vulnerabilities._common.v1."
+M_PATH = "uaclient.api.u.pro.security.cves._common.v1."
 
 
 VULNERABILITIES_DATA = {

@@ -4,7 +4,7 @@ import datetime
 import mock
 import pytest
 
-from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import (
+from uaclient.api.u.pro.security.cves.v1 import (
     AffectedPackage,
     CVEAffectedPackage,
     CVEInfo,
@@ -14,8 +14,8 @@ from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import (
     _vulnerabilities,
 )
 
-M_PATH = "uaclient.api.u.pro.security.vulnerabilities.cve.v1."
-M_VULN_COMMON_PATH = "uaclient.api.u.pro.security.vulnerabilities._common.v1."
+M_PATH = "uaclient.api.u.pro.security.cves.v1."
+M_VULN_COMMON_PATH = "uaclient.api.u.pro.security.cves._common.v1."
 
 VULNEBILITIES_DATA = {
     "published_at": "2024-06-24T13:19:16",
