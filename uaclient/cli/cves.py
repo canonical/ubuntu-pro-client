@@ -17,21 +17,6 @@ def _get_cve_vulnerabilities(args, *, cfg: UAConfig, **kwargs):
     return _cves(options=cve_options, cfg=cfg)
 
 
-def _colorize_priority(priority):
-    if priority == "low":
-        return messages.TxtColor.INFOBLUE + priority + messages.TxtColor.ENDC
-    elif priority == "medium":
-        return (
-            messages.TxtColor.WARNINGYELLOW + priority + messages.TxtColor.ENDC
-        )
-    elif priority == "high":
-        return messages.TxtColor.ORANGE + priority + messages.TxtColor.ENDC
-    elif priority == "critical":
-        return messages.TxtColor.FAIL + priority + messages.TxtColor.ENDC
-    else:
-        return priority
-
-
 def _get_cve_table_rows(cve_vulnerabilities):
     rows = []
 
@@ -64,7 +49,7 @@ def _format_cve_rows(cve_rows):
         formatted_rows.append(
             (
                 row[0],
-                _colorize_priority(row[1]),
+                cli_util.colorize_priority(row[1]),
                 row[2],
                 create_link(
                     text=row[3],

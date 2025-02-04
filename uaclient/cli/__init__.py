@@ -20,6 +20,7 @@ from uaclient.cli.attach import attach_command
 from uaclient.cli.auto_attach import auto_attach_command
 from uaclient.cli.collect_logs import collect_logs_command
 from uaclient.cli.config import config_command
+from uaclient.cli.cve import cve_command
 from uaclient.cli.cves import cves_command
 from uaclient.cli.detach import detach_command
 from uaclient.cli.disable import disable_command
@@ -44,6 +45,7 @@ COMMANDS = [
     attach_command,
     auto_attach_command,
     collect_logs_command,
+    cve_command,
     cves_command,
     config_command,
     detach_command,
