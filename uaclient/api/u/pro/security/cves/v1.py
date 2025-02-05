@@ -160,18 +160,6 @@ class CVEInfo(DataObject):
             False,
             doc="The CVE cvss severity",
         ),
-        Field(
-            "related_usns",
-            data_list(RelatedUSN),
-            False,
-            doc="A list of related USNs to the CVE",
-        ),
-        Field(
-            "related_packages",
-            data_list(StringDataValue),
-            False,
-            doc="A list of related packages to the CVE",
-        ),
     ]
 
     def __init__(
@@ -192,6 +180,9 @@ class CVEInfo(DataObject):
         self.notes = notes
         self.cvss_score = cvss_score
         self.cvss_severity = cvss_severity
+        # These fields do not appear on the Fields list
+        # because we want to access them in the CLI, but
+        # not output them in the API
         self.related_usns = related_usns
         self.related_packages = related_packages
 
@@ -208,17 +199,6 @@ class PackageVulnerabilitiesResult(DataObject, AdditionalInfo):
             data_dict(value_cls=CVEInfo),
             doc="A list of CVEs that affect the system",
         ),
-        Field(
-            "vulnerability_data_published_at",
-            DatetimeDataValue,
-            doc="The date the JSON vulnerability data was published at",
-        ),
-        Field(
-            "apt_updated_at",
-            DatetimeDataValue,
-            False,
-            doc="The date of the last apt update operation in the system",
-        ),
     ]
 
     def __init__(
@@ -226,6 +206,9 @@ class PackageVulnerabilitiesResult(DataObject, AdditionalInfo):
         *,
         packages: Dict[str, AffectedPackage],
         cves: Dict[str, CVEInfo],
+        # These fields do not appear on the Fields list
+        # because we want to access them in the CLI, but
+        # not output them in the API
         vulnerability_data_published_at: datetime.datetime,
         apt_updated_at: Optional[datetime.datetime] = None
     ):
@@ -404,7 +387,6 @@ result = vulnerabilities(options)
     "example_cli": "pro api u.pro.security.vulnerabilities.cve.v1",
     "example_json": """
 {
-    "apt_updated_at": "2024-07-26T20:53:55.708438+00:00",
     "cves": {
       "CVE-2023-5678": {
         "cvss_score": 8.1,
@@ -414,20 +396,7 @@ result = vulnerabilities(options)
           "note example",
         ],
         "priority": "medium",
-        "published_at": ".*",
-        "related_packages": [
-          "accountsservice"
-        ],
-        "related_usns": [
-          {
-            "name": "USN-6190-1",
-            "title": ""
-          },
-          {
-            "name": "USN-6190-2",
-            "title": "AccountsService vulnerability"
-          }
-        ]
+        "published_at": ".*"
       }
     },
     "packages": {
@@ -454,7 +423,6 @@ result = vulnerabilities(options)
         ]
       }
     },
-    "vulnerability_data_published_at": "2024-07-26T20:53:55.708438+00:00"
 }
 """,
 }

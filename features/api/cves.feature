@@ -43,7 +43,6 @@ Feature: Client behaviour for CVE vulnerabilities API
       """
       {
         "attributes": {
-          "apt_updated_at": ".*",
           "cves": {
             "CVE-2012-6655": {
               "cvss_score": 3.3,
@@ -51,16 +50,7 @@ Feature: Client behaviour for CVE vulnerabilities API
               "description": "An issue exists AccountService 0.6.37 in the\nuser_change_password_authorized_cb() function in user.c which could let a\nlocal users obtain encrypted passwords.",
               "notes": [],
               "priority": "low",
-              "published_at": ".*",
-              "related_packages": [
-                "accountsservice"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-6687-1",
-                  "title": ""
-                }
-              ]
+              "published_at": ".*"
             },
             "CVE-2019-18276": {
               "cvss_score": 7.8,
@@ -70,16 +60,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 "sbeattie> This issue appears to only affect bash when bash is\nsetuid. Ubuntu does not ship with bash setuid, so this has minimal\nimpact for Ubuntu users. This is why we have rated the priority\nfor this issue 'low'.\nreproducer steps in the suse bugzilla"
               ],
               "priority": "low",
-              "published_at": ".*",
-              "related_packages": [
-                "bash"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-5380-1",
-                  "title": "Bash vulnerability"
-                }
-              ]
+              "published_at": ".*"
             },
             "CVE-2023-3297": {
               "cvss_score": 8.1,
@@ -90,20 +71,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 "eslerm> CWE-416"
               ],
               "priority": "medium",
-              "published_at": ".*",
-              "related_packages": [
-                "accountsservice"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-6190-1",
-                  "title": ""
-                },
-                {
-                  "name": "USN-6190-2",
-                  "title": "AccountsService vulnerability"
-                }
-              ]
+              "published_at": ".*"
             }
           },
           "packages": {
@@ -152,8 +120,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 }
               ]
             }
-          },
-          "vulnerability_data_published_at": ".*"
+          }
         },
         "meta": {
           "environment_vars": []
@@ -166,7 +133,6 @@ Feature: Client behaviour for CVE vulnerabilities API
       """
       {
         "attributes": {
-          "apt_updated_at": ".*",
           "cves": {
             "CVE-2012-6655": {
               "cvss_score": 3.3,
@@ -174,16 +140,7 @@ Feature: Client behaviour for CVE vulnerabilities API
               "description": "An issue exists AccountService 0.6.37 in the\nuser_change_password_authorized_cb() function in user.c which could let a\nlocal users obtain encrypted passwords.",
               "notes": [],
               "priority": "low",
-              "published_at": ".*",
-              "related_packages": [
-                "accountsservice"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-6687-1",
-                  "title": ""
-                }
-              ]
+              "published_at": ".*"
             }
           },
           "packages": {
@@ -209,8 +166,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 }
               ]
             }
-          },
-          "vulnerability_data_published_at": ".*"
+          }
         },
         "meta": {
           "environment_vars": []
@@ -223,7 +179,6 @@ Feature: Client behaviour for CVE vulnerabilities API
       """
       {
         "attributes": {
-          "apt_updated_at": ".*",
           "cves": {
             "CVE-2019-18276": {
               "cvss_score": 7.8,
@@ -233,16 +188,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 "sbeattie> This issue appears to only affect bash when bash is\nsetuid. Ubuntu does not ship with bash setuid, so this has minimal\nimpact for Ubuntu users. This is why we have rated the priority\nfor this issue 'low'.\nreproducer steps in the suse bugzilla"
               ],
               "priority": "low",
-              "published_at": ".*",
-              "related_packages": [
-                "bash"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-5380-1",
-                  "title": "Bash vulnerability"
-                }
-              ]
+              "published_at": ".*"
             },
             "CVE-2023-3297": {
               "cvss_score": 8.1,
@@ -253,20 +199,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 "eslerm> CWE-416"
               ],
               "priority": "medium",
-              "published_at": ".*",
-              "related_packages": [
-                "accountsservice"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-6190-1",
-                  "title": ""
-                },
-                {
-                  "name": "USN-6190-2",
-                  "title": "AccountsService vulnerability"
-                }
-              ]
+              "published_at": ".*"
             }
           },
           "packages": {
@@ -303,8 +236,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 }
               ]
             }
-          },
-          "vulnerability_data_published_at": ".*"
+          }
         },
         "meta": {
           "environment_vars": []
@@ -318,7 +250,6 @@ Feature: Client behaviour for CVE vulnerabilities API
       """
       {
         "attributes": {
-          "apt_updated_at": ".*",
           "cves": {
             "CVE-2012-6655": {
               "cvss_score": 3.3,
@@ -326,16 +257,7 @@ Feature: Client behaviour for CVE vulnerabilities API
               "description": "An issue exists AccountService 0.6.37 in the\nuser_change_password_authorized_cb() function in user.c which could let a\nlocal users obtain encrypted passwords.",
               "notes": [],
               "priority": "low",
-              "published_at": ".*",
-              "related_packages": [
-                "accountsservice"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-6687-1",
-                  "title": ""
-                }
-              ]
+              "published_at": ".*"
             },
             "CVE-2019-18276": {
               "cvss_score": 7.8,
@@ -345,16 +267,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 "sbeattie> This issue appears to only affect bash when bash is\nsetuid. Ubuntu does not ship with bash setuid, so this has minimal\nimpact for Ubuntu users. This is why we have rated the priority\nfor this issue 'low'.\nreproducer steps in the suse bugzilla"
               ],
               "priority": "low",
-              "published_at": ".*",
-              "related_packages": [
-                "bash"
-              ],
-              "related_usns": [
-                {
-                  "name": "USN-5380-1",
-                  "title": "Bash vulnerability"
-                }
-              ]
+              "published_at": ".*"
             }
           },
           "packages": {
@@ -391,8 +304,7 @@ Feature: Client behaviour for CVE vulnerabilities API
                 }
               ]
             }
-          },
-          "vulnerability_data_published_at": ".*"
+          }
         },
         "meta": {
           "environment_vars": []
