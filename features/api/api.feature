@@ -31,9 +31,7 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.unattended_upgrades.status.v1 import status"` as non-root
     When I run `python3 -c "from uaclient.api.u.apt_news.current_news.v1 import current_news"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.detach.v1 import detach"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import vulnerabilities"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.security.vulnerabilities.usn.v1 import vulnerabilities"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.packages.updates_with_cves.v1 import updates_with_cves"` as non-root
+    When I run `python3 -c "from uaclient.api.u.pro.security.cves.v1 import cves"` as non-root
 
     Examples: ubuntu release
       | release  | machine_type  |
