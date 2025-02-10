@@ -5,7 +5,8 @@ How to manage FIPS
 
 .. note::
 
-    FIPS is supported on Ubuntu `16.04, 18.04 and 20.04`_ releases.
+    Check `the FIPS documentation`_ to verify which Ubuntu releases have FIPS
+    available.
 
 .. caution::
 
@@ -25,24 +26,32 @@ To enable FIPS, run:
 
 .. code-block:: bash
 
-    $ sudo pro enable fips
+    $ sudo pro enable fips-updates
 
 You should see output like the following, indicating that the FIPS packages
 have been installed:
 
 .. code-block:: text
 
-    Installing FIPS packages
-    FIPS enabled
+    Installing FIPS Updates packages
+    FIPS Updates enabled
     A reboot is required to complete install.
 
 Enabling FIPS should be performed during a system maintenance window since
 this operation makes changes to underlying SSL-related libraries and requires
 a reboot into the FIPS-certified kernel.
 
+.. note::
+
+    ``fips-updates`` is the recommended way of enabling FIPS, as it will bring
+    the FIPS-compliant packages with security updates and coverage. There is
+    also a ``fips`` service, which has only the certified packages, *without
+    further security updates*, but that is deprecated from Ubuntu 22.04 (Jammy
+    Jellyfish) onward.
+
 .. caution::
     
-    Once you enable FIPS, enabling some Pro services will not be possible. For
+    Once you enable FIPS, enabling some Pro services may not be possible. For
     a complete view of which services are incompatible with FIPS, refer to the
     :doc:`services compatibility matrix <../references/compatibility_matrix>`
 
@@ -54,7 +63,7 @@ If you wish to disable FIPS, you can use the following command:
 
 .. code-block:: bash
 
-    sudo pro disable fips
+    sudo pro disable fips-updates
 
 Note that this command will only remove the APT sources, but not uninstall the
 packages installed with the service. Your system will **still have the FIPS
@@ -69,4 +78,4 @@ removing also the FIPS kernel, see
 
 .. include:: ../links.txt
 
-.. _16.04, 18.04 and 20.04: https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips
+.. _the FIPS documentation: https://ubuntu.com/security/certifications/docs/fips
