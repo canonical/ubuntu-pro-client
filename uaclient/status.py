@@ -380,7 +380,7 @@ def status(cfg: UAConfig, show_all: bool = False) -> Dict[str, Any]:
     return response
 
 
-def _get_user_facing_entitlement_information(
+def _get_entitlement_information(
     entitlements: List[Dict[str, Any]], entitlement_name: str
 ) -> Dict[str, Any]:
     """Extract information from the entitlements array."""
@@ -485,7 +485,7 @@ def simulate_status(
             ent = entitlement_factory(cfg=cfg, name=entitlement_name)
         except exceptions.EntitlementNotFoundError:
             continue
-        entitlement_information = _get_user_facing_entitlement_information(
+        entitlement_information = _get_entitlement_information(
             entitlements, entitlement_name
         )
         response["services"].append(
@@ -501,7 +501,7 @@ def simulate_status(
         )
     response["services"].sort(key=lambda x: x.get("name", ""))
 
-    support = _get_user_facing_entitlement_information(entitlements, "support")
+    support = _get_entitlement_information(entitlements, "support")
     if support["entitled"]:
         supportLevel = support["affordances"].get("supportLevel")
         if supportLevel:
