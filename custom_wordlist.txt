@@ -21,6 +21,7 @@ codename
 conf
 conffile
 config
+cryptographic
 cron
 Ctrl
 CTRL
@@ -42,6 +43,7 @@ enablement
 esm
 ESM
 FailedUpgrade
+FedRAMP
 fips
 FIPS
 firewalled
@@ -84,6 +86,7 @@ nginx
 NoOpAlreadyFixed
 NoOpLivepatchFixData
 num
+organizations
 PackageCannotBeInstalledData
 PEM
 PID
