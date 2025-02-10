@@ -34,7 +34,6 @@ VALID_ENDPOINTS = [
     "u.pro.services.dependencies.v1",
     "u.pro.services.disable.v1",
     "u.pro.services.enable.v1",
-    "u.pro.services.list.v1",
     "u.pro.status.enabled_services.v1",
     "u.pro.status.is_attached.v1",
     "u.apt_news.current_news.v1",

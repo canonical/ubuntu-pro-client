@@ -54,13 +54,6 @@ def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
         then_stream_does_not_match_regexp(context, "stdout")
 
 
-@then("if `{value1}` in `{value2}` then output is")
-def then_conditional_stdout_is(context, value1, value2):
-    """Only apply regex assertion if value1 in value2."""
-    if value1 in value2.split(" or "):
-        then_i_will_see_on_stream(context, "stdout")
-
-
 @then("if `{value1}` not in `{value2}` and stdout matches regexp")
 def then_not_in_conditional_stdout_does_not_match_regexp(
     context, value1, value2
