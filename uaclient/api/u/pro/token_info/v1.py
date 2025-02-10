@@ -1,6 +1,5 @@
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from uaclient import exceptions, util
 from uaclient.api.api import APIEndpoint
@@ -10,12 +9,10 @@ from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
-    DatetimeDataValue,
     Field,
     StringDataValue,
     data_list,
 )
-from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.entitlements import entitlement_factory
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -47,21 +44,11 @@ class ContractInfo(DataObject):
     fields = [
         Field("id", StringDataValue),
         Field("name", StringDataValue),
-        Field("effective", DatetimeDataValue),
-        Field("expires", DatetimeDataValue),
     ]
 
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        effective: Optional[datetime],
-        expires: Optional[datetime],
-    ):
+    def __init__(self, id: str, name: str):
         self.id = id
         self.name = name
-        self.effective = effective
-        self.expires = expires
 
 
 class ServiceInfo(DataObject):
@@ -137,40 +124,13 @@ def _get_token_info(
         raise e
 
     contract_info = contract_information.get("contractInfo", {})
+    contract = ContractInfo(
+        id=contract_info.get("id", ""), name=contract_info.get("name", "")
+    )
 
     account_info = contract_information.get("accountInfo", {})
     account = AccountInfo(
         id=account_info.get("id", ""), name=account_info.get("name", "")
-    )
-
-    # Check contract expiration
-    now = datetime.now(timezone.utc)
-    if contract_info.get("effectiveTo"):
-        expiration_datetime = contract_info.get("effectiveTo")
-        delta = expiration_datetime - now
-        if delta.total_seconds() <= 0:
-            raise exceptions.TokenForbiddenExpired(
-                contract_id=contract_info.get("id", ""),
-                date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
-                contract_expiry_date=expiration_datetime.strftime("%m-%d-%Y"),
-            )
-    if contract_info.get("effectiveFrom"):
-        effective_datetime = contract_info.get("effectiveFrom")
-        delta = now - effective_datetime
-        if delta.total_seconds() <= 0:
-            raise exceptions.TokenForbiddenNotYet(
-                contract_id=contract_info.get("id", ""),
-                date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
-                contract_effective_date=effective_datetime.strftime(
-                    "%m-%d-%Y"
-                ),
-            )
-
-    contract = ContractInfo(
-        id=contract_info.get("id", ""),
-        name=contract_info.get("name", ""),
-        effective=contract_info.get("effectiveFrom", None),
-        expires=contract_info.get("effectiveTo", None),
     )
 
     services = []
@@ -229,14 +189,6 @@ result = get_token_info(TokenInfoOptions(token="contract_token"))
         (
             exceptions.AttachInvalidTokenError,
             "When an invalid token is passed as an argument",
-        ),
-        (
-            exceptions.TokenForbiddenExpired,
-            "When the contract has expired",
-        ),
-        (
-            exceptions.TokenForbiddenNotYet,
-            "When the contract is not yet effective",
         ),
     ],
     "example_cli": "pro api u.pro.token_info.v1 --args token=CONTRACT_TOKEN",
