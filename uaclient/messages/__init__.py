@@ -2352,33 +2352,24 @@ E_ATTACH_INVALID_TOKEN = NamedMessage(
     t.gettext("Invalid token. See {url}").format(url=urls.PRO_DASHBOARD),
 )
 
-E_TOKEN_FORBIDDEN_EXPIRED = FormattedNamedMessage(
-    "token-forbidden-expired",
+E_ATTACH_FORBIDDEN_EXPIRED = FormattedNamedMessage(
+    "attach-forbidden-expired",
     t.gettext(
         """\
+Attach denied:
 Contract "{{contract_id}}" expired on {{date}}
 Visit {url} to manage contract tokens."""
     ).format(url=urls.PRO_DASHBOARD),
 )
 
-E_TOKEN_FORBIDDEN_NOT_YET = FormattedNamedMessage(
-    "token-forbidden-not-yet",
+E_ATTACH_FORBIDDEN_NOT_YET = FormattedNamedMessage(
+    "attach-forbidden-not-yet",
     t.gettext(
         """\
+Attach denied:
 Contract "{{contract_id}}" is not effective until {{date}}
 Visit {url} to manage contract tokens."""
     ).format(url=urls.PRO_DASHBOARD),
-)
-
-E_ATTACH_FORBIDDEN_EXPIRED = FormattedNamedMessage(
-    "attach-forbidden-expired",
-    t.gettext("Attach denied:\n") + E_TOKEN_FORBIDDEN_EXPIRED.tmpl_msg,
-)
-
-
-E_ATTACH_FORBIDDEN_NOT_YET = FormattedNamedMessage(
-    "attach-forbidden-not-yet",
-    t.gettext("Attach denied:\n") + E_TOKEN_FORBIDDEN_NOT_YET.tmpl_msg,
 )
 
 E_ATTACH_FORBIDDEN_NEVER = FormattedNamedMessage(
