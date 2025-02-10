@@ -320,14 +320,6 @@ class MissingAptURLDirective(UbuntuProError):
     _formatted_msg = messages.E_MISSING_APT_URL_DIRECTIVE
 
 
-class TokenForbiddenExpired(UbuntuProError):
-    _formatted_msg = messages.E_TOKEN_FORBIDDEN_EXPIRED
-
-
-class TokenForbiddenNotYet(UbuntuProError):
-    _formatted_msg = messages.E_TOKEN_FORBIDDEN_NOT_YET
-
-
 class UnattachedError(UbuntuProError):
     """An exception to be raised when a machine needs to be attached."""
 
