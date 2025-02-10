@@ -7,20 +7,20 @@ Feature: Pro autocomplete commands
     And I press tab twice to autocomplete the `ua` command
     Then stdout matches regexp:
       """
-      --debug    +auto-attach   +enable   +status\r
-      --help     +collect-logs  +fix      +system\r
-      --version  +config        +help     +version\r
-      api        +detach        +refresh  +\r
-      attach     +disable       +security-status
+      --debug         +auto-attach     +detach          +refresh\r
+      --help          +collect-logs    +disable         +security-status\r
+      --version       +config          +enable          +status\r
+      api             +cve             +fix             +system\r
+      attach          +cves            +help            +version
       """
     When I press tab twice to autocomplete the `pro` command
     Then stdout matches regexp:
       """
-      --debug    +auto-attach   +enable   +status\r
-      --help     +collect-logs  +fix      +system\r
-      --version  +config        +help     +version\r
-      api        +detach        +refresh  +\r
-      attach     +disable       +security-status
+      --debug         +auto-attach     +detach          +refresh\r
+      --help          +collect-logs    +disable         +security-status\r
+      --version       +config          +enable          +status\r
+      api             +cve             +fix             +system\r
+      attach          +cves            +help            +version
       """
     When I press tab twice to autocomplete the `ua enable` command
     Then stdout matches regexp:
