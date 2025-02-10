@@ -46,8 +46,6 @@ class UAClientBehaveConfig:
         A valid contract token to use during attach scenarios
     :param contract_token_staging:
         A valid staging contract token to use during attach scenarios
-    :param contract_token_staging_expired:
-        An expired staging contract token to use during attach scenarios
     :param machine_types:
         A comma-separated string of machine_types to test: lxd-container,
             lxd-vm, azure.pro, azure.pro-fips, azure.generic, aws.pro,
