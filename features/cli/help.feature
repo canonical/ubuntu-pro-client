@@ -18,8 +18,9 @@ Feature: Pro Client help text
 
       Security-related commands:
 
+        cve              show information about a CVE
+        cves             list the vulnerabilities that affect the system
         fix              check for and mitigate the impact of a CVE/USN on this system
-        vulnerability    show information about system vulnerabilities
 
       Troubleshooting-related commands:
 
@@ -58,8 +59,9 @@ Feature: Pro Client help text
 
       Security-related commands:
 
+        cve              show information about a CVE
+        cves             list the vulnerabilities that affect the system
         fix              check for and mitigate the impact of a CVE/USN on this system
-        vulnerability    show information about system vulnerabilities
 
       Troubleshooting-related commands:
 
@@ -462,13 +464,28 @@ Feature: Pro Client help text
       <options_string>:
         -h, --help  show this help message and exit
       """
-    When I run `pro vulnerability --help` as non-root
+    When I run `pro cves --help` as non-root
     Then I will see the following on stdout
       """
-      usage: pro vulnerability [-h]
+      usage: pro cves [-h] [--unfixable] [--fixable]
 
-      Allow users to better visualize the vulnerability issues that affects
-      the system. By default, this command will execute pro vulnerability list
+      List the CVE vulnerabilities that affects the system.
+
+      optional arguments:
+        -h, --help   show this help message and exit
+        --unfixable  List only vulnerabilities without a fix available
+        --fixable    List only vulnerabilities with a fix available
+      """
+    When I run `pro cve --help` as non-root
+    Then I will see the following on stdout
+      """
+      usage: pro cve [-h] cve
+
+      Show all available information about a given CVE.
+
+      positional arguments:
+        cve         CVE to display information. Format: CVE-yyyy-nnnn or CVE-yyyy-
+                    nnnnnnn
 
       optional arguments:
         -h, --help  show this help message and exit

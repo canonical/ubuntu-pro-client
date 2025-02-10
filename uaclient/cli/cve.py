@@ -10,6 +10,7 @@ from uaclient.api.u.pro.security.fix._common import (
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.formatter import Table
+from uaclient.cli.parser import HelpCategory
 from uaclient.config import UAConfig
 
 AffectedPackage = namedtuple(
@@ -204,6 +205,7 @@ cve_command = ProCommand(
     help=messages.CLI_CVE,
     description=messages.CLI_CVE_DESC,
     action=action_cve,
+    help_category=HelpCategory.SECURITY,
     preserve_description=True,
     argument_groups=[
         ProArgumentGroup(
