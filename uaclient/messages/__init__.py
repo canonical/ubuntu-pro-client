@@ -1235,7 +1235,7 @@ Show all available information about a given CVE.
 """
 )
 CLI_CVE_ISSUE = t.gettext(
-    "CVE to display information." " Format: CVE-yyyy-nnnn orCVE-yyyy-nnnnnnn"
+    "CVE to display information." " Format: CVE-yyyy-nnnn or CVE-yyyy-nnnnnnn"
 )
 CLI_CVE_NOT_FOUND_IN_DATA = t.gettext(
     """\

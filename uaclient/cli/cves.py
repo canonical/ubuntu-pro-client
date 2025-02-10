@@ -5,6 +5,7 @@ from uaclient.api.u.pro.security.cves.v1 import CVEsOptions, _cves
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.formatter import Table, create_link
+from uaclient.cli.parser import HelpCategory
 from uaclient.config import UAConfig
 
 
@@ -107,6 +108,7 @@ cves_command = ProCommand(
     help=messages.CLI_CVES,
     description=messages.CLI_CVES_DESC,
     action=action_cves,
+    help_category=HelpCategory.SECURITY,
     preserve_description=True,
     argument_groups=[
         ProArgumentGroup(
