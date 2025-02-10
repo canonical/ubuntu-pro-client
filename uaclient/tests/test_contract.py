@@ -1237,8 +1237,7 @@ class TestCreateAttachForbiddenMessage:
                 messages.NamedMessage(
                     name=messages.E_ATTACH_FORBIDDEN_EXPIRED.name,
                     msg=messages.E_ATTACH_FORBIDDEN_EXPIRED.format(
-                        contract_id="contract-id",
-                        date="May 07, 2021",
+                        contract_id="contract-id", date="May 07, 2021"
                     ).msg,
                 ),
                 {
@@ -1275,8 +1274,7 @@ class TestCreateAttachForbiddenMessage:
                 messages.NamedMessage(
                     name=messages.E_ATTACH_FORBIDDEN_NOT_YET.name,
                     msg=messages.E_ATTACH_FORBIDDEN_NOT_YET.format(
-                        contract_id="contract-id",
-                        date="May 07, 2021",
+                        contract_id="contract-id", date="May 07, 2021"
                     ).msg,
                 ),
                 {
