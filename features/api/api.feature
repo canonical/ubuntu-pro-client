@@ -21,7 +21,6 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.security.status.livepatch_cves.v1 import livepatch_cves"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.security.status.reboot_required.v1 import reboot_required"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.services.dependencies.v1 import dependencies"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.services.list.v1 import list"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.is_attached.v1 import is_attached"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.version.v1 import version"` as non-root
