@@ -11,7 +11,6 @@ event = event_logger.get_event_logger()
 NoticeFileDetails = namedtuple(
     "NoticeFileDetails", ["order_id", "label", "is_permanent", "message"]
 )
-ActiveNotice = namedtuple("ActiveNotice", ["order_id", "label", "message"])
 
 
 class Notice(NoticeFileDetails, Enum):
@@ -206,19 +205,21 @@ class NoticesManager:
                 return notice.value.message
         return ""
 
-    def get_active_notices(self) -> List[ActiveNotice]:
-        """Gets the list of active notices."""
+    def list(self) -> List[str]:
+        """Gets all the notice files currently saved.
+
+        :returns: List of notice file contents.
+        """
         notice_directories = (
             defaults.NOTICES_PERMANENT_DIRECTORY,
             defaults.NOTICES_TEMPORARY_DIRECTORY,
         )
-        active_notices = []
+        notices = []
         for notice_directory in notice_directories:
             if not os.path.exists(notice_directory):
                 continue
             notice_file_names = self._get_notice_file_names(notice_directory)
             for notice_file_name in notice_file_names:
-                notice_order_id, notice_label = notice_file_name.split("-")
                 try:
                     notice_file_contents = system.load_file(
                         os.path.join(notice_directory, notice_file_name)
@@ -229,28 +230,12 @@ class NoticesManager:
                     )
                     continue
                 if notice_file_contents:
-                    message = notice_file_contents
+                    notices.append(notice_file_contents)
                 else:
-                    message = self._get_default_message(notice_file_name)
-                active_notices.append(
-                    ActiveNotice(
-                        order_id=notice_order_id,
-                        label=notice_label,
-                        message=message,
+                    default_message = self._get_default_message(
+                        notice_file_name
                     )
-                )
-        active_notices.sort(key=lambda x: x.order_id)
-        return active_notices
-
-    def list(self) -> List[str]:
-        """Gets all the notice messages currently saved.
-
-        :returns: List of notice file contents.
-        """
-        notices = []
-        active_notices = self.get_active_notices()
-        for notice in active_notices:
-            notices.append(notice.message)
+                    notices.append(default_message)
         notices.sort()
         return notices
 

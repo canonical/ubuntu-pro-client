@@ -155,7 +155,7 @@ class TestNotices:
         m_get_notice_file_names.side_effect = lambda directory: (
             []
             if directory == defaults.NOTICES_TEMPORARY_DIRECTORY
-            else ["1-fakeNotice"]
+            else ["fakeNotice1"]
         )
         m_load_file.return_value = "test"
 
