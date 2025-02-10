@@ -24,7 +24,6 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.services.list.v1 import list"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.is_attached.v1 import is_attached"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.status.notices.v1 import notices"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.token_info.v1 import get_token_info"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.version.v1 import version"` as non-root
     When I run `python3 -c "from uaclient.api.u.security.package_manifest.v1 import package_manifest"` as non-root
