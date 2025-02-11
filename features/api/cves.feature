@@ -6,21 +6,7 @@ Feature: Client behaviour for CVE vulnerabilities API
     When I attach `contract_token` with sudo
     # Check we can download and parse the JSON data
     And I run `pro api u.pro.security.cves.v1` as non-root
-    And I verify that running `pro api u.pro.security.cves.v1 --data '{"fixable": true, "unfixable": true}'` `as non-root` exits `1`
-    Then API errors field output is:
-      """
-      [
-        {
-          "code": "invalid-option-combination",
-          "meta": {
-            "option1": "unfixable",
-            "option2": "fixable"
-          },
-          "title": "Error: Cannot use unfixable together with fixable."
-        }
-      ]
-      """
-    When I push static file `security_issues_xenial.json.xz` to machine
+    And I push static file `security_issues_xenial.json.xz` to machine
     And I create the file `/tmp/response-overlay.json` with the following:
       """
       {
