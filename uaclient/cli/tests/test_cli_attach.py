@@ -420,10 +420,8 @@ class TestActionAttach:
     @mock.patch(M_PATH + "actions.status")
     @mock.patch("uaclient.daemon.cleanup")
     @mock.patch("uaclient.daemon.stop")
-    @mock.patch(M_PATH + "get_valid_entitlement_names")
     def test_attach_config_enable_services(
         self,
-        m_entitlement_names,
         _m_daemon_stop,
         _m_daemon_cleanup,
         m_status,
@@ -437,7 +435,6 @@ class TestActionAttach:
         FakeConfig,
         event,
     ):
-        m_entitlement_names.return_value = (["testservice"], [])
         m_status.return_value = ("status", 0)
         m_format_tabular.return_value = "status"
         m_handle_unicode.return_value = "status"
@@ -446,9 +443,7 @@ class TestActionAttach:
         args = mock.MagicMock(
             token=None,
             attach_config=FakeFile(
-                safe_dump(
-                    {"token": "faketoken", "enable_services": ["testservice"]}
-                )
+                safe_dump({"token": "faketoken", "enable_services": ["cis"]})
             ),
             auto_enable=auto_enable,
         )
@@ -459,15 +454,13 @@ class TestActionAttach:
             mock.call(mock.ANY, token="faketoken", allow_enable=False)
         ] == m_attach_with_token.call_args_list
         if auto_enable:
-            assert [mock.call(cfg, "testservice")] == m_enable.call_args_list
+            assert [mock.call(cfg, "cis")] == m_enable.call_args_list
         else:
             assert [] == m_enable.call_args_list
         assert 1 == m_update_activity_token.call_count
 
         args.attach_config = FakeFile(
-            safe_dump(
-                {"token": "faketoken", "enable_services": ["testservice"]}
-            )
+            safe_dump({"token": "faketoken", "enable_services": ["cis"]})
         )
 
         fake_stdout = io.StringIO()
@@ -484,7 +477,7 @@ class TestActionAttach:
             "errors": [],
             "failed_services": [],
             "needs_reboot": False,
-            "processed_services": ["testservice"] if auto_enable else [],
+            "processed_services": ["cis"] if auto_enable else [],
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
