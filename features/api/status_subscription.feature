@@ -1,7 +1,7 @@
-Feature: Access status api
+Feature: Subscription status api
 
   @uses.config.contract_token
-  Scenario Outline: Access api when attached/unattached
+  Scenario Outline: Subscription api when attached/unattached
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     When I set the machine token overlay to the following yaml:
@@ -16,8 +16,7 @@ Feature: Access status api
           name: "TestAAName"
         machineId: "TestMId"
       """
-    When I verify root and non-root `pro api u.pro.access.v1` calls have the same output
-    When I run `pro api u.pro.access.v1` with sudo
+    When I run `pro api u.pro.subscription.v1` with sudo
     Then API data field output matches regexp:
       """
       {
@@ -45,13 +44,12 @@ Feature: Access status api
         "meta": {
           "environment_vars": []
         },
-        "type": "Access"
+        "type": "Subscription"
       }
       """
     When I run `pro detach --assume-yes` with sudo
     Then the machine is unattached
-    When I verify root and non-root `pro api u.pro.access.v1` calls have the same output
-    When I run `pro api u.pro.access.v1` with sudo
+    When I run `pro api u.pro.subscription.v1` with sudo
     Then API data field output matches regexp:
       """
       {
@@ -79,7 +77,7 @@ Feature: Access status api
         "meta": {
           "environment_vars": []
         },
-        "type": "Access"
+        "type": "Subscription"
       }
       """
 
