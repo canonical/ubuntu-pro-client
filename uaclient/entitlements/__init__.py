@@ -3,7 +3,7 @@ import textwrap
 from collections import defaultdict
 from typing import Dict, List, Optional, Type
 
-from uaclient import exceptions, system
+from uaclient import exceptions
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
 from uaclient.entitlements.anbox import AnboxEntitlement
@@ -17,36 +17,23 @@ from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
-from uaclient.entitlements.usg import USGEntitlement
 from uaclient.exceptions import EntitlementNotFoundError
 
-
-def __get_entitlement_classes() -> List[Type[UAEntitlement]]:
-    result = [
-        AnboxEntitlement,
-        CommonCriteriaEntitlement,
-        ESMAppsEntitlement,
-        ESMInfraEntitlement,
-        fips.FIPSEntitlement,
-        fips.FIPSUpdatesEntitlement,
-        fips.FIPSPreviewEntitlement,
-        LandscapeEntitlement,
-        LivepatchEntitlement,
-        RealtimeKernelEntitlement,
-        ROSEntitlement,
-        ROSUpdatesEntitlement,
-    ]
-
-    series = system.get_release_info().series
-    if series in ("xenial", "bionic"):
-        result.append(CISEntitlement)
-    else:
-        result.append(USGEntitlement)
-
-    return result
-
-
-ENTITLEMENT_CLASSES = sorted(__get_entitlement_classes(), key=lambda x: x.name)
+ENTITLEMENT_CLASSES = [
+    AnboxEntitlement,
+    CommonCriteriaEntitlement,
+    CISEntitlement,
+    ESMAppsEntitlement,
+    ESMInfraEntitlement,
+    fips.FIPSEntitlement,
+    fips.FIPSUpdatesEntitlement,
+    fips.FIPSPreviewEntitlement,
+    LandscapeEntitlement,
+    LivepatchEntitlement,
+    RealtimeKernelEntitlement,
+    ROSEntitlement,
+    ROSUpdatesEntitlement,
+]  # type: List[Type[UAEntitlement]]
 
 
 def entitlement_factory(
