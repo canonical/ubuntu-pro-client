@@ -338,7 +338,7 @@ def _get_state_files(cfg: config.UAConfig):
         CLOUD_BUILD_INFO,
         *(
             entitlement_cls(cfg).repo_file
-            for entitlement_cls in entitlements.get_entitlement_classes()
+            for entitlement_cls in entitlements.ENTITLEMENT_CLASSES
             if issubclass(entitlement_cls, entitlements.repo.RepoEntitlement)
         ),
     ]
