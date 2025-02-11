@@ -632,6 +632,7 @@ class TestPromptForDependencyHandling:
             "service",
             "all_dependencies",
             "enabled_service_names",
+            "called_name",
             "service_title",
             "prompt_side_effects",
             "expected_prompts",
@@ -647,6 +648,7 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
+                "one",
                 "One",
                 [],
                 [],
@@ -667,6 +669,7 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 [],
+                "one",
                 "One",
                 [],
                 [],
@@ -687,6 +690,7 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 ["two"],
+                "one",
                 "One",
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -707,6 +711,7 @@ class TestPromptForDependencyHandling:
                     )
                 ],
                 ["two"],
+                "one",
                 "One",
                 [False],
                 [mock.call(msg=mock.ANY)],
@@ -736,6 +741,7 @@ class TestPromptForDependencyHandling:
                     ),
                 ],
                 ["three"],
+                "one",
                 "One",
                 [True],
                 [mock.call(msg=mock.ANY)],
@@ -752,6 +758,7 @@ class TestPromptForDependencyHandling:
         service,
         all_dependencies,
         enabled_service_names,
+        called_name,
         service_title,
         prompt_side_effects,
         expected_prompts,
@@ -769,6 +776,7 @@ class TestPromptForDependencyHandling:
                 service,
                 all_dependencies,
                 enabled_service_names,
+                called_name,
                 service_title,
             )
 
