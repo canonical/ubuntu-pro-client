@@ -22,7 +22,7 @@ from uaclient.data_types import (
 )
 
 
-class CVEVulnerabilitiesOptions(DataObject):
+class CVEsOptions(DataObject):
     fields = [
         Field(
             "unfixable",
@@ -186,7 +186,7 @@ class CVEInfo(DataObject):
         self.related_packages = related_packages
 
 
-class PackageVulnerabilitiesResult(DataObject, AdditionalInfo):
+class CVEsResult(DataObject, AdditionalInfo):
     fields = [
         Field(
             "packages",
@@ -262,17 +262,17 @@ def cve_status_match_options(cve, options) -> bool:
     return True
 
 
-def vulnerabilities(
-    options: CVEVulnerabilitiesOptions,
-) -> PackageVulnerabilitiesResult:
-    return _vulnerabilities(options, UAConfig())
+def cves(
+    options: CVEsOptions,
+) -> CVEsResult:
+    return _cves(options, UAConfig())
 
 
 def _parse_vulnerabilities(
-    options: CVEVulnerabilitiesOptions,
+    options: CVEsOptions,
     vulnerabilities: Dict[str, Any],
     vulnerability_data_published_at: str,
-) -> PackageVulnerabilitiesResult:
+) -> CVEsResult:
     packages = {}
     blocked_cves = set()
     for pkg_name, package_info in sorted(
@@ -324,7 +324,7 @@ def _parse_vulnerabilities(
         if cve_name not in blocked_cves
     }
 
-    return PackageVulnerabilitiesResult(
+    return CVEsResult(
         packages=packages,
         cves=cves,
         vulnerability_data_published_at=util.parse_rfc3339_date(
@@ -334,10 +334,10 @@ def _parse_vulnerabilities(
     )
 
 
-def _vulnerabilities(
-    options: CVEVulnerabilitiesOptions,
+def _cves(
+    options: CVEsOptions,
     cfg: UAConfig,
-) -> PackageVulnerabilitiesResult:
+) -> CVEsResult:
     """
     This endpoint shows the CVE vulnerabilites in the system.
     By default, this API will only show fixable CVEs in the system.
@@ -367,24 +367,24 @@ def _vulnerabilities(
 
 endpoint = APIEndpoint(
     version="v1",
-    name="CVEVulnerabilities",
-    fn=_vulnerabilities,
-    options_cls=CVEVulnerabilitiesOptions,
+    name="CVEs",
+    fn=_cves,
+    options_cls=CVEsOptions,
 )
 
 _doc = {
     "introduced_in": "35",
     "requires_network": True,
     "example_python": """
-from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import vulnerabilites, CVEVulnerabilitesOptions
+from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import cves, CVEsOptions
 
-options = CVEVulnerabilitiesOptions()
-result = vulnerabilities(options)
+options = CVEsOptions()
+result = cves(options)
 """,  # noqa: E501
-    "result_class": PackageVulnerabilitiesResult,
+    "result_class": CVEsResult,
     "ignore_result_classes": [DataObject],
     "extra_result_classes": [
-        PackageVulnerabilitiesResult,
+        CVEsResult,
     ],
     "exceptions": [],
     "example_cli": "pro api u.pro.security.vulnerabilities.cve.v1",

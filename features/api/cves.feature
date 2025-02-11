@@ -111,7 +111,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "meta": {
           "environment_vars": []
         },
-        "type": "CVEVulnerabilities"
+        "type": "CVEs"
       }
       """
     When I run `pro api u.pro.security.cves.v1 --data '{"unfixable": true}'` as non-root
@@ -157,7 +157,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "meta": {
           "environment_vars": []
         },
-        "type": "CVEVulnerabilities"
+        "type": "CVEs"
       }
       """
     When I run `pro api u.pro.security.cves.v1 --data '{"fixable": true}'` as non-root
@@ -227,7 +227,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "meta": {
           "environment_vars": []
         },
-        "type": "CVEVulnerabilities"
+        "type": "CVEs"
       }
       """
     When I apt install `accountsservice`
@@ -295,7 +295,7 @@ Feature: Client behaviour for CVE vulnerabilities API
         "meta": {
           "environment_vars": []
         },
-        "type": "CVEVulnerabilities"
+        "type": "CVEs"
       }
       """
 

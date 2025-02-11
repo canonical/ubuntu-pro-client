@@ -8,10 +8,10 @@ from uaclient.api.u.pro.security.cves.v1 import (
     AffectedPackage,
     CVEAffectedPackage,
     CVEInfo,
-    CVEVulnerabilitiesOptions,
-    PackageVulnerabilitiesResult,
+    CVEsOptions,
+    CVEsResult,
     RelatedUSN,
-    _vulnerabilities,
+    _cves,
 )
 
 M_PATH = "uaclient.api.u.pro.security.cves.v1."
@@ -92,15 +92,15 @@ INSTALLED_PKGS_BY_SOURCE = {
 }
 
 
-class TestCVEVulnerabilities:
+class TestCVEs:
     @pytest.mark.parametrize(
         "vulnerabilities_data,installed_pkgs_by_source,cve_options,expected_result",  # noqa
         (
             (
                 VULNEBILITIES_DATA,
                 INSTALLED_PKGS_BY_SOURCE,
-                CVEVulnerabilitiesOptions(),
-                PackageVulnerabilitiesResult(
+                CVEsOptions(),
+                CVEsResult(
                     packages={
                         "test1-bin": AffectedPackage(
                             current_version="1.1.1",
@@ -189,8 +189,8 @@ class TestCVEVulnerabilities:
             (
                 VULNEBILITIES_DATA,
                 INSTALLED_PKGS_BY_SOURCE,
-                CVEVulnerabilitiesOptions(unfixable=True),
-                PackageVulnerabilitiesResult(
+                CVEsOptions(unfixable=True),
+                CVEsResult(
                     packages={
                         "test1-bin": AffectedPackage(
                             current_version="1.1.1",
@@ -249,8 +249,8 @@ class TestCVEVulnerabilities:
             (
                 VULNEBILITIES_DATA,
                 INSTALLED_PKGS_BY_SOURCE,
-                CVEVulnerabilitiesOptions(fixable=True),
-                PackageVulnerabilitiesResult(
+                CVEsOptions(fixable=True),
+                CVEsResult(
                     packages={
                         "test1-bin": AffectedPackage(
                             current_version="1.1.1",
@@ -330,4 +330,4 @@ class TestCVEVulnerabilities:
         m_get_apt_cache_datetime.return_value = datetime.datetime(
             2024, 6, 24, 13, 19, 16
         )
-        assert _vulnerabilities(cve_options, None) == expected_result
+        assert _cves(cve_options, None) == expected_result
