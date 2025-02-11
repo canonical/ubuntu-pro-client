@@ -10,7 +10,6 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.initiate.v1 import initiate"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.revoke.v1 import revoke"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.magic.wait.v1 import wait"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.config.v1 import config"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.packages.summary.v1 import summary"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.packages.updates.v1 import updates"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.security.fix.cve.execute.v1 import execute"` as non-root
@@ -22,7 +21,6 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.services.dependencies.v1 import dependencies"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.is_attached.v1 import is_attached"` as non-root
-    When I run `python3 -c "from uaclient.api.u.pro.subscription.v1 import subscription"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.version.v1 import version"` as non-root
     When I run `python3 -c "from uaclient.api.u.security.package_manifest.v1 import package_manifest"` as non-root
     When I run `python3 -c "from uaclient.api.u.unattended_upgrades.status.v1 import status"` as non-root

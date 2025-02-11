@@ -292,7 +292,8 @@ SERVICES_JSON = [
     return_value=RESPONSE_CONTRACT_INFO,
 )
 @mock.patch(
-    "uaclient.files.user_config_file.UserConfigFileObject.read",
+    "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+    new_callable=mock.PropertyMock,
     return_value=UserConfigData(),
 )
 class TestActionStatus:
@@ -326,7 +327,7 @@ class TestActionStatus:
         self,
         _m_format_expires,
         _m_status_cache_file,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -386,7 +387,7 @@ class TestActionStatus:
     def test_unattached(
         self,
         _m_status_cache_file,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -413,7 +414,7 @@ class TestActionStatus:
     )
     def test_simulated(
         self,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -444,7 +445,7 @@ class TestActionStatus:
         _m_get_version,
         m_check_lock_info,
         _m_status_cache_file,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -499,7 +500,7 @@ class TestActionStatus:
     def test_unattached_formats(
         self,
         _m_status_cache_file,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -611,7 +612,7 @@ class TestActionStatus:
     def test_attached_formats(
         self,
         _m_status_cache_file,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -745,7 +746,7 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_simulated_formats(
         self,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -896,7 +897,7 @@ class TestActionStatus:
 
     def test_error_on_connectivity_errors(
         self,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         m_get_avail_resources,
         _m_should_reboot,
@@ -926,7 +927,7 @@ class TestActionStatus:
         self,
         _m_format_expires,
         _m_status_cache_file,
-        _m_config_read,
+        _m_public_config,
         _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -988,7 +989,7 @@ class TestActionStatus:
     )
     def test_errors_are_raised_appropriately(
         self,
-        _m_config_read,
+        _m_public_config,
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
@@ -1049,7 +1050,7 @@ class TestActionStatus:
     )
     def test_errors_for_token_dates(
         self,
-        _m_config_read,
+        _m_public_config,
         m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
