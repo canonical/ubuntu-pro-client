@@ -3,7 +3,6 @@ Feature: Client behaviour for the API endpoints
   @arm64
   Scenario Outline: all API endpoints can be imported individually
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `python3 -c "from uaclient.api.u.pro.access.v1 import access"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.configure_retry_service.v1 import configure_retry_service"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.full_auto_attach.v1 import full_auto_attach"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.attach.auto.should_auto_attach.v1 import should_auto_attach"` as non-root
@@ -23,6 +22,7 @@ Feature: Client behaviour for the API endpoints
     When I run `python3 -c "from uaclient.api.u.pro.services.dependencies.v1 import dependencies"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.enabled_services.v1 import enabled_services"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.status.is_attached.v1 import is_attached"` as non-root
+    When I run `python3 -c "from uaclient.api.u.pro.subscription.v1 import subscription"` as non-root
     When I run `python3 -c "from uaclient.api.u.pro.version.v1 import version"` as non-root
     When I run `python3 -c "from uaclient.api.u.security.package_manifest.v1 import package_manifest"` as non-root
     When I run `python3 -c "from uaclient.api.u.unattended_upgrades.status.v1 import status"` as non-root

@@ -15,9 +15,9 @@ from uaclient import (
     util,
     version,
 )
-from uaclient.api.u.pro.access.v1 import _access
 from uaclient.api.u.pro.config.v1 import _config
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.api.u.pro.subscription.v1 import _subscription
 from uaclient.config import UAConfig
 from uaclient.contract import get_available_resources, get_contract_information
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
@@ -217,29 +217,29 @@ def _attached_status(cfg: UAConfig) -> Dict[str, Any]:
 
     response = copy.deepcopy(DEFAULT_STATUS)
     machine_token_file = machine_token.get_machine_token_file(cfg)
-    accessInfo = _access(cfg)
+    subscriptionInfo = _subscription(cfg)
     tech_support_level = UserFacingStatus.INAPPLICABLE.value
-    support_level = accessInfo.contract.tech_support_level
+    support_level = subscriptionInfo.contract.tech_support_level
     if support_level:
         tech_support_level = support_level
     response.update(
         {
-            "machine_id": accessInfo.machine_id,
+            "machine_id": subscriptionInfo.machine_id,
             "attached": True,
-            "origin": accessInfo.contract.origin,
+            "origin": subscriptionInfo.contract.origin,
             "notices": notices.list() or [],
             "contract": {
-                "id": accessInfo.contract.id,
-                "name": accessInfo.contract.name,
-                "created_at": accessInfo.contract.created_at,
-                "products": accessInfo.contract.products,
+                "id": subscriptionInfo.contract.id,
+                "name": subscriptionInfo.contract.name,
+                "created_at": subscriptionInfo.contract.created_at,
+                "products": subscriptionInfo.contract.products,
                 "tech_support_level": tech_support_level,  # noqa
             },
-            "account": accessInfo.account.to_dict(),
+            "account": subscriptionInfo.account.to_dict(),
         }
     )
-    response["expires"] = accessInfo.contract.expires
-    response["effective"] = accessInfo.contract.effective
+    response["expires"] = subscriptionInfo.contract.expires
+    response["effective"] = subscriptionInfo.contract.effective
 
     resources = machine_token_file.machine_token.get("availableResources")
     if not resources:
