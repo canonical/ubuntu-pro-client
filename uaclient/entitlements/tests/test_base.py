@@ -125,16 +125,36 @@ class TestEntitlement:
 
 
 class TestEntitlementNames:
-    def test_valid_names(self, base_entitlement_factory):
-        entitlement = base_entitlement_factory(entitled=True)
-        assert ["testconcreteentitlement"] == entitlement.valid_names
+    @pytest.mark.parametrize(
+        "p_name,expected",
+        (
+            ("pretty_name", ["testconcreteentitlement", "pretty_name"]),
+            ("testconcreteentitlement", ["testconcreteentitlement"]),
+        ),
+    )
+    def test_valid_names(self, p_name, expected, base_entitlement_factory):
+        entitlement = base_entitlement_factory(
+            entitled=True,
+            affordances={"presentedAs": p_name},
+        )
+        assert expected == entitlement.valid_names
 
-    def test_presentation_name(self, entitlement_factory):
+    @pytest.mark.parametrize(
+        "affordances,expected_value",
+        (
+            ({}, "testconcreteentitlement"),
+            ({"presentedAs": "something_else"}, "something_else"),
+        ),
+    )
+    def test_presentation_name(
+        self, affordances, expected_value, entitlement_factory
+    ):
         entitlement = entitlement_factory(
             ConcreteTestEntitlement,
             entitled=True,
+            affordances=affordances,
         )
-        assert "testconcreteentitlement" == entitlement.presentation_name
+        assert expected_value == entitlement.presentation_name
 
 
 class TestEntitlementCanEnable:
