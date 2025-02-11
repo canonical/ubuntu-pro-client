@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 from uaclient import system, util
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo
-from uaclient.api.exceptions import InvalidOptionCombination
 from uaclient.api.u.pro.security.cves._common.v1 import (
     VulnerabilityParser,
     get_vulnerabilities,
@@ -343,8 +342,12 @@ def _vulnerabilities(
     This endpoint shows the CVE vulnerabilites in the system.
     By default, this API will only show fixable CVEs in the system.
     """
+
+    # By default we return all affected CVEs. If a user provides
+    # both options, we just switch to the default approach
     if options.unfixable and options.fixable:
-        raise InvalidOptionCombination(option1="unfixable", option2="fixable")
+        options.unfixable = False
+        options.fixable = False
 
     series = system.get_release_info().series
 
