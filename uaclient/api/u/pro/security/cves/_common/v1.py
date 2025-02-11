@@ -475,9 +475,10 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
             affected_pkg = affected_pkgs.get(source_pkg, {})
             vuln_source_versions = affected_pkg.get("source_versions", {})
 
-            for vuln_name, vuln in self.get_package_vulnerabilities(
-                affected_pkg
-            ).items():
+            for vuln_name, vuln in sorted(
+                self.get_package_vulnerabilities(affected_pkg).items(),
+                key=lambda x: x[0],
+            ):
                 vuln_info = vulns_info.get(vuln_name, "")
                 vuln_source_fixed_version = vuln.get("source_fixed_version")
                 vuln_pkg_status = vuln.get("status")
