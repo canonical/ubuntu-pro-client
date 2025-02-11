@@ -552,12 +552,12 @@ class TestStatus:
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch(
-        "uaclient.files.user_config_file.UserConfigFileObject.read",
-        return_value=UserConfigData(),
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
     )
     def test_nonroot_unattached_is_same_as_unattached_root(
         self,
-        m_config_read,
+        m_public_config,
         m_get_available_resources,
         m_we_are_currently_root,
         _m_status_cache_file,
@@ -566,6 +566,7 @@ class TestStatus:
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
         ]
@@ -583,12 +584,12 @@ class TestStatus:
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch(
-        "uaclient.files.user_config_file.UserConfigFileObject.read",
-        return_value=UserConfigData(),
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
     )
     def test_root_and_non_root_are_same_attached(
         self,
-        m_config_read,
+        m_public_config,
         m_get_available_resources,
         m_we_are_currently_root,
         _m_status_cache_file,
@@ -598,6 +599,7 @@ class TestStatus:
         FakeConfig,
         fake_machine_token_file,
     ):
+        m_public_config.return_value = UserConfigData()
         m_we_are_currently_root.return_value = True
         fake_machine_token_file.attached = True
         cfg = FakeConfig()
@@ -851,12 +853,12 @@ class TestStatus:
     @mock.patch("uaclient.util.we_are_currently_root")
     @mock.patch("uaclient.status.get_available_resources")
     @mock.patch(
-        "uaclient.files.user_config_file.UserConfigFileObject.read",
-        return_value=UserConfigData(),
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
     )
     def test_expires_handled_appropriately(
         self,
-        m_config_read,
+        m_public_config,
         _m_get_available_resources,
         m_we_are_currently_root,
         _m_status_cache_file,
@@ -867,6 +869,7 @@ class TestStatus:
         FakeConfig,
         fake_machine_token_file,
     ):
+        m_public_config.return_value = UserConfigData()
         m_we_are_currently_root.return_value = True
         token = {
             "availableResources": all_resources_available,
@@ -908,8 +911,8 @@ class TestStatus:
         new_callable=mock.PropertyMock,
     )
     @mock.patch(
-        "uaclient.files.user_config_file.UserConfigFileObject.read",
-        return_value=UserConfigData(),
+        "uaclient.files.user_config_file.UserConfigFileObject.public_config",
+        new_callable=mock.PropertyMock,
     )
     @mock.patch("uaclient.files.state_files.status_cache_file.read")
     @mock.patch("uaclient.files.state_files.status_cache_file.write")
@@ -919,13 +922,14 @@ class TestStatus:
         _m_get_available_resources,
         _m_status_cache_file_write,
         m_status_cache_file_read,
-        m_config_read,
+        m_public_config,
         m_reboot_cmd_marker_file,
         _m_should_reboot,
         m_remove_notice,
         m_on_supported_kernel,
         FakeConfig,
     ):
+        m_public_config.return_value = UserConfigData()
         m_reboot_cmd_marker_file.is_present = True
         cached_status = {"pass": True}
         m_status_cache_file_read.return_value = cached_status
