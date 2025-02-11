@@ -53,7 +53,7 @@ case "$1" in
       #
 
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge "31~"; then
-          /usr/lib/ubuntu-advantage/postinst-migrations.sh $PREVIOUS_PKG_VER $VERSION_ID
+          /usr/lib/ubuntu-advantage/postinst-migrations.sh $PREVIOUS_PKG_VER
       fi
 
       #
