@@ -1,7 +1,7 @@
 import logging
 from typing import Iterable, List, Optional, Tuple, Type
 
-from uaclient import entitlements, lock, messages, status, system, util
+from uaclient import entitlements, lock, messages, status, util
 from uaclient.api import AbstractProgress, ProgressWrapper, exceptions
 from uaclient.api.api import APIEndpoint
 from uaclient.api.data_types import AdditionalInfo, ErrorWarningObject
@@ -15,7 +15,6 @@ from uaclient.data_types import (
     StringDataValue,
     data_list,
 )
-from uaclient.entitlements.usg import USGEntitlement
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -171,19 +170,8 @@ def _enable(
     if not _is_attached(cfg).is_attached:
         raise exceptions.UnattachedError()
 
-    service_to_enable = options.service
-
-    if service_to_enable == "landscape":
+    if options.service == "landscape":
         raise exceptions.NotSupported()
-
-    # On Focal, CIS transitioned to USG.
-    # If a user tries to enable CIS on Focal, they should get USG instead.
-    if (
-        service_to_enable == "cis"
-        and system.get_release_info().series == "focal"
-    ):
-        service_to_enable = "usg"
-        USGEntitlement.cis_version = True
 
     enabled_services_before = _enabled_services_names(cfg)
 
@@ -191,7 +179,7 @@ def _enable(
         (
             s
             for s in _enabled_services(cfg).enabled_services
-            if s.name == service_to_enable
+            if s.name == options.service
             and (
                 not options.variant
                 or (s.variant_enabled and s.variant_name == options.variant)
@@ -210,7 +198,7 @@ def _enable(
 
     entitlement = entitlements.entitlement_factory(
         cfg=cfg,
-        name=service_to_enable,
+        name=options.service,
         variant=options.variant or "",
         access_only=options.access_only,
     )
@@ -254,7 +242,7 @@ def _enable(
         else:
             reason = messages.GENERIC_UNKNOWN_ISSUE
         raise exceptions.EntitlementNotEnabledError(
-            service=service_to_enable, reason=reason
+            service=options.service, reason=reason
         )
 
     enabled_services_after = _enabled_services_names(cfg)
