@@ -11,7 +11,6 @@ from uaclient import (
     exceptions,
     messages,
     status,
-    system,
     util,
 )
 from uaclient.api import ProgressWrapper
@@ -145,11 +144,6 @@ def action_disable(args, *, cfg, **kwargs):
         entitlements_found,
         entitlements_not_found,
     ) = entitlements.get_valid_entitlement_names(names, cfg)
-
-    if "cis" in names and system.get_release_info().series == "focal":
-        entitlements_found.append("usg")
-        entitlements_not_found.remove("cis")
-
     enabled_service_names = [
         s.name for s in _enabled_services(cfg).enabled_services
     ]
