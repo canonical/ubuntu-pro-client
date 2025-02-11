@@ -245,14 +245,6 @@ class MachineTokenFile:
         return None
 
     @property
-    def support_level(self):
-        support = self.entitlements().get("support", {}).get("entitlement")
-        if support:
-            supportLevel = support.get("affordances", {}).get("supportLevel")
-            return supportLevel
-        return None
-
-    @property
     def only_series(self):
         only_series = (
             self.entitlements()
