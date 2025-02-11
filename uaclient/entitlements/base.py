@@ -86,6 +86,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return ""
 
     @property
+    def valid_names(self) -> List[str]:
+        """The list of names this entitlement may be called."""
+        valid_names = [self.name]
+        if self.presentation_name != self.name:
+            valid_names.append(self.presentation_name)
+        return valid_names
+
+    @property
     @abc.abstractmethod
     def title(self) -> str:
         """The human readable title of this entitlement"""
@@ -239,6 +247,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 continue
             variant = variant_cls(
                 cfg=self.cfg,
+                called_name=self._called_name,
                 access_only=self.access_only,
             )
             status, _ = variant.application_status()
@@ -276,6 +285,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def __init__(
         self,
         cfg: Optional[config.UAConfig] = None,
+        called_name: str = "",
         access_only: bool = False,
         purge: bool = False,
         extra_args: Optional[List[str]] = None,
@@ -294,6 +304,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             self.extra_args = extra_args
         else:
             self.extra_args = []
+        self._called_name = called_name
         self._valid_service = None  # type: Optional[bool]
         self._is_sources_list_updated = False
 

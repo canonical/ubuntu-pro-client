@@ -59,31 +59,47 @@ def entitlement_factory(
     """
 
     for entitlement in ENTITLEMENT_CLASSES:
-        if name == entitlement.name:
-            ent = entitlement(
-                cfg=cfg,
-                access_only=access_only,
-                purge=purge,
-                extra_args=extra_args,
-            )
+        ent = entitlement(
+            cfg=cfg,
+            access_only=access_only,
+            called_name=name,
+            purge=purge,
+            extra_args=extra_args,
+        )
+        if name in ent.valid_names:
             if not variant:
                 return ent
-            if variant in ent.variants:
+            elif variant in ent.variants:
                 return ent.variants[variant](
                     cfg=cfg,
+                    called_name=name,
                     purge=purge,
                     extra_args=extra_args,
                 )
-            raise EntitlementNotFoundError(entitlement_name=variant)
+            else:
+                raise EntitlementNotFoundError(entitlement_name=variant)
     raise EntitlementNotFoundError(entitlement_name=name)
 
 
-def valid_services(cfg: UAConfig) -> List[str]:
-    """Return a list of valid services."""
+def valid_services(cfg: UAConfig, all_names: bool = False) -> List[str]:
+    """Return a list of valid services.
+
+    :param cfg: UAConfig instance
+    :param all_names: if we should return all the names for a service instead
+        of just the presentation_name
+    """
+    entitlements = ENTITLEMENT_CLASSES
+    if all_names:
+        names = []
+        for entitlement_cls in entitlements:
+            names.extend(entitlement_cls(cfg=cfg).valid_names)
+
+        return sorted(names)
+
     return sorted(
         [
             entitlement_cls(cfg=cfg).presentation_name
-            for entitlement_cls in ENTITLEMENT_CLASSES
+            for entitlement_cls in entitlements
         ]
     )
 
@@ -178,11 +194,10 @@ def get_valid_entitlement_names(names: List[str], cfg: UAConfig):
     :param names: List of entitlements to validate
     :return: a tuple of List containing the valid and invalid entitlements
     """
-    known_services = valid_services(cfg=cfg)
     entitlements_found = []
 
     for ent_name in names:
-        if ent_name in known_services:
+        if ent_name in valid_services(cfg=cfg, all_names=True):
             entitlements_found.append(ent_name)
 
     entitlements_not_found = sorted(set(names) - set(entitlements_found))

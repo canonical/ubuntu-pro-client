@@ -125,6 +125,10 @@ class TestEntitlement:
 
 
 class TestEntitlementNames:
+    def test_valid_names(self, base_entitlement_factory):
+        entitlement = base_entitlement_factory(entitled=True)
+        assert ["testconcreteentitlement"] == entitlement.valid_names
+
     def test_presentation_name(self, entitlement_factory):
         entitlement = entitlement_factory(
             ConcreteTestEntitlement,

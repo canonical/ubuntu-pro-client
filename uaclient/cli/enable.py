@@ -59,6 +59,7 @@ def _enable_landscape(
     progress = api.ProgressWrapper(progress_object)
     landscape = entitlements.LandscapeEntitlement(
         cfg,
+        called_name="landscape",
         access_only=access_only,
         extra_args=extra_args,
     )
@@ -92,6 +93,7 @@ def prompt_for_dependency_handling(
     service: str,
     all_dependencies: List[ServiceWithDependencies],
     enabled_services: List[EnabledService],
+    called_name: str,
     variant: str,
     service_title: str,
 ):
@@ -266,6 +268,7 @@ def _enable_one_service(
                 real_name,
                 all_dependencies,
                 enabled_services,
+                called_name=ent_name,
                 variant=variant,
                 service_title=ent_title,
             )
