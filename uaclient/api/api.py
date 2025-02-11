@@ -19,7 +19,6 @@ VALID_ENDPOINTS = [
     "u.pro.attach.magic.revoke.v1",
     "u.pro.attach.magic.wait.v1",
     "u.pro.attach.token.full_token_attach.v1",
-    "u.pro.config.v1",
     "u.pro.detach.v1",
     "u.pro.packages.summary.v1",
     "u.pro.packages.updates.v1",
