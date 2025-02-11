@@ -5,13 +5,7 @@ import pytest
 
 from uaclient.cli.formatter import Block, ContentAlignment
 from uaclient.cli.formatter import ProOutputFormatterConfig as POFC
-from uaclient.cli.formatter import (
-    SuggestionBlock,
-    Table,
-    create_link,
-    real_len,
-    wrap_text,
-)
+from uaclient.cli.formatter import Table, create_link, real_len, wrap_text
 
 M_PATH = "uaclient.cli.formatter."
 
@@ -58,15 +52,6 @@ class TestProFormatterConfig:
 
         POFC.disable_color()
         assert POFC.use_color is False
-
-    def test_suggestions_config(self, FakeConfig):
-        cfg = FakeConfig()
-
-        POFC.init(cfg)
-        assert POFC.show_suggestions is True
-
-        POFC.disable_suggestions()
-        assert POFC.show_suggestions is False
 
 
 class TestCreateLink:
@@ -438,17 +423,3 @@ class TestBlock:
                    screen
             """
         )
-
-    def test_suggestions_can_be_disabled(self, FakeConfig):
-        suggestion_block = SuggestionBlock(
-            title="Suggestion", content=["Some content"]
-        )
-        POFC.init(FakeConfig())
-        assert suggestion_block.to_string() == textwrap.dedent(
-            """\
-            Suggestion
-                Some content
-            """
-        )
-        POFC.disable_suggestions()
-        assert suggestion_block.to_string() == ""

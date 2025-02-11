@@ -28,7 +28,6 @@ class ContentAlignment(Enum):
 class ProOutputFormatterConfig:
     use_utf8 = True
     use_color = True
-    show_suggestions = True
 
     # Initializing the class after the import is useful for unit testing
     @classmethod
@@ -40,15 +39,9 @@ class ProOutputFormatterConfig:
 
         cls.use_color = sys.stdout.isatty() and os.getenv("NO_COLOR") is None
 
-        cls.show_suggestions = True
-
     @classmethod
     def disable_color(cls) -> None:
         cls.use_color = False
-
-    @classmethod
-    def disable_suggestions(cls) -> None:
-        cls.show_suggestions = False
 
 
 ProOutputFormatterConfig.init(cfg=UAConfig())
@@ -299,10 +292,3 @@ class Block(ProOutputFormatter):
             )
 
         return process_formatter_config(output)
-
-
-class SuggestionBlock(Block):
-    def to_string(self, line_length: Optional[int] = None) -> str:
-        if ProOutputFormatterConfig.show_suggestions:
-            return super().to_string(line_length)
-        return ""
