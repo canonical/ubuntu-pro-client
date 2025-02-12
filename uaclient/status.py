@@ -4,6 +4,7 @@ import sys
 import textwrap
 from collections import OrderedDict
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
@@ -365,7 +366,11 @@ def _get_config_status(cfg) -> Dict[str, Any]:
     ua_config = user_config_file.user_config.public_config.to_dict()
     for key in UA_CONFIGURABLE_KEYS:
         if hasattr(cfg, key) and ua_config[key] is None:
-            ua_config[key] = getattr(cfg, key)
+            val = getattr(cfg, key)
+            if isinstance(val, Enum):
+                val = val.value
+            ua_config[key] = val
+
     ret["config"]["ua_config"] = ua_config
 
     return ret
