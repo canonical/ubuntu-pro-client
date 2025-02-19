@@ -1,3 +1,4 @@
+import sys
 import textwrap
 from collections import namedtuple
 
@@ -89,13 +90,14 @@ def action_cve(args, *, cfg, **kwargs):
         )
 
         if not cve_data:
-            series = system.get_release_info().series
+            release = system.get_release_info().release
             print(
                 messages.CLI_CVE_NOT_FOUND_IN_DATA.format(
                     issue=args.cve,
-                    series=series,
+                    release=release,
                     url="{}/{}".format(defaults.BASE_SECURITY_URL, cve_name),
-                )
+                ),
+                file=sys.stderr,
             )
             return
 
