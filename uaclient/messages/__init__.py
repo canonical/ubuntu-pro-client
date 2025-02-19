@@ -1239,8 +1239,8 @@ CLI_CVE_ISSUE = t.gettext(
 )
 CLI_CVE_NOT_FOUND_IN_DATA = t.gettext(
     """\
-{issue} not present in {series} security data.
-You may be able to find more information at:\n- {url}"""
+{issue} doesn't affect Ubuntu {release}.
+For more information, visit: {url}"""
 )
 
 CLI_CVES = t.gettext("list the vulnerabilities that affect the system")

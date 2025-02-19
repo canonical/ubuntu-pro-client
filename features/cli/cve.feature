@@ -91,11 +91,10 @@ Feature: CLI cve command
         libaccountsservice0:  vulnerable
       """
     When I run `pro cve CVE-2025-26520` as non-root
-    Then I will see the following on stdout:
+    Then I will see the following on stderr:
       """
-      CVE-2025-26520 not present in xenial security data.
-      You may be able to find more information at:
-      - https://ubuntu.com/security/CVE-2025-26520
+      CVE-2025-26520 doesn't affect Ubuntu 16.04.
+      For more information, visit: https://ubuntu.com/security/CVE-2025-26520
       """
 
     Examples: ubuntu release
