@@ -308,12 +308,15 @@ class TestCVEs:
     )
     @mock.patch(M_PATH + "get_apt_cache_datetime")
     @mock.patch(M_VULN_COMMON_PATH + "VulnerabilityData.get")
-    @mock.patch(M_VULN_COMMON_PATH + "VulnerabilityData.is_cache_valid")
+    @mock.patch(
+        M_VULN_COMMON_PATH + "VulnerabilityData.refreshed",
+        new_callable=mock.PropertyMock,
+    )
     @mock.patch(M_VULN_COMMON_PATH + "query_installed_source_pkg_versions")
     def test_parse_data(
         self,
         m_get_source_pkgs,
-        m_vulnerability_data_is_cache_valid,
+        m_vulnerability_data_refreshed,
         m_vulnerability_data_get,
         m_get_apt_cache_datetime,
         _m_vulnerability_result_save_cache,
@@ -322,7 +325,7 @@ class TestCVEs:
         cve_options,
         expected_result,
     ):
-        m_vulnerability_data_is_cache_valid.return_value = (False, None)
+        m_vulnerability_data_refreshed.return_vale = True
         m_get_source_pkgs.return_value = installed_pkgs_by_source
         m_vulnerability_data_get.return_value = copy.deepcopy(
             vulnerabilities_data

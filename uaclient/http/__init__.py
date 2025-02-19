@@ -6,7 +6,7 @@ import logging
 import lzma
 import os
 import socket
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from urllib import error, request
 from urllib.parse import ParseResult, urlparse
 
@@ -348,13 +348,13 @@ def _get_overlay_data(cfg, url: str):
 
 
 def download_xz_file_from_url(
-    cfg, url: str, timeout: Optional[int] = None
-) -> bytes:
+    cfg, url: str, timeout: Optional[int] = None, etag=None
+) -> Tuple[bytes, str]:
     overlay_response = _get_overlay_data(cfg, url)
     if overlay_response:
         # We only consider the first response for mock xz related requests
         response = overlay_response.pop(0)
-        return lzma.open(response["response"]["file_path"]).read()
+        return (lzma.open(response["response"]["file_path"]).read(), "")
 
     if not is_service_url(url):
         raise exceptions.InvalidUrl(url=url)
@@ -368,9 +368,27 @@ def download_xz_file_from_url(
             timeout=timeout,
             https_proxy=https_proxy,
         )
-        return lzma.decompress(resp.body)  # type: ignore
+        return (
+            lzma.decompress(resp.body),  # type: ignore
+            resp.headers.get("ETag"),
+        )
     else:
-        return lzma.open(request.urlopen(url)).read()
+        headers = {}
+        if etag:
+            headers["If-None-Match"] = etag
+
+        req = request.Request(url, headers=headers)
+        try:
+            with request.urlopen(req) as response:
+                return (
+                    lzma.open(response).read(),
+                    response.headers.get("ETag"),
+                )
+        except error.HTTPError as e:
+            if e.code == 304:
+                raise exceptions.ETagUnchanged(url=url)
+            else:
+                raise
 
 
 def readurl(

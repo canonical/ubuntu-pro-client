@@ -2860,3 +2860,8 @@ E_FEATURE_NOT_SUPPORTED_OLD_TOKEN = FormattedNamedMessage(
         " format. Please detach and reattach to give this machine a new token."
     ),
 )
+
+E_ETAG_UNCHANGED = FormattedNamedMessage(
+    "etag-unchanged",
+    t.gettext("The etag for resource: {url} has not changed"),
+)
