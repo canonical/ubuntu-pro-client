@@ -667,3 +667,7 @@ class UnknownProcessorType(UbuntuProError):
 
 class FeatureNotSupportedOldTokenError(UbuntuProError):
     _formatted_msg = messages.E_FEATURE_NOT_SUPPORTED_OLD_TOKEN
+
+
+class ETagUnchanged(UbuntuProError):
+    _formatted_msg_ = messages.E_ETAG_UNCHANGED

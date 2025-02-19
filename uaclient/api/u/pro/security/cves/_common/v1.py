@@ -5,10 +5,10 @@ import json
 import os
 from collections import defaultdict
 from functools import lru_cache
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional
 from urllib.parse import urljoin
 
-from uaclient import apt, http, system, util
+from uaclient import apt, exceptions, http, system, util
 from uaclient.api.u.pro.security.fix._common import (
     query_installed_source_pkg_versions,
 )
@@ -25,7 +25,7 @@ from uaclient.defaults import (
     VULNERABILITY_DATA_CACHE,
     VULNERABILITY_DATA_TMPL,
     VULNERABILITY_DPKG_STATUS_DATE_CACHE,
-    VULNERABILITY_PUBLISH_DATE_CACHE,
+    VULNERABILITY_ETAG_CACHE,
     VULNERABILITY_RESULT_CACHE,
 )
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
@@ -33,11 +33,11 @@ from uaclient.files.data_types import DataObjectFile
 from uaclient.files.files import UAFile
 
 
-class VulnerabilityCacheDate(DataObject):
-    fields = [Field("cache_date", StringDataValue)]
+class VulnerabilityCacheETag(DataObject):
+    fields = [Field("etag", StringDataValue)]
 
-    def __init__(self, cache_date):
-        self.cache_date = cache_date
+    def __init__(self, etag):
+        self.etag = etag
 
 
 class VulnerabilityDpkgCacheDate(DataObject):
@@ -58,12 +58,6 @@ class VulnerabilityStatus(enum.Enum):
     FULL_FIX_AVAILABLE = "yes"
 
 
-@lru_cache(maxsize=None)
-def get_vulnerability_data_published_date(vulnerability_url):
-    resp = http.readurl(url=vulnerability_url, method="HEAD")
-    return resp.headers["last-modified"]
-
-
 class VulnerabilityData:
 
     def __init__(
@@ -73,82 +67,43 @@ class VulnerabilityData:
     ):
         self.cfg = cfg
         self.series = series or system.get_release_info().series
-        self._last_published_date = None  # type: Optional[str]
+        self._etag = None  # type: Optional[str]
+        self._refreshed = False
+
+    @property
+    def refreshed(self):
+        return self._refreshed
 
     def _get_cache_data_path(self):
         return os.path.join(
             VULNERABILITY_CACHE_PATH, self.series, VULNERABILITY_DATA_CACHE
         )
 
-    def _get_cache_published_date_path(self):
-        return os.path.join(
-            VULNERABILITY_CACHE_PATH,
-            self.series,
-            VULNERABILITY_PUBLISH_DATE_CACHE,
+    def _get_etag_cache_file(self):
+        return DataObjectFile(
+            data_object_cls=VulnerabilityCacheETag,
+            ua_file=UAFile(
+                name=VULNERABILITY_ETAG_CACHE,
+                directory=os.path.join(VULNERABILITY_CACHE_PATH, self.series),
+                private=False,
+            ),
         )
 
     def _save_cache_data(self, json_data: Dict[str, Any]):
         system.write_file(self._get_cache_data_path(), json.dumps(json_data))
 
-    def _save_cache_publish_date(
-        self, cache_date_file: DataObjectFile, published_date: str
-    ):
-        cache_date_file.write(
-            VulnerabilityCacheDate(cache_date=published_date)
-        )
+    def _save_etag_cache(self, cache_etag_file: DataObjectFile, etag: str):
+        cache_etag_file.write(VulnerabilityCacheETag(etag=etag))
 
-    def _parse_published_date(self, published_date: str):
-        format_str = "%a, %d %b %Y %H:%M:%S %Z"
-        return datetime.datetime.strptime(published_date, format_str)
+    def _get_etag(self):
+        if not self._etag:
+            etag_file = self._get_etag_cache_file()
+            etag_data = etag_file.read()
 
-    def _get_published_date(self):
-        if not self._last_published_date:
-            self._last_published_date = get_vulnerability_data_published_date(
-                self._get_data_url()
-            )
+            if etag_data:
+                self._etag = etag_data.etag
 
-        return self._last_published_date
-
-    def is_cache_valid(self) -> Tuple[bool, Optional[datetime.datetime]]:
-        last_published_date = self._get_published_date()
-        cache_date_file = self._get_cache_file()
-
-        return self._is_cache_valid(last_published_date, cache_date_file)
-
-    def cache_exists(self):
-        cache_date_file = self._get_cache_file()
-        return cache_date_file.read() is not None
-
-    def _is_cache_valid(
-        self,
-        last_published_date: str,
-        cache_date_file: DataObjectFile,
-    ) -> Tuple[bool, Optional[datetime.datetime]]:
-        """
-        Return if the vulnerability data cache is valid.
-        By valid it means if the data is the latest available
-        version of the vulnerability data.
-
-        If we detect that a cache exists, but it is not the latest
-        version, we will return also by how much time the cache is
-        outdated.
-        """
-        last_published_datetime = self._parse_published_date(
-            last_published_date
-        )
-
-        cache_date_obj = cache_date_file.read()
-        if not cache_date_obj:
-            return (False, None)
-
-        cache_published_datetime = self._parse_published_date(
-            cache_date_obj.cache_date
-        )
-
-        return (
-            cache_published_datetime >= last_published_datetime,
-            last_published_datetime - cache_published_datetime,
-        )
+        return self._etag
 
     def _get_cache_data(self):
         return json.loads(system.load_file(self._get_cache_data_path()))
@@ -167,40 +122,27 @@ class VulnerabilityData:
         data_file = VULNERABILITY_DATA_TMPL.format(series=data_name)
         return urljoin(self.cfg.vulnerability_data_url_prefix, data_file)
 
-    def _get_cache_file(self):
-        return DataObjectFile(
-            data_object_cls=VulnerabilityCacheDate,
-            ua_file=UAFile(
-                name=VULNERABILITY_PUBLISH_DATE_CACHE,
-                directory=os.path.join(VULNERABILITY_CACHE_PATH, self.series),
-                private=False,
-            ),
-        )
-
     def get_published_date(self):
         vulnerability_json_data = self.get()
         return vulnerability_json_data["published_at"]
 
     def get(self):
-        last_published_date = self._get_published_date()
-        cache_date_file = self._get_cache_file()
+        last_etag = self._get_etag()
 
-        cache_valid, _ = self._is_cache_valid(
-            last_published_date, cache_date_file
-        )
-
-        if cache_valid:
+        try:
+            data, etag = http.download_xz_file_from_url(
+                cfg=self.cfg, url=self._get_data_url(), etag=last_etag
+            )
+            self._refreshed = True
+        except exceptions.ETagUnchanged:
             return self._get_cache_data()
 
-        json_data = json.loads(
-            http.download_xz_file_from_url(
-                cfg=self.cfg, url=self._get_data_url()
-            ).decode("utf-8")
-        )
+        json_data = json.loads(data.decode("utf-8"))
 
         if util.we_are_currently_root():
             self._save_cache_data(json_data)
-            self._save_cache_publish_date(cache_date_file, last_published_date)
+            if etag:
+                self._save_etag_cache(self._get_etag_cache_file(), etag)
 
         return json_data
 
@@ -646,15 +588,15 @@ def get_vulnerabilities(
         vulnerability_type=parser.vulnerability_type,
     )
 
-    is_cache_valid, _ = vulnerabilities_data.is_cache_valid()
-    if is_cache_valid:
+    vulnerabilities_json_data = vulnerabilities_data.get()
+
+    if not vulnerabilities_data.refreshed:
         if vulnerabilities_result.is_cache_valid():
             return VulnerabilityParserResult(
                 vulnerability_data_published_at=vulnerabilities_data.get_published_date(),  # noqa
                 vulnerabilities_info=vulnerabilities_result.get_result_cache(),  # noqa
             )
 
-    vulnerabilities_json_data = vulnerabilities_data.get()
     installed_pkgs_by_source = query_installed_source_pkg_versions()
 
     vulnerabilities_parser_result = (
