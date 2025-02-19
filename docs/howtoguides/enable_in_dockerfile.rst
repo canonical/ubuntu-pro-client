@@ -124,7 +124,7 @@ inline comments explaining each line:
       # If your container needs ca-certificates, then do not purge it from the
       # system here.
       ###########################################################################
-      && pro detach --assume-yes
+      && pro detach --assume-yes \
       && apt-get purge --auto-remove -y ubuntu-pro-client ca-certificates \
       #
       # Finally, we clean up the apt lists which should not be needed anymore
