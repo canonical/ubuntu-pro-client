@@ -1,7 +1,6 @@
 import mock
 import pytest
 
-from uaclient.cli import main
 from uaclient.cli.security_status import security_status_command
 from uaclient.util import DatetimeAwareJSONEncoder
 
@@ -56,40 +55,3 @@ class TestActionSecurityStatus:
             assert m_safe_dump.call_count == 0
             assert m_security_status.call_args_list == [mock.call(cfg)]
             assert m_security_status.call_count == 1
-
-    # This will be an integration test in the future
-    # need to sanitize the whole module
-    @mock.patch("uaclient.cli.log.setup_cli_logging")
-    def test_error_on_wrong_format(
-        self,
-        _m_setup_logging,
-        _m_resources,
-        _m_security_status_dict,
-        _m_security_status,
-        FakeConfig,
-        capsys,
-    ):
-        cmdline_args = [
-            "/usr/bin/ua",
-            "security-status",
-            "--format",
-            "unsupported",
-        ]
-
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", cmdline_args):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-
-        _, err = capsys.readouterr()
-        assert (
-            "usage: pro security-status [-h] [--format {json,yaml,text}]"
-            in err
-        )
-        assert (
-            "argument --format: invalid choice: 'unsupported'"
-            " (choose from 'json', 'yaml', 'text')"
-        ) in err

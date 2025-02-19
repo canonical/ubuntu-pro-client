@@ -1,36 +1,9 @@
 import mock
 import pytest
 
-from uaclient.cli import main
 from uaclient.cli.config import show_subcommand
 
 M_PATH = "uaclient.cli."
-
-
-@mock.patch("uaclient.cli.logging.error")
-@mock.patch("uaclient.log.setup_cli_logging")
-@mock.patch("uaclient.contract.get_available_resources")
-class TestMainConfigShow:
-    def test_config_show_error_on_invalid_subcommand(
-        self, _m_resources, _logging, _logging_error, capsys, FakeConfig
-    ):
-        """Exit 1 on invalid subcommands."""
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", ["/usr/bin/ua", "config", "invalid"]):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, err = capsys.readouterr()
-        assert "" == out
-        expected_logs = [
-            "usage: pro config [-h] {show,set,unset} ...",
-            "argument command: invalid choice: 'invalid' (choose from 'show',"
-            " 'set', 'unset')",
-        ]
-        for log in expected_logs:
-            assert log in err
 
 
 class TestActionConfigShow:

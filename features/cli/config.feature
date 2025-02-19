@@ -50,6 +50,16 @@ Feature: CLI config command
     Then I will see the following on stderr:
       """
       """
+    When I verify that running `pro config invalid` `as non-root` exits `2`
+    Then I will see the following on stdout:
+      """
+      """
+    # When testing on plucky, the '' in the options need to be removed.
+    Then I will see the following on stderr:
+      """
+      usage: pro config [-h] {show,set,unset} ...
+      pro config: error: argument command: invalid choice: 'invalid' (choose from 'show', 'set', 'unset')
+      """
 
     Examples: ubuntu release
       | release  | machine_type  |
