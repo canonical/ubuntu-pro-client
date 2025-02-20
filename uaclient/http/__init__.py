@@ -362,21 +362,25 @@ def download_xz_file_from_url(
     LOG.debug("URL [GET]: {}".format(url))
 
     https_proxy = get_configured_web_proxy().get("https")
+    headers = {}
+    if etag:
+        headers["If-None-Match"] = etag
+
     if should_use_pycurl(https_proxy, url):
         resp = _readurl_pycurl_https_in_https(
-            request.Request(url),
+            request.Request(url, headers=headers),
             timeout=timeout,
             https_proxy=https_proxy,
         )
+
+        if resp.code == 304:
+            raise exceptions.ETagUnchanged(url=url)
+
         return (
             lzma.decompress(resp.body),  # type: ignore
-            resp.headers.get("ETag"),
+            resp.headers.get("etag"),
         )
     else:
-        headers = {}
-        if etag:
-            headers["If-None-Match"] = etag
-
         req = request.Request(url, headers=headers)
         try:
             with request.urlopen(req) as response:
