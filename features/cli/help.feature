@@ -471,7 +471,7 @@ Feature: Pro Client help text
 
       List the CVE vulnerabilities that affects the system.
 
-      optional arguments:
+      <options_string>:
         -h, --help   show this help message and exit
         --unfixable  List only vulnerabilities without a fix available
         --fixable    List only vulnerabilities with a fix available
@@ -487,7 +487,7 @@ Feature: Pro Client help text
         cve         CVE to display information. Format: CVE-yyyy-nnnn or CVE-yyyy-
                     nnnnnnn
 
-      optional arguments:
+      <options_string>:
         -h, --help  show this help message and exit
       """
 
