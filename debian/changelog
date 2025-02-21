@@ -25,7 +25,7 @@ ubuntu-advantage-tools (35) oracular; urgency=medium
       + gcp: add minimal image license codes
     - cli:
       + add support for vulnerability commands:
-        * pro cves: List fixable cves in the machine
+        * pro cves: List cves in the machine
         * pro cve: Show information about a specific cve
       + deduplicate entries in 'pro help' output (LP: #2091327)
     - config: add option lxd_guest_attach to control LXD integration with Pro
