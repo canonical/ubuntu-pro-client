@@ -61,6 +61,8 @@ EOL
 EPILOG
 esm
 ESM
+ETAG
+etag
 experied
 F401
 FedRAMP
