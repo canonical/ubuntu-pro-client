@@ -1033,6 +1033,7 @@ class TestFipsEntitlementInstallPackages:
 
     @pytest.mark.parametrize(
         [
+            "series",
             "to_upgrade",
             "get_pkg_candidate_version_side_effect",
             "expected_unhold_calls",
@@ -1041,6 +1042,7 @@ class TestFipsEntitlementInstallPackages:
         [
             # no packages to upgrade
             (
+                "other",
                 [],
                 None,
                 [],
@@ -1048,6 +1050,7 @@ class TestFipsEntitlementInstallPackages:
             ),
             # some packages to upgrade, no -hmacs
             (
+                "other",
                 [
                     helpers.mock_with_name_attr(name="one"),
                     helpers.mock_with_name_attr(name="two"),
@@ -1067,6 +1070,34 @@ class TestFipsEntitlementInstallPackages:
                     )
                 ],
             ),
+            # Jammy special case
+            # Hardcoded, to be removed soon TM
+            (
+                "jammy",
+                [
+                    helpers.mock_with_name_attr(name="one"),
+                    helpers.mock_with_name_attr(name="two"),
+                    helpers.mock_with_name_attr(name="three"),
+                ],
+                [None, None, None],
+                [
+                    mock.call(
+                        ["one", "openssl-fips-module-3", "three", "two"],
+                    )
+                ],
+                [
+                    mock.call(
+                        packages=[
+                            "one",
+                            "openssl-fips-module-3",
+                            "three",
+                            "two",
+                        ],
+                        override_env_vars=mock.ANY,
+                        apt_options=mock.ANY,
+                    )
+                ],
+            ),
         ],
     )
     @mock.patch(M_PATH + "apt.run_apt_install_command")
@@ -1076,18 +1107,22 @@ class TestFipsEntitlementInstallPackages:
         M_PATH
         + "apt.get_installed_packages_with_uninstalled_candidate_in_origin"
     )
+    @mock.patch(M_PATH + "system.get_release_info")
     def test_install_all_available_fips_upgrades(
         self,
+        m_release_info,
         m_get_upgrades,
         m_get_pkg_candidate_version,
         m_unhold_packages,
         m_run_apt_install_command,
+        series,
         to_upgrade,
         get_pkg_candidate_version_side_effect,
         expected_unhold_calls,
         expected_run_apt_install_command_calls,
         FakeConfig,
     ):
+        m_release_info.return_value.series = series
         m_get_upgrades.return_value = to_upgrade
         m_get_pkg_candidate_version.side_effect = (
             get_pkg_candidate_version_side_effect
