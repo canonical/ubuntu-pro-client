@@ -30,7 +30,7 @@ class CISEntitlement(repo.RepoEntitlement):
     @property
     def packages(self) -> List[str]:
         if self._called_name == "usg":
-            return []
+            return ["usg"]
         return super().packages
 
     @property
