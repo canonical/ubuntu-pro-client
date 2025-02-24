@@ -10,10 +10,13 @@ Feature: Enable usg on Ubuntu
       One moment, checking your subscription first
       Configuring APT access to Ubuntu Security Guide
       Updating Ubuntu Security Guide package lists
+      Updating standard Ubuntu package lists
+      Installing Ubuntu Security Guide packages
       Ubuntu Security Guide enabled
       Visit https://ubuntu.com/security/certifications/docs/usg for the next steps
       """
     And I verify that `usg` is enabled
+    And I verify that `usg` is installed
     When I run `pro disable usg` with sudo
     Then stdout matches regexp:
       """
