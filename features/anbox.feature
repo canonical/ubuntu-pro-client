@@ -73,7 +73,6 @@ Feature: Enable anbox on Ubuntu
       """
       https://archive.anbox-cloud.io/stable <release>/main amd64 Packages
       """
-    And I check that snap `amc` is not installed
     And I check that snap `lxd` is not installed
     And I check that snap `anbox-cloud-appliance` is not installed
     And I verify that files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
@@ -86,7 +85,6 @@ Feature: Enable anbox on Ubuntu
     Then stdout contains substring:
       """
       Installing required snaps
-      Installing required snap: amc
       Installing required snap: anbox-cloud-appliance
       Installing required snap: lxd
       Configuring APT access to Anbox Cloud
@@ -106,7 +104,6 @@ Feature: Enable anbox on Ubuntu
       """
       https://archive.anbox-cloud.io/stable <release>/main amd64 Packages
       """
-    And I check that snap `amc` is installed
     And I check that snap `lxd` is installed
     And I check that snap `anbox-cloud-appliance` is installed
     And I verify that files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`

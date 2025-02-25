@@ -1,5 +1,6 @@
 0m
 1m
+208m
 37m
 500MB
 91m
@@ -40,6 +41,7 @@ customizable
 CVE
 CVEs
 CVES
+CVSS
 datestring
 depedent
 DISA
@@ -59,6 +61,8 @@ EOL
 EPILOG
 esm
 ESM
+ETAG
+etag
 experied
 F401
 FedRAMP
@@ -90,6 +94,8 @@ LIVEPATCH
 livepatches
 Livepatches
 LTS
+lxd
+LXD
 METAPACKAGE
 MOTD
 msg
@@ -165,6 +171,7 @@ telco
 THIRDPARTY
 tmpl
 TMPL
+triaging
 ttach
 TxtColor
 UA
@@ -174,6 +181,8 @@ ubscribe
 ubuntu
 unbootable
 UNENTITLED
+unfixable
+UNFIXABLE
 url
 urls
 usg

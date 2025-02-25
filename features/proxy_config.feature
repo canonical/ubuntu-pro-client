@@ -146,6 +146,32 @@ Feature: Proxy configuration
       Acquire::http::Proxy::esm.ubuntu.com \".*\";
       Acquire::https::Proxy::esm.ubuntu.com \".*\";
       """
+    When I run `pro config unset ua_apt_http_proxy` with sudo
+    And I run `pro config unset ua_apt_https_proxy` with sudo
+    Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
+    # This setup is to just test that the pro refresh config route still sets the proxy values
+    When I run `pro detach --assume-yes` with sudo
+    And I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
+      """
+      {
+        "http_proxy": "http://$behave_var{machine-ip proxy}:3128",
+        "https_proxy": "http://$behave_var{machine-ip proxy}:3128"
+      }
+      """
+    And I run `pro refresh config` with sudo
+    Then I will see the following on stdout:
+      """
+      Setting snap proxy
+      Successfully processed your pro configuration.
+      """
+    When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
+    And I attach `contract_token` with sudo and options `--no-auto-enable`
+    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+    Then stdout matches regexp:
+      """
+      .*CONNECT contracts.canonical.com.*
+      """
+    And the machine is attached
 
     Examples: ubuntu release
       | release | machine_type  |
@@ -219,30 +245,6 @@ Feature: Proxy configuration
       See https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/configure_proxies.html for more information on pro proxy configuration.
 
       Successfully processed your pro configuration.
-      """
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "http_proxy": "invalidurl",
-        "https_proxy": "invalidurls"
-      }
-      """
-    And I apt install `python3-pycurl`
-    And I verify that running `pro refresh config` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      \"invalidurl\" is not a valid url. Not setting as proxy.
-      """
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "https_proxy": "https://localhost:12345"
-      }
-      """
-    And I verify that running `pro refresh config` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      \"https://localhost:12345\" is not working. Not setting as proxy.
       """
 
     Examples: ubuntu release
@@ -352,6 +354,27 @@ Feature: Proxy configuration
       """
       \"http_proxy\": \"<REDACTED>\"
       """
+    When I run `pro detach --assume-yes` with sudo
+    And I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
+      """
+      {
+        "http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
+        "https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
+      }
+      """
+    And I run `pro refresh config` with sudo
+    Then I will see the following on stdout:
+      """
+      Setting snap proxy
+      Successfully processed your pro configuration.
+      """
+    When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
+    And I attach `contract_token` with sudo
+    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+    Then stdout matches regexp:
+      """
+      .*CONNECT contracts.canonical.com.*
+      """
 
     Examples: ubuntu release
       | release | machine_type  |
@@ -410,220 +433,6 @@ Feature: Proxy configuration
       | bionic  | lxd-vm       |
 
   @slow
-  Scenario Outline: Attach command when proxy is configured manually via conf file for uaclient
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    Given a `focal` `lxd-container` machine named `proxy`
-    When I apt install `squid` on the `proxy` machine
-    And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-      """
-      dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
-      """
-    And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "http_proxy": "http://$behave_var{machine-ip proxy}:3128",
-        "https_proxy": "http://$behave_var{machine-ip proxy}:3128"
-      }
-      """
-    And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-    # We need this for the route command
-    And I attach `contract_token` with sudo and options `--no-auto-enable`
-    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*CONNECT contracts.canonical.com.*
-      """
-    And the machine is attached
-    When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "ua_apt_http_proxy": "http://$behave_var{machine-ip proxy}:3128",
-        "ua_apt_https_proxy": "http://$behave_var{machine-ip proxy}:3128"
-      }
-      """
-    And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-    Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I run `pro refresh config` with sudo
-    Then stdout matches regexp:
-      """
-      Setting UA-scoped APT proxy
-      """
-    Then I verify that files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
-    Then stdout matches regexp:
-      """
-      /\*
-       \* Autogenerated by ubuntu-pro-client
-       \* Do not edit this file directly
-       \*
-       \* To change what ubuntu-pro-client sets, use the `pro config set`
-       \* or the `pro config unset` commands to set/unset either:
-       \*      global_apt_http_proxy and global_apt_https_proxy
-       \* for a global apt proxy
-       \* or
-       \*      ua_apt_http_proxy and ua_apt_https_proxy
-       \* for an apt proxy that only applies to Ubuntu Pro related repos.
-       \*/
-      Acquire::http::Proxy::esm.ubuntu.com \".*\";
-      Acquire::https::Proxy::esm.ubuntu.com \".*\";
-      """
-    When I apt update
-    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      CONNECT esm.ubuntu.com:443
-      """
-    Then stdout does not match regexp:
-      """
-      .*GET.*ubuntu.com/ubuntu/dists.*
-      """
-    Then stdout does not match regexp:
-      """
-      .*GET.*archive.ubuntu.com.*
-      """
-    Then stdout does not match regexp:
-      """
-      .*GET.*security.ubuntu.com.*
-      """
-    When I run `pro config unset ua_apt_http_proxy` with sudo
-    And I run `pro config unset ua_apt_https_proxy` with sudo
-    And I run `pro refresh config` with sudo
-    Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "ua_apt_http_proxy": "invalidurl",
-        "ua_apt_https_proxy": "invalidurls"
-      }
-      """
-    And I verify that running `pro refresh config` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      \"invalidurl\" is not a valid url. Not setting as proxy.
-      """
-    When I verify that running `pro config set http_proxy=http://host:port` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      \"http://host:port\" is not a valid url. Not setting as proxy
-      """
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "ua_apt_https_proxy": "https://localhost:12345"
-      }
-      """
-    And I apt install `python3-pycurl`
-    And I verify that running `pro refresh config` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      \"https://localhost:12345\" is not working. Not setting as proxy.
-      """
-    When I run `pro config set ua_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
-    And I run `pro config set ua_apt_https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
-    When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
-    Then stdout matches regexp:
-      """
-      /\*
-       \* Autogenerated by ubuntu-pro-client
-       \* Do not edit this file directly
-       \*
-       \* To change what ubuntu-pro-client sets, use the `pro config set`
-       \* or the `pro config unset` commands to set/unset either:
-       \*      global_apt_http_proxy and global_apt_https_proxy
-       \* for a global apt proxy
-       \* or
-       \*      ua_apt_http_proxy and ua_apt_https_proxy
-       \* for an apt proxy that only applies to Ubuntu Pro related repos.
-       \*/
-      Acquire::http::Proxy::esm.ubuntu.com \".*\";
-      Acquire::https::Proxy::esm.ubuntu.com \".*\";
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-
-  @slow
-  Scenario Outline: Attach command when authenticated proxy is configured manually for uaclient
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    Given a `focal` `lxd-container` machine named `proxy`
-    When I apt install `squid apache2-utils` on the `proxy` machine
-    And I run `htpasswd -bc /etc/squid/passwordfile someuser somepassword` `with sudo` on the `proxy` machine
-    And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
-      """
-      dns_v4_first on\nauth_param basic program \/usr\/lib\/squid\/basic_ncsa_auth \/etc\/squid\/passwordfile\nacl topsecret proxy_auth REQUIRED\nhttp_access allow topsecret
-      """
-    And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
-        "https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
-      }
-      """
-    And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-    And I attach `contract_token` with sudo
-    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*CONNECT contracts.canonical.com.*
-      """
-    When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "ua_apt_http_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128",
-        "ua_apt_https_proxy": "http://someuser:somepassword@$behave_var{machine-ip proxy}:3128"
-      }
-      """
-    And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-    And I run `pro refresh config` with sudo
-    And I apt update
-    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      CONNECT esm.ubuntu.com:443
-      """
-    Then stdout does not match regexp:
-      """
-      .*GET.*ubuntu.com/ubuntu/dists.*
-      """
-    Then stdout does not match regexp:
-      """
-      .*GET.*archive.ubuntu.com.*
-      """
-    Then stdout does not match regexp:
-      """
-      .*GET.*security.ubuntu.com.*
-      """
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
-      """
-      {
-        "ua_apt_https_proxy": "http://wronguser:wrongpassword@$behave_var{machine-ip proxy}:3128"
-      }
-      """
-    And I apt install `python3-pycurl`
-    And I verify that running `pro refresh config` `with sudo` exits `1`
-    Then stderr matches regexp:
-      """
-      \"http://wronguser:wrongpassword@.*:3128\" is not working. Not setting as proxy.
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-
-  @slow
   Scenario Outline: Attach command when proxy is configured globally
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # needed for route command and for https-in-https
@@ -638,35 +447,12 @@ Feature: Proxy configuration
     And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I verify `/var/log/squid/access.log` is empty on `proxy` machine
     And I run `pro config set https_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
-    Then stdout matches regexp:
-      """
-      Setting snap proxy
-      """
-    When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*CONNECT api.snapcraft.io.*
-      """
-    When I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
-    Then stdout matches regexp:
-      """
-      Setting snap proxy
-      """
-    When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*HEAD http://api.snapcraft.io.*
-      """
+    And I run `pro config set http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
     # We will guarantee that the machine will only use the proxy when
     # running the pro commands
-    When I run `route del default` with sudo
+    And I run `route del default` with sudo
     And I attach `contract_token` with sudo and options `--no-auto-enable`
-    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*CONNECT contracts.canonical.com.*
-      """
-    And the machine is attached
+    Then the machine is attached
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I verify `/var/log/squid/access.log` is empty on `proxy` machine
     And I run `pro config set global_apt_http_proxy=http://$behave_var{machine-ip proxy}:3128` with sudo
@@ -795,36 +581,14 @@ Feature: Proxy configuration
     And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
     And I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-    When I run `pro config set https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-    Then stdout matches regexp:
-      """
-      Setting snap proxy
-      """
-    When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*CONNECT api.snapcraft.io.*
-      """
-    When I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
-    Then stdout matches regexp:
-      """
-      Setting snap proxy
-      """
-    When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*HEAD http://api.snapcraft.io.*
-      """
-    When I apt install `net-tools`
+    And I run `pro config set https_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
+    And I run `pro config set http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo
+    And I apt install `net-tools`
     # We will guarantee that the machine will only use the proxy when
     # running the pro commands
     And I run `route del default` with sudo
     And I attach `contract_token` with sudo and options `--no-auto-enable`
-    And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout matches regexp:
-      """
-      .*CONNECT contracts.canonical.com.*
-      """
+    Then the machine is attached
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I verify `/var/log/squid/access.log` is empty on `proxy` machine
     When I run `pro config set global_apt_http_proxy=http://someuser:somepassword@$behave_var{machine-ip proxy}:3128` with sudo

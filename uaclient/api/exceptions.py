@@ -4,11 +4,14 @@ from uaclient.exceptions import (
     AlreadyAttachedError,
     ConnectivityError,
     ContractAPIError,
+    DepedentOptionError,
     EntitlementNotDisabledError,
     EntitlementNotEnabledError,
     EntitlementNotFoundError,
     EntitlementsNotEnabledError,
+    FeatureNotSupportedOldTokenError,
     IncompatibleServiceStopsEnable,
+    InvalidOptionCombination,
     InvalidProImage,
     LockHeldError,
     MagicAttachTokenAlreadyActivated,
@@ -19,6 +22,7 @@ from uaclient.exceptions import (
     RequiredServiceStopsEnable,
     UbuntuProError,
     UnattachedError,
+    UnsupportedManifestFile,
     UrlError,
     UserFacingError,
 )
@@ -28,6 +32,8 @@ __all__ = [
     "ConnectivityError",
     "ContractAPIError",
     "EntitlementNotFoundError",
+    "InvalidOptionCombination",
+    "FeatureNotSupportedOldTokenError",
     "InvalidProImage",
     "LockHeldError",
     "MagicAttachTokenAlreadyActivated",
@@ -44,6 +50,8 @@ __all__ = [
     "EntitlementNotDisabledError",
     "IncompatibleServiceStopsEnable",
     "RequiredServiceStopsEnable",
+    "UnsupportedManifestFile",
+    "DepedentOptionError",
 ]
 
 

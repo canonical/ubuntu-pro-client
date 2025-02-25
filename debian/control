@@ -50,7 +50,6 @@ Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
          python3-apt,
-         python3-pkg-resources,
          ${extra:Depends}
 Recommends: ubuntu-pro-client-l10n
 Breaks: ubuntu-advantage-tools (<<31~), ${misc:Breaks}

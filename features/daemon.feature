@@ -1,6 +1,6 @@
 Feature: Pro Upgrade Daemon only runs in environments where necessary
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `4`
@@ -10,14 +10,14 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | mantic  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |
 
-  @uses.config.contract_token
+  @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim should run in postinst and on boot
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # verify installing pro created the cloud-id file
@@ -270,29 +270,28 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | jammy   | azure.generic |
       | noble   | azure.generic |
 
-  @uses.config.contract_token
-  Scenario Outline: daemon does not start on gcp,azure generic non lts
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I wait `1` seconds
-    When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
-    Then stdout contains substring:
-      """
-      daemon starting
-      """
-    Then stdout contains substring:
-      """
-      Not on LTS, shutting down
-      """
-    Then stdout contains substring:
-      """
-      daemon ending
-      """
-
-    Examples: version
-      | release | machine_type  |
-      | mantic  | azure.generic |
-      | mantic  | gcp.generic   |
-
+  # Not available yet - uncomment when oracular is in the clouds
+  # @uses.config.contract_token
+  # Scenario Outline: daemon does not start on gcp,azure generic non lts
+  # Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  # When I wait `1` seconds
+  # When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+  # Then stdout contains substring:
+  # """
+  # daemon starting
+  # """
+  # Then stdout contains substring:
+  # """
+  # Not on LTS, shutting down
+  # """
+  # Then stdout contains substring:
+  # """
+  # daemon ending
+  # """
+  # Examples: version
+  # | release  | machine_type  |
+  # | oracular | azure.generic |
+  # | oracular | gcp.generic   |
   @uses.config.contract_token
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -313,57 +312,14 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | xenial  | lxd-vm        |
-      | xenial  | aws.generic   |
-      | bionic  | lxd-container |
-      | bionic  | lxd-vm        |
-      | bionic  | aws.generic   |
-      | focal   | lxd-container |
-      | focal   | lxd-vm        |
-      | focal   | aws.generic   |
-      | jammy   | lxd-container |
-      | jammy   | lxd-vm        |
-      | jammy   | aws.generic   |
-      | mantic  | lxd-container |
-      | mantic  | lxd-vm        |
-      | mantic  | aws.generic   |
-      | noble   | lxd-container |
-      | noble   | lxd-vm        |
-      | noble   | aws.generic   |
-
-  Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
-      """
-      contract_url: 'https://contracts.canonical.com'
-      data_dir: /var/lib/ubuntu-advantage
-      log_level: debug
-      log_file: /var/log/ubuntu-advantage.log
-      """
-    When I run `pro auto-attach` with sudo
-    When I run `systemctl restart ubuntu-advantage.service` with sudo
-    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
-    Then stdout matches regexp:
-      """
-      Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
-      """
-    When I reboot the machine
-    Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
-    Then stdout matches regexp:
-      """
-      Active: inactive \(dead\)
-      \s*Condition: start condition failed.*
-      """
-
-    Examples: version
       | release | machine_type |
-      | xenial  | aws.pro      |
-      | bionic  | aws.pro      |
-      | focal   | aws.pro      |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
 
+  # | oracular | aws.generic   | - not there yet
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -403,10 +359,13 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release | machine_type |
+      | xenial  | aws.pro      |
       | xenial  | azure.pro    |
       | xenial  | gcp.pro      |
+      | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |
+      | focal   | aws.pro      |
       | focal   | azure.pro    |
       | focal   | gcp.pro      |
 

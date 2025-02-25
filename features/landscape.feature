@@ -103,7 +103,7 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | mantic  | lxd-container |
+      # | oracular | lxd-container | - not yet in the backend
       | noble   | lxd-container |
 
   Scenario Outline: Enable Landscape interactively
@@ -178,7 +178,7 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | mantic  | lxd-container |
+      # | oracular | lxd-container | - not yet in the backend
       | noble   | lxd-container |
 
   Scenario Outline: Easily re-enable Landscape non-interactively after a disable
@@ -265,7 +265,7 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | mantic  | lxd-container |
+      # | oracular | lxd-container | - not yet in the backend
       | noble   | lxd-container |
 
   Scenario Outline: Detaching/reattaching on an unsupported release does not affect landscape
@@ -331,4 +331,21 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
+      | jammy   | lxd-container |
+
+  Scenario Outline: Landscape inapplicable on unsupported release
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
+    When I verify that running `pro enable landscape` `with sudo` exits `1`
+    Then I will see the following on stdout:
+      """
+      One moment, checking your subscription first
+      Landscape cannot be enabled via Pro Client on Ubuntu 22.04 and earlier.
+      Please manually install Landscape: https://ubuntu.com/landscape/docs/install-landscape-client
+      Could not enable Landscape.
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
       | jammy   | lxd-container |

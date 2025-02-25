@@ -36,6 +36,7 @@ class TxtColor:
     INFOBLUE = "\033[94m"
     WARNINGYELLOW = "\033[93m"
     FAIL = "\033[91m"
+    ORANGE = "\033[38;5;208m"
     BOLD = "\033[1m"
     ENDC = "\033[0m"
 
@@ -265,6 +266,12 @@ USER_CONFIG_MIGRATION_WARNING_NEW_UACLIENT_CONF_WRITE = t.gettext(
     """\
 Warning: Failed to migrate /etc/ubuntu-advantage/uaclient.conf
          Please add following to uaclient.conf to keep your config:"""
+)
+
+WARNING_LXD_GUEST_ATTACH_SET_BUT_NOT_ATTACHED = t.gettext(
+    """\
+Warning: lxd_guest_attach is set to "on" or "available", but the machine is
+not attached. Ignoring."""
 )
 
 
@@ -906,7 +913,15 @@ CLI_ASSUME_YES = t.gettext(
     "do not prompt for confirmation before performing the {command}"
 )
 
-CLI_API_DESC = t.gettext("Calls the Client API endpoints.")
+CLI_API_DESC = t.gettext(
+    """\
+Calls the Client API endpoints.
+
+For a list of all of the supported endpoints and their structure,
+please refer to the Pro Client API reference guide:
+
+{url}"""
+).format(url=urls.PRO_CLIENT_DOCS_API_REFERENCE)
 CLI_API_ENDPOINT = t.gettext("API endpoint to call")
 CLI_API_SHOW_PROGRESS = t.gettext(
     "For endpoints that support progress updates, show each progress update "
@@ -922,28 +937,34 @@ CLI_AUTO_ATTACH_DESC = t.gettext(
 )
 
 CLI_COLLECT_LOGS_DESC = t.gettext(
-    "Collect logs and relevant system information into a tarball."
+    """\
+Collect logs and relevant system information into a tarball.
+This information can be later used for triaging/debugging issues."""
 )
 CLI_COLLECT_LOGS_OUTPUT = t.gettext(
     "tarball where the logs will be stored. (Defaults to " "./pro_logs.tar.gz)"
 )
 
-CLI_CONFIG_SHOW_DESC = t.gettext("Show customizable configuration settings")
+CLI_CONFIG_SHOW_DESC = t.gettext("Show customizable configuration settings.")
 CLI_CONFIG_SHOW_KEY = t.gettext(
     "Optional key or key(s) to show configuration settings."
 )
 CLI_CONFIG_SET_DESC = t.gettext(
-    "Set and apply Ubuntu Pro configuration settings"
+    "Set and apply Ubuntu Pro configuration settings."
 )
 CLI_CONFIG_SET_KEY_VALUE = t.gettext(
     "key=value pair to configure for Ubuntu Pro services."
     " Key must be one of: {options}"
 )
-CLI_CONFIG_UNSET_DESC = t.gettext("Unset Ubuntu Pro configuration setting")
+CLI_CONFIG_UNSET_DESC = t.gettext(
+    "Unset an Ubuntu Pro configuration setting, restoring the default value."
+)
 CLI_CONFIG_UNSET_KEY = t.gettext(
     "configuration key to unset from Ubuntu Pro services. One of: {options}"
 )
-CLI_CONFIG_DESC = t.gettext("Manage Ubuntu Pro configuration")
+CLI_CONFIG_DESC = t.gettext(
+    "Manage Ubuntu Pro Client configuration on this machine."
+)
 
 CLI_ATTACH_DESC = t.gettext(
     """\
@@ -952,8 +973,20 @@ Attach this machine to an Ubuntu Pro subscription with a token obtained from:
 
 When running this command without a token, it will generate a short code
 and prompt you to attach the machine to your Ubuntu Pro account using
-a web browser."""
+a web browser.
+
+The "attach-config" option can be used to provide a file with the token
+and optionally, a list of services to enable after attaching. To know more,
+visit:
+https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/how_to_attach_with_config_file/
+
+The exit code will be:
+
+    * 0: on successful attach
+    * 1: in case of any error while trying to attach
+    * 2: if the machine is already attached"""
 ).format(url=urls.PRO_DASHBOARD)
+
 CLI_ATTACH_TOKEN = t.gettext("token obtained for Ubuntu Pro authentication")
 CLI_ATTACH_NO_AUTO_ENABLE = t.gettext(
     "do not enable any recommended services automatically"
@@ -964,8 +997,15 @@ CLI_ATTACH_ATTACH_CONFIG = t.gettext(
 )
 
 CLI_FIX_DESC = t.gettext(
-    "Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this"
-    " machine."
+    """\
+Inspect and resolve Common Vulnerabilities and Exposures (CVEs) and
+Ubuntu Security Notices (USNs) on this machine.
+
+The exit code will be:
+
+    * 0: the fix was successfully applied or the system is not affected
+    * 1: the fix cannot be applied
+    * 2: the fix was applied but requires a reboot before it takes effect"""
 )
 CLI_FIX_ISSUE = t.gettext(
     "Security vulnerability ID to inspect and resolve on this system."
@@ -999,13 +1039,14 @@ available Expanded Security Maintenance (ESM) related content.
 Shows counts of how many packages are supported for security updates
 in the system.
 
-If called with --format json|yaml it shows a summary of the
+If the format is set to JSON or YAML it shows a summary of the
 installed packages based on the origin:
-- main/restricted/universe/multiverse: packages from the Ubuntu archive
-- esm-infra/esm-apps: packages from the ESM archive
-- third-party: packages installed from non-Ubuntu sources
-- unknown: packages which don't have an installation source (like local
-  deb packages or packages for which the source was removed)
+
+    - main/restricted/universe/multiverse: Packages from the Ubuntu archive.
+    - esm-infra/esm-apps: Packages from the ESM archive.
+    - third-party: Packages installed from non-Ubuntu sources.
+    - unknown: Packages which don't have an installation source (like local
+      deb packages or packages for which the source was removed).
 
 The output contains basic information about Ubuntu Pro. For a
 complete status on Ubuntu Pro services, run 'pro status'.
@@ -1028,12 +1069,12 @@ CLI_REFRESH_DESC = t.gettext(
     """\
 Refresh three distinct Ubuntu Pro related artifacts in the system:
 
-* contract: Update contract details from the server.
-* config:   Reload the config file.
-* messages: Update APT and MOTD messages related to UA.
+    * contract: Update contract details from the server.
+    * config:   Reload the config file.
+    * messages: Update APT and MOTD messages related to Pro.
 
 You can individually target any of the three specific actions,
-by passing the target name to the command.  If no `target`
+by passing the target name to the command. If no target
 is specified, all targets are refreshed.
 """
 )
@@ -1051,7 +1092,10 @@ CLI_HELP_SERVICE = t.gettext(
 )
 CLI_HELP_ALL = t.gettext("Include beta services")
 
-CLI_ENABLE_DESC = t.gettext("Enable an Ubuntu Pro service.")
+CLI_ENABLE_DESC = t.gettext(
+    "Activate and configure this machine's access "
+    "to one or more Ubuntu Pro services."
+)
 CLI_ENABLE_SERVICE = t.gettext(
     "the name(s) of the Ubuntu Pro services to enable." " One of: {options}"
 )
@@ -1064,7 +1108,7 @@ CLI_ENABLE_VARIANT = t.gettext(
     "The name of the variant to use when enabling the service"
 )
 
-CLI_DISABLE_DESC = t.gettext("Disable an Ubuntu Pro service.")
+CLI_DISABLE_DESC = t.gettext("Disable one or more Ubuntu Pro services.")
 CLI_DISABLE_SERVICE = t.gettext(
     "the name(s) of the Ubuntu Pro services to disable." " One of: {options}"
 )
@@ -1073,7 +1117,7 @@ CLI_PURGE = t.gettext(
 )
 
 CLI_SYSTEM_DESC = t.gettext(
-    "Output system related information related to Pro services"
+    "Outputs system-related information about Pro services."
 )
 CLI_SYSTEM_REBOOT_REQUIRED = t.gettext("does the system need to be rebooted")
 CLI_SYSTEM_REBOOT_REQUIRED_DESC = t.gettext(
@@ -1083,13 +1127,13 @@ Report the current reboot-required status for the machine.
 This command will output one of the three following states
 for the machine regarding reboot:
 
-* no: The machine doesn't require a reboot
-* yes: The machine requires a reboot
-* yes-kernel-livepatches-applied: There are only kernel related
-  packages that require a reboot, but Livepatch has already provided
-  patches for the current running kernel. The machine still needs a
-  reboot, but you can assess if the reboot can be performed in the
-  nearest maintenance window.
+    * no: The machine doesn't require a reboot.
+    * yes: The machine requires a reboot.
+    * yes-kernel-livepatches-applied: There are only kernel-related
+      packages that require a reboot, but Livepatch has already provided
+      patches for the current running kernel. The machine still needs a
+      reboot, but you can assess if the reboot can be performed in the
+      nearest maintenance window.
 """
 )
 
@@ -1097,35 +1141,35 @@ CLI_STATUS_DESC = t.gettext(
     """\
 Report current status of Ubuntu Pro services on system.
 
-This shows whether this machine is attached to an Ubuntu Advantage
+This shows whether this machine is attached to an Ubuntu Pro
 support contract. When attached, the report includes the specific
 support contract details including contract name, expiry dates, and the
 status of each service on this system.
 
 The attached status output has four columns:
 
-* SERVICE: name of the service
-* ENTITLED: whether the contract to which this machine is attached
-  entitles use of this service. Possible values are: yes or no
-* STATUS: whether the service is enabled on this machine. Possible
-  values are: enabled, disabled, n/a (if your contract entitles
-  you to the service, but it isn't available for this machine) or - (if
-  you aren't entitled to this service)
-* DESCRIPTION: a brief description of the service
+    * SERVICE: Name of the service.
+    * ENTITLED: Whether the contract to which this machine is attached
+      entitles use of this service. Possible values are: yes or no.
+    * STATUS: Whether the service is enabled on this machine. Possible
+      values are: enabled, disabled, n/a (if your contract entitles
+      you to the service, but it isn't available for this machine) or - (if
+      you aren't entitled to this service).
+    * DESCRIPTION: A brief description of the service.
 
 The unattached status output instead has three columns. SERVICE
 and DESCRIPTION are the same as above, and there is the addition
 of:
 
-* AVAILABLE: whether this service would be available if this machine
-  were attached. The possible values are yes or no.
+    * AVAILABLE: Whether this service would be available if this machine
+      were attached. The possible values are yes or no.
 
-If --simulate-with-token is used, then the output has five
+If "simulate-with-token" is used, then the output has five
 columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
 as mentioned above, and AUTO_ENABLED shows whether the service is set
 to be enabled when that token is attached.
 
-If the --all flag is set, beta and unavailable services are also
+If the "all" flag is set, beta and unavailable services are also
 listed in the output.
 """
 )
@@ -1165,6 +1209,61 @@ CLI_ROOT_HELP = t.gettext(
 CLI_ROOT_REFRESH = t.gettext("refresh Ubuntu Pro services")
 CLI_ROOT_STATUS = t.gettext("current status of all Ubuntu Pro services")
 CLI_ROOT_SYSTEM = t.gettext("show system information related to Pro services")
+
+CLI_ROOT_VULNERABILITY = t.gettext(
+    "show information about system vulnerabilities"
+)
+CLI_VULNERABILITY_DESC = t.gettext(
+    """\
+Allow users to better visualize the vulnerability issues that affects
+the system. By default, this command will execute pro vulnerability list"""
+)
+
+CLI_VULNERABILITY_DATE_OUTDATED = t.gettext(
+    """\
+The vulnerabilities data used in the system is outdated by {t_diff} days/hours
+To update the data please run with --update:
+
+    $ {cmd} --update
+"""
+)
+
+CLI_CVE = t.gettext("show information about a CVE")
+CLI_CVE_DESC = t.gettext(
+    """\
+Show all available information about a given CVE.
+"""
+)
+CLI_CVE_ISSUE = t.gettext(
+    "CVE to display information." " Format: CVE-yyyy-nnnn or CVE-yyyy-nnnnnnn"
+)
+CLI_CVE_NOT_FOUND_IN_DATA = t.gettext(
+    """\
+{issue} doesn't affect Ubuntu {release}.
+For more information, visit: {url}"""
+)
+
+CLI_CVES = t.gettext("list the vulnerabilities that affect the system")
+CLI_CVES_DESC = t.gettext(
+    """\
+List the CVE vulnerabilities that affects the system."""
+)
+CLI_CVES_SPINNER_MSG = t.gettext(
+    """\
+Processing vulnerability data..."""
+)
+CLI_CVES_UNFIXABLE = t.gettext(
+    "List only vulnerabilities without a fix available"
+)
+CLI_CVES_FIXABLE = t.gettext("List only vulnerabilities with a fix available")
+CLI_UNFIXABLE_CVES_NOT_AFFECTED = t.gettext(
+    "No unfixable CVES found that affect this system"
+)
+CLI_FIXABLE_CVES_NOT_AFFECTED = t.gettext(
+    "No fixable CVES found that affect this system"
+)
+CLI_CVES_NOT_AFFECTED = t.gettext("No CVES found that affect this system")
+
 
 WARNING_HUMAN_READABLE_OUTPUT = t.gettext(
     """\
@@ -1799,6 +1898,14 @@ INAPPLICABLE_VENDOR_NAME = FormattedNamedMessage(
 Supported CPU vendors are: {supported_vendors}."""
     ),
 )
+LANDSCAPE_INAPPLICABLE = NamedMessage(
+    "landscape-inapplicable",
+    t.gettext(
+        """\
+Landscape cannot be enabled via Pro Client on Ubuntu 22.04 and earlier.
+Please manually install Landscape: {url}"""
+    ).format(url=urls.LANDSCAPE_CLIENT_INSTALL),
+)
 NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
     "no-entitlement-affordances-checked",
     t.gettext("no entitlement affordances checked"),
@@ -2399,6 +2506,16 @@ See: {url}"""
     ).format(url=urls.PRO_CLIENT_DOCS_CLOUD_PRO_IMAGES),
 )
 
+E_LXD_AUTO_ATTACH_NOT_AVAILABLE = NamedMessage(
+    "lxd-auto-attach-not-available",
+    t.gettext("The running version of LXD does not support guest auto attach"),
+)
+
+E_LXD_AUTO_ATTACH_NOT_ALLOWED = NamedMessage(
+    "lxd-auto-attach-not-allowed",
+    t.gettext("The LXD host does not allow guest auto attach"),
+)
+
 E_INVALID_FILE_FORMAT = FormattedNamedMessage(
     name="invalid-file-format",
     msg=t.gettext("{file_name} is not valid {file_format}"),
@@ -2495,6 +2612,11 @@ E_INVALID_OPTION_COMBINATION = FormattedNamedMessage(
     t.gettext("Error: Cannot use {option1} together with {option2}."),
 )
 
+E_DEPENDENT_OPTION = FormattedNamedMessage(
+    "dependent-option",
+    t.gettext("Error: {option1} depends on {option2} to work properly."),
+)
+
 E_CLI_NO_HELP = FormattedNamedMessage(
     "no-help-content", t.gettext("No help available for '{name}'")
 )
@@ -2503,7 +2625,7 @@ E_SECURITY_FIX_CLI_ISSUE_REGEX_FAIL = FormattedNamedMessage(
     "invalid-security-issue-id-format",
     t.gettext(
         'Error: issue "{issue}" is not recognized.\n'
-        'Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"'
+        'Usage: "pro {cmd} CVE-yyyy-nnnn" or "pro {cmd} USN-nnnn"'
     ),
 )
 
@@ -2646,6 +2768,13 @@ E_INCORRECT_LIST_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
     t.gettext("Got value with incorrect type at index {index}:\n{nested_msg}"),
 )
 
+E_INCORRECT_DICT_ELEMENT_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
+    "incorrect-dict-element-type",
+    t.gettext(
+        "Got value with incorrect type for {key}:{value_type}\n{nested_msg}"
+    ),
+)
+
 E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-field-type",
     t.gettext(
@@ -2656,8 +2785,8 @@ E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE = FormattedNamedMessage(
 E_INCORRECT_ENUM_VALUE_ERROR_MESSAGE = FormattedNamedMessage(
     "incorrect-enum-value",
     t.gettext(
-        "Value provided was not found in {enum_class}'s allowed: "
-        "value: {values}"
+        "Value provided was not found in {enum_class}'s allowed "
+        "values: {values}"
     ),
 )
 
@@ -2706,4 +2835,33 @@ E_CONTRACT_EXPIRED = NamedMessage(
 E_INVALID_URL = FormattedNamedMessage(
     "invalid-url",
     t.gettext("Invalid URL: {url}"),
+)
+
+E_UNKNOWN_PROCESSOR_TYPE = FormattedNamedMessage(
+    "unknown-processor-type",
+    t.gettext("Unknown processor type: {processor_type}"),
+)
+
+E_UNSUPPORTED_MANIFEST_FILE = FormattedNamedMessage(
+    "unsupported-manifest-file",
+    t.gettext("Unsupported manifest file format: {manifest_file}"),
+)
+
+
+E_MANIFEST_PARSE_ERROR = FormattedNamedMessage(
+    "manifest-parse-error",
+    t.gettext("Error parsing {name} for line:\n{error_line}"),
+)
+
+E_FEATURE_NOT_SUPPORTED_OLD_TOKEN = FormattedNamedMessage(
+    "feature-not-supported-old-token",
+    t.gettext(
+        "The feature '{feature_name}' is not supported with the old token"
+        " format. Please detach and reattach to give this machine a new token."
+    ),
+)
+
+E_ETAG_UNCHANGED = FormattedNamedMessage(
+    "etag-unchanged",
+    t.gettext("The etag for resource: {url} has not changed"),
 )

@@ -1,36 +1,9 @@
 import mock
 import pytest
 
-from uaclient.cli import main
 from uaclient.cli.config import show_subcommand
 
 M_PATH = "uaclient.cli."
-
-
-@mock.patch("uaclient.cli.logging.error")
-@mock.patch("uaclient.log.setup_cli_logging")
-@mock.patch("uaclient.contract.get_available_resources")
-class TestMainConfigShow:
-    def test_config_show_error_on_invalid_subcommand(
-        self, _m_resources, _logging, _logging_error, capsys, FakeConfig
-    ):
-        """Exit 1 on invalid subcommands."""
-        with pytest.raises(SystemExit):
-            with mock.patch("sys.argv", ["/usr/bin/ua", "config", "invalid"]):
-                with mock.patch(
-                    "uaclient.config.UAConfig",
-                    return_value=FakeConfig(),
-                ):
-                    main()
-        out, err = capsys.readouterr()
-        assert "" == out
-        expected_logs = [
-            "usage: pro config [-h] {show,set,unset} ...",
-            "argument command: invalid choice: 'invalid' (choose from 'show',"
-            " 'set', 'unset')",
-        ]
-        for log in expected_logs:
-            assert log in err
 
 
 class TestActionConfigShow:
@@ -54,6 +27,9 @@ class TestActionConfigShow:
         cfg.user_config.global_apt_https_proxy = (
             "http://global_apt_https_proxy"
         )
+        cfg.user_config.vulnerability_data_url_prefix = (
+            "https://security-metadata.canonical.com/oval/"
+        )
         args = mock.MagicMock(key=optional_key)
         show_subcommand.action(args, cfg=cfg)
         out, err = capsys.readouterr()
@@ -62,18 +38,20 @@ class TestActionConfigShow:
         else:
             assert (
                 """\
-http_proxy              http://http_proxy
-https_proxy             http://https_proxy
-apt_http_proxy          None
-apt_https_proxy         None
-ua_apt_http_proxy       None
-ua_apt_https_proxy      None
-global_apt_http_proxy   http://global_apt_http_proxy
-global_apt_https_proxy  http://global_apt_https_proxy
-update_messaging_timer  21600
-metering_timer          14400
-apt_news                True
-apt_news_url            https://motd.ubuntu.com/aptnews.json
+http_proxy                     http://http_proxy
+https_proxy                    http://https_proxy
+apt_http_proxy                 None
+apt_https_proxy                None
+ua_apt_http_proxy              None
+ua_apt_https_proxy             None
+global_apt_http_proxy          http://global_apt_http_proxy
+global_apt_https_proxy         http://global_apt_https_proxy
+update_messaging_timer         21600
+metering_timer                 14400
+apt_news                       True
+apt_news_url                   https://motd.ubuntu.com/aptnews.json
+vulnerability_data_url_prefix  https://security-metadata.canonical.com/oval/
+lxd_guest_attach               off
 """
                 == out
             )

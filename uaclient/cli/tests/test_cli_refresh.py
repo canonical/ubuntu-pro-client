@@ -37,6 +37,7 @@ class TestActionRefresh:
 
         cfg.user_config.update_messaging_timer = 0
         cfg.user_config.metering_timer = 0
+        cfg.process_config = lambda *a, **kw: None
 
         with mock.patch.object(lock, "lock_data_file"):
             if expect_unattached_error:
