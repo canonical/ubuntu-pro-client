@@ -191,12 +191,12 @@ class CVEsResult(DataObject, AdditionalInfo):
         Field(
             "packages",
             data_dict(value_cls=AffectedPackage),
-            doc="A list of installed packages affected by CVEs",
+            doc="A dictionary where the keys are installed package names and the values are AffectedPackage objects.",  # noqa
         ),
         Field(
             "cves",
             data_dict(value_cls=CVEInfo),
-            doc="A list of CVEs that affect the system",
+            doc="A dictionary where the keys are CVE names and the values are CVEInfo objects.",  # noqa
         ),
     ]
 
@@ -340,7 +340,7 @@ def _cves(
 ) -> CVEsResult:
     """
     This endpoint shows the CVE vulnerabilites in the system.
-    By default, this API will only show fixable CVEs in the system.
+    By default, this API will show all CVEs that affect the system.
     """
 
     # By default we return all affected CVEs. If a user provides
@@ -376,18 +376,15 @@ _doc = {
     "introduced_in": "35",
     "requires_network": True,
     "example_python": """
-from uaclient.api.u.pro.security.vulnerabilities.cve.v1 import cves, CVEsOptions
+from uaclient.api.u.pro.security.cves.v1 import cves, CVEsOptions
 
 options = CVEsOptions()
 result = cves(options)
 """,  # noqa: E501
     "result_class": CVEsResult,
     "ignore_result_classes": [DataObject],
-    "extra_result_classes": [
-        CVEsResult,
-    ],
     "exceptions": [],
-    "example_cli": "pro api u.pro.security.vulnerabilities.cve.v1",
+    "example_cli": "pro api u.pro.security.cves.v1",
     "example_json": """
 {
     "cves": {
