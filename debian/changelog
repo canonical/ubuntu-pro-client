@@ -17,7 +17,7 @@ ubuntu-advantage-tools (35) plucky; urgency=medium
         * report missing Unattended-Upgrade configs as turned off
     - apt:
       + always ensure the ESM cache is present (GH: #3132)
-      + silence warnings when fetching apt-news (GH: #3209, LP: #2070095)
+      + fix permission warning when fetching apt-news (GH: #3209, LP: #2070095)
       + update logging for apt errors (GH: #3299)
       + only run the apt upgrade hook when run as root (LP: #2084677)
     - auto-attach:
