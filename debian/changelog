@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (35) oracular; urgency=medium
+ubuntu-advantage-tools (35) plucky; urgency=medium
 
   * d/tests/usage: add more scenarios to dep8 tests
   * d/control: drop strict dependency on python3-pkg-resources (LP: #2083665)
