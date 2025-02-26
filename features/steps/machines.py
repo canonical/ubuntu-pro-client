@@ -286,3 +286,13 @@ def given_a_sut_machine_with_user_data(context, series, machine_type):
 @when("I reboot the machine")
 def when_i_reboot_the_machine(context, machine_name=SUT):
     context.machines[machine_name].instance.restart(wait=True)
+
+
+@when("I update the series in the machine test metadata to `{series}`")
+def when_i_update_series(context, series, machine_name=SUT):
+    context.machines[machine_name] = MachineTuple(
+        series=series,
+        machine_type=context.machines[machine_name].machine_type,
+        cloud=context.machines[machine_name].cloud,
+        instance=context.machines[machine_name].instance,
+    )

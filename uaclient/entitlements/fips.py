@@ -307,7 +307,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         install_all_updates_override = util.is_config_value_true(
             config=self.cfg.cfg, path_to_value="features.fips_auto_upgrade_all"
         )
-        # noble onward automatically uses new auto-upgrade logic
+        # jammy onward automatically uses new auto-upgrade logic
         hardcoded_release = system.get_release_info().series in {
             "xenial",
             "bionic",
@@ -324,6 +324,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 self.origin
             )
         ]
+
+        # See GH #3390
+        if system.get_release_info().series == "jammy":
+            to_upgrade.append("openssl-fips-module-3")
 
         to_upgrade.sort()
         if len(to_upgrade) > 0:

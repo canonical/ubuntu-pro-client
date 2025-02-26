@@ -19,12 +19,13 @@ from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_LIVEPATCH_URL,
     BASE_SECURITY_URL,
+    BASE_VULNERABILITY_DATA_URL,
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
     DEFAULT_DATA_DIR,
 )
-from uaclient.files import user_config_file
+from uaclient.files import state_files, user_config_file
 from uaclient.yaml import safe_load
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -49,6 +50,8 @@ UA_CONFIGURABLE_KEYS = (
     "metering_timer",
     "apt_news",
     "apt_news_url",
+    "vulnerability_data_url_prefix",
+    "lxd_guest_attach",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -59,6 +62,7 @@ VALID_UA_CONFIG_KEYS = (
     "log_file",
     "log_level",
     "security_url",
+    "vulnerability_data_url_prefix",
     "settings_overrides",
     "ua_config",
     "livepatch_url",
@@ -160,6 +164,18 @@ class UAConfig:
     @ua_apt_http_proxy.setter
     def ua_apt_http_proxy(self, value: str):
         self.user_config.ua_apt_http_proxy = value
+        user_config_file.user_config.write(self.user_config)
+
+    @property
+    def vulnerability_data_url_prefix(self) -> str:
+        val = self.user_config.vulnerability_data_url_prefix
+        if val is None:
+            return BASE_VULNERABILITY_DATA_URL
+        return val
+
+    @vulnerability_data_url_prefix.setter
+    def vulnerability_data_url_prefix(self, value: str):
+        self.user_config.vulnerability_data_url_prefix = value
         user_config_file.user_config.write(self.user_config)
 
     @property  # type: ignore
@@ -285,6 +301,20 @@ class UAConfig:
     @apt_news_url.setter
     def apt_news_url(self, value: str):
         self.user_config.apt_news_url = value
+        user_config_file.user_config.write(self.user_config)
+
+    @property
+    def lxd_guest_attach(self) -> user_config_file.LXDGuestAttachEnum:
+        val = self.user_config.lxd_guest_attach
+        if val is None:
+            return user_config_file.LXDGuestAttachEnum.OFF
+        return val
+
+    @lxd_guest_attach.setter
+    def lxd_guest_attach(self, value: user_config_file.LXDGuestAttachEnum):
+        if value is None:
+            value = user_config_file.LXDGuestAttachEnum.OFF
+        self.user_config.lxd_guest_attach = value
         user_config_file.user_config.write(self.user_config)
 
     @property
@@ -422,6 +452,18 @@ class UAConfig:
                 messages.PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
                     services=services
                 )
+            )
+
+        from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+
+        if (
+            self.lxd_guest_attach != user_config_file.LXDGuestAttachEnum.OFF
+            and not _is_attached(self).is_attached
+        ):
+            print(messages.WARNING_LXD_GUEST_ATTACH_SET_BUT_NOT_ATTACHED)
+        else:
+            state_files.lxd_pro_config_file.write(
+                state_files.LXDProConfig(guest_attach=self.lxd_guest_attach)
             )
 
     def warn_about_invalid_keys(self):
