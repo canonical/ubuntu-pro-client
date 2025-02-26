@@ -212,6 +212,9 @@ def data_dict(value_cls: Type[DataValue]) -> Type[DataValue]:
     """
 
     class _DataDict(DataValue):
+        python_type_name = "dict"
+        dict_value_cls = value_cls
+
         @staticmethod
         def from_value(val: Any) -> Dict:
             if not isinstance(val, dict):
