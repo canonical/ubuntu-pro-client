@@ -8,7 +8,10 @@
      disable_auto_attach: true
    ```
 
-2. Run `sudo pro detach --assume-yes`
+2. Run
+   ```shell
+   sudo pro detach --assume-yes`
+   ```
 
 ## Explanation
 
@@ -17,7 +20,7 @@ it will be automatically re-attached on the next boot (on non-GCE instances)
 or immediately (on GCE instances due to the daemon).
 
 The configuration in step 1 will
-[prevent the daemon](../explanations/autoattach_mechanisms.md) and the
+[prevent the daemon](../explanation/autoattach_mechanisms.md) and the
 [autoattach service](../../systemd/ua-auto-attach.service) from automatically
 re-attaching at next boot.
 

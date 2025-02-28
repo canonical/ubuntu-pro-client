@@ -1,7 +1,7 @@
 # Integration Testing
 
 Before proceeding with the unit tests, first complete the setup instructions in
-the [Getting Started Tutorial](../tutorials/getting-started.md). This guide
+the [Getting Started Tutorial](../tutorial/getting-started.md). This guide
 covers essential setup information required to run the integration tests.
 
 Ubuntu Pro Client [uses behave](https://behave.readthedocs.io) for its
@@ -116,7 +116,8 @@ To run EC2 tests, first set up the
 with the required EC2 credentials.
 
 To specifically run non-Ubuntu Pro tests using Canonical cloud-images an
-additional token obtained from `https://ubuntu.com/pro` needs to be set:
+additional token obtained from
+[the Ubuntu Pro web page](https://ubuntu.com/pro) needs to be set:
 
 ```
 UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
@@ -153,7 +154,8 @@ In order to run Azure tests, first set up the
 with the required Azure credentials.
 
 To specifically run non-Ubuntu Pro tests using Canonical cloud-images an
-additional token obtained from `https://ubuntu.com/pro` needs to be set:
+additional token obtained from
+[the Ubuntu Pro web page](https://ubuntu.com/pro) needs to be set:
 
 ```
 UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
@@ -190,7 +192,8 @@ In order to run GCP tests, first set up the
 with the required GCP credentials.
 
 To specifically run non-Ubuntu Pro tests using Canonical cloud-images an
-additional token obtained from `https://ubuntu.com/pro` needs to be set:
+additional token obtained from
+[the Ubuntu Pro web page](https://ubuntu.com/pro) needs to be set:
 
 ```
 UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>

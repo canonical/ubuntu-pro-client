@@ -1,7 +1,7 @@
 # Unit Testing
 
 Before proceeding with unit tests, ensure you have completed the setup
-instructions in the [Getting Started Tutorial](../tutorials/getting-started.md).
+instructions in the [Getting Started Tutorial](../tutorial/getting-started.md).
 This guide covers essential setup information required to run the tests.
 
 All unit and lint tests are run using `tox`. However, before we can run our
@@ -13,8 +13,7 @@ through our Makefile script. To install those dependencies, first install
 sudo apt install make
 ```
 
-Once that package is installed, just run the command which will install all of
-the necessary dependencies.
+Next, run `make` against the dependency install target.
 
 ```shell
 sudo make deps

@@ -46,8 +46,9 @@ Ubuntu Pro image:
    JSON contains all the directives the Pro Client needs to set up the machine
    and enable the services associated with the token.
 
-6. Disable the `ubuntu-advantage.service` [daemon](systemd_units.md), if it is
-   running. If the machine is detached, this daemon will be started again.
+6. Disable the `ubuntu-advantage.service` [daemon](autoattach_mechanisms.md),
+   if it is running. If the machine is detached, this daemon will be started
+   again.
 
 You can disable the `pro auto-attach` command by adding the following lines to
 your `uaclient.conf` configuration file, which is located by default at

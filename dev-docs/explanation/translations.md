@@ -39,7 +39,7 @@ from language pack translation stripping done by the `pkgbinarymangler` package
 
 Translations live as `.po` files in the `debian/po/` directory.
 
-Because many of the Pro Client’s messages are commercial in nature, a bad
+As many of the Pro Client’s messages are commercial in nature, a bad
 translation could have potentially misleading contractual implications. Because
 of that, we generally want all translations to come from Canonical employees.
 

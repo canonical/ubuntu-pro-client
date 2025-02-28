@@ -2,13 +2,13 @@
 
 Below are the versioning schemes used for publishing debs:
 
-| Build target                                                                      | Version format                             |
-| --------------------------------------------------------------------------------- | ------------------------------------------ |
-| [Daily PPA](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily) | `XX.YY-<revno>~g<commitish>~ubuntu22.04.1` |
-| Staging PPA                                                                       | `XX.YY~22.04~rc1`                        |
-| Stable PPA                                                                        | `XX.YY~22.04~stableppa1`                 |
-| Archive release                                                                   | `XX.YY~22.04`                            |
-| Archive bugfix release                                                            | `XX.YY.Z~22.04`                          |
+| Build target                                                               | Version format                             |
+| -------------------------------------------------------------------------- | ------------------------------------------ |
+| [Daily PPA](https://code.launchpad.net/~ua-client/+recipe/ua-client-daily) | `XX.YY-<revno>~g<commitish>~ubuntu22.04.1` |
+| Staging PPA                                                                | `XX.YY~22.04~rc1`                          |
+| Stable PPA                                                                 | `XX.YY~22.04~stableppa1`                   |
+| Archive release                                                            | `XX.YY~22.04`                              |
+| Archive bugfix release                                                     | `XX.YY.Z~22.04`                            |
 
 ## Supported upgrade paths on same upstream version
 

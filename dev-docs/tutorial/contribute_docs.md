@@ -29,6 +29,13 @@ Internal documentation is kept on the current development branch in the
 
 ## Building the docs locally
 
+Before running the `make` command, make sure to download the Python `venv`
+module by running the following command:
+
+```sh
+apt install python3-venv
+```
+
 To build the docs for Ubuntu Pro Client, you can use the `make` command.
 Switch to the `docs` branch and install the dependencies:
 
@@ -62,13 +69,6 @@ documentation without needing to manually rebuild.
 
 ## Doc testing
 
-Before running the `make` command, make sure to download the Python `venv`
-module by running the following command:
-
-```sh
-apt install python3-venv
-```
-
 When working with any `docs` branch and making updates, you can run the
 documentation tests using the Makefile. The `make` command lists all targets to
 test. You can run individual targets using the command:
@@ -98,8 +98,8 @@ the page should go, or think we need to rearrange our current documentation,
 please submit an issue so that we can have a discussion about it.
 
 Whether you are editing an existing page, or creating a new one, you should
-follow our [style guide](styleguide.md) to ensure that any delays in publishing
-are not due to minor inconsistencies in style. 
+follow our [style guide](../reference/styleguide.md) to ensure that any delays
+in publishing are not due to minor inconsistencies in style. 
 
 ## Redirects
 

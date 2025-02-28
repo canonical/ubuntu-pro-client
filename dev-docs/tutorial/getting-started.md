@@ -122,14 +122,14 @@ Now, with the boot parameter in place, test that a xenial container can start
 and reach the network:
 
 ```bash
-lxc launch ubuntu-daily:xenial testx
-lxc shell testx
+lxc launch ubuntu-daily:xenial test-xenial
+lxc shell test-xenial
 # now you should be inside the container
 ping -c 3 ubuntu.com
 # the ping command should succeed
 exit
 # now you should be back on your host
-lxc delete --force testx
+lxc delete --force test-xenial
 ```
 
 > **Note**

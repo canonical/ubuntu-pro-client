@@ -13,7 +13,7 @@ in our documentation, which is summarised below -- with a few additions.
 To make it more straightforward to publish your contribution, we recommend that
 you:
 
-* Use a spell checker (set to en-GB).
+* Use a spell checker (set to en-us).
 * Be concise and to-the-point in your writing.
 * Check your links and test your code snippets to make sure they work as
   expected.
@@ -31,9 +31,7 @@ you:
 
 ### Language
 
-Where possible, text should be written in UK English. However, common sense can
-be applied. For example, where text refers to code elements in US English, the
-spelling of these elements should follow the code (and stay in US English).
+Text should be written in US English. 
 
 ### Voice
 
@@ -85,7 +83,8 @@ including the language (for syntax highlighting). E.g:
 ```
 
 There must be an empty line before AND after the `code-block` directive, and
-the code block contents must be indented at least three spaces to be recognised.
+the code block contents must be indented at least three spaces to be
+recognised.
 
 Using "text" as the language is useful for displaying command output or plain
 text, since it does not highlight anything.
@@ -114,7 +113,7 @@ paths to files. This will render them in monospaced font within the paragraph.
 ### Vertical empty space
 
 One new line between each section ensures readability of the documentation
-source code. Short paragraphs (up to ~5--6 sentences) aids in keeping text
+source code. Short paragraphs (up to ~5-6 sentences) aids in keeping text
 readable when rendered to a web page.
 
 Some rST elements require an empty line before and after, so for consistency,

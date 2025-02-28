@@ -7,7 +7,7 @@ enough to do outside of the normal release schedule and process.
 This process is a simplified version of the [full release process](release_a_new_version.md)
 and you should understand that process as well.
 
-You can conceptualise this process as a "normal" Stable Release Update (SRU)
+You can conceptualize this process as a "normal" Stable Release Update (SRU)
 but with PRs on the `ubuntu-pro-client` GitHub instead of in `git-ubuntu`.
 
 1. **Preparation**
@@ -100,7 +100,7 @@ but with PRs on the `ubuntu-pro-client` GitHub instead of in `git-ubuntu`.
      ```
      ubuntu-advantage-tools (42.4.2~20.04) focal; urgency=medium
 
-     * Backport new hotfix release (LP: #SRUBUG)
+     * Backport new hotfix release (LP: #1234)
 
      -- Grant Orndorff <grant.orndorff@canonical.com>  Thu, 29 Feb 2024 09:03:11 -0500
      ```
@@ -126,7 +126,7 @@ but with PRs on the `ubuntu-pro-client` GitHub instead of in `git-ubuntu`.
    No additional tests need to be run unless they add value to the particular
    circumstances of the bug.
 
-7. **Finalising the release and preparing for the next one**
+7. **Finalizing the release and preparing for the next one**
 
    1. Double check that all changes in the hotfix also made it into the
       development branch.

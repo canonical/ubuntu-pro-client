@@ -42,7 +42,7 @@ of the problem you are troubleshooting, do the following:
 
 2. Reload the systemd units:
 
-   ```
+   ```shell
    sudo systemctl daemon-reload
    ```
 
@@ -73,13 +73,13 @@ had the profile been in "enforce" mode.
 To place the profile in complain mode, first install the `apparmor-utils`
 package, if it's not installed already:
 
-```
+```shell
   sudo apt install apparmor-utils
 ```
 
 Then run this command:
 
-```
+```shell
   sudo aa-complain /etc/apparmor.d/ubuntu_pro_apt_news
 ```
 
@@ -88,20 +88,20 @@ reload it into the kernel.
 
 Next, keep an eye on the `dmesg` output with something like this:
 
-```
+```shell
 sudo dmesg -wT | grep -E 'apparmor=\".*(profile=\"ubuntu_pro_|name=\"ubuntu_pro_)'
 ```
 
 And exercise the service. For example, to be sure it will run, first remove
 some files:
 
-```
+```shell
 sudo rm -rf /var/lib/apt/periodic/update-success-stamp /run/ubuntu-advantage /var/lib/ubuntu-advantage/messages/*
 ```
 
 And then start the service:
 
-```
+```shell
 sudo systemctl start apt-news.service
 ```
 
@@ -113,7 +113,7 @@ To make changes to the AppArmor profile, edit the
 `/etc/apparmor.d/ubuntu_pro_apt_news` file, save, and reload the profile with
 the following command:
 
-```
+```shell
 sudo apparmor_parser -r -W -T /etc/apparmor.d/ubuntu_pro_apt_news
 ```
 
@@ -170,13 +170,13 @@ RestrictAddressFamilies=~AF_NETLINK
 
 Then reload the unit files:
 
-```
+```shell
 sudo systemctl daemon-reload
 ```
 
 And try the service again:
 
-```
+```shell
 sudo rm -rf /var/lib/apt/periodic/update-success-stamp /run/ubuntu-advantage /var/lib/ubuntu-advantage/messages/*
 sudo systemctl start apt-news.service
 ```
@@ -196,51 +196,51 @@ run any command with specific sandboxing features enabled.
 For example, let's try the `PrivateTmp` feature. First, let's create a file in
 `/tmp`:
 
-```
+```shell
 touch /tmp/my-file
 ```
 
 It should be visible to you. Let's check with `ls -la /tmp/my-file`:
 
-```
+```shell
 -rw-r--r-- 1 root root 0 jan  3 16:31 /tmp/my-file
 ```
 
 Now let's try it with the `PrivateTmp` restriction disabled, first. The command
 is:
 
-```
+```shell
 systemd-run -qt -p PrivateTmp=no ls -la /tmp/my-file
 ```
 
 And the output will be:
 
-```
+```shell
 -rw-r--r-- 1 root root 0 jan  3 16:31 /tmp/my-file
 ```
 
 What happens if we enable the restriction? The command now is:
 
-```
+```shell
 systemd-run -qt -p PrivateTmp=yes ls -la /tmp/my-file
 ```
 
 And we get:
 
-```
+```shell
 /usr/bin/ls: cannot access '/tmp/my-file': No such file or directory
 ```
 
 Interesting! What if we create a file in `/tmp` with the restriction enabled,
 will it still be there once the command finishes? Let's try:
 
-```
+```shell
 systemd-run -qt -p PrivateTmp=yes touch /tmp/other-file
 ```
 
 And when we check with `ls -la /tmp/other-file`:
 
-```
+```shell
 ls: cannot access '/tmp/other-file': No such file or directory
 ```
 
@@ -253,14 +253,14 @@ line with the `-p` parameter.
 Here is another example: let's block the `CAP_NET_RAW` capability, and try the
 `ping` command:
 
-```
+```shell
 systemd-run -qt -p CapabilityBoundingSet=~CAP_NET_RAW ping -c 1 1.1.1.1
 ```
 
 That will show nothing, but the exit status `$?` is `203`, so something failed.
 If we check the journal, we will see:
 
-```
+```shell
 jan 03 16:36:31 nsnx2 systemd[1]: Started run-u3002.service - /usr/bin/ping -c 1 1.1.1.1.
 jan 03 16:36:31 nsnx2 (ping)[575067]: run-u3002.service: Failed to execute /usr/bin/ping: Operation not permitted
 jan 03 16:36:31 nsnx2 (ping)[575067]: run-u3002.service: Failed at step EXEC spawning /usr/bin/ping: Operation not permitted

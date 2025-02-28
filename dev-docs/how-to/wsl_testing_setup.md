@@ -9,27 +9,28 @@ image in Azure to testing if WSL is correctly working on the machine.
 
 ## Launching the image on Azure
 
-When launching the Windows instance on Azure, there are a few configurations that need to be performed,
-otherwise we will not be able to launch WSL instances.
+When launching the Windows instance on Azure, we need to perform some
+configuration to be able to launch WSL instances.
 
 First of all, name the machine as `wsl-test`. Currently, this is the name we expect on the
 integration tests.
 
 After that, select the `Windows 11` image and mark the `Security Type` as *Standard*.
-![](windows-security-type.png)
+![Azure security type](windows-security-type.png)
 
 The alternative "Trusted Launch" [doesn't support Nested Virtualization](https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch#unsupported-features),
 required to run WSL.
 
-Set a username and password for the VM. Please set the username as *ubuntu*. 
+For the administrator account, mark the `Authentication Type` as *Password*,
+and set the `Username` to *ubuntu*. 
 We will use this account setting to manually log into the machine to run some commands there directly.
-![](windows-ssh-setup.png)
+![Azure SSH setup](windows-ssh-setup.png)
 
-Also, remember to also select the SSH inbound port for the machine
-![](windows-setup-port.png)
+Select the SSH inbound port for the machine.
+![Azure setup port](windows-setup-port.png)
 
 Finally, you will need to check this checkbox here:  
-![](windows-license-check.png)
+![Azure license check](windows-license-check.png)
 
 We have already confirmed with the WSL team that our Azure accounts have the proper license to
 launch the Windows machine.
@@ -40,9 +41,9 @@ launch the Windows machine.
 To log into the machine and access its GUI, you need to set up Bastion.
 After launching the machine, go for the *Connect via Bastion* option:
 
-![](windows-bastion.png)
+![Azure bastion connect](windows-bastion.png)
 
-![](windows-deploy-bastion.png)
+![Azure bastion deploy](windows-deploy-bastion.png)
 
 After deploying the Bastion, you just need to present your username and password to log into the
 machine.
@@ -65,7 +66,7 @@ Note that you can paste the commands in Bastion by using the clipboard feature t
 under this arrow:
 ```
 
-![](windows-bastion-clipboard.png) ![](windows-bastion-clipboard-paste.png)
+![Azure bastion clipboard 1](windows-bastion-clipboard.png) ![Azure bastion clipboard 2](windows-bastion-clipboard-paste.png)
 
 ```
 Finally, if you see the following error during installation, restart the machine first:
@@ -90,8 +91,8 @@ $ wsl --update --pre-release
 
 
 ```{note}
-We are installing the pre-release version because it allow us to directly run wsl commands
-through SSH. Once that fix is officially release, we will no longer need to install the
+We are installing the pre-release version because it allows us to directly run wsl commands
+through SSH. Once that fix is officially released, we will no longer need to install the
 pre-release version.
 ```
 

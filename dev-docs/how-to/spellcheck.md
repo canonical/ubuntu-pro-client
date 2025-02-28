@@ -5,13 +5,13 @@ messages, but it is often useful to run it locally as well.
 
 First install `hunspell`:
 
-```
+```shell
 sudo apt install hunspell
 ```
 
 Then run it on our messages module using our list of extra allowed words.
 
-```
+```shell
 hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py
 ```
 

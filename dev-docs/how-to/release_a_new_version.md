@@ -23,16 +23,16 @@ Releases are scheduled to take 6 weeks, following the schedule below:
 > In practice, the Sponsor and SRU reviews tend to overlap during the first three weeks.
 
 > **Warning**
-> If the release contains any change listed in the [Early Review Sign-Off list](../references/early_review_signoff.md), make sure it was properly reviewed *before* starting the release process. Ideally they would be reviewed even before implementation, but if some feature is in the list and didn't get a proper review, now is the time to do so.
+> If the release contains any change listed in the [Early Review Sign-Off list](../explanation/early_review_signoff.md), make sure it was properly reviewed *before* starting the release process. Ideally they would be reviewed even before implementation, but if some feature is in the list and didn't get a proper review, now is the time to do so.
 
 ### Prerequisites
 
 If this is your first time releasing ubuntu-advantage-tools, you'll need to do the following before getting started:
 
 * Add the team helper scripts to your PATH: [uss-tableflip](https://github.com/canonical/uss-tableflip).
-* If you don't yet have a gpg key set up, follow the instructions
-  [here](https://help.launchpad.net/YourAccount/ImportingYourPGPKey) to create a key,
-  publish it to `hkp://keyserver.ubuntu.com`, and import it into Launchpad.
+* If you don't yet have a gpg key set up, follow the instructions in the
+  [Launchpad PGP key import tutorial](https://help.launchpad.net/YourAccount/ImportingYourPGPKey)
+  to create a key, publish it to `hkp://keyserver.ubuntu.com`, and import it into Launchpad.
 * Before you run `sbuild-it` for the first time, you'll need to set up a chroot for each Ubuntu release.
   Run the following to set up chroots with dependencies pre-installed for each release:
   ```bash
@@ -206,9 +206,9 @@ When reviewing the release PR, please use the following guidelines when reviewin
 1. Prepare SRU Launchpad bugs.
     * We do this even before a successful merge into `ubuntu/devel` because the context added to these bugs is useful for the Server Team reviewer.
 
-    * Create a new bug on Launchpad for ubuntu-advantage-tools and use the format defined [here](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates#SRU_Template) for the description.
+    * Create a new bug on Launchpad for ubuntu-advantage-tools and use the [SRU template](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates#SRU_Template) to format the description.
       * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Xenial, Bionic, Focal, Jammy`, substituting version numbers and release names as necessary.
-      * If any of the changes for the SRU is in the [Early Review Sign-off list](../references/early_review_signoff.md), include a pointer in the `[Discussion]` section to where the discussion/approval of that feature took place (if possible).
+      * If any of the changes for the SRU is in the [Early Review Sign-off list](../explanation/early_review_signoff.md), include a pointer in the `[Discussion]` section to where the discussion/approval of that feature took place (if possible).
 
     * For each Launchpad bug fixed by this release (which should all be referenced in our changelog), add the SRU template to the description and fill out each section.
       * Leave the original description in the bug at the bottom under the header `[Original Description]`.
@@ -256,12 +256,12 @@ When reviewing the release PR, please use the following guidelines when reviewin
       ```
       * The versions for the stable releases must be in the format `$version~<release-number>`
     * Tell the Sponsor that the branches are ready for them to upload to `devel` and the SRU unapproved queue.
-    * Check the [`-proposed` release queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=1&queue_text=ubuntu-advantage-tools) for presence of `ubuntu-advantage-tools` in unapproved state for each supported release. Note: Libera chat `#ubuntu-release` IRC channel has a bot that reports queued uploads of any package in a message like `"Unapproved: ubuntu-advantage-tools .. version"`.
+    * Check the [`-proposed` release queue](https://launchpad.net/ubuntu/focal/+queue?queue_state=1&queue_text=ubuntu-advantage-tools) for presence of `ubuntu-advantage-tools` in unapproved state for each supported release. Note: Libera chat `#ubuntu-release` IRC channel has a bot that reports queued uploads of any package in a message like `"Unapproved: ubuntu-advantage-tools .. version"`.
     * Tell the SRU Reviewer that the packages are in the `-proposed` unapproved queue. They will need to actually approve the package to move into `-proposed`.
 
 4. -proposed verification and release to -updates
 
-    * As soon as the SRU vanguard approves the packages, a bot in `#ubuntu-release` will announce that `ubuntu-advantage-tools` is accepted into the applicable `-proposed` pockets, or the [Xenial `-proposed` release rejection queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=4&queue_text=ubuntu-advantage-tools) will contain a reason for rejection. Double check the SRU process bug for any actionable review feedback.
+    * As soon as the SRU vanguard approves the packages, a bot in `#ubuntu-release` will announce that `ubuntu-advantage-tools` is accepted into the applicable `-proposed` pockets, or the [Focal `-proposed` release rejection queue](https://launchpad.net/ubuntu/focal/+queue?queue_state=4&queue_text=ubuntu-advantage-tools) will contain a reason for rejection. Double check the SRU process bug for any actionable review feedback.
       * Once accepted into `-proposed` by an SRU vanguard [`ubuntu-advantage-tools` shows up in the `pending_sru` page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), check `rmadison ubuntu-advantage-tools | grep -proposed` to see if the upload exists in `-proposed` yet.
       * Also actually check that the packages are accessible in a container by [enabling proposed](https://wiki.ubuntu.com/Testing/EnableProposed) and updating the package.
 
