@@ -229,7 +229,7 @@ def run_apt_command(
             override_env_vars=override_env_vars,
         )
     except exceptions.ProcessExecutionError as e:
-        LOG.warning("Error running apt command %s: %s", str(cmd), str(e))
+        LOG.error("Error running apt command %s: %s", str(cmd), str(e))
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             raise exceptions.APTProcessConflictError()
         else:
@@ -380,7 +380,7 @@ def run_apt_update_command(
             cmd=["apt-get", "update"], override_env_vars=override_env_vars
         )
     except exceptions.APTProcessConflictError as e:
-        LOG.warning("Error running apt-get update: %s", str(e))
+        LOG.error("Error running apt-get update: %s", str(e))
         raise exceptions.APTUpdateProcessConflictError()
     except exceptions.APTInvalidRepoError as e:
         raise exceptions.APTUpdateInvalidRepoError(repo_msg=e.msg)
