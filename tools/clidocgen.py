@@ -67,7 +67,7 @@ def _build_rst_entry(command: ProCommand, section_mark: str = "="):
 def _build_manpage_entry(command: ProCommand, indent: str = "") -> str:
     # the usage line looks like
     # usage: <prog> <options>
-    # we wanto only the <options>
+    # we want only the <options>
     options_line = command.parser.format_usage().split(command.parser.prog)[1]
     # Remove extra spaces and eventual newlines
     usage_options = " ".join(options_line.split())

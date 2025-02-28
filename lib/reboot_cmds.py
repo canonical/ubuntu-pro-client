@@ -97,7 +97,7 @@ def run_reboot_commands(cfg: config.UAConfig):
 
 def handle_only_series_marker_file(cfg: config.UAConfig):
     """Handle the only_series marker file.
-    Checks if the market file is present,
+    Checks if the marker file is present,
     validates the release series and
     deletes the marker file if the field is not present.""
     """

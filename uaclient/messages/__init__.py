@@ -1117,7 +1117,7 @@ CLI_PURGE = t.gettext(
 )
 
 CLI_SYSTEM_DESC = t.gettext(
-    "Outputs system-related information about Pro services."
+    "Output system-related information about Pro services."
 )
 CLI_SYSTEM_REBOOT_REQUIRED = t.gettext("does the system need to be rebooted")
 CLI_SYSTEM_REBOOT_REQUIRED_DESC = t.gettext(
