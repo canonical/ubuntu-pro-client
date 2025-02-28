@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 02:17-0300\n"
+"POT-Creation-Date: 2025-02-28 02:27-0300\n"
 "PO-Revision-Date: 2023-09-25 12:29-0400\n"
 "Last-Translator: Lucas Moura <lucas.moura@canonical.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
@@ -2227,7 +2227,7 @@ msgstr "mostra informações a respeito de um CVE"
 
 #: ../../uaclient/messages/__init__.py:1233
 msgid "Show all available information about a given CVE.\n"
-msgstr "mostra todas as informações disponíveis sobre um CVE."
+msgstr "Mostra todas as informações disponíveis sobre um CVE.\n"
 
 #: ../../uaclient/messages/__init__.py:1238
 msgid "CVE to display information. Format: CVE-yyyy-nnnn or CVE-yyyy-nnnnnnn"
@@ -3590,7 +3590,7 @@ msgid ""
 "Usage: \"pro {cmd} CVE-yyyy-nnnn\" or \"pro {cmd} USN-nnnn\""
 msgstr ""
 "Erro: problema de segurança \"{issue}\" não foi reconhecido.\n"
-"Use: \"pro fix CVE-yyyy-nnnn\" ou \"pro fix USN-nnnn\""
+"Use: \"pro {cmd} CVE-yyyy-nnnn\" ou \"pro {cmd} USN-nnnn\""
 
 #: ../../uaclient/messages/__init__.py:2633
 #, python-brace-format
