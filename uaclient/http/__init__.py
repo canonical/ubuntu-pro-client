@@ -354,7 +354,8 @@ def download_xz_file_from_url(
     if overlay_response:
         # We only consider the first response for mock xz related requests
         response = overlay_response.pop(0)
-        return (lzma.open(response["response"]["file_path"]).read(), "")
+        with lzma.open(response["response"]["file_path"]) as f:
+            return (f.read(), "")
 
     if not is_service_url(url):
         raise exceptions.InvalidUrl(url=url)
@@ -367,27 +368,28 @@ def download_xz_file_from_url(
         headers["If-None-Match"] = etag
 
     if should_use_pycurl(https_proxy, url):
-        resp = _readurl_pycurl_https_in_https(
+        response = _readurl_pycurl_https_in_https(
             request.Request(url, headers=headers),
             timeout=timeout,
             https_proxy=https_proxy,
         )
 
-        if resp.code == 304:
+        if response.code == 304:
             raise exceptions.ETagUnchanged(url=url)
 
         return (
-            lzma.decompress(resp.body),  # type: ignore
-            resp.headers.get("etag"),
+            lzma.decompress(response.body),  # type: ignore
+            response.headers.get("etag"),
         )
     else:
         req = request.Request(url, headers=headers)
         try:
             with request.urlopen(req) as response:
-                return (
-                    lzma.open(response).read(),
-                    response.headers.get("ETag"),
-                )
+                with lzma.open(response) as f:
+                    return (
+                        f.read(),
+                        response.headers.get("ETag"),
+                    )
         except error.HTTPError as e:
             if e.code == 304:
                 raise exceptions.ETagUnchanged(url=url)
