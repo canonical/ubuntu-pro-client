@@ -17,7 +17,7 @@ APPARMOR_DENIED = (
 
 
 def fake_instance_factory():
-    m_instance = mock.Mock()
+    m_instance = mock.MagicMock()
     m_instance.identity_doc = "pkcs7-validated-by-backend"
     return m_instance
 
@@ -274,32 +274,23 @@ class TestAttachWithToken:
 
 class TestAutoAttach:
     @mock.patch(M_PATH + "attach_with_token")
-    @mock.patch(
-        M_PATH
-        + "contract.UAContractClient.get_contract_token_for_cloud_instance",
-        return_value={"contractToken": "token"},
-    )
     def test_happy_path_on_auto_attach(
         self,
-        _m_get_contract_token_for_cloud_instances,
         m_attach_with_token,
         FakeConfig,
     ):
         cfg = FakeConfig()
 
-        auto_attach(cfg, fake_instance_factory())
+        instance = fake_instance_factory()
+        instance.acquire_pro_token.return_value = "token"
+        auto_attach(cfg, instance)
 
         assert [
             mock.call(cfg, token="token", allow_enable=True)
         ] == m_attach_with_token.call_args_list
 
-    @mock.patch(
-        M_PATH
-        + "contract.UAContractClient.get_contract_token_for_cloud_instance"  # noqa
-    )
     def test_raise_unexpected_errors(
         self,
-        m_get_contract_token_for_cloud_instances,
         FakeConfig,
     ):
         """Any unexpected errors will be raised."""
@@ -310,10 +301,11 @@ class TestAutoAttach:
             code=500,
             body=json.dumps({"message": "something unexpected"}),
         )
-        m_get_contract_token_for_cloud_instances.side_effect = unexpected_error
+        instance = fake_instance_factory()
+        instance.acquire_pro_token.side_effect = unexpected_error
 
         with pytest.raises(exceptions.ContractAPIError) as excinfo:
-            auto_attach(cfg, fake_instance_factory())
+            auto_attach(cfg, instance)
 
         assert unexpected_error == excinfo.value
 

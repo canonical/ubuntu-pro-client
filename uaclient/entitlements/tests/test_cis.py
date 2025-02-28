@@ -65,7 +65,7 @@ class TestCISEntitlement:
         "called_name,expected",
         (
             ("cis", ["test-package"]),
-            ("usg", []),
+            ("usg", ["usg"]),
         ),
     )
     def test_packages(self, called_name, expected, cis_entitlement):

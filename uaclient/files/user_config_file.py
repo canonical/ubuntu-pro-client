@@ -1,4 +1,3 @@
-import copy
 import logging
 import os
 from typing import Optional
@@ -8,6 +7,7 @@ from uaclient import defaults, event_logger, util
 from uaclient.data_types import (
     BoolDataValue,
     DataObject,
+    EnumDataValue,
     Field,
     IntDataValue,
     StringDataValue,
@@ -28,6 +28,15 @@ PROXY_FIELDS = [
 ]
 
 
+class LXDGuestAttachEnum(EnumDataValue):
+    ON = "on"
+    OFF = "off"
+    AVAILABLE = "available"
+
+    def __str__(self):
+        return self.value
+
+
 class UserConfigData(DataObject):
     fields = [
         Field("apt_http_proxy", StringDataValue, required=False),
@@ -44,6 +53,10 @@ class UserConfigData(DataObject):
         Field("polling_error_retry_delay", IntDataValue, required=False),
         Field("metering_timer", IntDataValue, required=False),
         Field("update_messaging_timer", IntDataValue, required=False),
+        Field(
+            "vulnerability_data_url_prefix", StringDataValue, required=False
+        ),
+        Field("lxd_guest_attach", LXDGuestAttachEnum, required=False),
     ]
 
     def __init__(
@@ -62,6 +75,8 @@ class UserConfigData(DataObject):
         polling_error_retry_delay: Optional[int] = None,
         metering_timer: Optional[int] = None,
         update_messaging_timer: Optional[int] = None,
+        vulnerability_data_url_prefix: Optional[str] = None,
+        lxd_guest_attach: Optional[LXDGuestAttachEnum] = None,
     ):
         self.apt_http_proxy = apt_http_proxy
         self.apt_https_proxy = apt_https_proxy
@@ -77,6 +92,8 @@ class UserConfigData(DataObject):
         self.polling_error_retry_delay = polling_error_retry_delay
         self.metering_timer = metering_timer
         self.update_messaging_timer = update_messaging_timer
+        self.vulnerability_data_url_prefix = vulnerability_data_url_prefix
+        self.lxd_guest_attach = lxd_guest_attach
 
 
 event = event_logger.get_event_logger()
@@ -113,18 +130,14 @@ class UserConfigFileObject:
     def redact_config_data(
         self, user_config: UserConfigData
     ) -> UserConfigData:
-        redacted_data = copy.deepcopy(user_config)
+        redacted_data_dict = user_config.to_dict()
         for field in PROXY_FIELDS:
-            value = getattr(redacted_data, field)
+            value = redacted_data_dict.get(field)
             if value:
                 parsed_url = urlparse(value)
                 if parsed_url.username or parsed_url.password:
-                    setattr(
-                        redacted_data,
-                        field,
-                        "<REDACTED>",
-                    )
-        return redacted_data
+                    redacted_data_dict[field] = "<REDACTED>"
+        return UserConfigData.from_dict(redacted_data_dict)
 
     def read(self) -> UserConfigData:
         if util.we_are_currently_root():

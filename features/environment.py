@@ -529,6 +529,12 @@ def _get_relevant_apparmor_logs(context):
                     "Unable to pull syslog. Skipping apparmor log check."
                 )
                 return None
+            except FileNotFoundError:
+                logging.warning(
+                    "syslog file doesn't exist. Skipping apparmor log check."
+                )
+                return None
+
             with open(syslog_dest, "r") as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
             apparmor_denied = [

@@ -9,16 +9,16 @@ from uaclient.clouds.gcp import (
     LICENSES_URL,
     TOKEN_URL,
     WAIT_FOR_CHANGE,
-    UAAutoAttachGCPInstance,
+    GCPAutoAttachInstance,
 )
 
 M_PATH = "uaclient.clouds.gcp."
 
 
-class TestUAAutoAttachGCPInstance:
+class TestGCPAutoAttachInstance:
     def test_cloud_type(self):
         """cloud_type is returned as GCP."""
-        instance = UAAutoAttachGCPInstance()
+        instance = GCPAutoAttachInstance()
         assert "gcp" == instance.cloud_type
 
     @mock.patch(M_PATH + "http.readurl")
@@ -31,7 +31,7 @@ class TestUAAutoAttachGCPInstance:
             json_dict={},
             json_list=[],
         )
-        instance = UAAutoAttachGCPInstance()
+        instance = GCPAutoAttachInstance()
         assert {"identityToken": "attestedWOOT!==="} == instance.identity_doc
         assert [
             mock.call(
@@ -67,7 +67,7 @@ class TestUAAutoAttachGCPInstance:
 
         readurl.side_effect = fake_someurlerrors
 
-        instance = UAAutoAttachGCPInstance()
+        instance = GCPAutoAttachInstance()
         if exception:
             with pytest.raises(exceptions.CloudMetadataError) as excinfo:
                 instance.identity_doc
@@ -118,7 +118,7 @@ class TestUAAutoAttachGCPInstance:
 
         load_file.side_effect = fake_load_file
 
-        instance = UAAutoAttachGCPInstance()
+        instance = GCPAutoAttachInstance()
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize(
@@ -325,7 +325,7 @@ class TestUAAutoAttachGCPInstance:
         expected_result,
         expected_readurl,
     ):
-        instance = UAAutoAttachGCPInstance()
+        instance = GCPAutoAttachInstance()
         instance.etag = existing_etag
         m_readurl.return_value = http.HTTPResponse(
             code=200,
@@ -400,6 +400,6 @@ class TestUAAutoAttachGCPInstance:
         self, m_get_release_info, platform_info, expected_result
     ):
         m_get_release_info.return_value = platform_info
-        instance = UAAutoAttachGCPInstance()
+        instance = GCPAutoAttachInstance()
         result = instance.should_poll_for_pro_license()
         assert expected_result == result
