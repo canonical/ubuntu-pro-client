@@ -19,6 +19,25 @@ that stream specifically on those machines.
 
     .. tab-item:: Commercial
 
+       * **Anbox Cloud**
+
+         Canonical Anbox Cloud makes large-scale Android development easier by
+         running Android in secure, scalable containers or virtual machines.
+
+         Compared to other Android emulation solutions, Anbox Cloud can provide
+         at least twice the density and can serve up to 100 Android instances per
+         server.
+
+         Due to its highly scalable nature and performance optimization, Anbox Cloud enables
+         delivering device-agnostic mobile applications. Popular use cases of Anbox Cloud
+         include mobile game streaming services, corporate application streaming,
+         application automation and testing.
+
+         * `Try the appliance`_ variant offered by Anbox Cloud.
+
+         * Find out more about Anbox Cloud in the `official documentation`_.
+
+
        * **Expanded Security Maintenance (ESM)**
 
          If you're using any Ubuntu LTS -- Desktop or Server -- in a commercial
@@ -185,4 +204,6 @@ that stream specifically on those machines.
 .. _self-hosted: https://ubuntu.com/landscape/pricing
 .. _Landscape SaaS: https://ubuntu.com/landscape/pricing
 .. _more information about real-time Ubuntu: https://ubuntu.com/kernel/real-time/contact-us
+.. _Try the appliance: https://documentation.ubuntu.com/anbox-cloud/tutorial/installing-appliance/
+.. _official documentation: https://documentation.ubuntu.com/anbox-cloud/
 
