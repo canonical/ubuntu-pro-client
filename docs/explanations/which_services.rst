@@ -149,7 +149,7 @@ that stream specifically on those machines.
          at least twice the density and can serve up to 100 Android instances per
          server.
 
-         Due to its highly scalable nature and performance optimization, Anbox Cloud
+         Due to its highly scalable nature and performance optimisation, Anbox Cloud
          enables delivering device-agnostic mobile applications. Popular use cases
          of Anbox Cloud include mobile game streaming services,
          corporate application streaming, application automation and testing.
