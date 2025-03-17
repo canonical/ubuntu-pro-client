@@ -139,7 +139,24 @@ that stream specifically on those machines.
 
        Want more information?
 
-    .. tab-item:: Specialty services
+    .. tab-item:: Specialty products
+
+       * **Anbox Cloud**
+        
+         Canonical Anbox Cloud makes large-scale Android development easier by
+         running Android in secure, scalable containers or virtual machines. 
+         Compared to other Android emulation solutions, Anbox Cloud can provide
+         at least twice the density and can serve up to 100 Android instances per
+         server.
+
+         Due to its highly scalable nature and performance optimisation, Anbox Cloud
+         enables delivering device-agnostic mobile applications. Popular use cases
+         of Anbox Cloud include mobile game streaming services,
+         corporate application streaming, application automation and testing.
+
+         :ref:`Enabling the Anbox Cloud service <manage-anbox>` lets you try out
+         the Anbox Cloud Appliance. Anbox Cloud also has a charm-based offering
+         for deployments in production. Find out more in the `official documentation`_.
 
        * **ROS ESM**
 
@@ -170,7 +187,7 @@ that stream specifically on those machines.
            do for your organisation. 
 
          * Or see our guide on
-           :ref:`how to enable the real-time kernel<manage-realtime>`. 
+           :ref:`how to enable the real-time kernel<manage-realtime>`.
 
        Want more information?
        
@@ -185,4 +202,5 @@ that stream specifically on those machines.
 .. _self-hosted: https://ubuntu.com/landscape/pricing
 .. _Landscape SaaS: https://ubuntu.com/landscape/pricing
 .. _more information about real-time Ubuntu: https://ubuntu.com/kernel/real-time/contact-us
+.. _official documentation: https://documentation.ubuntu.com/anbox-cloud/
 
