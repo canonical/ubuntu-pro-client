@@ -124,6 +124,8 @@ def collect_data_object_classes(target_cls, collection, *, ignore=[]):
         cls = field.data_cls
         if cls.__name__ == "_DataList":
             cls = cls.item_cls
+        if cls.__name__ == "_DataDict":
+            cls = cls.dict_value_cls
         if (
             issubclass(cls, data_types.DataObject)
             and cls not in collection

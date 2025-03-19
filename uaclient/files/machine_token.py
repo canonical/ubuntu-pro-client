@@ -244,6 +244,17 @@ class MachineTokenFile:
 
         return None
 
+    @property
+    def only_series(self):
+        only_series = (
+            self.entitlements()
+            .get("support", {})
+            .get("entitlement", {})
+            .get("affordances", {})
+            .get("onlySeries", None)
+        )
+        return only_series
+
 
 def get_machine_token_file(cfg=None) -> MachineTokenFile:
     from uaclient.config import UAConfig

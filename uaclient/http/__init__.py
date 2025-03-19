@@ -1,13 +1,16 @@
+import email.message
+import http.client
 import io
 import json
 import logging
+import lzma
 import os
 import socket
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from urllib import error, request
 from urllib.parse import ParseResult, urlparse
 
-from uaclient import defaults, exceptions, util
+from uaclient import defaults, exceptions, system, util
 
 UA_NO_PROXY_URLS = ("169.254.169.254", "metadata", "[fd00:ec2::254]")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
@@ -22,7 +25,7 @@ UnparsedHTTPResponse = NamedTuple(
     [
         ("code", int),
         ("headers", Dict[str, str]),
-        ("body", str),
+        ("body", bytes),
     ],
 )
 HTTPResponse = NamedTuple(
@@ -160,8 +163,14 @@ def get_configured_web_proxy() -> Dict[str, str]:
     return _global_proxy_dict
 
 
+def _headers_to_dict(headers: email.message.Message) -> Dict[str, str]:
+    # convert EmailMessage header object to dict with lowercase keys
+    return {k.lower(): v for k, v, in headers.items()}
+
+
 def _readurl_urllib(
-    req: request.Request, timeout: Optional[int] = None
+    req: request.Request,
+    timeout: Optional[int] = None,
 ) -> UnparsedHTTPResponse:
     try:
         resp = request.urlopen(req, timeout=timeout)  # nosec B310
@@ -171,14 +180,11 @@ def _readurl_urllib(
         LOG.exception(str(e.reason))
         raise exceptions.ConnectivityError(cause=e, url=req.full_url)
 
-    body = resp.read().decode("utf-8")
-
-    # convert EmailMessage header object to dict with lowercase keys
-    headers = {k.lower(): v for k, v, in resp.headers.items()}
+    body = resp.read()
 
     return UnparsedHTTPResponse(
         code=resp.code,
-        headers=headers,
+        headers=_headers_to_dict(resp.headers),
         body=body,
     )
 
@@ -310,7 +316,7 @@ def _readurl_pycurl_https_in_https(
         )
 
     code = int(c.getinfo(pycurl.RESPONSE_CODE))
-    body = body_output.getvalue().decode("utf-8")
+    body = body_output.getvalue()
 
     c.close()
 
@@ -325,6 +331,70 @@ def _parse_https_proxy(https_proxy) -> Optional[ParseResult]:
     if not https_proxy:
         https_proxy = request.getproxies().get("https")
     return urlparse(https_proxy) if https_proxy else None
+
+
+def _get_overlay_data(cfg, url: str):
+    response_overlay_path = cfg.features.get("serviceclient_url_responses")
+
+    response_overlay = {}  # type: Dict[str, Any]
+    if not response_overlay_path:
+        response_overlay = {}
+    elif not os.path.exists(response_overlay_path):
+        response_overlay = {}
+    else:
+        response_overlay = json.loads(system.load_file(response_overlay_path))
+
+    return response_overlay.get(url, [])
+
+
+def download_xz_file_from_url(
+    cfg, url: str, timeout: Optional[int] = None, etag=None
+) -> Tuple[bytes, str]:
+    overlay_response = _get_overlay_data(cfg, url)
+    if overlay_response:
+        # We only consider the first response for mock xz related requests
+        response = overlay_response.pop(0)
+        with lzma.open(response["response"]["file_path"]) as f:
+            return (f.read(), "")
+
+    if not is_service_url(url):
+        raise exceptions.InvalidUrl(url=url)
+
+    LOG.debug("URL [GET]: {}".format(url))
+
+    https_proxy = get_configured_web_proxy().get("https")
+    headers = {}
+    if etag:
+        headers["If-None-Match"] = etag
+
+    if should_use_pycurl(https_proxy, url):
+        response = _readurl_pycurl_https_in_https(
+            request.Request(url, headers=headers),
+            timeout=timeout,
+            https_proxy=https_proxy,
+        )
+
+        if response.code == 304:
+            raise exceptions.ETagUnchanged(url=url)
+
+        return (
+            lzma.decompress(response.body),  # type: ignore
+            response.headers.get("etag"),
+        )
+    else:
+        req = request.Request(url, headers=headers)
+        try:
+            with request.urlopen(req) as response:
+                with lzma.open(response) as f:
+                    return (
+                        f.read(),
+                        response.headers.get("ETag"),
+                    )
+        except error.HTTPError as e:
+            if e.code == 304:
+                raise exceptions.ETagUnchanged(url=url)
+            else:
+                raise
 
 
 def readurl(
@@ -362,14 +432,18 @@ def readurl(
     else:
         resp = _readurl_urllib(req, timeout=timeout)
 
+    decoded_body = resp.body.decode("utf-8", errors="ignore")
+
     json_dict = {}
     json_list = []
     if "application/json" in resp.headers.get("content-type", ""):
-        json_body = json.loads(resp.body, cls=util.DatetimeAwareJSONDecoder)
+        json_body = json.loads(decoded_body, cls=util.DatetimeAwareJSONDecoder)
         if isinstance(json_body, dict):
             json_dict = json_body
         elif isinstance(json_body, list):
             json_list = json_body
+        else:
+            LOG.warning("unexpected JSON response: %s", str(json_body))
 
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
@@ -390,7 +464,48 @@ def readurl(
     return HTTPResponse(
         code=resp.code,
         headers=resp.headers,
-        body=resp.body,
+        body=decoded_body,
+        json_dict=json_dict,
+        json_list=json_list,
+    )
+
+
+def unix_socket_request(
+    socket_path: str,
+    http_method: str,
+    http_path: str,
+    http_hostname: str = "localhost",
+) -> HTTPResponse:
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect(socket_path)
+
+    conn = http.client.HTTPConnection(http_hostname)
+    conn.sock = sock
+
+    try:
+        conn.request(http_method, http_path)
+        resp = conn.getresponse()
+        # We don't expect to receive non-utf8, but better safe than sorry
+        out = resp.read().decode("utf-8", errors="ignore")
+    finally:
+        conn.close()
+        sock.close()
+
+    json_dict = {}
+    json_list = []
+    if "application/json" in resp.headers.get("content-type", ""):
+        json_body = json.loads(out, cls=util.DatetimeAwareJSONDecoder)
+        if isinstance(json_body, dict):
+            json_dict = json_body
+        elif isinstance(json_body, list):
+            json_list = json_body
+        else:
+            LOG.warning("unexpected JSON response: %s", str(json_body))
+
+    return HTTPResponse(
+        code=resp.status,
+        headers=_headers_to_dict(resp.headers),
+        body=out,
         json_dict=json_dict,
         json_list=json_list,
     )

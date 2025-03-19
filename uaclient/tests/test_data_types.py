@@ -11,12 +11,15 @@ from uaclient.data_types import (
     DatetimeDataValue,
     EnumDataValue,
     Field,
+    FloatDataValue,
+    IncorrectDictElementTypeError,
     IncorrectEnumValueError,
     IncorrectFieldTypeError,
     IncorrectListElementTypeError,
     IncorrectTypeError,
     IntDataValue,
     StringDataValue,
+    data_dict,
     data_list,
 )
 
@@ -55,6 +58,12 @@ class TestDataValues:
         result = IntDataValue.from_value(val)
         assert val == result
         assert isinstance(result, int)
+
+    @pytest.mark.parametrize("val", (1, 1.0, 0.5, -1.1))
+    def test_float_data_value_success(self, val):
+        result = FloatDataValue.from_value(val)
+        assert val == result
+        assert isinstance(result, float)
 
     @pytest.mark.parametrize(
         "val, error",
@@ -308,6 +317,93 @@ class TestDataList:
     def test_error(self, data_cls, val, error):
         with pytest.raises(type(error)) as e:
             data_list(data_cls).from_value(val)
+        assert e.value.msg == error.msg
+
+
+class TestDataDict:
+    @pytest.mark.parametrize(
+        "data_cls, val",
+        (
+            (IntDataValue, {}),
+            (IntDataValue, {"test": 1}),
+            (IntDataValue, {"test": 1, "test2": 5}),
+            (StringDataValue, {"test": "test"}),
+        ),
+    )
+    def test_success(self, data_cls, val):
+        result = data_dict(value_cls=data_cls).from_value(val)
+        assert val == result
+
+    @pytest.mark.parametrize(
+        "data_cls, val, error",
+        (
+            (
+                IntDataValue,
+                "hello",
+                IncorrectTypeError(expected_type="dict", got_type="str"),
+            ),
+            (
+                IntDataValue,
+                1,
+                IncorrectTypeError(expected_type="dict", got_type="int"),
+            ),
+            (
+                IntDataValue,
+                [],
+                IncorrectTypeError(expected_type="dict", got_type="list"),
+            ),
+            (
+                IntDataValue,
+                {"test": "one"},
+                IncorrectDictElementTypeError(
+                    err=IncorrectTypeError(
+                        expected_type="int", got_type="str"
+                    ),
+                    key="test",
+                    value="one",
+                ),
+            ),
+            (
+                IntDataValue,
+                {"test1": 1, "test2": 2, "test3": 3, "test4": []},
+                IncorrectDictElementTypeError(
+                    err=IncorrectTypeError(
+                        expected_type="int", got_type="list"
+                    ),
+                    key="test4",
+                    value=[],
+                ),
+            ),
+            (
+                StringDataValue,
+                {1: "one"},
+                IncorrectDictElementTypeError(
+                    err=IncorrectTypeError(
+                        expected_type="str", got_type="int"
+                    ),
+                    key=1,
+                    value="one",
+                ),
+            ),
+            (
+                data_list(StringDataValue),
+                {"test": ["one", "two"], "test2": ["four", 5]},
+                IncorrectDictElementTypeError(
+                    err=IncorrectListElementTypeError(
+                        err=IncorrectTypeError(
+                            expected_type="str", got_type="int"
+                        ),
+                        at_index=1,
+                    ),
+                    key="test2",
+                    value=["four", 5],
+                ),
+            ),
+        ),
+    )
+    def test_error(self, data_cls, val, error):
+        with pytest.raises(type(error)) as e:
+            data_dict(value_cls=data_cls).from_value(val)
         assert e.value.msg == error.msg
 
 

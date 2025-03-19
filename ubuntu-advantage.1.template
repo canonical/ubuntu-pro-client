@@ -1,0 +1,255 @@
+.TH "UBUNTU-PRO" "1" "21 February 2020" "Canonical Ltd." "Ubuntu Pro"
+
+
+.SH NAME
+pro \- Manage Ubuntu Pro services from Canonical
+
+
+.SH SYNOPSIS
+.BR "pro" " [-h] [--debug] [--version] <command> ..."
+
+
+.SH DESCRIPTION
+Ubuntu Pro is a collection of services offered by Canonical to
+Ubuntu users. The Ubuntu Pro command line tool is used to attach
+a system to an Ubuntu Pro contract to then enable and disable
+services from Canonical. The available commands and services are
+described in more detail below.
+
+
+.SH OPTIONS
+.TP
+.BR "-h, --help"
+Show help for pro or for the specified pro command.
+
+.TP
+.BR "--debug"
+Redirect all the debugging logs to the console.
+
+.TP
+.BR "--version"
+Show the Pro Client version and exit.
+
+
+.SH COMMANDS
+<<commands_description>>
+
+
+.SH SERVICES
+.TP
+.B "Anbox Cloud (anbox-cloud)"
+Anbox Cloud lets you stream mobile apps securely, at any scale, to any device,
+letting you focus on your apps. Run Android in system containers on public or
+private clouds with ultra low streaming latency. When the anbox-cloud service
+is enabled, by default, the Appliance variant is enabled. Enabling this service
+allows orchestration to provision a PPA with the Anbox Cloud resources. This
+step also configures the Anbox Management Service (AMS) with the necessary
+image server credentials.
+
+To learn more about Anbox Cloud, see https://anbox-cloud.io
+
+.TP
+.B "Common Criteria EAL2 Provisioning (cc-eal)"
+Common Criteria is an Information Technology Security Evaluation standard
+(ISO/IEC IS 15408) for computer security certification. Ubuntu 16.04 has been
+evaluated to assurance level EAL2 through CSEC. The evaluation was performed
+on Intel x86_64, IBM Power8 and IBM Z hardware platforms.
+
+.TP
+.B "CIS Audit (cis)/Ubuntu Security Guide (usg)"
+Ubuntu Security Guide is a tool for hardening and auditing, allowing for
+environment-specific customizations. It enables compliance with profiles such
+as DISA-STIG and the CIS benchmarks.
+
+Find out more at https://ubuntu.com/security/certifications/docs/usg
+
+.TP
+.B "Expanded Security Maintenance for Infrastructure (esm-infra)"
+Expanded Security Maintenance for Infrastructure provides access to a private
+PPA which includes available high and critical CVE fixes for Ubuntu LTS
+packages in the Ubuntu Main repository between the end of the standard Ubuntu
+LTS security maintenance and its end of life. It is enabled by default with
+Ubuntu Pro.
+
+You can find out more about the service at https://ubuntu.com/security/esm
+
+.TP
+.B "Expanded Security Maintenance for Applications (esm-apps)"
+Expanded Security Maintenance for Applications is enabled by default on
+entitled workloads. It provides access to a private PPA which includes
+available high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu
+Main and Ubuntu Universe repositories from the Ubuntu LTS release date until
+its end of life.
+
+You can find out more about the esm service at https://ubuntu.com/security/esm
+
+.TP
+.B "FIPS 140-2 certified modules (fips)"
+Installs FIPS 140 crypto packages for FedRAMP, FISMA and compliance use cases.
+Note that "fips" does not provide security patching. For FIPS certified
+modules with security patches please see "fips-updates". If you are unsure,
+choose "fips-updates" for maximum security.
+
+Find out more at https://ubuntu.com/security/fips
+
+
+.TP
+.B "FIPS 140-2 certified modules with updates (fips-updates)"
+fips-updates installs FIPS 140 crypto packages including all security patches
+for those modules that have been provided since their certification date.
+
+You can find out more at https://ubuntu.com/security/fips
+
+.TP
+.B "Landscape (landscape)"
+Landscape Client can be installed on this machine and enrolled in Canonical's
+Landscape SaaS: https://landscape.canonical.com or a self-hosted Landscape:
+https://ubuntu.com/landscape/install
+
+Landscape allows you to manage many machines as easily as one, with an
+intuitive dashboard and API interface for automation, hardening, auditing, and
+more.
+
+Find out more about Landscape at https://ubuntu.com/landscape
+
+.TP
+.B "Livepatch Service (livepatch)"
+Livepatch provides selected high and critical kernel CVE fixes and other
+non-security bug fixes as kernel livepatches. Livepatches are applied without
+rebooting a machine which drastically limits the need for unscheduled system
+reboots. Due to the nature of fips compliance, livepatches cannot be enabled
+on fips-enabled systems.
+
+You can find out more about Ubuntu Kernel Livepatch service at https://ubuntu.com/security/livepatch
+
+.TP
+.B "ROS ESM Security Updates (ros)"
+ros provides access to a private PPA which includes security-related updates
+for available high and critical CVE fixes for Robot Operating System (ROS)
+packages. For access to ROS ESM and security updates, both esm-infra and
+esm-apps services will also be enabled. To get additional non-security updates,
+enable ros-updates.
+
+You can find out more about the ROS ESM service at https://ubuntu.com/robotics/ros-esm
+
+
+.TP
+.B "ROS ESM All Updates (ros-updates)"
+ros-updates provides access to a private PPA that includes non-security-related
+updates for Robot Operating System (ROS) packages. For full access to ROS ESM,
+security and non-security updates, the esm-infra, esm-apps, and ros services
+will also be enabled.
+
+You can find out more about the ROS ESM service at https://ubuntu.com/robotics/ros-esm
+
+
+.SH CONFIGURATION SETTINGS
+.TP
+.BR "http_proxy"
+If set, pro will use the specified http proxy when making any http requests
+
+.TP
+.BR "https_proxy"
+If set, pro will use the specified https proxy when making any https requests
+
+.TP
+.BR "apt_http_proxy" " [DEPRECATED]"
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_http_proxy\fP)
+
+.TP
+.BR "apt_https_proxy" " [DEPRECATED]"
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. (Please use \fBglobal_apt_https_proxy\fP)
+
+.TP
+.BR "global_apt_http_proxy"
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "global_apt_https_proxy"
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. Set this if you
+prefer a global proxy for all resources, not just the ones from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "ua_apt_http_proxy"
+If set, pro will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "ua_apt_https_proxy"
+If set, pro will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy. This proxy is limited
+to accessing resources from \fIesm.ubuntu.com\fB
+
+.TP
+.BR "<job_name>_timer"
+Sets the timer running interval for a specific job. Those intervals are checked
+every time the systemd timer runs.
+
+.TP
+.BR "apt_news"
+If set to false, the Pro client will no longer display apt news messages on the output
+of apt upgrade.
+
+.TP
+.BR "apt_news_url"
+Sets the url where the Pro client will consume apt news information from.
+
+.P
+If needed, authentication to the proxy server can be performed by setting
+username and password in the URL itself, as in:
+.nf
+.fam C
+  http_proxy: http://<username>:<password>@<fqdn>:<port>
+.fam T
+.fi
+
+
+.SH PRO UPGRADE DAEMON
+Ubuntu Pro client sets up a daemon on supported platforms (currently on Azure and GCP) to
+detect if an Ubuntu Pro license is purchased for the machine. If an Ubuntu Pro license
+is detected, then the machine is automatically attached.
+If you are uninterested in Ubuntu Pro services, you can safely stop and disable the
+daemon using systemctl:
+
+sudo systemctl stop ubuntu-advantage.service
+sudo systemctl disable ubuntu-advantage.service
+
+.SH TIMER JOBS
+Ubuntu Pro client sets up a systemd timer to run jobs that need to be executed
+recurrently. The timer itself ticks every 5 minutes on average, and decides
+which jobs need to be executed based on their intervals.
+
+Jobs are executed by the timer script if the script has not yet run
+successfully, or their interval since last successful run is already exceeded.
+There is a random delay applied to the timer, to desynchronize job execution
+time on machines spinned at the same time, avoiding multiple synchronized
+calls to the same service.
+
+Current jobs being checked and executed are:
+.TP
+.B
+\fBupdate_messaging\fP
+Makes sure that the MOTD and APT messages match the available/enabled services
+on the system, showing information about available packages or security
+updates.
+
+.TP
+.B
+\fBmetering\fP
+If attached, this job will ping the Canonical servers telling
+which services are enabled on the machine.
+
+
+.SH REPORTING BUGS
+Please report bugs either by running `ubuntu-bug ubuntu-advantage-tools` or
+login to Launchpad and navigate to
+https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
+
+.SH COPYRIGHT
+Copyright (C) 2019-2025 Canonical Ltd.
