@@ -3,6 +3,7 @@ ubuntu-advantage-tools (35) plucky; urgency=medium
   * d/tests/usage: add more scenarios to dep8 tests
   * d/control: drop strict dependency on python3-pkg-resources (LP: #2083665)
   * d/rules: add conditional python3-pkg-resources dependency up to noble
+  * d/ubuntu-pro-client.postrm: remove /var/lib/ubuntu-pro cache dir on purge
   * New upstream release 35: (LP: #2083973)
     - api:
       + new endpoints:
