@@ -1,4 +1,5 @@
 import logging
+import sys
 import tarfile
 import tempfile
 
@@ -17,11 +18,21 @@ def action_collect_logs(args, *, cfg, **kwargs):
     with tempfile.TemporaryDirectory() as output_dir:
         collect_logs(cfg, output_dir)
         try:
-            with tarfile.open(output_file, "w:gz") as results:
+            with tarfile.open(output_file, "x:gz") as results:
                 results.add(output_dir, arcname="logs/")
         except PermissionError as e:
             LOG.error(e)
             return 1
+        except FileExistsError as e:
+            LOG.error(e)
+            print(
+                messages.E_FILE_ALREADY_EXISTS.format(
+                    filename=output_file,
+                ),
+                file=sys.stderr,
+            )
+            return 1
+
     return 0
 
 
