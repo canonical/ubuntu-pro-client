@@ -1,10 +1,10 @@
 $(document).ready(function() {
     $(document).on("click", function () {
-        $(".more-links-dropdown").hide();
+        $(".pro-services-dropdown").hide();
     });
 
-    $('.nav-more-links').click(function(event) {
-        $('.more-links-dropdown').toggle();
+    $('.nav-pro-services').click(function(event) {
+        $('.pro-services-dropdown').toggle();
         event.stopPropagation();
     });
 })
