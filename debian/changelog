@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (35~18.04) bionic; urgency=medium
+
+  * Backport 35 to bionic (LP: #2083973)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Fri, 21 Mar 2025 11:08:54 -0300
+
 ubuntu-advantage-tools (35) plucky; urgency=medium
 
   * d/tests/usage: add more scenarios to dep8 tests
