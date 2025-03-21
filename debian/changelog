@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (35~24.04) noble; urgency=medium
+
+  * Backport 35 to noble (LP: #2083973)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Fri, 21 Mar 2025 11:09:03 -0300
+
 ubuntu-advantage-tools (35) plucky; urgency=medium
 
   * d/tests/usage: add more scenarios to dep8 tests
