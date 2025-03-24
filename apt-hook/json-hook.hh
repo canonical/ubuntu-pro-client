@@ -13,12 +13,18 @@ struct security_package_counts {
     long unsigned int esm_infra;
     long unsigned int esm_apps;
 };
+struct release_info {
+    std::string release; // e.g. "24.04"
+    std::string series;  // e.g. "noble"
+    bool is_lts;         // true for LTS releases
+};
 
 enum ESMType {APPS, INFRA};
 
 bool read_jsonrpc_request(std::istream &in, jsonrpc_request &req);
+release_info get_release_info();
 bool string_ends_with(std::string str, std::string ends_with);
 bool version_from_origin_and_archive_ends_with(json_object *version, std::string from_origin, std::string archive_ends_with);
 bool count_security_packages_from_apt_stats_json(json_object *stats, security_package_counts &result);
-std::string create_count_message(security_package_counts &counts);
+std::string create_count_message(security_package_counts &counts, release_info info);
 int run();
