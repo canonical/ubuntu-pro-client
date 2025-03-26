@@ -270,28 +270,29 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | jammy   | azure.generic |
       | noble   | azure.generic |
 
-  # Not available yet - uncomment when oracular is in the clouds
-  # @uses.config.contract_token
-  # Scenario Outline: daemon does not start on gcp,azure generic non lts
-  # Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-  # When I wait `1` seconds
-  # When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
-  # Then stdout contains substring:
-  # """
-  # daemon starting
-  # """
-  # Then stdout contains substring:
-  # """
-  # Not on LTS, shutting down
-  # """
-  # Then stdout contains substring:
-  # """
-  # daemon ending
-  # """
-  # Examples: version
-  # | release  | machine_type  |
-  # | oracular | azure.generic |
-  # | oracular | gcp.generic   |
+  @uses.config.contract_token
+  Scenario Outline: daemon does not start on gcp,azure generic non lts
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I wait `1` seconds
+    When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
+    Then stdout contains substring:
+      """
+      daemon starting
+      """
+    Then stdout contains substring:
+      """
+      Not on LTS, shutting down
+      """
+    Then stdout contains substring:
+      """
+      daemon ending
+      """
+
+    Examples: version
+      | release  | machine_type  |
+      | oracular | azure.generic |
+      | oracular | gcp.generic   |
+
   @uses.config.contract_token
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -312,14 +313,14 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type |
-      | xenial  | aws.generic  |
-      | bionic  | aws.generic  |
-      | focal   | aws.generic  |
-      | jammy   | aws.generic  |
-      | noble   | aws.generic  |
+      | release  | machine_type |
+      | xenial   | aws.generic  |
+      | bionic   | aws.generic  |
+      | focal    | aws.generic  |
+      | jammy    | aws.generic  |
+      | noble    | aws.generic  |
+      | oracular | aws.generic  |
 
-  # | oracular | aws.generic   | - not there yet
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:

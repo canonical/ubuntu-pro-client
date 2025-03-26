@@ -1149,14 +1149,422 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | wrong_release | package         | installed_version |
-      | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
-      | bionic  | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
-      | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
-      | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
-      # No -updates/-security version for oracular before release
-      # | oracular | lxd-container | jammy         | libcurl4t64     | 8.8.0-3ubuntu3    |
-      | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
+      | release  | machine_type  | wrong_release | package         | installed_version |
+      | xenial   | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
+      | bionic   | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
+      | focal    | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
+      | jammy    | lxd-container | focal         | libcurl4        | 7.81.0-1          |
+      | noble    | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
+
+  @uses.config.contract_token
+  Scenario Outline: APT news selectors
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I remove support for `backports` in APT
+    When I attach `contract_token` with sudo
+    When I apt upgrade including phased updates
+    When I apt autoremove
+    When I apt install `jq`
+    When I run `pro detach --assume-yes` with sudo
+    # We are doing this because ESM pin might prevent some packages to be upgraded (i.e.
+    # distro-info-data)
+    When I apt upgrade
+    Given a `jammy` `<machine_type>` machine named `apt-news-server`
+    When I apt install `nginx` on the `apt-news-server` machine
+    When I run `sed -i "s/gzip on;/gzip on;\n\tgzip_min_length 1;\n\tgzip_types application\/json;\n/" /etc/nginx/nginx.conf` `with sudo` on the `apt-news-server` machine
+    When I run `systemctl restart nginx` `with sudo` on the `apt-news-server` machine
+    When I run `pro config set apt_news_url=http://$behave_var{machine-ip apt-news-server}/aptnews.json` with sudo
+    # Testing codename selector
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<wrong_release>"],
+            },
+            "lines": [
+              "one"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    When I apt upgrade
+    Then I will see the following on stdout
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    When I apt upgrade
+    Then I will see the following on stdout
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      # two
+      #
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    # Testing architectures selector
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "architectures": ["amd64"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    When I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      # two
+      #
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "architectures": ["arm64"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    When I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "architectures": ["arm64", "amd64"]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    When I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      #
+      # one
+      # two
+      #
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    # Testing packages selector when package is not installed
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"],
+              "architectures": ["amd64"],
+              "packages": [["libcurl4", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    And I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
+      """
+    # Testing package selector when package installed
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "packages": [["<package>", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I apt install `<package>=<installed_version>`
+    And I run `apt-mark hold <package>` with sudo
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "packages": [["<package>", "<", "9.0.0"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"],
+              "architectures": ["amd64"],
+              "packages": [["<package>", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    # Still displayed if one package selector fails
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "packages": [
+                  ["<package>", "==", "<installed_version>"],
+                  ["linux", "<", "1"]
+              ]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    When I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    When I run `systemctl start apt-news.service` with sudo
+    When I wait `5` seconds
+    And I apt upgrade
+    Then stdout contains substring:
+      """
+      #
+      # one
+      # two
+      #
+      """
+    # Testing multiple selectors together
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<wrong_release>"],
+              "architectures": ["arm64"],
+              "packages": [["<package>", "==", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    And I run `systemctl start apt-news.service` with sudo
+    And I wait `5` seconds
+    And I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      Not upgrading:
+        <package>
+
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 1
+      """
+    When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
+      """
+      {
+        "messages": [
+          {
+            "begin": "$behave_var{today}",
+            "selectors": {
+              "codenames": ["<release>"],
+              "architectures": ["amd64"],
+              "packages": [["<package>", ">", "<installed_version>"]]
+            },
+            "lines": [
+              "one",
+              "two"
+            ]
+          }
+        ]
+      }
+      """
+    And I run `rm -rf /var/lib/apt/periodic/update-success-stamp` with sudo
+    And I run `systemctl start apt-news.service` with sudo
+    And I wait `5` seconds
+    And I apt upgrade
+    Then I will see the following on stdout:
+      """
+      Reading package lists...
+      Building dependency tree...
+      Reading state information...
+      Calculating upgrade...
+      Not upgrading:
+        <package>
+
+      Summary:
+        Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 1
+      """
+
+    Examples: ubuntu release
+      | release  | machine_type  | wrong_release | package         | installed_version |
+      | oracular | lxd-container | jammy         | libcurl4t64     | 8.9.1-2ubuntu2    |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1167,12 +1575,13 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | oracular | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
