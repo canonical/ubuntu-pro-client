@@ -492,12 +492,13 @@ Feature: Pro Client help text
       """
 
     Examples: ubuntu release
-      | release | machine_type  | options_string     |
-      | xenial  | lxd-container | optional arguments |
-      | bionic  | lxd-container | optional arguments |
-      | focal   | lxd-container | optional arguments |
-      | jammy   | lxd-container | options            |
-      | noble   | lxd-container | options            |
+      | release  | machine_type  | options_string     |
+      | xenial   | lxd-container | optional arguments |
+      | bionic   | lxd-container | optional arguments |
+      | focal    | lxd-container | optional arguments |
+      | jammy    | lxd-container | options            |
+      | noble    | lxd-container | options            |
+      | oracular | lxd-container | options            |
 
   Scenario Outline: Help command on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
