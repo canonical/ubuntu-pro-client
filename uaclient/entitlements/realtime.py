@@ -173,6 +173,14 @@ class GenericRealtime(RealtimeVariant):
         return messaging
 
 
+class GenericHWERealtime(GenericRealtime):
+    variant_name = "generic-hwe"
+    title = messages.REALTIME_GENERIC_HWE_TITLE
+    description = messages.REALTIME_GENERIC_HWE_DESCRIPTION
+    is_variant = True
+    check_packages_are_installed = True
+
+
 class NvidiaTegraRealtime(RealtimeVariant):
     variant_name = "nvidia-tegra"
     title = messages.REALTIME_NVIDIA_TITLE
