@@ -367,7 +367,7 @@ Feature: Pro Client help text
       """
       usage: pro system [-h] {reboot-required} ...
 
-      Outputs system-related information about Pro services.
+      Output system-related information about Pro services.
 
       <options_string>:
         -h, --help         show this help message and exit
@@ -529,7 +529,7 @@ Feature: Pro Client help text
       {
         "name": "esm-infra",
         "entitled": "yes",
-        "status": "enabled",
+        "status": "<infra-status>",
         "help": "Expanded Security Maintenance for Infrastructure provides access to a private\nPPA which includes available high and critical CVE fixes for Ubuntu LTS\npackages in the Ubuntu Main repository between the end of the standard Ubuntu\nLTS security maintenance and its end of life. It is enabled by default with\nUbuntu Pro. You can find out more about the service at\nhttps://ubuntu.com/security/esm"
       }
       """
