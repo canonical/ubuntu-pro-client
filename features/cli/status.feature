@@ -442,6 +442,7 @@ Feature: CLI status command
       esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
       landscape       +yes      +disabled +Management and administration tool for Ubuntu
+      usg             +yes      +disabled +Security compliance and audit tools
 
       For a list of all Ubuntu Pro services, run 'pro status --all'
       Enable services with: pro enable <service>
@@ -466,7 +467,7 @@ Feature: CLI status command
       └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       ros             +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-      usg             +yes      +n/a      +Security compliance and audit tools
+      usg             +yes      +disabled +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
@@ -774,6 +775,7 @@ Feature: CLI status command
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
       realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
+      usg             +yes       +Security compliance and audit tools
 
       For a list of all Ubuntu Pro services, run 'pro status --all'
 
@@ -797,7 +799,7 @@ Feature: CLI status command
       realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
       ros             +no        +Security Updates for the Robot Operating System
       ros-updates     +no        +All Updates for the Robot Operating System
-      usg             +no        +Security compliance and audit tools
+      usg             +yes       +Security compliance and audit tools
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
@@ -818,6 +820,7 @@ Feature: CLI status command
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
       realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
+      usg             +yes       +Security compliance and audit tools
 
       FEATURES
       allow_beta: True
@@ -965,6 +968,7 @@ Feature: CLI status command
       landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
       livepatch       +yes       +yes       +yes          +Canonical Livepatch service
       realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      usg             +yes       +yes       +no           +Security compliance and audit tools
       """
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
@@ -982,7 +986,7 @@ Feature: CLI status command
       realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
       ros             +no        +yes       +no           +Security Updates for the Robot Operating System
       ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
-      usg             +no        +yes       +no           +Security compliance and audit tools
+      usg             +yes       +yes       +no           +Security compliance and audit tools
       """
 
     Examples: ubuntu release
