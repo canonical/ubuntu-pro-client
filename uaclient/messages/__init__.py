@@ -1297,14 +1297,15 @@ ANBOX_RUN_INIT_CMD = t.gettext(
 To finish setting up the Anbox Cloud Appliance, run the following commands
 sequentially:
 
-The `prepare-node-script` command lets you preview a script that installs some additional packages,
-kernel modules and GPU driver packages, if a GPU is available:
+The `prepare-node-script` command lets you preview a script that installs some
+additional packages, kernel modules and GPU driver packages, if a GPU is
+available:
 
-$ anbox-cloud-appliance prepare-node-script
+$ anbox-cloud-appliance prepare-node-script > prepare.sh
 
-Once you have previewed the script, apply it to complete the installation:
+Preview the script and when ready, apply it to complete the installation:
 
-$ anbox-cloud-appliance prepare-node-script | sudo bash -ex
+$ sudo bash -ex prepare.sh
 
 Once installed, to initialise Anbox Cloud, run:
 
