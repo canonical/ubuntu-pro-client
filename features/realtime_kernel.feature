@@ -146,13 +146,10 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       """
       {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "generic"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
       """
-    When I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y\ny\ny`
-    Then stdout contains substring:
-      """
-      Real-time Intel IOTG Kernel cannot be enabled with Real-time kernel.
-      Disable Real-time kernel and proceed to enable Real-time Intel IOTG Kernel? (y/N)
-      """
-    When I run `apt-cache policy ubuntu-intel-iot-realtime` as non-root
+    # The kernel version of generic is now higher than the intel one, so we need to uninstall it
+    When I run `DEBIAN_FRONTEND=noninteractive apt -y remove --purge linux*realtime` with sudo
+    And I run `pro enable realtime-kernel --variant intel-iotg` `with sudo` and stdin `y`
+    And I run `apt-cache policy ubuntu-intel-iot-realtime` as non-root
     Then stdout does not match regexp:
       """
       Installed: \(none\)
