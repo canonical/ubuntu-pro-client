@@ -86,4 +86,4 @@ To also purge the service, removing all the APT packages installed with it, see
 .. LINKS
 
 .. include:: ../links.txt
-.. _Anbox Cloud requirements page: https://documentation.ubuntu.com/anbox-cloud/en/latest/reference/requirements/#ubuntu-version
+.. _Anbox Cloud requirements page: https://documentation.ubuntu.com/anbox-cloud/en/latest/reference/requirements

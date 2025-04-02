@@ -75,38 +75,6 @@ myst_heading_anchors = 3
 
 html_theme = "furo"
 # html_logo = "_static/circle_of_friends.png"
-html_theme_options = {
-    "light_css_variables": {
-        "color-sidebar-background-border": "none",
-        "font-stack": "Ubuntu, -apple-system, Segoe UI, Roboto, Oxygen, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif",
-        "font-stack--monospace": "Ubuntu Mono variable, Ubuntu Mono, Consolas, Monaco, Courier, monospace",
-        "color-foreground-primary": "#111",
-        "color-foreground-secondary": "var(--color-foreground-primary)",
-        "color-foreground-muted": "#333",
-        "color-background-secondary": "#FFF",
-        "color-background-hover": "#f2f2f2",
-        "color-brand-primary": "#111",
-        "color-brand-content": "#06C",
-        "color-inline-code-background": "rgba(0,0,0,.03)",
-        "color-sidebar-link-text": "#111",
-        "color-sidebar-item-background--current": "#ebebeb",
-        "color-sidebar-item-background--hover": "#f2f2f2",
-        "sidebar-item-line-height": "1.3rem",
-        "color-link-underline": "var(--color-background-primary)",
-        "color-link-underline--hover": "var(--color-background-primary)",
-    },
-    "dark_css_variables": {
-        "color-foreground-secondary": "var(--color-foreground-primary)",
-        "color-foreground-muted": "#CDCDCD",
-        "color-background-secondary": "var(--color-background-primary)",
-        "color-background-hover": "#666",
-        "color-brand-primary": "#fff",
-        "color-brand-content": "#06C",
-        "color-sidebar-link-text": "#f7f7f7",
-        "color-sidebar-item-background--current": "#666",
-        "color-sidebar-item-background--hover": "#333",
-    },
-}
 html_context = {
     "product_page": "ubuntu.com/pro",
     "product_tag": "_static/circle_of_friends.png",
