@@ -379,7 +379,10 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
     When I apt remove `ubuntu-advantage-tools ubuntu-pro-client`
     When I run `cloud-init clean --logs` with sudo
+    When I run `systemctl mask cloud-config.service` with sudo
     When I reboot the machine
+    When I run `systemctl unmask cloud-config.service` with sudo
+    When I run `systemctl enable --now cloud-config.service` with sudo
     When I run `journalctl -b -o cat -u ubuntu-advantage.service` with sudo
     Then stdout contains substring:
       """
