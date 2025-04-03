@@ -46,9 +46,8 @@ Mirror deb repositories with Landscape
 Landscape is a management tool that can host a mirror of Ubuntu deb
 repositories. It can be used in both kinds of airgapped environments.
 
-In future release cycles, Landscape will also include specific features to
-support airgapped use-cases. You can keep up to date with these developments in
-the `Landscape Beta Discourse`_.
+For more information, see Landscape's documentation on how to 
+`install Landscape`_ and `manage repositories`_ in an airgapped environment.
 
 Mirror snaps with Snap store proxy
 ----------------------------------
@@ -74,7 +73,8 @@ server, which retrieves patch updates from Canonical. This provides you with
 greater control over when those patches roll out across your infrastructure. 
 
 .. _Customer Support teams: https://ubuntu.com/support
-.. _Landscape Beta Discourse: https://discourse.ubuntu.com/c/landscape/landscape-beta/115
+.. _install Landscape: https://ubuntu.com/landscape/docs/how-to-install-landscape-in-an-air-gapped-or-offline-environment
+.. _manage repositories: https://ubuntu.com/landscape/docs/how-to-manage-repositories-in-an-air-gapped-or-offline-environment
 .. _Snap-store-proxy: https://snapcraft.io/snap-store-proxy
 .. _Livepatch on-prem: https://ubuntu.com/security/livepatch/docs/livepatch_on_prem
 .. _operate in offline mode: https://docs.ubuntu.com/snap-store-proxy/en/airgap
