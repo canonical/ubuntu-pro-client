@@ -10,7 +10,6 @@ remove_apt_auth(){
 
 remove_cache_dir(){
     rm -rf /var/lib/ubuntu-advantage
-    rm -rf /var/lib/ubuntu-pro
 }
 
 remove_logs(){
