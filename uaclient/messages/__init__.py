@@ -1294,7 +1294,20 @@ image server credentials. To learn more about Anbox Cloud, see
 ).format(url=urls.ANBOX_HOME_PAGE)
 ANBOX_RUN_INIT_CMD = t.gettext(
     """\
-To finish setting up the Anbox Cloud Appliance, run:
+To finish setting up the Anbox Cloud Appliance, run the following commands
+sequentially:
+
+The `prepare-node-script` command lets you preview a script that installs some
+additional packages, kernel modules and GPU driver packages, if a GPU is
+available:
+
+$ anbox-cloud-appliance prepare-node-script > prepare.sh
+
+Preview the script and when ready, apply it to complete the installation:
+
+$ sudo bash -ex prepare.sh
+
+Once installed, to initialise Anbox Cloud, run:
 
 $ sudo anbox-cloud-appliance init
 
