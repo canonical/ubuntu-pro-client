@@ -149,7 +149,7 @@ Feature: FIPS enablement in lxd VMs
       """
     And if `<release>` in `jammy` and stdout contains substring:
       """
-      Installing libcharon-extauth-plugins libstrongswan libstrongswan-standard-plugins openssh-client openssh-server openssh-sftp-server strongswan strongswan-charon strongswan-libcharon strongswan-starter
+      Installing libcharon-extauth-plugins libstrongswan libstrongswan-standard-plugins openssh-client openssh-server openssh-sftp-server openssl-fips-module-3 strongswan strongswan-charon strongswan-libcharon strongswan-starter
       """
     And stdout contains substring:
       """

@@ -194,7 +194,7 @@ def when_i_ensure_proposed_not_enabled(context, machine_name=SUT):
     if context.pro_config.install_from is InstallationSource.PROPOSED:
         when_i_run_command(
             context,
-            "rm /etc/apt/sources.list.d/uaclient-proposed.list",
+            "rm -f /etc/apt/sources.list.d/proposed.list",
             "with sudo",
             machine_name=machine_name,
         )

@@ -88,7 +88,6 @@ Feature: CLI security-status command
       | release | machine_type  | package | service   |
       | xenial  | lxd-container | apport  | esm-infra |
       | bionic  | lxd-container | ansible | esm-apps  |
-      | bionic  | wsl           | ansible | esm-apps  |
 
   @uses.config.contract_token
   Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine

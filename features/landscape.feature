@@ -102,9 +102,9 @@ Feature: Enable landscape on Ubuntu
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      # | oracular | lxd-container | - not yet in the backend
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | oracular | lxd-container |
+      | noble    | lxd-container |
 
   Scenario Outline: Enable Landscape interactively
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -177,9 +177,9 @@ Feature: Enable landscape on Ubuntu
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      # | oracular | lxd-container | - not yet in the backend
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | oracular | lxd-container |
+      | noble    | lxd-container |
 
   Scenario Outline: Easily re-enable Landscape non-interactively after a disable
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -264,9 +264,9 @@ Feature: Enable landscape on Ubuntu
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      # | oracular | lxd-container | - not yet in the backend
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | oracular | lxd-container |
+      | noble    | lxd-container |
 
   Scenario Outline: Detaching/reattaching on an unsupported release does not affect landscape
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

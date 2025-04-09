@@ -943,4 +943,31 @@ Feature: Ua fix command behaviour
       | release | machine_type  |
       | bionic  | lxd-container |
       | bionic  | lxd-vm        |
+
+  Scenario Outline: Fix command on a machine without security/updates source lists
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `sed -i "/bionic-updates/d" /etc/apt/sources.list` with sudo
+    And I run `sed -i "/bionic-security/d" /etc/apt/sources.list` with sudo
+    And I apt update
+    And I run `wget -O pkg.deb https://launchpad.net/ubuntu/+source/openssl/1.1.1-1ubuntu2.1~18.04.14/+build/22454675/+files/openssl_1.1.1-1ubuntu2.1~18.04.14_amd64.deb` as non-root
+    And I run `dpkg -i pkg.deb` with sudo
+    And I verify that running `pro fix CVE-2023-0286` `as non-root` exits `1`
+    Then stdout matches regexp:
+      """
+      CVE-2023-0286: OpenSSL vulnerabilities
+       - https://ubuntu.com/security/CVE-2023-0286
+
+      2 affected source packages are installed: openssl, openssl1.0
+      \(1/2, 2/2\) openssl, openssl1.0:
+      A fix is available in Ubuntu standard updates.
+      - Cannot install package libssl1.1 version 1.1.1-1ubuntu2.1~18.04.21
+      - Cannot install package openssl version 1.1.1-1ubuntu2.1~18.04.21
+      - Cannot install package libssl1.0.0 version 1.0.2n-1ubuntu5.11
+
+      2 packages are still affected: openssl, openssl1.0
+      .*✘.* CVE-2023-0286 is not resolved.
+      """
+
+    Examples: ubuntu release details
+      | release | machine_type  |
       | bionic  | wsl           |
