@@ -173,13 +173,24 @@ def attach_with_token(
         .get("affordances", {})
         .get("onlySeries", None)
     )
+
+    # Only series is now meant to be allowed on the specified release
+    # and all previous releases
     if only_series:
-        allowed_release = system.get_distro_info(only_series)
-        if only_series != current_series:
-            raise exceptions.AttachFailureRestrictedRelease(
-                release=allowed_release.release,
-                series_codename=allowed_release.series_codename,
-            )
+        try:
+            allowed_release = system.get_distro_info(only_series)
+        except exceptions.MissingSeriesInDistroInfoFile:
+            # If onlySeries is not present on the distro-info CSV
+            # we consider that it is newer than the current release
+            pass
+        else:
+            current_release = system.get_distro_info(current_series)
+            if current_release.eol > allowed_release.eol:
+                raise exceptions.AttachFailureRestrictedRelease(
+                    release=allowed_release.release,
+                    series_codename=allowed_release.series_codename,
+                )
+
         notices.add(
             notices.Notice.LIMITED_TO_RELEASE,
             release=allowed_release.release,

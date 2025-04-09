@@ -84,7 +84,7 @@ RELEASE_UPGRADE_SUCCESS = t.gettext(
 
 PRO_ONLY_ALLOWED_FOR_RELEASE = t.gettext(
     "Detaching Ubuntu Pro. Previously attached subscription \
-was only valid for Ubuntu {release} ({series_codename}) release."
+was only valid for releases prior to Ubuntu {release} ({series_codename})."
 )
 
 MISSING_YAML_MODULE = t.gettext(
@@ -315,7 +315,7 @@ And provide the following code: {bold}{{user_code}}{end_bold}"""
 CLI_MAGIC_ATTACH_PROCESSING = t.gettext("Attaching the machine...")
 
 LIMITED_TO_RELEASE = t.gettext(
-    "Limited to release: Ubuntu {release} ({series_codename})."
+    "Limited to Ubuntu {release} ({series_codename}) and previous releases."
 )
 
 # DETACH
@@ -1718,7 +1718,7 @@ ATTACH_FAILURE_RESTRICTED_RELEASE = FormattedNamedMessage(
     "attach-failure-restricted-release",
     t.gettext(
         "Attach failed. Attaching to this contract \
-is only allowed on the Ubuntu {release} ({series_codename}) release."
+is only allowed on the Ubuntu {release} ({series_codename}) and previous releases."  # noqa
     ),
 )
 
