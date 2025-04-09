@@ -1,3 +1,12 @@
+ubuntu-advantage-tools (35.1ubuntu0) plucky; urgency=medium
+
+  * apt: support ESM snapshots by adding snapshot URLs for ESM repositories
+    to the authentication file (released in version 35)
+  * lxd: store the configuration in /var/lib/ubuntu-advantage instead of
+    /var/lib/ubuntu-pro (LP: #2106660)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Wed, 09 Apr 2025 13:19:50 -0300
+
 ubuntu-advantage-tools (35) plucky; urgency=medium
 
   * d/tests/usage: add more scenarios to dep8 tests
