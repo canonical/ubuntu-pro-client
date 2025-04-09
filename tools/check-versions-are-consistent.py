@@ -23,7 +23,7 @@ changelog_version = (
 # focal and earlier don't have `removeprefix`
 if changelog_version.startswith("1:1+devel-"):
     changelog_version = changelog_version[10:]
-m = re.match(r"(\d+(\.\d+)*ubuntu0)", changelog_version)
+m = re.match(r"(\d+(\.\d+)*)", changelog_version)
 if m:
     base_changelog_version = m.group()
 else:
