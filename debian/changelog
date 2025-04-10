@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (35.1ubuntu0~24.10) oracular; urgency=medium
+
+  * Backport 35.1ubuntu0 to oracular (LP: #2106660)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Thu, 10 Apr 2025 10:38:44 -0300
+
 ubuntu-advantage-tools (35.1ubuntu0) plucky; urgency=medium
 
   * apt: support ESM snapshots by adding snapshot URLs for ESM repositories
