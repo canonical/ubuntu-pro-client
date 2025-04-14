@@ -3,7 +3,6 @@
 #include <iostream>
 #include <json-c/json.h>
 #include <libintl.h>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -96,6 +95,32 @@ bool version_from_origin_and_archive_ends_with(json_object *version, std::string
     }
 
     return false;
+}
+
+release_info get_release_info() {
+    release_info info = {"", "", false};
+    std::ifstream machine_series_file("/etc/os-release");
+    if (machine_series_file.is_open()) {
+        std::string currentLine;
+        while(std::getline(machine_series_file, currentLine)) {
+            size_t position = currentLine.find("="); // Find position of equals sign as separator
+            std::string key = currentLine.substr(0, position);
+            std::string value = currentLine.substr(position + 1);
+
+            if (!value.empty() && value.front() == '"' && value.back() == '"') {
+                value = value.substr(1, value.length() - 2);
+            }
+
+            if (key=="VERSION_ID") {
+                info.release = value;
+            } else if (key == "VERSION_CODENAME") {
+                info.series = value;
+            } else if (key == "PRETTY_NAME" && value.find("LTS") != std::string::npos) {
+                info.is_lts = true;
+            }
+        }
+    }
+    return info;
 }
 
 bool count_security_packages_from_apt_stats_json(json_object *stats, security_package_counts &result) {
@@ -193,7 +218,7 @@ bool collect_pro_packages_from_pre_prompt_json(json_object *pre_prompt, std::vec
             continue;
         }
         std::string package_mode(json_object_get_string(tmp));
-        
+
         has_key = json_object_object_get_ex(package, "name", &tmp);
         if (!has_key) {
             continue;
@@ -234,21 +259,29 @@ bool collect_pro_packages_from_pre_prompt_json(json_object *pre_prompt, std::vec
 }
 
 #define MAX_COUNT_MESSAGE_LEN 256
-std::string create_count_message(security_package_counts &counts) {
+std::string create_count_message(security_package_counts &counts, release_info info) {
     char buf[MAX_COUNT_MESSAGE_LEN] = {0};
+    std::string lts_text = info.is_lts ? "LTS " : "";
 
     if (counts.esm_apps == 0) {
         if (counts.esm_infra == 0) {
             if (counts.standard == 0) {
                 return "";
             } else if (counts.standard == 1) {
-                return std::string(gettext("1 standard LTS security update"));
+                std::snprintf(
+                    buf,
+                    MAX_COUNT_MESSAGE_LEN,
+                    gettext("1 standard %ssecurity update"),
+                    lts_text.c_str()
+                );
+                return std::string(buf);
             } else if (counts.standard > 1) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates"),
-                    counts.standard
+                    gettext("%lu standard %ssecurity updates"),
+                    counts.standard,
+                    lts_text.c_str()
                 );
                 return std::string(buf);
             }
@@ -256,13 +289,20 @@ std::string create_count_message(security_package_counts &counts) {
             if (counts.standard == 0) {
                 return std::string(gettext("1 esm-infra security update"));
             } else if (counts.standard == 1) {
-                return std::string(gettext("1 standard LTS security update and 1 esm-infra security update"));
+                std::snprintf(
+                    buf,
+                    MAX_COUNT_MESSAGE_LEN,
+                    gettext("1 standard %ssecurity update and 1 esm-infra security update"),
+                    lts_text.c_str()
+                );
+                return std::string(buf);
             } else if (counts.standard > 1) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates and 1 esm-infra security update"),
-                    counts.standard
+                    gettext("%lu standard %ssecurity updates and 1 esm-infra security update"),
+                    counts.standard,
+                    lts_text.c_str()
                 );
                 return std::string(buf);
             }
@@ -279,7 +319,8 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("1 standard LTS security update and %lu esm-infra security updates"),
+                    gettext("1 standard %ssecurity update and %lu esm-infra security updates"),
+                    lts_text.c_str(),
                     counts.esm_infra
                 );
                 return std::string(buf);
@@ -287,8 +328,9 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates and %lu esm-infra security updates"),
+                    gettext("%lu standard %ssecurity updates and %lu esm-infra security updates"),
                     counts.standard,
+                    lts_text.c_str(),
                     counts.esm_infra
                 );
                 return std::string(buf);
@@ -299,27 +341,46 @@ std::string create_count_message(security_package_counts &counts) {
             if (counts.standard == 0) {
                 return std::string(gettext("1 esm-apps security update"));
             } else if (counts.standard == 1) {
-                return std::string(gettext("1 standard LTS security update and 1 esm-apps security update"));
+                std::snprintf(
+                    buf,
+                    MAX_COUNT_MESSAGE_LEN,
+                    gettext("1 standard %ssecurity update and 1 esm-apps security update"),
+                    lts_text.c_str()
+                );
+                return std::string(buf);
             } else if (counts.standard > 1) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates and 1 esm-apps security update"),
-                    counts.standard
+                    gettext("%lu standard %ssecurity updates and 1 esm-apps security update"),
+                    counts.standard,
+                    lts_text.c_str()
                 );
                 return std::string(buf);
             }
         } else if (counts.esm_infra == 1) {
             if (counts.standard == 0) {
-                return std::string(gettext("1 esm-infra security update and 1 esm-apps security update"));
+                std::snprintf(
+                    buf,
+                    MAX_COUNT_MESSAGE_LEN,
+                    gettext("1 esm-infra security update and 1 esm-apps security update")
+                );
+                return std::string(buf);
             } else if (counts.standard == 1) {
-                return std::string(gettext("1 standard LTS security update, 1 esm-infra security update and 1 esm-apps security update"));
+                std::snprintf(
+                    buf,
+                    MAX_COUNT_MESSAGE_LEN,
+                    gettext("1 standard %ssecurity update, 1 esm-infra security update and 1 esm-apps security update"),
+                    lts_text.c_str()
+                );
+                return std::string(buf);
             } else if (counts.standard > 1) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates, 1 esm-infra security update and 1 esm-apps security update"),
-                    counts.standard
+                    gettext("%lu standard %ssecurity updates, 1 esm-infra security update and 1 esm-apps security update"),
+                    counts.standard,
+                    lts_text.c_str()
                 );
                 return std::string(buf);
             }
@@ -336,7 +397,8 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("1 standard LTS security update, %lu esm-infra security updates and 1 esm-apps security update"),
+                    gettext("1 standard %ssecurity update, %lu esm-infra security updates and 1 esm-apps security update"),
+                    lts_text.c_str(),
                     counts.esm_infra
                 );
                 return std::string(buf);
@@ -344,8 +406,9 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates, %lu esm-infra security updates and 1 esm-apps security update"),
+                    gettext("%lu standard %ssecurity updates, %lu esm-infra security updates and 1 esm-apps security update"),
                     counts.standard,
+                    lts_text.c_str(),
                     counts.esm_infra
                 );
                 return std::string(buf);
@@ -365,7 +428,8 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("1 standard LTS security update and %lu esm-apps security updates"),
+                    gettext("1 standard %ssecurity update and %lu esm-apps security updates"),
+                    lts_text.c_str(),
                     counts.esm_apps
                 );
                 return std::string(buf);
@@ -373,8 +437,9 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates and %lu esm-apps security updates"),
+                    gettext("%lu standard %ssecurity updates and %lu esm-apps security updates"),
                     counts.standard,
+                    lts_text.c_str(),
                     counts.esm_apps
                 );
                 return std::string(buf);
@@ -392,7 +457,8 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("1 standard LTS security update, 1 esm-infra security update and %lu esm-apps security updates"),
+                    gettext("1 standard %ssecurity update, 1 esm-infra security update and %lu esm-apps security updates"),
+                    lts_text.c_str(),
                     counts.esm_apps
                 );
                 return std::string(buf);
@@ -400,8 +466,9 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates, 1 esm-infra security update and %lu esm-apps security updates"),
+                    gettext("%lu standard %ssecurity updates, 1 esm-infra security update and %lu esm-apps security updates"),
                     counts.standard,
+                    lts_text.c_str(),
                     counts.esm_apps
                 );
                 return std::string(buf);
@@ -420,7 +487,8 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("1 standard LTS security update, %lu esm-infra security updates and %lu esm-apps security updates"),
+                    gettext("1 standard %ssecurity update, %lu esm-infra security updates and %lu esm-apps security updates"),
+                    lts_text.c_str(),
                     counts.esm_infra,
                     counts.esm_apps
                 );
@@ -429,8 +497,9 @@ std::string create_count_message(security_package_counts &counts) {
                 std::snprintf(
                     buf,
                     MAX_COUNT_MESSAGE_LEN,
-                    gettext("%lu standard LTS security updates, %lu esm-infra security updates and %lu esm-apps security updates"),
+                    gettext("%lu standard %ssecurity updates, %lu esm-infra security updates and %lu esm-apps security updates"),
                     counts.standard,
+                    lts_text.c_str(),
                     counts.esm_infra,
                     counts.esm_apps
                 );
@@ -463,24 +532,21 @@ CloudID get_cloud_id() {
 
 enum ESMInfraSeries {NOT_ESM_INFRA, XENIAL, BIONIC};
 
-ESMInfraSeries get_esm_infra_series() {
-    std::ifstream os_release_file("/etc/os-release");
+ESMInfraSeries get_esm_infra_series(release_info info) {
     ESMInfraSeries ret = NOT_ESM_INFRA;
-    if (os_release_file.is_open()) {
-        std::string os_release_str((std::istreambuf_iterator<char>(os_release_file)), (std::istreambuf_iterator<char>()));
-        if (os_release_str.find("xenial") != os_release_str.npos) {
+    if (info.release != "") {
+        if (info.series == "xenial") {
             ret = XENIAL;
-        } else if (os_release_str.find("bionic") != os_release_str.npos) {
+        } else if (info.series == "bionic") {
             ret = BIONIC;
         }
-        os_release_file.close();
     }
     return ret;
 }
 
-void print_learn_more_with_context() {
+void print_learn_more_with_context(release_info info) {
     CloudID cloud_id = get_cloud_id();
-    ESMInfraSeries esm_infra_series = get_esm_infra_series();
+    ESMInfraSeries esm_infra_series = get_esm_infra_series(info);
 
     if (esm_infra_series == XENIAL) {
         if (cloud_id == AZURE) {
@@ -563,8 +629,11 @@ void print_learn_more_with_context() {
     return;
 }
 
-void print_package_names(std::vector<std::string> package_names) {
+void print_package_names(std::vector<std::string> package_names, release_info info) {
     std::string curr_line = " ";
+    if (info.release != "" && info.release >= "24.10") {
+        curr_line = "  ";
+    }
     for (std::string &name : package_names) {
         if ((curr_line.length() + 1 + name.length()) >= 79) {
             std::cout << curr_line << std::endl;
@@ -577,7 +646,7 @@ void print_package_names(std::vector<std::string> package_names) {
     }
 }
 
-void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names) {
+void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names, release_info info) {
     if (esm_type == APPS) {
         printf(
             ngettext(
@@ -598,12 +667,12 @@ void print_esm_packages(ESMType esm_type, std::vector<std::string> package_names
         printf("\n");
     }
 
-    print_package_names(package_names);
+    print_package_names(package_names, info);
 
-    print_learn_more_with_context();
+    print_learn_more_with_context(info);
 }
 
-void print_expired_pro_packages(std::vector<std::string> package_names) {
+void print_expired_pro_packages(std::vector<std::string> package_names, release_info info) {
     printf(
         gettext(
             "The following packages will fail to download because your Ubuntu Pro subscription has expired"
@@ -611,7 +680,7 @@ void print_expired_pro_packages(std::vector<std::string> package_names) {
     );
     printf("\n");
 
-    print_package_names(package_names);
+    print_package_names(package_names, info);
 
     printf(
         gettext(
@@ -686,13 +755,19 @@ int run()
         std::cerr << "pro-hook: failed to read hook msg" << std::endl;
         return 0;
     }
+    release_info info = get_release_info();
     if (hook_req.method == "org.debian.apt.hooks.install.statistics") {
         security_package_counts counts;
         success = count_security_packages_from_apt_stats_json(hook_req.params, counts);
         if (success) {
-            std::string message = create_count_message(counts);
+            std::string message = create_count_message(counts, info);
             if (message != "") {
-                std::cout << message << std::endl;
+                if (info.release != "" && info.release >= "24.10") {
+                    std::cout << "  " << message << std::endl;
+                }
+                else {
+                    std::cout << message << std::endl;
+                }
             }
         }
     } else if (hook_req.method == "org.debian.apt.hooks.install.pre-prompt") {
@@ -701,9 +776,9 @@ int run()
         success = get_potential_esm_updates(esm_updates);
         if (success) {
             if (!esm_updates.infra_packages.empty()) {
-                print_esm_packages(INFRA, esm_updates.infra_packages);
+                print_esm_packages(INFRA, esm_updates.infra_packages, info);
             } else if (!esm_updates.apps_packages.empty()) {
-                print_esm_packages(APPS, esm_updates.apps_packages);
+                print_esm_packages(APPS, esm_updates.apps_packages, info);
             }
         }
 
@@ -720,7 +795,7 @@ int run()
             std::vector<std::string> expired_packages;
             success = collect_pro_packages_from_pre_prompt_json(hook_req.params, &expired_packages);
             if (success && expired_packages.size() > 0) {
-                print_expired_pro_packages(expired_packages);
+                print_expired_pro_packages(expired_packages, info);
             }
         }
     }
