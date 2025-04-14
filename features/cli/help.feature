@@ -92,11 +92,11 @@ Feature: Pro Client help text
       Collect logs and relevant system information into a tarball.
       This information can be later used for triaging/debugging issues.
 
-      <options_string>:
+      optional arguments:
         -h, --help            show this help message and exit
         -o OUTPUT, --output OUTPUT
                               tarball where the logs will be stored. (Defaults to
-                              ./pro_logs.tar.gz)
+                              ./pro_logs.tar.gz).
       """
     When I run `pro api --help` as non-root
     Then stdout matches regexp:
