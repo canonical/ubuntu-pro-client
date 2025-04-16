@@ -59,10 +59,10 @@ Messaging
    
    Messages... <explanations/index_messages>
 
-CVE Commands
+CVE commands
 =============
 
-Here we'll show you the information related to CVE related commands.
+Here we'll show information about CVE-related commands.
 
 On any of the listed commands, we consider a CVE vulnerability as **fixable**,
 if and only if, at least **one** affected installed package associated with it can
@@ -72,8 +72,7 @@ related to the vulnerability can be fixed at the moment.
 ..  toctree::
     :maxdepth: 1
 
-    explanations/how_to_interpret_output_of_pro_cves.md
-    explanations/how_to_interpret_output_of_pro_cve.md
+    explanations/how_to_interpret_output_of_pro_cve_commands.rst
 
 Public Cloud Ubuntu Pro
 =======================
