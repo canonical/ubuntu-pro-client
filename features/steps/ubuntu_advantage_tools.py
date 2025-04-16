@@ -165,6 +165,8 @@ def when_i_install_uat_on_lxd_guest(context, guest_name):
             "with sudo",
         )
     else:
+        setup_pro_package_sources(context)
+
         when_i_run_command(
             context,
             "lxc file push /tmp/setup_pro.sh {guest_name}/root/setup_pro.sh".format(  # noqa: E501
