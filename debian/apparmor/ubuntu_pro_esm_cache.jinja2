@@ -118,6 +118,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   profile cloud_id flags=(attach_disconnected) {
     include <abstractions/base>
     include <abstractions/nameservice>
+    include <abstractions/openssl>
     include <abstractions/python>
 
     ptrace read peer=unconfined,
@@ -125,7 +126,6 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     /etc/cloud/** r,
     /etc/apt/** r,
     /etc/apport/** r,
-    /etc/ssl/openssl.cnf r,
 
     @{PROC}/@{pid}/fd/ r,
     @{PROC}/cmdline r,
