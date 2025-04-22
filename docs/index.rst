@@ -15,8 +15,8 @@ a virtual environment.
 
 ---------
 
-Explore our documentation
-=========================
+In this documentation
+=====================
 
 .. grid:: 1 1 2 2
    :gutter: 3
@@ -40,8 +40,8 @@ Explore our documentation
 
 ---------
 
-Getting help
-============
+Need help?
+==========
 
 We're keen to know about your experience of using Ubuntu Pro!
 
