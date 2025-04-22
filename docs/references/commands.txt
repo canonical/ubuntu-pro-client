@@ -15,6 +15,8 @@ The currently available commands are:
 - `pro attach`_
 - `pro auto-attach`_
 - `pro collect-logs`_
+- `pro cve`_
+- `pro cves`_
 - `pro config`_
 - `pro detach`_
 - `pro disable`_
@@ -92,6 +94,29 @@ pro collect-logs
 
 Collect logs and relevant system information into a tarball.
 This information can be later used for triaging/debugging issues.
+
+pro cve
+=======
+
+**Usage:**
+
+``pro cve [-h] cve``
+
+**Description:**
+
+Show all available information about a given CVE.
+
+
+pro cves
+========
+
+**Usage:**
+
+``pro cves [-h] [--unfixable] [--fixable]``
+
+**Description:**
+
+List the CVE vulnerabilities that affects the system.
 
 pro config
 ==========
