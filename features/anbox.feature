@@ -102,13 +102,13 @@ Feature: Enable anbox on Ubuntu
 
       $ sudo bash -ex prepare.sh
 
-      Once installed, to initialise Anbox Cloud, run:
+      Once installed, to initialize Anbox Cloud, run:
 
       $ sudo anbox-cloud-appliance init
 
       You can accept the default answers if you do not have any specific
       configuration changes.
-      For more information, see https://anbox-cloud.io/docs/tut/installing-appliance#initialise
+      For more information, see https://documentation.ubuntu.com/anbox-cloud/tutorial/installing-appliance/#initialize-the-appliance
       """
     Then I verify that `anbox-cloud` is enabled
     When I run `apt-cache policy` with sudo

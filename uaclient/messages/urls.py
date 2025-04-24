@@ -25,7 +25,7 @@ PRO_ON_GCP_HOME_PAGE = "https://ubuntu.com/gcp/pro"
 
 ANBOX_HOME_PAGE = "https://anbox-cloud.io"
 ANBOX_DOCS_APPLIANCE_INITIALIZE = (
-    "https://anbox-cloud.io/docs/tut/installing-appliance#initialise"
+    "https://documentation.ubuntu.com/anbox-cloud/tutorial/installing-appliance/#initialize-the-appliance"
 )
 CIS_HOME_PAGE = "https://ubuntu.com/security/cis"
 COMMON_CRITERIA_HOME_PAGE = "https://ubuntu.com/security/cc"
