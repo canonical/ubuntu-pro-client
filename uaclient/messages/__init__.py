@@ -1307,7 +1307,7 @@ Preview the script and when ready, apply it to complete the installation:
 
 $ sudo bash -ex prepare.sh
 
-Once installed, to initialise Anbox Cloud, run:
+Once installed, to initialize Anbox Cloud, run:
 
 $ sudo anbox-cloud-appliance init
 
