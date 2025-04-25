@@ -92,7 +92,7 @@ Feature: Pro Client help text
       Collect logs and relevant system information into a tarball.
       This information can be later used for triaging/debugging issues.
 
-      optional arguments:
+      <options_string>:
         -h, --help            show this help message and exit
         -o OUTPUT, --output OUTPUT
                               tarball where the logs will be stored. (Defaults to
