@@ -942,7 +942,8 @@ Collect logs and relevant system information into a tarball.
 This information can be later used for triaging/debugging issues."""
 )
 CLI_COLLECT_LOGS_OUTPUT = t.gettext(
-    "tarball where the logs will be stored. (Defaults to " "./pro_logs.tar.gz)"
+    """\
+tarball where the logs will be stored. (Defaults to ./pro_logs.tar.gz)."""
 )
 
 CLI_CONFIG_SHOW_DESC = t.gettext("Show customizable configuration settings.")
@@ -2877,4 +2878,9 @@ E_FEATURE_NOT_SUPPORTED_OLD_TOKEN = FormattedNamedMessage(
 E_ETAG_UNCHANGED = FormattedNamedMessage(
     "etag-unchanged",
     t.gettext("The etag for resource: {url} has not changed"),
+)
+
+E_FILE_ALREADY_EXISTS = FormattedNamedMessage(
+    "file-already-exists",
+    t.gettext("The file {filename} already exists in the system."),
 )

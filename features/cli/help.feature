@@ -96,7 +96,7 @@ Feature: Pro Client help text
         -h, --help            show this help message and exit
         -o OUTPUT, --output OUTPUT
                               tarball where the logs will be stored. (Defaults to
-                              ./pro_logs.tar.gz)
+                              ./pro_logs.tar.gz).
       """
     When I run `pro api --help` as non-root
     Then stdout matches regexp:
