@@ -1,5 +1,6 @@
 airgapped
 Airgapping
+AffectedPackage
 amd
 anbox
 Anbox
@@ -28,8 +29,10 @@ CTRL
 cve
 CVE
 CVEAPIFixExecuteResult
+CVEInfo
 cves
 CVEs
+cvss
 CSV
 datetime
 devel
@@ -86,6 +89,7 @@ nginx
 NoOpAlreadyFixed
 NoOpLivepatchFixData
 num
+openssh
 organizations
 PackageCannotBeInstalledData
 PEM
@@ -125,8 +129,10 @@ TLS
 uaclient
 ubuntu
 un
+unfixable
 unparsed
 UpgradedPackage
+url
 usg
 USG
 usn
