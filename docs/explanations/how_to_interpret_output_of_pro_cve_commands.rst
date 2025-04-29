@@ -8,7 +8,7 @@ pro cves
 
 In the Pro Client version 35, we introduce the ``pro cves`` command.
 This command will display all of installed packages that are affected
-by a CVE. This can be better visualized in the following example:
+by a CVE. This can be better visualised in the following example:
 
 .. code-block:: text
 
@@ -37,10 +37,10 @@ With that said, the table will always contain four headers:
 * **Package**: The name of the package affected by a CVE
 * **Priority**: The ubuntu priority for the CVE
 * **Origin**: The ubuntu pocket where the fix can be found:
-	* **esm-infra**: Fix is availabe on the esm-infra pocket. This means that user must have esm-infra service enabled through Pro in the machine to access it
-	* **esm-apps**: Fix is availabe on the esm-apps pocket. This means that user must have esm-apps service enabled through Pro in the machine to access it
-	* **fips**:     Fix is availabe on the fips pocket. This means that user must have fips service enabled through Pro in the machine to access it
-	* **fips-updates**: Fix is availabe on the fips-updates pocket. This means that user must have fips-updates service enabled through Pro in the machine to access it
+	* **esm-infra**: Fix is available on the esm-infra pocket. This means that user must have esm-infra service enabled through Pro in the machine to access it
+	* **esm-apps**: Fix is available on the esm-apps pocket. This means that user must have esm-apps service enabled through Pro in the machine to access it
+	* **fips**:     Fix is available on the fips pocket. This means that user must have fips service enabled through Pro in the machine to access it
+	* **fips-updates**: Fix is available on the fips-updates pocket. This means that user must have fips-updates service enabled through Pro in the machine to access it
 	* **standard**: Fix is available on the ubuntu security or updates pocket
 	* **-**: No fix is available for this CVE
 * **Vulnerability**: The name of the CVE
@@ -114,7 +114,7 @@ the CVE:
 * **name**: The CVE name
 * **public-url**: The ubuntu dedicated CVE page
 * **published-at**: The published date of the CVE
-* **cve-cache-date**: The date of the local CVE datasource cache
+* **cve-cache-date**: The date of the local CVE data source cache
 * **apt-cache-date**: The last time the APT state was updated in the system
   (i.e. running an apt install operation)
 * **priority**: The ubuntu priority for this CVE

@@ -11,7 +11,7 @@ On first boot, Ubuntu Pro images will automatically attach to an Ubuntu Pro
 support contract and enable all necessary Ubuntu Pro services so that no extra
 setup is required to ensure a secure and supported Ubuntu machine.
 
-There are two primary flavors of Ubuntu Pro images in clouds: **Ubuntu Pro**,
+There are two primary flavours of Ubuntu Pro images in clouds: **Ubuntu Pro**,
 and **Ubuntu Pro FIPS**.
 
 Ubuntu Pro
