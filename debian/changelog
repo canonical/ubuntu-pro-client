@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+
+  * open next version for development
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 29 Apr 2025 16:33:22 -0300
+
 ubuntu-advantage-tools (35.1ubuntu0) plucky; urgency=medium
 
   * apt: support ESM snapshots by adding snapshot URLs for ESM repositories
