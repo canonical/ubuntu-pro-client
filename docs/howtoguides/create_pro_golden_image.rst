@@ -1,14 +1,14 @@
 .. _create_pro_golden_image:
 
-How to create a customised Cloud Ubuntu Pro image
+How to create a customized Cloud Ubuntu Pro image
 *************************************************
 
 * Launch an Ubuntu Pro instance on your cloud of choice
-* Customise the instance as you see fit
+* customize the instance as you see fit
 * Run the command: ``sudo truncate -s 0 /etc/machine-id``
 * Use your cloud platform to clone or snapshot this VM as a **golden image**
 
-For more detailed instructions on creating customised Cloud Ubuntu Pro images, refer to the following guides:
+For more detailed instructions on creating customized Cloud Ubuntu Pro images, refer to the following guides:
 
 * `AWS guide <custom_image_AWS_>`_ 
 * `Azure guide <custom_image_Azure_>`_

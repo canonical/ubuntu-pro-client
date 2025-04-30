@@ -8,7 +8,7 @@ pro cves
 
 In the Pro Client version 35, we introduce the ``pro cves`` command.
 This command will display all of installed packages that are affected
-by a CVE. This can be better visualised in the following example:
+by a CVE. This can be better visualized in the following example:
 
 .. code-block:: text
 

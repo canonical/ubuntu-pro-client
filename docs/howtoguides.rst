@@ -98,7 +98,7 @@ will direct you in setting up your Public Cloud environment.
 .. toctree::
    :maxdepth: 1
 
-   Create a customised Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
+   Create a customized Cloud Ubuntu Pro image <howtoguides/create_pro_golden_image>
    Cloud Ubuntu Pro images with FIPS updates <howtoguides/create_a_fips_updates_pro_cloud_image>
 
 Ubuntu Pro Client LXD integration

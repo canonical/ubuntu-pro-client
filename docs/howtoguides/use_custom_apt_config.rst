@@ -16,7 +16,7 @@ from the local APT caches. Packages, origins, versions, and candidates are all
 calculated using the ``python3-apt`` library, which in turn relies on the
 knowledge APT has about in a particular machine.
 
-You may need to configure APT to have some specific behaviour. An example could
+You may need to configure APT to have some specific behavior. An example could
 be to pass custom ``.list`` or ``.sources`` files to APT, whether to limit or
 to increase knowledge about different package sources.
 

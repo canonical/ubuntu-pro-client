@@ -39,7 +39,7 @@ that stream specifically on those machines.
 
          * Whether you need one or both of these depends on your subscription.
            If you're not sure which services best support the needs of your
-           organisation, contact us for `a security assessment`_.
+           organization, contact us for `a security assessment`_.
 
        * **Livepatch**
 
@@ -49,7 +49,7 @@ that stream specifically on those machines.
          downtime when it's convenient. This tooling is available through
          ``livepatch`` and is one of the services we enable by default.
 
-         * Find out more about what Livepatch can do for your organisation in
+         * Find out more about what Livepatch can do for your organization in
            the `Livepatch documentation`_, or learn
            :ref:`how to enable it<manage-livepatch>` with ``pro``.
 
@@ -149,7 +149,7 @@ that stream specifically on those machines.
          at least twice the density and can serve up to 100 Android instances per
          server.
 
-         Due to its highly scalable nature and performance optimisation, Anbox Cloud
+         Due to its highly scalable nature and performance optimization, Anbox Cloud
          enables delivering device-agnostic mobile applications. Popular use cases
          of Anbox Cloud include mobile game streaming services,
          corporate application streaming, application automation and testing.
@@ -184,7 +184,7 @@ that stream specifically on those machines.
          variety of industries.
 
          * Find out `more information about real-time Ubuntu`_ and what it can
-           do for your organisation. 
+           do for your organization. 
 
          * Or see our guide on
            :ref:`how to enable the real-time kernel<manage-realtime>`.

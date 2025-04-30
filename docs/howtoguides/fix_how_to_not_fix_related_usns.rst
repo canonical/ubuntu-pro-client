@@ -72,5 +72,5 @@ can use the ``--no-related`` flag. By running the command
     ✔ USN-5573-1 is resolved.
 
 
-Comparing this output to the previous one, we can see that we have not analysed
+Comparing this output to the previous one, we can see that we have not analyzed
 or tried to fix any related USNs.

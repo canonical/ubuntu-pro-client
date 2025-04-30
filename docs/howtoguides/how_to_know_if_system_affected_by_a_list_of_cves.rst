@@ -25,7 +25,7 @@ To check if your system is affected by a list of CVEs, you need to use the
 API endpoint will output a JSON blob containing the current status of each CVE,
 as can be seen :ref:`in the endpoint documentation<references/api:u.pro.security.fix.cve.execute.v1>`.
 
-To better visualise the current status of each CVE from the JSON output we can
+To better visualize the current status of each CVE from the JSON output we can
 use a ``jq`` filter. The ``jq`` command can parse JSON data directly in the
 terminal, creating a more readable output. For more details about ``jq``, refer
 to `the manual page <https://manpages.ubuntu.com/manpages/xenial/man1/jq.1.html>`_

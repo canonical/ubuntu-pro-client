@@ -1,4 +1,4 @@
-.. _how_to_better_visualise_fixing_multiple_cves:
+.. _how_to_better_visualize_fixing_multiple_cves:
 
 How to preview the results when fixing multiple CVEs
 ****************************************************
@@ -10,7 +10,7 @@ as can be seen in the
 this command will output a JSON blob containing the results of the ``fix``
 operation for each CVE.
 
-This doesn't allow for a quick visualisation of the ``fix`` status of each
+This doesn't allow for a quick visualization of the ``fix`` status of each
 requested CVE. To address that, you can use a ``jq`` filter. The ``jq`` command
 is mainly used to parse JSON data directly in the terminal. To learn more about
 it, refer to the ``jq`` `manpage`_.
@@ -56,7 +56,7 @@ filter to:
 
     jq -r '.data.attributes.cves_data.cves[] | "\(.title) - \(.status)"'
 
-Finally, if you want to have the same visualisation when fixing USNs, change
+Finally, if you want to have the same visualization when fixing USNs, change
 the ``jq`` filter to:
 
 .. code-block:: bash

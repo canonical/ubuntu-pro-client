@@ -414,7 +414,7 @@ There are two types of vulnerabilities that could affect a system:
 `Common Vulnerabilities and Exposures <cve_>`_ (CVEs) and
 `Ubuntu Security Notices <usn_>`_ (USNs).
 
-CVEs are a way to publicly track and catalogue security vulnerabilities in
+CVEs are a way to publicly track and catalog security vulnerabilities in
 software. Each is given a unique identifier in the format ``CVE-XXXX-XXXX``.
 To learn more about CVEs, check out our
 :ref:`explanation of CVEs and USNs <expl-cve-usn>`.

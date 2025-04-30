@@ -24,7 +24,7 @@ our coverage.
 What are 'main' and 'universe'?
 ===============================
 
-There are tens of thousands of Ubuntu packages, all organised into sets in
+There are tens of thousands of Ubuntu packages, all organized into sets in
 *repositories*.
 
 '*Main*' is the set of packages we identified as our focus when we launched
@@ -84,7 +84,7 @@ installed by ``apt`` (in ``apt install`` or ``apt upgrade``) or by unattended-up
 always be the highest ``esm`` version available for a given package, even if a
 higher version is theoretically available from a non-esm source.
 
-This behaviour guarantees that if you have ``esm-infra`` or ``esm-apps`` enabled,
+This behavior guarantees that if you have ``esm-infra`` or ``esm-apps`` enabled,
 your system will always have the ``esm`` patches installed for any package
 available in the ESM repositories.
 
@@ -102,7 +102,7 @@ Once you enable the ESM services you have immediate access to the security
 updates provided by Canonical for your Ubuntu system. Setting the preference
 guarantees that no automatically installed updates will ever revert a
 previously applied security patch, unless some manual operation overrides the
-default behaviour set by the Pro Client.
+default behavior set by the Pro Client.
 
 How does this preference affect PPAs ?
 ======================================
@@ -113,7 +113,7 @@ particular package has two different versions (one coming from the
 PPA and the other from ESM) the ESM version will be chosen, even if the
 PPA version is higher.
 
-If you don't want this behaviour, and you want the the PPA version to be
+If you don't want this behavior, and you want the the PPA version to be
 automatically installed instead, you need to set at least the same preference
 value used for ESM (510) for the PPA. To do that, please check the
 `APT configuration article`_ in the Debian wiki to learn more about

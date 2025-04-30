@@ -194,11 +194,11 @@ not-yet-applied potential updates in general. Therefore it is generally not
 recommended to disable them. But still, you can selectively disable them
 by removing the config files that add them, as outlined below.
 
-Removing those files is considered a conffile change to customise a program
+Removing those files is considered a conffile change to customize a program
 and they will stay removed even on future upgrades or re-installations of the
 related packages.
 
-If you realise that you actually need them back you need
+If you realize that you actually need them back you need
 to reinstall the related packages and tell ``apt`` / ``dpkg`` to offer you to
 restore those files via:
 

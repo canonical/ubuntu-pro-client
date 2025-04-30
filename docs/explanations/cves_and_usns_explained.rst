@@ -8,15 +8,15 @@ CVEs and USNs explained
 What is a CVE
 =============
 
-Common Vulnerabilities and Exposures (CVEs) are a way to catalogue and track
+Common Vulnerabilities and Exposures (CVEs) are a way to catalog and track
 public security vulnerabilities for a given software. Every CVE is identified
 through a unique identifier, for example `CVE-2023-0465`_.
 
 CVEs are maintained by the `MITRE Corporation`_ and the goal of the project is
 to provide naming conventions for the public known security issues while also
-maintaining a centralised repository for all of the security issues. This makes
-it easier for an organisation to submit a new security flaw though the CVE
-convention while also analysing any other existing CVEs in the database.
+maintaining a centralized repository for all of the security issues. This makes
+it easier for an organization to submit a new security flaw though the CVE
+convention while also analyzing any other existing CVEs in the database.
 
 You can search for any existing CVE related to Ubuntu using
 `the Ubuntu CVE page <cve_>`_.
@@ -24,7 +24,7 @@ You can search for any existing CVE related to Ubuntu using
 What is a USN?
 ==============
 
-An Ubuntu Security Notice (USN) is the way that Canonical publicly catalogues
+An Ubuntu Security Notice (USN) is the way that Canonical publicly catalogs
 and displays security vulnerabilities for Ubuntu packages. Usually, a USN is
 composed of one or more CVEs and it also contains update instructions to fix
 the issue, if a fix is already available.
