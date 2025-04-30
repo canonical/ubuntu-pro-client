@@ -7,3 +7,4 @@ howtoguides/get_token_and_attach/ howtoguides/how_to_attach/
 explanations/what_is_the_ubuntu_advantage_pro_package/ explanations/what_are_ubuntu_pro_cloud_instances/
 explanations/what_refresh_does/ references/commands/
 explanations/errors_explained/ references/errors_explained/
+howtoguides/fix_how_to_better_visualise_fixing_multiple_cves/ howtoguides/fix_how_to_better_visualize_fixing_multiple_cves/
