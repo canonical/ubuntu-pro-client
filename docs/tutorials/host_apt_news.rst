@@ -136,7 +136,7 @@ and add the following content:
      ]
    }
 
-In ``nano``, use :kbd:`CTRL` + :kbd:`S` and :kbd:`CTRL` + :kbd:`X` to save and exit, respectively.
+In ``nano``, use :kbd:`Ctrl` + :kbd:`S` and :kbd:`Ctrl` + :kbd:`X` to save and exit, respectively.
 
 That apt news configuration will show one message to systems running Ubuntu
 22.04 (codename "jammy") and will show a different message to all other systems.

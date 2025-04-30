@@ -5,7 +5,6 @@ matrix:
     d: en_US
   dictionary:
     wordlists:
-    - wordlist.txt
     - custom_wordlist.txt
     output: .sphinx/.wordlist.dic
   sources:

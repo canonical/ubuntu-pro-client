@@ -2,7 +2,7 @@ Close down the VM
 -----------------
 
 When you are finished and want to leave the tutorial, you can shut down the VM
-by first pressing :kbd:`CTRL` + :kbd:`D` to exit it, and then running the
+by first pressing :kbd:`Ctrl` + :kbd:`D` to exit it, and then running the
 following commands to delete the VM completely:
 
 .. code-block:: bash
