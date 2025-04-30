@@ -53,7 +53,7 @@ Mirror snaps with Snap store proxy
 ----------------------------------
 
 The Snap store proxy is the equivalent tool for hosting the snap packages that
-your organisation is consuming.
+your organization is consuming.
 
 `Snap-store-proxy`_ is a snap that provides an edge proxy to the Snap store, so
 that after your device has been registered with the proxy, all communications

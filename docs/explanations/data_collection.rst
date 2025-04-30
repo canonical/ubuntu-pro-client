@@ -11,7 +11,7 @@ collected and updated regularly (default: every 6 hours).
 - Kernel version (e.g. "6.8.0-38.38-generic")
 - Machine architecture (e.g. "amd64")
 - Is the machine a desktop? (e.g. "true")
-- Virtualisation type (e.g. "Docker")
+- Virtualization type (e.g. "Docker")
 - Services enabled (e.g. "ros" and "realtime-kernel generic variant")
 - When the machine was attached (e.g. "2024-07-24T13:54:07+00:00")
 - Version of ``ubuntu-pro-client`` (e.g. "33.2~24.04")

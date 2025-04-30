@@ -16,7 +16,7 @@ if related USNs are fixed.
 You can also resolve multiple vulnerabilities at once using the API.
 
 * :ref:`Check if your system is affected by multiple CVEs <pro-check-list-cves>`
-* :ref:`Preview result of fixing multiple CVEs <how_to_better_visualise_fixing_multiple_cves>`
+* :ref:`Preview result of fixing multiple CVEs <how_to_better_visualize_fixing_multiple_cves>`
 
 .. TOC
 
@@ -29,5 +29,5 @@ You can also resolve multiple vulnerabilities at once using the API.
    Preview pro fix results <fix_how_to_know_what_the_fix_command_would_change>
    Skip fixing related USNs <fix_how_to_not_fix_related_usns>
    Check if your system is affected by multiple CVEs <how_to_know_if_system_affected_by_a_list_of_cves>
-   Preview result of fixing multiple CVEs <fix_how_to_better_visualise_fixing_multiple_cves>
+   Preview result of fixing multiple CVEs <fix_how_to_better_visualize_fixing_multiple_cves>
 

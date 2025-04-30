@@ -109,7 +109,7 @@ When using the API through the CLI, we use two distinct fields to list issues
 to the users; *errors* and *warnings*.
 
 Both of these fields contain a list of JSON objects explaining unexpected
-behaviour during the execution of a command. For example, the *errors* field
+behavior during the execution of a command. For example, the *errors* field
 will be populated like this if we have a connectivity issue when running a
 ``pro api`` command:
 

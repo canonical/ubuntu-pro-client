@@ -11,7 +11,7 @@ On first boot, Ubuntu Pro images will automatically attach to an Ubuntu Pro
 support contract and enable all necessary Ubuntu Pro services so that no extra
 setup is required to ensure a secure and supported Ubuntu machine.
 
-There are two primary flavours of Ubuntu Pro images in clouds: **Ubuntu Pro**,
+There are two primary flavors of Ubuntu Pro images in clouds: **Ubuntu Pro**,
 and **Ubuntu Pro FIPS**.
 
 Ubuntu Pro
@@ -25,8 +25,8 @@ entitled to enable any additional Ubuntu Pro services (like
 Ubuntu Pro FIPS
 ===============
 
-These specialised Ubuntu Pro images for 16.04, 18.04 and 20.04 come pre-enabled
-with the cloud-optimised FIPS-certified kernel, as well as all additional SSL
+These specialized Ubuntu Pro images for 16.04, 18.04 and 20.04 come pre-enabled
+with the cloud-optimized FIPS-certified kernel, as well as all additional SSL
 and security hardening enabled. These images are available as
 `AWS Ubuntu Pro FIPS <fips_AWS_>`_,
 `Azure Ubuntu Pro FIPS <fips_Azure_>`_ and `GCP Ubuntu Pro FIPS <fips_GCP_>`_.

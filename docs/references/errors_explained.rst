@@ -69,7 +69,7 @@ Migration error 2
 * **What does it mean:**
 
   This means that ``/var/lib/ubuntu-advantage/user-config.json`` could not be
-  written, or a JSON serialisation error occurred.
+  written, or a JSON serialization error occurred.
 
 * **What you can do about it:**
 
@@ -94,7 +94,7 @@ Migration error 3
 * **What does it mean:**
 
   This means that ``/etc/ubuntu-advantage/uaclient.conf`` could not be
-  written, or a YAML serialisation error occurred.
+  written, or a YAML serialization error occurred.
 
 * **What you can do about it:**
 

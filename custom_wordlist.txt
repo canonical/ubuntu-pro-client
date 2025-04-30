@@ -82,6 +82,7 @@ LTS
 lxd
 LXD
 Mantic
+MITRE
 motd
 MOTD
 Multipass

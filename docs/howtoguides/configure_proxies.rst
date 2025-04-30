@@ -4,7 +4,7 @@ How to configure a proxy
 ************************
 
 The Ubuntu Pro Client can be configured to use an HTTP/HTTPS proxy as needed
-for network requests. It will also honour the ``no_proxy`` environment variable
+for network requests. It will also honor the ``no_proxy`` environment variable
 (if set) to avoid using local proxies for certain outbound traffic. In
 addition, the Ubuntu Pro Client will automatically set up proxies for all
 programs required for enabling Ubuntu Pro services. This includes APT, snaps,

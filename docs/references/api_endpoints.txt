@@ -770,7 +770,7 @@ u.pro.packages.summary.v1
 =========================
 
 This endpoint shows a summary of installed packages in the system,
-categorised by origin.
+categorized by origin.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
 - Requires network access: No
@@ -881,7 +881,7 @@ Arguments:
 u.pro.packages.updates.v1
 =========================
 
-This endpoint shows available updates for packages in a system, categorised
+This endpoint shows available updates for packages in a system, categorized
 by where they can be obtained.
 
 - Introduced in Ubuntu Pro Client Version: ``27.12~``
