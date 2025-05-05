@@ -10,6 +10,15 @@ collected and updated regularly (default: every 6 hours).
 - Release codename (e.g. "Noble")
 - Kernel version (e.g. "6.8.0-38.38-generic")
 - Machine architecture (e.g. "amd64")
+- CPU Information (e.g.::
+
+   {
+     cpuinfo_cpu_family='6',
+     cpuinfo_model='140',
+     cpuinfo_model_name='11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz',
+     cpuinfo_stepping='1',
+     cpuinfo_vendor_id='GenuineIntel'
+   }
 - Is the machine a desktop? (e.g. "true")
 - Virtualisation type (e.g. "Docker")
 - Services enabled (e.g. "ros" and "realtime-kernel generic variant")
