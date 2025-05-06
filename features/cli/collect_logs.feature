@@ -27,6 +27,7 @@ Feature: CLI collect-logs command
       pro-journal.txt
       pro-status.json
       systemd-timers.txt
+      ua-activity-ping-on-boot.service.txt
       ua-auto-attach.path.txt(-error)?
       ua-auto-attach.service.txt(-error)?
       uaclient.conf
@@ -84,6 +85,7 @@ Feature: CLI collect-logs command
       pro-journal.txt
       pro-status.json
       systemd-timers.txt
+      ua-activity-ping-on-boot.service.txt
       ua-auto-attach.path.txt(-error)?
       ua-auto-attach.service.txt(-error)?
       uaclient.conf
