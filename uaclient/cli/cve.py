@@ -47,7 +47,7 @@ def _get_affected_pkgs(cve_vulnerabilities, cve_info, cve_name):
                         )
                         break
 
-        return rows
+    return rows
 
 
 def _format_affected_pkgs(affected_pkgs):
