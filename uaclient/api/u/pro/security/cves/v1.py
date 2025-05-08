@@ -274,7 +274,7 @@ def _parse_vulnerabilities(
     vulnerability_data_published_at: str,
 ) -> CVEsResult:
     packages = {}
-    blocked_cves = set()
+    allowed_cves = set()
     for pkg_name, package_info in sorted(
         vulnerabilities.get("packages", {}).items()
     ):
@@ -291,8 +291,7 @@ def _parse_vulnerabilities(
                         fix_origin=cve["fix_origin"],
                     )
                 )
-            else:
-                blocked_cves.add(cve["name"])
+                allowed_cves.add(cve["name"])
 
         if pkg_cves:
             packages[pkg_name] = AffectedPackage(
@@ -321,7 +320,7 @@ def _parse_vulnerabilities(
             vulnerabilities.get("vulnerabilities", {}).items(),
             key=lambda v: v[0],
         )
-        if cve_name not in blocked_cves
+        if cve_name in allowed_cves
     }
 
     return CVEsResult(
