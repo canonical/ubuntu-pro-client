@@ -2884,3 +2884,8 @@ E_FILE_ALREADY_EXISTS = FormattedNamedMessage(
     "file-already-exists",
     t.gettext("The file {filename} already exists in the system."),
 )
+
+E_VULNERABILITY_DATA_NOT_FOUND = NamedMessage(
+    "vulnerability-data-not-found",
+    t.gettext("Vulnerability data not found for the current Ubuntu release"),
+)

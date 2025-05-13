@@ -393,6 +393,8 @@ def download_xz_file_from_url(
         except error.HTTPError as e:
             if e.code == 304:
                 raise exceptions.ETagUnchanged(url=url)
+            if e.code == 404:
+                raise exceptions.VulnerabilityDataNotFound()
             else:
                 raise
 

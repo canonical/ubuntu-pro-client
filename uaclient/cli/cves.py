@@ -15,7 +15,13 @@ def _get_cve_vulnerabilities(args, *, cfg: UAConfig, **kwargs):
         fixable=args.fixable,
         unfixable=args.unfixable,
     )
-    return _cves(options=cve_options, cfg=cfg)
+
+    try:
+        result = _cves(options=cve_options, cfg=cfg)
+    except exceptions.VulnerabilityDataNotFound:
+        result = None
+
+    return result
 
 
 def _get_cve_table_rows(cve_vulnerabilities):
@@ -64,6 +70,9 @@ def _format_cve_rows(cve_rows):
 
 def _list_cves(args, cfg: UAConfig):
     cve_vulnerabilities = _get_cve_vulnerabilities(args, cfg=cfg)
+
+    if not cve_vulnerabilities:
+        raise exceptions.VulnerabilityDataNotFound()
 
     if cve_vulnerabilities.packages:
         rows = _format_cve_rows(_get_cve_table_rows(cve_vulnerabilities))
