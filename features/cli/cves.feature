@@ -114,3 +114,17 @@ Feature: CLI cves command
     Examples: ubuntu release
       | release | machine_type  |
       | jammy   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Cves command when vulnerability data doesn't exist
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `sed -i 's/^\(VERSION_CODENAME=\).*/\1invalid/' /etc/os-release` with sudo
+    Then I verify that running `pro cves` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      Vulnerability data not found for the current Ubuntu release
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |

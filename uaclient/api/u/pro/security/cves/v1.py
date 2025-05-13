@@ -355,6 +355,7 @@ def _cves(
         cfg=cfg,
         series=series,
     )
+
     cve_vulnerabilities = cve_vulnerabilities_result.vulnerabilities_info
 
     return _parse_vulnerabilities(

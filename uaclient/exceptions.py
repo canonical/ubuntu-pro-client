@@ -620,8 +620,8 @@ class PromptDeniedError(UbuntuProError):
 ###############################################################################
 
 
-class ManifestParseError(UbuntuProError):
-    _formatted_msg = messages.E_MANIFEST_PARSE_ERROR
+class VulnerabilityDataNotFound(UbuntuProError):
+    _msg = messages.E_VULNERABILITY_DATA_NOT_FOUND
 
 
 ###############################################################################

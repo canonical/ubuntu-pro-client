@@ -2,7 +2,7 @@ import sys
 import textwrap
 from collections import namedtuple
 
-from uaclient import defaults, messages, system, util
+from uaclient import defaults, exceptions, messages, system, util
 from uaclient.api.u.pro.security.cves._common.v1 import VulnerabilityData
 from uaclient.api.u.pro.security.cves.v1 import CVEInfo, CVEsOptions, _cves
 from uaclient.api.u.pro.security.fix._common import (
@@ -21,7 +21,12 @@ AffectedPackage = namedtuple(
 
 @cli_util.with_spinner(msg=messages.CLI_CVES_SPINNER_MSG)
 def _get_cve_vulnerabilities(args, *, cfg: UAConfig, **kwargs):
-    return _cves(options=CVEsOptions(), cfg=cfg)
+    try:
+        result = _cves(options=CVEsOptions(), cfg=cfg)
+    except exceptions.VulnerabilityDataNotFound:
+        result = None
+
+    return result
 
 
 def _get_affected_pkgs(cve_vulnerabilities, cve_info, cve_name):
@@ -79,6 +84,9 @@ def _format_affected_pkgs(affected_pkgs):
 def action_cve(args, *, cfg, **kwargs):
     cve_name = args.cve.upper()
     cve_vulnerabilities = _get_cve_vulnerabilities(args, cfg=cfg)
+
+    if not cve_vulnerabilities:
+        raise exceptions.VulnerabilityDataNotFound()
 
     if cve_name not in cve_vulnerabilities.cves:
         cve_data = (
