@@ -461,6 +461,7 @@ class TestRepoEnable:
                 ["xenial"],
                 entitlement.repo_key_file,
                 entitlement.snapshot_urls,
+                False,
             )
         ]
         assert add_apt_calls == m_apt_add.call_args_list
