@@ -511,6 +511,7 @@ class TestAddAuthAptRepo:
             ),
             keyring_file="keyring",
             snapshot_urls=[],
+            check_updates_pocket=True,
         )
 
         if series in SERIES_NOT_USING_DEB822:

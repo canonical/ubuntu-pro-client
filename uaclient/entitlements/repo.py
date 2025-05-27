@@ -51,6 +51,10 @@ class RepoEntitlement(base.UAEntitlement):
     # RepoEntitlements can be purged, unless specifically stated
     supports_purge = True
 
+    # Whether the entitlement checks for the archive -updates pocket
+    # on enablement
+    check_updates_pocket = False
+
     # Optional repo pin priority in subclass
     @property
     def repo_pin_priority(self) -> Union[int, str, None]:
@@ -687,6 +691,7 @@ class RepoEntitlement(base.UAEntitlement):
             repo_suites,
             self.repo_key_file,
             self.snapshot_urls,
+            self.check_updates_pocket,
         )
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.

@@ -12,6 +12,7 @@ from uaclient.util import set_filename_extension
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = messages.urls.ESM_HOME_PAGE
+    check_updates_pocket = True
 
     @property
     def dependent_services(self) -> Tuple[Type[UAEntitlement], ...]:
