@@ -88,6 +88,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-pro-fips.gpg"  # Same for fips & fips-updates
     FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
     pre_enable_msg = messages.PROMPT_FIPS_PRE_ENABLE
+    supports_access_only = True
 
     # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS
     # Review this fix to see if we want more general functionality for all
@@ -130,20 +131,29 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     @property
     def messaging(self) -> MessagingOperationsDict:
+        pre_enable = None  # type: Optional[MessagingOperations]
         post_enable = None  # type: Optional[MessagingOperations]
-        if system.is_container():
-            pre_enable_prompt = (
-                messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
-                    title=self.title
+
+        if not self.access_only:
+            if system.is_container():
+                pre_enable_prompt = (
+                    messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
+                        title=self.title
+                    )
                 )
-            )
-            if not self.auto_upgrade_all_on_enable():
-                post_enable = [messages.FIPS_RUN_APT_UPGRADE]
-        else:
-            pre_enable_prompt = self.pre_enable_msg
+                if not self.auto_upgrade_all_on_enable():
+                    post_enable = [messages.FIPS_RUN_APT_UPGRADE]
+            else:
+                pre_enable_prompt = self.pre_enable_msg
+            pre_enable = [
+                (
+                    util.prompt_for_confirmation,
+                    {"msg": pre_enable_prompt},
+                )
+            ]
 
         pre_disable = None  # type: Optional[MessagingOperations]
-        if not self.purge:
+        if not self.purge and not self.access_only:
             pre_disable = [
                 (
                     util.prompt_for_confirmation,
@@ -155,19 +165,20 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 )
             ]
 
-        messaging = {
-            "pre_enable": [
-                (
-                    util.prompt_for_confirmation,
-                    {"msg": pre_enable_prompt},
-                )
-            ],
-            "pre_install": [
+        pre_install = (
+            [
                 (
                     self.prompt_if_kernel_downgrade,
                     {},
                 )
-            ],
+            ]
+            if not self.access_only
+            else None
+        )  # type: Optional[MessagingOperations]
+
+        messaging = {
+            "pre_enable": pre_enable,
+            "pre_install": pre_install,
             "post_enable": post_enable,
             "pre_disable": pre_disable,
         }  # type: MessagingOperationsDict
