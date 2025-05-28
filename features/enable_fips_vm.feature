@@ -397,3 +397,40 @@ Feature: FIPS enablement in lxd VMs
     Examples: ubuntu release
       | release | machine_type |
       | jammy   | lxd-vm       |
+
+  Scenario Outline: Enable fips-updates service access-only
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
+    When I run `pro enable fips-updates --access-only --assume-yes` with sudo
+    Then stdout matches regexp:
+      """
+      One moment, checking your subscription first
+      Configuring APT access to FIPS Updates
+      Updating FIPS Updates package lists
+      Skipping installing packages: ubuntu-fips
+      FIPS Updates access enabled
+      """
+    Then stdout does not match regexp:
+      """
+      A reboot is required to complete install.
+      """
+    When I run `apt-cache policy ubuntu-fips` as non-root
+    Then stdout matches regexp:
+      """
+      .*Installed: \(none\)
+      """
+    And stdout matches regexp:
+      """
+      \s* 1001 https://esm.ubuntu.com/fips-updates/ubuntu <release>-updates/main amd64 Packages
+      """
+    When I apt install `ubuntu-fips`
+    When I reboot the machine
+    When I run `uname -r` as non-root
+    Then stdout matches regexp:
+      """
+      fips
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | jammy   | lxd-vm       |
