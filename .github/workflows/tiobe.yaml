@@ -1,0 +1,55 @@
+---
+
+name: tiobe
+
+on:
+  schedule:
+    - cron: "0 6 * * 3"  # Every Wednesday 6:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  tiobe:
+    name: TIOBE
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt install -y build-essential libapt-pkg-dev libjson-c-dev python3-dev python3-venv
+      - name: Setup Python venv
+        run: |
+          python3 -m venv tiobe_venv
+          source tiobe_venv/bin/activate
+          pip install -r requirements.txt -r requirements.test.txt -r requirements.tiobe.txt
+      - name: Run tests and generate coverage
+        run: |
+          # TiCS needs a coverage report before it will run. Even if tests fail, we
+          # still get a useful coverage report, so don't require the tests to pass.
+          source tiobe_venv/bin/activate
+          mkdir coverage
+          python3 -m pytest --cov=uaclient --cov-report=xml:coverage/coverage.xml || true
+      - name: Build the apt-hook
+        run: |
+          make -C apt-hook
+          # TODO Add coverage for apt-hook
+          # https://github.com/canonical/ubuntu-pro-client/issues/3048
+      - name: Prepare env for generating the TIOBE static analysis report
+        run: |
+          # Leaving tests and dev tools around will result in useless TIOBE
+          # warnings unrelated to the actual software, so just remove them
+          # here.
+          rm -rf ./features ./sru ./tools ./uaclient/tests ./uaclient/*/tests
+      - name: Generate and upload the TIOBE static analysis report
+        uses: tiobe/tics-github-action@v3
+        with:
+          mode: qserver
+          project: ubuntu-pro-client
+          viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
+          branchdir: ${{ github.workspace }}
+          installTics: true
+          ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
+          # Remember to NOT use 'tmpdir' here, which may lead to the upload of
+          # logs with sensitive information to GitHub. Use it only if strictly
+          # needed and if you know what you are doing.
+          # tmpdir: ${{ github.workspace }}/tmpdir
