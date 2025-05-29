@@ -969,5 +969,5 @@ Feature: Ua fix command behaviour
       """
 
     Examples: ubuntu release details
-      | release | machine_type  |
-      | bionic  | wsl           |
+      | release | machine_type |
+      | bionic  | wsl          |
