@@ -1149,12 +1149,12 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | wrong_release | package         | installed_version |
-      | xenial   | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
-      | bionic   | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
-      | focal    | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
-      | jammy    | lxd-container | focal         | libcurl4        | 7.81.0-1          |
-      | noble    | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
+      | release | machine_type  | wrong_release | package         | installed_version |
+      | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
+      | bionic  | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
+      | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
+      | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
+      | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
 
   @uses.config.contract_token
   Scenario Outline: APT news selectors
@@ -1563,8 +1563,8 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | wrong_release | package         | installed_version |
-      | oracular | lxd-container | jammy         | libcurl4t64     | 8.9.1-2ubuntu2    |
+      | release  | machine_type  | wrong_release | package     | installed_version |
+      | oracular | lxd-container | jammy         | libcurl4t64 | 8.9.1-2ubuntu2    |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
