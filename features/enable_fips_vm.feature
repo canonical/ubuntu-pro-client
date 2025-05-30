@@ -382,3 +382,18 @@ Feature: FIPS enablement in lxd VMs
     Examples: ubuntu release
       | release | machine_type |
       | jammy   | lxd-vm       |
+
+  @slow
+  Scenario Outline: Attached enable fips-updates without the -updates pocket enabled
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then I verify that `fips-updates` is disabled
+    # Disable the -updates pocket
+    When I run `sed -i '/<release>-updates/d' /etc/apt/sources.list` with sudo
+    And I apt update
+    And I run `pro enable fips-updates --assume-yes` with sudo
+    Then I verify that `fips-updates` is enabled
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | jammy   | lxd-vm       |
