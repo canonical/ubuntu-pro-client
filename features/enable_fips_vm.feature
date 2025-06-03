@@ -423,8 +423,60 @@ Feature: FIPS enablement in lxd VMs
       """
       \s* 1001 https://esm.ubuntu.com/fips-updates/ubuntu <release>-updates/main amd64 Packages
       """
+    When I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      fips-updates +yes +warning
+      """
+    And stdout contains substring:
+      """
+      NOTICES
+      The following packages are not installed:
+      ubuntu-fips
+      fips-updates may not be enabled on this system.
+      """
+    When I run `pro api u.pro.status.enabled_services.v1` with sudo
+    Then API data field output matches regexp:
+      """
+      {
+        "attributes": {
+          "enabled_services": [
+            {
+              "name": "fips-updates",
+              "variant_enabled": false,
+              "variant_name": null
+            }
+          ]
+        },
+        "meta": {
+          "environment_vars": []
+        },
+        "type": "EnabledServices"
+      }
+      """
+    And API warnings field output is:
+      """
+      [
+        {
+          "code": "fips-packages-missing",
+          "meta": {
+            "service": "fips-updates"
+          },
+          "title": "The following packages are not installed:\nubuntu-fips\nfips-updates may not be enabled on this system."
+        }
+      ]
+      """
     When I apt install `ubuntu-fips`
-    When I reboot the machine
+    And I reboot the machine
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      fips-updates +yes +enabled
+      """
+    And stdout does not contain substring:
+      """
+      fips-updates may not be enabled on this system.
+      """
     When I run `uname -r` as non-root
     Then stdout matches regexp:
       """

@@ -519,6 +519,23 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         if super_status != ApplicationStatus.ENABLED:
             return super_status, super_msg
+
+        installed_packages = apt.get_installed_packages_names()
+        missing = []
+        # Should be a single package (ubuntu-fips and its cloud variants)
+        # or no package at all for containers
+        for package in self.packages:
+            if package not in installed_packages:
+                missing.append(package)
+
+        if missing:
+            return (
+                ApplicationStatus.WARNING,
+                messages.FIPS_PACKAGES_NOT_INSTALLED.format(
+                    packages=" ".join(missing), service=self.name
+                ),
+            )
+
         return (
             ApplicationStatus.ENABLED,
             messages.FIPS_REBOOT_REQUIRED,
@@ -623,9 +640,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         static_affordances = super().static_affordances
 
         fips_updates = FIPSUpdatesEntitlement(cfg=self.cfg)
-        enabled_status = ApplicationStatus.ENABLED
+        disabled_status = ApplicationStatus.DISABLED
         is_fips_updates_enabled = bool(
-            fips_updates.application_status()[0] == enabled_status
+            fips_updates.application_status()[0] != disabled_status
         )
 
         services_once_enabled_obj = services_once_enabled_file.read()
