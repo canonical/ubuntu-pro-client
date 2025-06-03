@@ -1963,6 +1963,15 @@ FIPS_INVALIDATES_FIPS_UPDATES = NamedMessage(
         " certified."
     ),
 )
+FIPS_PACKAGES_NOT_INSTALLED = FormattedNamedMessage(
+    "fips-packages-missing",
+    t.gettext(
+        """\
+The following packages are not installed:
+{packages}
+{service} may not be enabled on this system."""
+    ),
+)
 
 LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
     "livepatch-invalidates-fips",
