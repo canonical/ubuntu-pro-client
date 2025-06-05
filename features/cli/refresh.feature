@@ -46,6 +46,7 @@ Feature: CLI refresh command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -72,3 +73,4 @@ Feature: CLI refresh command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

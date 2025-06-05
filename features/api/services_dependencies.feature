@@ -372,3 +372,4 @@ Feature: u.pro.services.dependencies
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

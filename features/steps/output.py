@@ -27,24 +27,35 @@ def then_i_will_see_on_stream(context, stream):
         )
 
 
-@then("if `{value1}` in `{value2}` and stdout matches regexp")
-def then_conditional_stdout_matches_regexp(context, value1, value2):
+@then("if `{value1}` in `{value2}` I will see the following on {stream}")
+def then_conditional_i_will_see_on_stream(context, value1, value2, stream):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
-        then_stream_matches_regexp(context, "stdout")
+        then_i_will_see_on_stream(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and stdout contains substring")
-def then_conditional_stdout_contains_substring(context, value1, value2):
-    if value1 in value2.split(" or "):
-        then_stream_contains_substring(context, "stdout")
+@then("if `{value1}` not in `{value2}` I will see the following on {stream}")
+def then_not_in_conditional_stream_matches_regexp(
+    context, value1, value2, stream
+):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 not in value2.split(" or "):
+        then_i_will_see_on_stream(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and stderr matches regexp")
-def then_conditional_stderr_matches_regexp(context, value1, value2):
+@then("if `{value1}` in `{value2}` and {stream} matches regexp")
+def then_conditional_stream_matches_regexp(context, value1, value2, stream):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
-        then_stream_matches_regexp(context, "stderr")
+        then_stream_matches_regexp(context, stream)
+
+
+@then("if `{value1}` in `{value2}` and {stream} contains substring")
+def then_conditional_stdout_contains_substring(
+    context, value1, value2, stream
+):
+    if value1 in value2.split(" or "):
+        then_stream_contains_substring(context, stream)
 
 
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
