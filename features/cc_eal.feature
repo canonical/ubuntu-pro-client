@@ -71,3 +71,4 @@ Feature: Enable cc-eal on Ubuntu
       | jammy    | lxd-container | 22.04 LTS | Jammy Jellyfish |
       | noble    | lxd-container | 24.04 LTS | Noble Numbat    |
       | oracular | lxd-container | 24.10     | Oracular Oriole |
+      | plucky   | lxd-container | 25.04     | Plucky Puffin   |

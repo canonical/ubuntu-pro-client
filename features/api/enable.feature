@@ -170,6 +170,7 @@ Feature: u.pro.services.enable
       | release  | machine_type  |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   Scenario Outline: u.pro.services.enable.v1 vm services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

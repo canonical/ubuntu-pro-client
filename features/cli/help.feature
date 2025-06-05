@@ -85,7 +85,7 @@ Feature: Pro Client help text
       Use pro <command> --help for more information about a command.
       """
     When I run `pro collect-logs --help` as non-root
-    Then I will see the following on stdout
+    Then if `<release>` not in `plucky` I will see the following on stdout
       """
       usage: pro collect-logs [-h] [-o OUTPUT]
 
@@ -97,6 +97,18 @@ Feature: Pro Client help text
         -o OUTPUT, --output OUTPUT
                               tarball where the logs will be stored. (Defaults to
                               ./pro_logs.tar.gz).
+      """
+    And if `<release>` in `plucky` I will see the following on stdout
+      """
+      usage: pro collect-logs [-h] [-o OUTPUT]
+
+      Collect logs and relevant system information into a tarball.
+      This information can be later used for triaging/debugging issues.
+
+      options:
+        -h, --help           show this help message and exit
+        -o, --output OUTPUT  tarball where the logs will be stored. (Defaults to
+                             ./pro_logs.tar.gz).
       """
     When I run `pro api --help` as non-root
     Then stdout matches regexp:
@@ -231,11 +243,18 @@ Feature: Pro Client help text
         --format {cli,json}  output in the specified format (default: cli)
       """
     When I run `pro security-status --help` as non-root
-    Then I will see the following on stdout
+    Then if `<release>` in `plucky` I will see the following on stdout
+      """
+      usage: pro security-status [-h] [--format {json,yaml,text}] [--thirdparty |
+                                 --unavailable | --esm-infra | --esm-apps]
+      """
+    And if `<release>` not in `plucky` I will see the following on stdout
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]
-
+      """
+    And I will see the following on stdout
+      """
       Show security updates for packages in the system, including all
       available Expanded Security Maintenance (ESM) related content.
 
@@ -499,6 +518,7 @@ Feature: Pro Client help text
       | jammy    | lxd-container | options            |
       | noble    | lxd-container | options            |
       | oracular | lxd-container | options            |
+      | plucky   | lxd-container | options            |
 
   Scenario Outline: Help command on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -547,6 +567,7 @@ Feature: Pro Client help text
       | jammy    | lxd-container | enabled      |
       | noble    | lxd-container | enabled      |
       | oracular | lxd-container | n/a          |
+      | plucky   | lxd-container | n/a          |
 
   @arm64
   Scenario Outline: Help command on an unattached machine
@@ -596,3 +617,4 @@ Feature: Pro Client help text
       | jammy    | wsl           | yes             |
       | noble    | lxd-container | yes             |
       | oracular | lxd-container | no              |
+      | plucky   | lxd-container | no              |

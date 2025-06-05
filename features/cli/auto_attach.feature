@@ -35,6 +35,7 @@ Feature: CLI auto-attach command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   @arm64
   Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
@@ -67,3 +68,4 @@ Feature: CLI auto-attach command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

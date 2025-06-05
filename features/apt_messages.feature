@@ -727,6 +727,8 @@ Feature: APT Messages
       | release  | machine_type  |
       | oracular | lxd-container |
       | oracular | lxd-vm        |
+      | plucky   | lxd-container |
+      | plucky   | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1565,6 +1567,7 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  | wrong_release | package     | installed_version |
       | oracular | lxd-container | jammy         | libcurl4t64 | 8.9.1-2ubuntu2    |
+      | plucky   | lxd-container | jammy         | libcurl4t64 | 8.12.1-3ubuntu1   |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1582,6 +1585,7 @@ Feature: APT Messages
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1634,3 +1638,4 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

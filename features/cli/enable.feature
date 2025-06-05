@@ -630,3 +630,4 @@ Feature: CLI enable command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
