@@ -6,6 +6,8 @@ on:
   schedule:
     - cron: "0 6 * * 3"  # Every Wednesday 6:00 AM UTC
   workflow_dispatch:
+  pull_request:
+      
 
 jobs:
   tiobe:
