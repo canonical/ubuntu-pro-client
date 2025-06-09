@@ -1,8 +1,24 @@
-ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (36ubuntu0) questing; urgency=medium
 
-  * open next version for development
+  * d/apparmor/ubuntu_pro_esm_cache.jinja2: use openssl abstraction in the
+    apparmor profile
+  * New upstream release 36: (LP: #2112382)
+    - api: display all available valid CVEs
+    - attach: relax the onlySeries directive, so users can attach onlySeries
+      tokens to all releases older than the target release
+    - cli:
+      + anbox-cloud: update installation instructions
+      + collect-logs: do not overwrite the output file if it exists
+      + cve/cves:
+        * return all affected packages for a cve (LP: #2111610)
+        * handle the case where the vulnerability data doesn't exist for the
+          Ubuntu release
+    - fips:
+      + enable --access-only for all fips related services (GH: #3441)
+      + allow enablement even when the -updates pocket is not available in the
+        system (GH: #3439)
 
- -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 29 Apr 2025 16:33:22 -0300
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Fri, 06 Jun 2025 11:08:26 -0300
 
 ubuntu-advantage-tools (35.1ubuntu0) plucky; urgency=medium
 
