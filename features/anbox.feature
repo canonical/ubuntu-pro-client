@@ -90,13 +90,25 @@ Feature: Enable anbox on Ubuntu
       Configuring APT access to Anbox Cloud
       Updating Anbox Cloud package lists
       Anbox Cloud enabled
-      To finish setting up the Anbox Cloud Appliance, run:
+      To finish setting up the Anbox Cloud Appliance, run the following commands
+      sequentially:
+
+      The `prepare-node-script` command lets you preview a script that installs some additional packages,
+      kernel modules and GPU driver packages, if a GPU is available:
+
+      $ anbox-cloud-appliance prepare-node-script > prepare.sh
+
+      Preview the script and when ready, apply it to complete the installation:
+
+      $ sudo bash -ex prepare.sh
+
+      Once installed, to initialize Anbox Cloud, run:
 
       $ sudo anbox-cloud-appliance init
 
       You can accept the default answers if you do not have any specific
       configuration changes.
-      For more information, see https://anbox-cloud.io/docs/tut/installing-appliance#initialise
+      For more information, see https://documentation.ubuntu.com/anbox-cloud/tutorial/installing-appliance/#initialize-the-appliance
       """
     Then I verify that `anbox-cloud` is enabled
     When I run `apt-cache policy` with sudo

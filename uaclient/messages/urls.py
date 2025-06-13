@@ -24,9 +24,7 @@ PRO_ON_AZURE_HOME_PAGE = "https://ubuntu.com/azure/pro"
 PRO_ON_GCP_HOME_PAGE = "https://ubuntu.com/gcp/pro"
 
 ANBOX_HOME_PAGE = "https://anbox-cloud.io"
-ANBOX_DOCS_APPLIANCE_INITIALIZE = (
-    "https://anbox-cloud.io/docs/tut/installing-appliance#initialise"
-)
+ANBOX_DOCS_APPLIANCE_INITIALIZE = "https://anbox-cloud.io/docs/tutorial/installing-appliance/#initialize-the-appliance"  # noqa: E501
 CIS_HOME_PAGE = "https://ubuntu.com/security/cis"
 COMMON_CRITERIA_HOME_PAGE = "https://ubuntu.com/security/cc"
 ESM_HOME_PAGE = "https://ubuntu.com/security/esm"

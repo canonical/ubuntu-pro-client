@@ -84,7 +84,7 @@ RELEASE_UPGRADE_SUCCESS = t.gettext(
 
 PRO_ONLY_ALLOWED_FOR_RELEASE = t.gettext(
     "Detaching Ubuntu Pro. Previously attached subscription \
-was only valid for Ubuntu {release} ({series_codename}) release."
+was only valid for releases prior to Ubuntu {release} ({series_codename})."
 )
 
 MISSING_YAML_MODULE = t.gettext(
@@ -315,7 +315,7 @@ And provide the following code: {bold}{{user_code}}{end_bold}"""
 CLI_MAGIC_ATTACH_PROCESSING = t.gettext("Attaching the machine...")
 
 LIMITED_TO_RELEASE = t.gettext(
-    "Limited to release: Ubuntu {release} ({series_codename})."
+    "Limited to Ubuntu {release} ({series_codename}) and previous releases."
 )
 
 # DETACH
@@ -942,7 +942,8 @@ Collect logs and relevant system information into a tarball.
 This information can be later used for triaging/debugging issues."""
 )
 CLI_COLLECT_LOGS_OUTPUT = t.gettext(
-    "tarball where the logs will be stored. (Defaults to " "./pro_logs.tar.gz)"
+    """\
+tarball where the logs will be stored. (Defaults to ./pro_logs.tar.gz)."""
 )
 
 CLI_CONFIG_SHOW_DESC = t.gettext("Show customizable configuration settings.")
@@ -1294,7 +1295,20 @@ image server credentials. To learn more about Anbox Cloud, see
 ).format(url=urls.ANBOX_HOME_PAGE)
 ANBOX_RUN_INIT_CMD = t.gettext(
     """\
-To finish setting up the Anbox Cloud Appliance, run:
+To finish setting up the Anbox Cloud Appliance, run the following commands
+sequentially:
+
+The `prepare-node-script` command lets you preview a script that installs some
+additional packages, kernel modules and GPU driver packages, if a GPU is
+available:
+
+$ anbox-cloud-appliance prepare-node-script > prepare.sh
+
+Preview the script and when ready, apply it to complete the installation:
+
+$ sudo bash -ex prepare.sh
+
+Once installed, to initialize Anbox Cloud, run:
 
 $ sudo anbox-cloud-appliance init
 
@@ -1718,7 +1732,7 @@ ATTACH_FAILURE_RESTRICTED_RELEASE = FormattedNamedMessage(
     "attach-failure-restricted-release",
     t.gettext(
         "Attach failed. Attaching to this contract \
-is only allowed on the Ubuntu {release} ({series_codename}) release."
+is only allowed on the Ubuntu {release} ({series_codename}) and previous releases."  # noqa
     ),
 )
 
@@ -1947,6 +1961,15 @@ FIPS_INVALIDATES_FIPS_UPDATES = NamedMessage(
         "FIPS Updates cannot be enabled if FIPS is enabled."
         " FIPS Updates installs security patches that aren't officially"
         " certified."
+    ),
+)
+FIPS_PACKAGES_NOT_INSTALLED = FormattedNamedMessage(
+    "fips-packages-missing",
+    t.gettext(
+        """\
+The following packages are not installed:
+{packages}
+{service} may not be enabled on this system."""
     ),
 )
 
@@ -2864,4 +2887,14 @@ E_FEATURE_NOT_SUPPORTED_OLD_TOKEN = FormattedNamedMessage(
 E_ETAG_UNCHANGED = FormattedNamedMessage(
     "etag-unchanged",
     t.gettext("The etag for resource: {url} has not changed"),
+)
+
+E_FILE_ALREADY_EXISTS = FormattedNamedMessage(
+    "file-already-exists",
+    t.gettext("The file {filename} already exists in the system."),
+)
+
+E_VULNERABILITY_DATA_NOT_FOUND = NamedMessage(
+    "vulnerability-data-not-found",
+    t.gettext("Vulnerability data not found for the current Ubuntu release"),
 )

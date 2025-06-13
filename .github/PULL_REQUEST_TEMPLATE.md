@@ -2,33 +2,10 @@
 <!-- This information should be captured in your commit messages, so any description here can be very brief -->
 This PR solves all of our problems because...
 
-<!--
-By default, we rebase PRs and will ask for a clean well-organized commit history in the PR before rebasing.
-If your PR is small enough and you prefer, uncomment the following section and fill it out to request a squashed PR.
--->
-<!--
-## Please Squash this PR with this commit message
-
-```
-summary: no more than 70 characters
-
-A description of what the change being made is and why it is being
-made, if the summary line is insufficient.  The blank line above is
-required. This should be wrapped at 72 characters, but otherwise has
-no particular length requirements.
-
-If you need to write multiple paragraphs, feel free.
-
-LP: #NNNNNNN (replace with the appropriate Launchpad bug reference if applicable)
-Fixes: #NNNNNNN (replace with the appropriate github issue if applicable)
-```
--->
+<!-- By default, we rebase PRs and will ask for a clean well-organized commit history in the PR before rebasing. If your PR is small enough and you prefer, you can write a suggested commit message here and request a squashed PR. -->
 
 ## Test Steps
-<!-- Please include any steps necessary to verify (and reproduce if
-this is a bug fix) this change on a live deployed system,
-including any necessary configuration files, user-data,
-setup, and teardown. Scripts used may be attached directly to this PR. -->
+<!-- Please include any steps necessary to verify (and reproduce if this is a bug fix) this change on a live deployed system, including any necessary configuration files, user-data, setup, and teardown. Scripts used may be attached directly to this PR. -->
 
 <!-- Example:
 ```
@@ -39,8 +16,3 @@ sudo pro new-sub-command --new-flag
 # Assert something
 ```
 -->
-
-
----
-
-- [ ] *(un)check this to re-run the checklist action*
