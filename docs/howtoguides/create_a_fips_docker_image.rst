@@ -85,7 +85,7 @@ Edit the file and add the following contents:
         && pro attach --attach-config /run/secrets/pro-attach-config \
         && apt-get upgrade -y \
         && apt-get install -y openssl libssl1.1 libssl1.1-hmac libgcrypt20 libgcrypt20-hmac strongswan strongswan-hmac openssh-client openssh-server \
-        && pro detach --assume-yes
+        && pro detach --assume-yes \
         && apt-get purge --auto-remove -y ubuntu-pro-client ca-certificates \
         && rm -rf /var/lib/apt/lists/*
 
