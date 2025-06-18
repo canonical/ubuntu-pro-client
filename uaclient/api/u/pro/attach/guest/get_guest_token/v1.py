@@ -49,6 +49,9 @@ def get_guest_token() -> GetGuestTokenResult:
 def _get_guest_token(
     cfg: config.UAConfig,
 ) -> GetGuestTokenResult:
+    """
+    This endpoint fetches a guest token from the backend.
+    """
     if not util.we_are_currently_root():
         raise exceptions.NonRootUserError()
     if not _is_attached(cfg).is_attached:

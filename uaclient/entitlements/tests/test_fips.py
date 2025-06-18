@@ -775,10 +775,15 @@ class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize("should_reboot", ((True), (False)))
     @pytest.mark.parametrize("path_exists", ((True), (False)))
     @pytest.mark.parametrize("proc_content", (("0"), ("1")))
+    @mock.patch(
+        M_PATH + "apt.get_installed_packages_names",
+        return_value=["ubuntu-fips"],
+    )
     @mock.patch("uaclient.system.is_container", return_value=False)
     def test_proc_file_is_used_to_determine_application_status_message(
         self,
         _m_is_container,
+        _m_installed_packages,
         m_should_reboot,
         proc_content,
         path_exists,
@@ -875,6 +880,37 @@ class TestFIPSEntitlementApplicationStatus:
         assert expected_msg.msg == actual_msg.msg
         assert expected_msg.name == actual_msg.name
 
+    @mock.patch("uaclient.system.is_container", return_value=False)
+    @mock.patch(M_PATH + "os.path.exists", return_value=False)
+    @mock.patch(
+        M_PATH + "repo.RepoEntitlement.application_status",
+        return_value=(
+            ApplicationStatus.ENABLED,
+            messages.NamedMessage("test-code", "sure is some status here"),
+        ),
+    )
+    @mock.patch(
+        M_PATH + "apt.get_installed_packages_names",
+        return_value=["other", "packages", "not-fips"],
+    )
+    def test_warning_when_metapackage_not_installed(
+        self,
+        _m_installed_packages,
+        _m_application_status,
+        _m_path_exists,
+        _m_is_container,
+        _m_should_reboot,
+        entitlement,
+    ):
+        status, msg = entitlement.application_status()
+        assert ApplicationStatus.WARNING == status
+        assert (
+            messages.FIPS_PACKAGES_NOT_INSTALLED.format(
+                packages="ubuntu-fips", service=entitlement.name
+            )
+            == msg
+        )
+
     @mock.patch("uaclient.system.is_container", return_value=True)
     def test_application_status_inside_container(
         self,
@@ -904,8 +940,12 @@ class TestFIPSEntitlementApplicationStatus:
         assert expected_msg == actual_message.msg
         assert [] == notice_ent_cls.list()
 
+    @mock.patch(
+        M_PATH + "apt.get_installed_packages_names",
+        return_value=["ubuntu-fips"],
+    )
     def test_fips_does_not_show_enabled_when_fips_updates_is(
-        self, _m_should_reboot, entitlement
+        self, _m_installed_packages, _m_should_reboot, entitlement
     ):
         with mock.patch("uaclient.apt.get_apt_cache_policy") as m_apt_policy:
             m_apt_policy.return_value = (

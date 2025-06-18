@@ -583,6 +583,7 @@ def add_auth_apt_repo(
     suites: List[str],
     keyring_file: str,
     snapshot_urls: List[str],
+    check_updates_pocket: Optional[bool] = False,
 ) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
@@ -600,20 +601,26 @@ def add_auth_apt_repo(
         repo_url = repo_url[:-1]
     assert_valid_apt_credentials(repo_url, username, password)
 
-    # Does this system have updates suite enabled?
-    updates_enabled = False
-    policy = run_apt_command(
-        ["apt-cache", "policy"], messages.APT_POLICY_FAILED
-    )
-    for line in policy.splitlines():
-        # We only care about $suite-updates lines
-        if "a={}-updates".format(series) not in line:
-            continue
-        # We only care about $suite-updates from the Ubuntu archive
-        if "o=Ubuntu," not in line:
-            continue
-        updates_enabled = True
-        break
+    # For esm-infra and esm-apps, only enable the esm -updates pocket if the
+    # normal -updates pocket is enabled. Other services (like fips-updates)
+    # always get -updates when the resource directives (here: `suites`) say so.
+    # This is configured in the resource itself, and verified here with the
+    # check_updates_pocket variable. (GH: #3439)
+    updates_enabled = True
+    if check_updates_pocket:
+        updates_enabled = False
+        policy = run_apt_command(
+            ["apt-cache", "policy"], messages.APT_POLICY_FAILED
+        )
+        for line in policy.splitlines():
+            # We only care about $suite-updates lines
+            if "a={}-updates".format(series) not in line:
+                continue
+            # We only care about $suite-updates from the Ubuntu archive
+            if "o=Ubuntu," not in line:
+                continue
+            updates_enabled = True
+            break
 
     for url in [repo_url] + snapshot_urls:
         add_apt_auth_conf_entry(url, username, password)

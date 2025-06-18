@@ -70,7 +70,8 @@ Feature: Logs in Json Array Formatter
       """
       user0.log
       """
-    When i verify that running `pro status` `as non-root` exits `0`
+    When I delete the file `pro_logs.tar.gz`
+    And I verify that running `pro status` `as non-root` exits `0`
     And I verify that running `pro collect-logs` `with sudo` exits `0`
     And I run `tar -tf pro_logs.tar.gz` as non-root
     Then stdout contains substring
