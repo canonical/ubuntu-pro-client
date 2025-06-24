@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (36ubuntu0~24.10) oracular; urgency=medium
+
+  * Backport 36ubuntu0 to oracular (LP: #2112382)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 24 Jun 2025 09:20:14 -0300
+
 ubuntu-advantage-tools (36ubuntu0) questing; urgency=medium
 
   * d/apparmor/ubuntu_pro_esm_cache.jinja2: use openssl abstraction in the
