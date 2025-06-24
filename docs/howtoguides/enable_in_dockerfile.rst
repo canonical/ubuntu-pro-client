@@ -12,18 +12,22 @@ Dockerfile.
 Pre-requisites
 ==============
 
-You will need to be running at least Ubuntu Pro Client version 27.7. You can
-check the version you are running with the following command:
+You should be running the latest version of Ubuntu Pro Client. You can
+ensure that it is up to date by running:
 
 .. code-block:: bash
 
-    pro version
+   sudo apt update && sudo apt install ubuntu-pro-client
 
-If you're on a version lower than 27.7, you can update it by running:
+You should also build your Docker image on a host machine with an active Ubuntu
+Pro subscription. If you are running an auto-attached cloud instance, then you
+are already good to go. (See :ref:`How to attach <attach>` and
+:ref:`About Public Cloud Ubuntu Pro images <expl-about-pro-cpc>` for more
+details).
 
 .. code-block:: bash
 
-    sudo apt update && sudo apt install ubuntu-pro-client
+   sudo pro attach
 
 Create an Ubuntu Pro Attach Config file
 =======================================
@@ -45,24 +49,41 @@ you want to invoke when running ``pro attach``. The file has two fields,
    - service2
    - service3
 
-The ``token`` field is required and must be set to your Ubuntu Pro token. You
-can retrieve your token by signing into `the Ubuntu Pro portal <Pro_>`_.
+:``token``:
+    The ``token`` field is required and must be set to an Ubuntu Pro token.
+    You can retrieve a guest token on your Ubuntu Pro host by running the
+    following command:
 
-The ``enable_services`` field value is a list of Ubuntu Pro service names. When
-it is set, then the services specified will be automatically enabled after
-attaching with your Ubuntu Pro token.
+    .. code-block:: bash
+    
+       sudo pro api u.pro.attach.guest.get_guest_token.v1
+    
+    That command will output JSON that includes a guest token that is valid for a
+    short time, during which you can use it in your Docker build.
+    
+    .. tip::
+       If you have ``jq`` installed, you can use the following command to extract the token:
+        
+       .. code-block:: bash
+        
+          sudo pro api u.pro.attach.guest.get_guest_token.v1 | jq -r '.data.attributes.guest_token'
 
-Service names that you may be interested in enabling in your Docker builds
-include:
-
-- ``esm-infra``
-- ``esm-apps``
-- ``fips``
-- ``fips-updates``
-
-You can see a full list of the service names available by using the
-``pro help`` command. You can then find out more about any of these services by
-running ``pro help service-name`` on any Ubuntu machine.
+:``enable_services``:
+    The ``enable_services`` field value is a list of Ubuntu Pro service names. When
+    it is set, then the services specified will be automatically enabled after
+    attaching with your Ubuntu Pro token.
+    
+    Service names that you may be interested in enabling in your Docker builds
+    include:
+    
+    - ``esm-infra``
+    - ``esm-apps``
+    - ``fips``
+    - ``fips-updates``
+    
+    You can see a full list of the service names available by using the
+    ``pro status --all`` command. You can then find out more about any of these
+    services by running ``pro help service-name`` on any Ubuntu machine.
 
 Create a Dockerfile to use ``pro`` and your Attach Config file
 ==============================================================

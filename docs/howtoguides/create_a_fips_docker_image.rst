@@ -11,6 +11,13 @@ Create an Ubuntu FIPS Docker image
 Acquire your Ubuntu Pro token
 =============================
 
+You can acquire an Ubuntu Pro token one of two ways, either by logging in to
+your Ubuntu Pro account or by using the Ubuntu Pro Client on an already
+attached machine.
+
+Logging in to your Ubuntu Pro account
+-------------------------------------
+
 Your Ubuntu Pro token can be found on your Ubuntu Pro dashboard. To access your
 dashboard, you need an `Ubuntu One`_ account. If you purchased an Ubuntu Pro
 subscription and don't yet have an Ubuntu One account, be sure to use the same
@@ -27,6 +34,27 @@ Click on the subscription that you wish to use for this tutorial, if it is not
 already selected. On the right you will now see the details of your
 subscription, including your secret token (under the "Subscription" header and
 next to the "🔗" symbol).
+
+Ubuntu Pro Client on an already attached machine
+------------------------------------------------
+
+If you will be building this Docker image on a machine that is already attached
+to an Ubuntu Pro subscription, you can use the Ubuntu Pro Client to get a guest
+token for the Docker build.
+
+.. code-block:: bash
+
+   sudo pro api u.pro.attach.guest.get_guest_token.v1
+
+That command will output JSON that includes a guest token that is valid for a
+short time, during which you can use it in your Docker build.
+
+.. tip::
+   If you have ``jq`` installed, you can use the following command to extract the token:
+    
+   .. code-block:: bash
+    
+      sudo pro api u.pro.attach.guest.get_guest_token.v1 | jq -r '.data.attributes.guest_token'
 
 .. caution:
 
