@@ -34,7 +34,6 @@ Feature: Pro is expected version
       | xenial   | azure.pro-fips |
       | xenial   | gcp.generic    |
       | xenial   | gcp.pro        |
-      | xenial   | gcp.pro-fips   |
       | bionic   | lxd-container  |
       | bionic   | lxd-vm         |
       | bionic   | aws.generic    |
@@ -46,6 +45,7 @@ Feature: Pro is expected version
       | bionic   | gcp.generic    |
       | bionic   | gcp.pro        |
       | bionic   | gcp.pro-fips   |
+      | bionic   | wsl            |
       | focal    | lxd-container  |
       | focal    | lxd-vm         |
       | focal    | aws.generic    |
@@ -57,32 +57,34 @@ Feature: Pro is expected version
       | focal    | gcp.generic    |
       | focal    | gcp.pro        |
       | focal    | gcp.pro-fips   |
+      | focal    | wsl            |
       | jammy    | lxd-container  |
       | jammy    | lxd-vm         |
       | jammy    | aws.generic    |
       | jammy    | aws.pro        |
-      | jammy    | aws.pro-fips   |
       | jammy    | azure.generic  |
       | jammy    | azure.pro      |
-      | jammy    | azure.pro-fips |
       | jammy    | gcp.generic    |
       | jammy    | gcp.pro        |
-      | jammy    | gcp.pro-fips   |
+      | jammy    | wsl            |
       | noble    | lxd-container  |
       | noble    | lxd-vm         |
       | noble    | aws.generic    |
       | noble    | aws.pro        |
-      | noble    | aws.pro-fips   |
       | noble    | azure.generic  |
       | noble    | azure.pro      |
-      | noble    | azure.pro-fips |
       | noble    | gcp.generic    |
       | noble    | gcp.pro        |
-      | noble    | gcp.pro-fips   |
       | oracular | lxd-container  |
       | oracular | lxd-vm         |
+      | oracular | aws.generic    |
+      | oracular | azure.generic  |
+      | oracular | gcp.generic    |
       | plucky   | lxd-container  |
       | plucky   | lxd-vm         |
+      | plucky   | aws.generic    |
+      | plucky   | azure.generic  |
+      | plucky   | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
