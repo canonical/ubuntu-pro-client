@@ -27,6 +27,7 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container | as non-root |
       | noble    | lxd-container | with sudo   |
       | oracular | lxd-container | with sudo   |
+      | plucky   | lxd-container | with sudo   |
 
   Scenario Outline: Non-root user and root user log files are different
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -60,6 +61,7 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   Scenario Outline: Non-root user log files included in collect logs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -70,7 +72,8 @@ Feature: Logs in Json Array Formatter
       """
       user0.log
       """
-    When i verify that running `pro status` `as non-root` exits `0`
+    When I delete the file `pro_logs.tar.gz`
+    And I verify that running `pro status` `as non-root` exits `0`
     And I verify that running `pro collect-logs` `with sudo` exits `0`
     And I run `tar -tf pro_logs.tar.gz` as non-root
     Then stdout contains substring
@@ -86,6 +89,7 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   Scenario Outline: logrotate configuration works
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -135,3 +139,4 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

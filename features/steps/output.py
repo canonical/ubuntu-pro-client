@@ -27,24 +27,35 @@ def then_i_will_see_on_stream(context, stream):
         )
 
 
-@then("if `{value1}` in `{value2}` and stdout matches regexp")
-def then_conditional_stdout_matches_regexp(context, value1, value2):
+@then("if `{value1}` in `{value2}` I will see the following on {stream}")
+def then_conditional_i_will_see_on_stream(context, value1, value2, stream):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
-        then_stream_matches_regexp(context, "stdout")
+        then_i_will_see_on_stream(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and stdout contains substring")
-def then_conditional_stdout_contains_substring(context, value1, value2):
-    if value1 in value2.split(" or "):
-        then_stream_contains_substring(context, "stdout")
+@then("if `{value1}` not in `{value2}` I will see the following on {stream}")
+def then_not_in_conditional_stream_matches_regexp(
+    context, value1, value2, stream
+):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 not in value2.split(" or "):
+        then_i_will_see_on_stream(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and stderr matches regexp")
-def then_conditional_stderr_matches_regexp(context, value1, value2):
+@then("if `{value1}` in `{value2}` and {stream} matches regexp")
+def then_conditional_stream_matches_regexp(context, value1, value2, stream):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
-        then_stream_matches_regexp(context, "stderr")
+        then_stream_matches_regexp(context, stream)
+
+
+@then("if `{value1}` in `{value2}` and {stream} contains substring")
+def then_conditional_stdout_contains_substring(
+    context, value1, value2, stream
+):
+    if value1 in value2.split(" or "):
+        then_stream_contains_substring(context, stream)
 
 
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
@@ -126,16 +137,16 @@ def then_api_data_output_is(context):
         )
 
 
-@then("API errors field output matches regexp")
-def then_api_errors_output_matches_regexp(context):
-    content = process_api_data(context, api_key="errors")
+@then("API {field} field output matches regexp")
+def then_api_field_output_matches_regexp(context, field):
+    content = process_api_data(context, api_key=field)
     text = process_template_vars(context, context.text)
     compare_regexp(text, content)
 
 
-@then("API errors field output is")
-def then_api_errors_output_is(context):
-    content = process_api_data(context, api_key="errors", escape=False)
+@then("API {field} field output is")
+def then_api_errors_output_is(context, field):
+    content = process_api_data(context, api_key=field, escape=False)
     text = process_template_vars(context, context.text)
     if not text == content:
         raise AssertionError(
@@ -143,13 +154,6 @@ def then_api_errors_output_is(context):
                 textwrap.indent(text, "  "), textwrap.indent(content, "  ")
             )
         )
-
-
-@then("API warnings field output matches regexp")
-def then_api_warnings_output_matches_regexp(context):
-    content = process_api_data(context, api_key="warnings")
-    text = process_template_vars(context, context.text)
-    compare_regexp(text, content)
 
 
 @then("{stream} matches regexp")

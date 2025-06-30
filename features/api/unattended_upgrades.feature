@@ -254,3 +254,4 @@ Feature: api.u.unattended_upgrades.status.v1
       | jammy    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | noble    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | oracular | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | plucky   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |

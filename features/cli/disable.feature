@@ -480,3 +480,4 @@ Feature: CLI disable command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

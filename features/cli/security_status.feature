@@ -790,7 +790,7 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -801,7 +801,7 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ packages from Ubuntu Main/Restricted repository
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -832,7 +832,7 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -854,14 +854,14 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | plucky  | lxd-container |
 
   Scenario Outline: Pass custom APT configuration to the Client for updates information
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

@@ -35,15 +35,15 @@ Feature: One time pro subscription related tests
     When I attempt to attach `contract_token` with sudo
     Then stderr contains substring:
       """
-      Attaching to this contract is only allowed on the Ubuntu <onlyrelease> (<onlyseries_codename>) release
+      Attaching to this contract is only allowed on the Ubuntu <onlyrelease> (<onlyseries_codename>) and previous releases.
       """
     And the machine is unattached
 
     Examples: ubuntu release
       | release | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
-      | xenial  | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
+      | xenial  | lxd-container | trusty     | 14.04 LTS   | Trusty Tahr         |
       | bionic  | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
-      | focal   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+      | focal   | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
       | jammy   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
       | noble   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
 
@@ -108,13 +108,18 @@ Feature: One time pro subscription related tests
     When I run `pro status` with sudo
     Then stdout contains substring:
       """
-      Limited to release: Ubuntu <onlyrelease> (<onlyseries_codename>)
+      Limited to Ubuntu <onlyrelease> (<onlyseries_codename>) and previous releases
       """
 
     Examples: ubuntu release
       | release | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
       | xenial  | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
+      | xenial  | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
+      | xenial  | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
       | bionic  | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
+      | bionic  | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
       | focal   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
+      | focal   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
       | jammy   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
+      | jammy   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
       | noble   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |

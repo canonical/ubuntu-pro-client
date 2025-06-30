@@ -79,9 +79,10 @@ Feature: Pro is expected version
       | noble    | gcp.generic    |
       | noble    | gcp.pro        |
       | noble    | gcp.pro-fips   |
-      # no oracular on clouds yet - add it when those are available
       | oracular | lxd-container  |
       | oracular | lxd-vm         |
+      | plucky   | lxd-container  |
+      | plucky   | lxd-vm         |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
@@ -113,6 +114,7 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Attached show version in a ubuntu machine
@@ -135,6 +137,7 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   @arm64
   Scenario Outline: Check for newer versions of the client in an ubuntu machine
@@ -218,3 +221,4 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

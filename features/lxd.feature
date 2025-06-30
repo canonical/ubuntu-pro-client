@@ -152,7 +152,7 @@ Feature: LXD Pro features
   Scenario Outline: LXD guest auto-attach
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # Ensure default is "off" and setup lxd
-    When I run `snap refresh lxd --channel latest/edge` with sudo
+    When I run `snap refresh lxd --channel 6/stable` with sudo
     When I run `lxd init --minimal` with sudo
     When I start `lxd-download` command `lxc image copy ubuntu-daily:noble local:` in the background
     When I run `pro config show` with sudo

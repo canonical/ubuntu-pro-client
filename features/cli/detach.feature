@@ -170,3 +170,4 @@ Feature: CLI detach command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

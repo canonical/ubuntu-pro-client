@@ -29,6 +29,7 @@ Feature: Ua fix command behaviour
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -969,5 +970,5 @@ Feature: Ua fix command behaviour
       """
 
     Examples: ubuntu release details
-      | release | machine_type  |
-      | bionic  | wsl           |
+      | release | machine_type |
+      | bionic  | wsl          |

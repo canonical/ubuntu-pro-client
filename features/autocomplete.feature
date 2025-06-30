@@ -63,3 +63,4 @@ Feature: Pro autocomplete commands
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | oracular | lxd-container |
+      | plucky   | lxd-container |

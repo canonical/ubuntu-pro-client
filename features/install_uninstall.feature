@@ -13,6 +13,7 @@ Feature: Pro Install and Uninstall related tests
       | jammy    | lxd-container | ubuntu-advantage-tools |
       | noble    | lxd-container | ubuntu-pro-client      |
       | oracular | lxd-container | ubuntu-pro-client      |
+      | plucky   | lxd-container | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: Purge package after attaching it to a machine
@@ -129,6 +130,7 @@ Feature: Pro Install and Uninstall related tests
       | jammy    | lxd-container | ubuntu_advantage |
       | noble    | lxd-container | ubuntu_pro       |
       | oracular | lxd-container | ubuntu_pro       |
+      | plucky   | lxd-container | ubuntu-pro       |
 
   @uses.config.contract_token
   Scenario Outline: Create public machine token on postinst

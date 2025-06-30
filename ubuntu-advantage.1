@@ -71,6 +71,15 @@ Collect logs and relevant system information into a tarball.
 This information can be later used for triaging/debugging issues.
 
 .TP
+.BR "cve" " [-h] cve"
+Show all available information about a given CVE.
+
+
+.TP
+.BR "cves" " [-h] [--unfixable] [--fixable]"
+List the CVE vulnerabilities that affects the system.
+
+.TP
 .BR "config" " [-h] {show,set,unset} ..."
 Manage Ubuntu Pro Client configuration on this machine.
 
@@ -163,7 +172,7 @@ The attached status output has four columns:
       entitles use of this service. Possible values are: yes or no.
     * STATUS: Whether the service is enabled on this machine. Possible
       values are: enabled, disabled, n/a (if your contract entitles
-      you to the service, but it isn't available for this machine) or — (if
+      you to the service, but it isn't available for this machine) or - (if
       you aren't entitled to this service).
     * DESCRIPTION: A brief description of the service.
 
@@ -185,7 +194,7 @@ listed in the output.
 
 .TP
 .BR "system" " [-h] {reboot-required} ..."
-Outputs system-related information about Pro services.
+Output system-related information about Pro services.
 
 .TP
 .BR "    reboot-required" " [-h]"
@@ -201,6 +210,7 @@ for the machine regarding reboot:
       patches for the current running kernel. The machine still needs a
       reboot, but you can assess if the reboot can be performed in the
       nearest maintenance window.
+
 
 
 
@@ -422,4 +432,4 @@ login to Launchpad and navigate to
 https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+filebug
 
 .SH COPYRIGHT
-Copyright (C) 2019-2020 Canonical Ltd.
+Copyright (C) 2019-2025 Canonical Ltd.
