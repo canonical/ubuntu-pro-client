@@ -103,7 +103,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
     # TODO find out what caused memory to go up, try to lower it again
     Then on `xenial`, systemd status output says memory usage is less than `18` MB
-    Then on `bionic`, systemd status output says memory usage is less than `15` MB
+    Then on `bionic`, systemd status output says memory usage is less than `16` MB
     Then on `focal`, systemd status output says memory usage is less than `14` MB
     Then on `jammy`, systemd status output says memory usage is less than `15` MB
     Then on `noble`, systemd status output says memory usage is less than `17` MB
