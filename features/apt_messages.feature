@@ -77,6 +77,32 @@ Feature: APT Messages
       | xenial  | lxd-container | apparmor=2.10.95-0ubuntu2 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
 
   @uses.config.contract_token
+  Scenario Outline: APT JSON Hook prints package counts correctly on oracular
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    When I apt upgrade
+    When I apt install `<standard-pkg-1>`
+    When I apt upgrade
+    Then stdout matches regexp:
+      """
+      Summary:
+        Upgrading: 1, Installing: 0, Removing: 0, Not Upgrading: 0
+        1 standard security update
+      """
+    When I apt install `<standard-pkg-1> <standard-pkg-2>`
+    When I apt upgrade
+    Then stdout matches regexp:
+      """
+      Summary:
+        Upgrading: 2, Installing: 0, Removing: 0, Not Upgrading: 0
+        2 standard security updates
+      """
+
+    Examples: ubuntu release
+      | release  | machine_type  | standard-pkg-1        | standard-pkg-2            |
+      | oracular | lxd-container | git=1:2.45.2-1ubuntu1 | git-man=1:2.45.2-1ubuntu1 |
+
+  @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-infra on upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I remove support for `backports` in APT
@@ -701,9 +727,10 @@ Feature: APT Messages
       Building dependency tree...
       Reading state information...
       Calculating upgrade...
-      #
-      # one
-      #
+
+      APT news:
+        one
+
       Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
