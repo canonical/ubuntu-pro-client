@@ -67,54 +67,53 @@ Feature: CLI cves command
       | release | machine_type  |
       | xenial  | lxd-container |
 
-  @uses.config.contract_token
-  Scenario Outline: cve command for fixable esm-apps issues
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I push static file `security_issues_jammy.json.xz` to machine
-    And I create the file `/tmp/response-overlay.json` with the following:
-      """
-      {
-        "https://security-metadata.canonical.com/oval/com.ubuntu.jammy.pkg.json.xz": [
-          {
-            "code": 200,
-            "response": {
-              "file_path": "/tmp/security_issues_jammy.json.xz"
-            }
-          }]
-      }
-      """
-    And I append the following on uaclient config:
-      """
-      features:
-        serviceclient_url_responses: "/tmp/response-overlay.json"
-      """
-    And I apt install `nodejs`
-    When I run `pro cves` as non-root
-    Then I will see the following on stdout:
-      """
-      Package     Priority  Origin    Vulnerability
-      libnode72   high      esm-apps  CVE-2023-44487
-      nodejs      high      esm-apps  CVE-2023-44487
-      nodejs-doc  high      -         CVE-2023-44487
-      """
-    When I run `pro cves --fixable` as non-root
-    Then I will see the following on stdout:
-      """
-      Package    Priority  Origin    Vulnerability
-      libnode72  high      esm-apps  CVE-2023-44487
-      nodejs     high      esm-apps  CVE-2023-44487
-      """
-    When I run `pro cves --unfixable` as non-root
-    Then I will see the following on stdout:
-      """
-      Package     Priority  Origin  Vulnerability
-      nodejs-doc  high      -       CVE-2023-44487
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | jammy   | lxd-container |
-
+  # There is no Jammy file. Need one before running this.
+  # @uses.config.contract_token
+  # Scenario Outline: cve command for fixable esm-apps issues
+  # Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  # When I push static file `security_issues_jammy.json.xz` to machine
+  # And I create the file `/tmp/response-overlay.json` with the following:
+  # """
+  # {
+  # "https://security-metadata.canonical.com/oval/com.ubuntu.jammy.pkg.json.xz": [
+  # {
+  # "code": 200,
+  # "response": {
+  # "file_path": "/tmp/security_issues_jammy.json.xz"
+  # }
+  # }]
+  # }
+  # """
+  # And I append the following on uaclient config:
+  # """
+  # features:
+  # serviceclient_url_responses: "/tmp/response-overlay.json"
+  # """
+  # And I apt install `nodejs`
+  # When I run `pro cves` as non-root
+  # Then I will see the following on stdout:
+  # """
+  # Package     Priority  Origin    Vulnerability
+  # libnode72   high      esm-apps  CVE-2023-44487
+  # nodejs      high      esm-apps  CVE-2023-44487
+  # nodejs-doc  high      -         CVE-2023-44487
+  # """
+  # When I run `pro cves --fixable` as non-root
+  # Then I will see the following on stdout:
+  # """
+  # Package    Priority  Origin    Vulnerability
+  # libnode72  high      esm-apps  CVE-2023-44487
+  # nodejs     high      esm-apps  CVE-2023-44487
+  # """
+  # When I run `pro cves --unfixable` as non-root
+  # Then I will see the following on stdout:
+  # """
+  # Package     Priority  Origin  Vulnerability
+  # nodejs-doc  high      -       CVE-2023-44487
+  # """
+  # Examples: ubuntu release
+  # | release | machine_type  |
+  # | jammy   | lxd-container |
   @uses.config.contract_token
   Scenario Outline: Cves command when vulnerability data doesn't exist
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
