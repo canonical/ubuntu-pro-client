@@ -963,6 +963,6 @@ Feature: CLI security-status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | pkg_in_updates               | pkg_in_security      |
-      | xenial  | lxd-container | base-files=9.4ubuntu4        | wget=1.17.1-1ubuntu1 |
-      | noble   | lxd-container | xz-utils=5.6.1+really5.4.5-1 | less=590-2ubuntu2    |
+      | release | machine_type  | pkg_in_updates        | pkg_in_security      |
+      | xenial  | lxd-container | base-files=9.4ubuntu4 | wget=1.17.1-1ubuntu1 |
+      | noble   | lxd-container | zip=3.0-13build1      | less=590-2ubuntu2    |
