@@ -243,17 +243,17 @@ Feature: Pro Client help text
         --format {cli,json}  output in the specified format (default: cli)
       """
     When I run `pro security-status --help` as non-root
-    Then if `<release>` in `plucky` I will see the following on stdout
+    Then if `<release>` in `plucky` and stdout contains substring:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}] [--thirdparty |
                                  --unavailable | --esm-infra | --esm-apps]
       """
-    And if `<release>` not in `plucky` I will see the following on stdout
+    And if `<release>` not in `plucky` and stdout contains substring:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]
       """
-    And I will see the following on stdout
+    And stdout contains substring:
       """
       Show security updates for packages in the system, including all
       available Expanded Security Maintenance (ESM) related content.

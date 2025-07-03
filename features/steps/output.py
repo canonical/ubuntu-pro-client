@@ -58,6 +58,14 @@ def then_conditional_stdout_contains_substring(
         then_stream_contains_substring(context, stream)
 
 
+@then("if `{value1}` not in `{value2}` and {stream} contains substring")
+def then_not_in_conditional_stdout_contains_substring(
+    context, value1, value2, stream
+):
+    if value1 not in value2.split(" or "):
+        then_stream_contains_substring(context, stream)
+
+
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
 def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
