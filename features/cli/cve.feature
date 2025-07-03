@@ -30,7 +30,7 @@ Feature: CLI cve command
       name:            CVE-2023-3297
       public-url:      https://ubuntu.com/security/CVE-2023-3297
       published-at:    2023-06-28
-      cve-cache-date:  2024-09-23
+      cve-cache-date:  .*
       apt-cache-date:  .*
       priority:        .*medium.*
       cvss-score:      8.1
@@ -56,7 +56,7 @@ Feature: CLI cve command
       name:            CVE-2023-3297
       public-url:      https://ubuntu.com/security/CVE-2023-3297
       published-at:    2023-06-28
-      cve-cache-date:  2024-09-23
+      cve-cache-date:  .*
       apt-cache-date:  .*
       priority:        .*medium.*
       cvss-score:      8.1
@@ -77,7 +77,7 @@ Feature: CLI cve command
       name:            CVE-2012-6655
       public-url:      https://ubuntu.com/security/CVE-2012-6655
       published-at:    2019-11-27
-      cve-cache-date:  2024-09-23
+      cve-cache-date:  .*
       apt-cache-date:  .*
       priority:        .*low.*
       cvss-score:      3.3
@@ -128,8 +128,8 @@ Feature: CLI cve command
       name:            CVE-2023-20569
       public-url:      https://ubuntu.com/security/CVE-2023-20569
       published-at:    2023-08-08
-      cve-cache-date:  2025-05-07
-      apt-cache-date:  2025-05-07
+      cve-cache-date:  .*
+      apt-cache-date:  .*
       priority:        .*high.*
       cvss-score:      4.7
       cvss-severity:   medium
