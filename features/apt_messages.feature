@@ -695,13 +695,14 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    # Plucky shows the Calculating upgrade line more than once.
+    # TODO: change those tests to have different output per release.
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       #
       Summary:
@@ -714,13 +715,12 @@ Feature: APT Messages
       """
     # Test that it is not shown in apt-get output
     When I apt-get upgrade
-    Then I will see the following on stdout
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      (Calculating upgrade...\n)+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
 
     Examples: ubuntu release
@@ -1196,13 +1196,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -1226,13 +1225,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       # two
       #
@@ -1261,13 +1259,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       # two
       #
@@ -1295,13 +1292,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -1325,13 +1321,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       # two
       #
@@ -1362,13 +1357,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     And I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     # Testing package selector when package installed
@@ -1516,13 +1510,12 @@ Feature: APT Messages
     And I run `systemctl start apt-news.service` with sudo
     And I wait `5` seconds
     And I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Not upgrading:
+      (Calculating upgrade...\n)+Not upgrading:
         <package>
 
       Summary:
@@ -1551,13 +1544,12 @@ Feature: APT Messages
     And I run `systemctl start apt-news.service` with sudo
     And I wait `5` seconds
     And I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Not upgrading:
+      (Calculating upgrade...\n)+Not upgrading:
         <package>
 
       Summary:
@@ -1567,7 +1559,7 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  | wrong_release | package     | installed_version |
       | oracular | lxd-container | jammy         | libcurl4t64 | 8.9.1-2ubuntu2    |
-      | plucky   | lxd-container | jammy         | libcurl4t64 | 8.12.1-3ubuntu1   |
+      | plucky   | lxd-container | jammy         | pyzfs-doc   | 2.3.1-1ubuntu1    |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1602,13 +1594,12 @@ Feature: APT Messages
       Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
       """
     When I apt-get upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      (Calculating upgrade...\n)+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I attach `contract_token` with sudo
     When I apt upgrade on a dry run
@@ -1617,8 +1608,7 @@ Feature: APT Messages
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I apt upgrade
@@ -1630,8 +1620,7 @@ Feature: APT Messages
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
 

@@ -130,7 +130,7 @@ Feature: Pro Install and Uninstall related tests
       | jammy    | lxd-container | ubuntu_advantage |
       | noble    | lxd-container | ubuntu_pro       |
       | oracular | lxd-container | ubuntu_pro       |
-      | plucky   | lxd-container | ubuntu-pro       |
+      | plucky   | lxd-container | ubuntu_pro       |
 
   @uses.config.contract_token
   Scenario Outline: Create public machine token on postinst

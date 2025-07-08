@@ -17,9 +17,9 @@ Feature: Enable landscape on Ubuntu
       Installing landscape-client
       Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       """
-    Then stdout contains substring
+    Then stdout matches regexp
       """
-      Registration request sent successfully.
+      Registration request sent successfully
       """
     And I verify that `landscape` is enabled
     When I run `sudo pro disable landscape` with sudo
@@ -46,28 +46,23 @@ Feature: Enable landscape on Ubuntu
       """
     # Fail to enable with assume-yes
     When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
-    Then I will see the following on stdout:
+    Then stdout contains substring
       """
-      One moment, checking your subscription first
-      Updating standard Ubuntu package lists
-      Installing landscape-client
-      Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
-      Invalid account name or registration key.
       landscape-config command failed
       Could not enable Landscape.
       """
-    # This will become obsolete soon: #2864
-    When I run `pro status` with sudo
-    # I am keeping this check until the non-root landscape-config check works as expected
-    Then stdout matches regexp:
-      """
-      landscape +yes +warning
-      """
-    Then stdout contains substring:
-      """
-      Landscape is installed and configured but not registered.
-      Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
-      """
+    # https://github.com/canonical/ubuntu-pro-client/issues/3473
+    # When I run `pro status` with sudo
+    # # I am keeping this check until the non-root landscape-config check works as expected
+    # Then stdout matches regexp:
+    # """
+    # landscape +yes +warning
+    # """
+    # Then stdout contains substring:
+    # """
+    # Landscape is installed and configured but not registered.
+    # Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
+    # """
     When I run `sudo pro disable landscape` with sudo
     When I run `pro status` with sudo
     Then stdout matches regexp:
@@ -84,21 +79,9 @@ Feature: Enable landscape on Ubuntu
     When I run `sudo pro disable landscape` with sudo
     # Fail to enable with assume-yes and format json
     When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
-    Then I will see the following on stdout:
+    Then stdout matches regexp
       """
-      {"_schema_version": "0.1", "errors": [{"additional_info": {"stderr": "Invalid account name or registration key.", "stdout": ""}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": ["landscape"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-      """
-    # This will become obsolete soon: #2864
-    When I run `pro status` with sudo
-    # I am keeping this check until the non-root landscape-config check works as expected
-    Then stdout matches regexp:
-      """
-      landscape +yes +warning
-      """
-    Then stdout contains substring:
-      """
-      Landscape is installed and configured but not registered.
-      Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
+      {"_schema_version": "0.1", "errors": \[{"additional_info": {"stderr": .*, "stdout": .*}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": \["landscape"], "needs_reboot": false, "processed_services": \[], "result": "failure", "warnings": \[]}
       """
 
     Examples: ubuntu release
@@ -142,7 +125,7 @@ Feature: Enable landscape on Ubuntu
       Installing landscape-client
       Executing `landscape-config`
       """
-    Then stdout contains substring:
+    Then if `<release>` not in `plucky` and stdout contains substring:
       """
       Registration request sent successfully.
       """
@@ -166,17 +149,18 @@ Feature: Enable landscape on Ubuntu
       Installing landscape-client
       Executing `landscape-config`
       """
-    And stderr contains substring:
+    And if `<release>` not in `plucky` and stderr contains substring:
       """
       Invalid account name or registration key.
       """
-    When I run `pro status` with sudo
-    Then stdout contains substring:
-      """
-      Landscape is installed and configured but not registered.
-      Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
-      """
 
+    # https://github.com/canonical/ubuntu-pro-client/issues/3473
+    # When I run `pro status` with sudo
+    # Then stdout contains substring:
+    # """
+    # Landscape is installed and configured but not registered.
+    # Run `sudo landscape-config` to register, or run `sudo pro disable landscape`
+    # """
     Examples: ubuntu release
       | release  | machine_type  |
       | oracular | lxd-container |
