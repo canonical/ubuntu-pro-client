@@ -468,12 +468,12 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
-      This machine is NOT attached to an Ubuntu Pro subscription.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled\.
+      This machine is NOT attached to an Ubuntu Pro subscription\.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
-      Main/Restricted packages until 2030.
+      Main/Restricted packages until 2030\. There (is|are) \d+ pending security update[s]?\.
 
       Ubuntu Pro with 'esm-apps' enabled provides security updates for
       Universe/Multiverse packages until 2030\. There (is|are) \d+ pending security update[s]?\.
@@ -488,13 +488,23 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ package[s]? from Ubuntu Main/Restricted repository
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled\.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
-      Main/Restricted packages until 2030.
+      Main/Restricted packages until 2030\. There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-infra' to learn more
+
+      Installed packages with an available esm-infra update:
+      (.|\n)+
+
+      Further installed packages covered by esm-infra:
+      (.|\n)+
+
+      For example, run:
+          apt-cache show .+
+      to learn more about that package\.
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -536,7 +546,7 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030.
+      Ubuntu Pro with 'esm-infra' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
       Ubuntu Pro with 'esm-apps' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
@@ -549,9 +559,19 @@ Feature: CLI security-status command
        +\d+ packages from Ubuntu Main/Restricted repository
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030.
+      Ubuntu Pro with 'esm-infra' enabled until 2030. There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-infra' to learn more
+
+      Installed packages with an available esm-infra update:
+      (.|\n)+
+
+      Further installed packages covered by esm-infra:
+      (.|\n)+
+
+      For example, run:
+          apt-cache show .+
+      to learn more about that package\.
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -593,7 +613,8 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030\.
+      Ubuntu Pro with 'esm-infra' enabled until 2030\. You have received \d+ security
+      update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
       Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received \d+ security
@@ -614,8 +635,8 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
       This machine is attached to an Ubuntu Pro subscription.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
@@ -670,13 +691,16 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ packages from Ubuntu Main/Restricted repository
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
       Main/Restricted packages until 2030.
 
       Run 'pro help esm-infra' to learn more
+
+      Installed packages covered by esm-infra:
+      (.|\n)+
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -718,8 +742,8 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
       This machine is attached to an Ubuntu Pro subscription.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
@@ -750,8 +774,8 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
       This machine is attached to an Ubuntu Pro subscription.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for

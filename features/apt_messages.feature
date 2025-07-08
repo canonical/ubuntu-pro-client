@@ -133,6 +133,7 @@ Feature: APT Messages
       | release | machine_type  | version |
       | xenial  | lxd-container | 16      |
       | bionic  | lxd-container | 18      |
+      | focal   | lxd-container | 20      |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -191,8 +192,6 @@ Feature: APT Messages
       | release | machine_type  | package | more_msg                | learn_more_msg                                        |
       # TODO add noble when there is a package available in esm with a higher version than in noble (not true of hello)
       # | noble   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
-      | focal   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
-      | focal   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
 
