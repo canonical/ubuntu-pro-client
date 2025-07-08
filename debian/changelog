@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+
+  * Open the next development version.
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 08 Jul 2025 18:01:35 -0300
+
 ubuntu-advantage-tools (36ubuntu0) questing; urgency=medium
 
   * d/apparmor/ubuntu_pro_esm_cache.jinja2: use openssl abstraction in the
