@@ -263,8 +263,17 @@ def local_apt_news(cfg: UAConfig) -> Optional[str]:
 
 
 def format_news_for_apt_update(news: str) -> str:
+    lines = news.split("\n")
+
+    if system.get_release_info().release >= "24.10":
+        result = "\nAPT news:\n"
+        for line in lines:
+            result += "  {}\n".format(line)
+        result += "\n"
+        return result
+
     result = "#\n"
-    for line in news.split("\n"):
+    for line in lines:
         result += "# {}\n".format(line)
     result += "#\n"
     return result
