@@ -648,3 +648,23 @@ Feature: CLI enable command
       | focal   | lxd-container |
       | jammy   | lxd-container |
       | noble   | lxd-container |
+
+  Scenario Outline: Running pro enable --auto with no services to enable
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then I verify that `esm-infra` is enabled
+    Then I verify that `esm-apps` is enabled
+    When I run `pro enable --auto` with sudo
+    Then I will see the following on stdout:
+      """
+      One moment, checking your subscription first
+      No services to be enabled by default
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
