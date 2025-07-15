@@ -1112,7 +1112,7 @@ CLI_ENABLE_BETA = t.gettext("allow beta service to be enabled")
 CLI_ENABLE_VARIANT = t.gettext(
     "The name of the variant to use when enabling the service"
 )
-CLI_ENABLE_AUTO = t.gettext("enable default services")
+CLI_ENABLE_AUTO = t.gettext("enable all default services")
 
 CLI_DISABLE_DESC = t.gettext("Disable one or more Ubuntu Pro services.")
 CLI_DISABLE_SERVICE = t.gettext(

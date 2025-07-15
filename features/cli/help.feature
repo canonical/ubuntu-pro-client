@@ -160,8 +160,8 @@ Feature: Pro Client help text
     Then I will see the following on stdout
       """
       usage: pro enable [-h] [--assume-yes] [--access-only] [--beta]
-                        [--format {cli,json}] [--variant VARIANT]
-                        service [service ...]
+                        [--format {cli,json}] [--variant VARIANT] [--auto]
+                        [service [service ...]]
 
       Activate and configure this machine's access to one or more Ubuntu Pro
       services.
@@ -172,7 +172,7 @@ Feature: Pro Client help text
                              fips, fips-preview, fips-updates, landscape, livepatch,
                              realtime-kernel, ros, ros-updates
 
-      <options_string>:
+      optional arguments:
         -h, --help           show this help message and exit
         --assume-yes         do not prompt for confirmation before performing the
                              enable
@@ -182,6 +182,7 @@ Feature: Pro Client help text
         --format {cli,json}  output in the specified format (default: cli)
         --variant VARIANT    The name of the variant to use when enabling the
                              service
+        --auto               enable all default services
       """
     When I run `pro attach --help` as non-root
     Then I will see the following on stdout
