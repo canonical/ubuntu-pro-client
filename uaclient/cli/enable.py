@@ -31,6 +31,7 @@ from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.parser import HelpCategory
+from uaclient.files import machine_token
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
@@ -42,6 +43,34 @@ _EnableOneServiceResult = NamedTuple(
         ("error", Optional[Dict[str, Any]]),
     ],
 )
+
+
+def _auto_enable_services(
+    cfg: config.UAConfig,
+    variant: str,
+    access_only: bool,
+    assume_yes: bool,
+    json_output,
+):
+    machine_token_file = machine_token.get_machine_token_file(cfg)
+    services_to_be_enabled = contract.get_enabled_by_default_services(
+        cfg, machine_token_file.entitlements()
+    )
+    enabled_services = _enabled_services(cfg).enabled_services
+    all_dependencies = _dependencies(cfg).services
+
+    for enable_by_default_service in services_to_be_enabled:
+        _enable_one_service(
+            cfg=cfg,
+            ent_name=enable_by_default_service.name,
+            variant=variant,
+            access_only=access_only,
+            assume_yes=assume_yes,
+            json_output=json_output,
+            extra_args=None,
+            enabled_services=enabled_services,
+            all_dependencies=all_dependencies,
+        )
 
 
 def _enable_landscape(
@@ -400,10 +429,21 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     variant = getattr(args, "variant", "")
     access_only = args.access_only
     assume_yes = args.assume_yes
+    auto = args.auto
 
     if variant and access_only:
         raise exceptions.InvalidOptionCombination(
             option1="--access-only", option2="--variant"
+        )
+
+    if variant and auto:
+        raise exceptions.InvalidOptionCombination(
+            option1="--variant", option2="--auto"
+        )
+
+    if access_only and auto:
+        raise exceptions.InvalidOptionCombination(
+            option1="--access-only", option2="--auto"
         )
 
     interactive_only_print(messages.REFRESH_CONTRACT_ENABLE)
@@ -441,7 +481,19 @@ def action_enable(args, *, cfg, **kwargs) -> int:
         )
         return 1
 
+    if auto:
+        return _auto_enable_services(
+            cfg=cfg,
+            variant="",
+            access_only=False,
+            assume_yes=True,
+            json_output=json_output,
+        )
+
     names = getattr(args, "service", [])
+    if not names:
+        raise exceptions.NoServicesToEnable()
+
     (
         entitlements_found,
         entitlements_not_found,
@@ -525,7 +577,7 @@ enable_command = ProCommand(
                         )
                     ),
                     action="store",
-                    nargs="+",
+                    nargs="*",
                 ),
                 ProArgument(
                     "--assume-yes",
@@ -553,6 +605,11 @@ enable_command = ProCommand(
                     "--variant",
                     help=messages.CLI_ENABLE_VARIANT,
                     action="store",
+                ),
+                ProArgument(
+                    "--auto",
+                    help=messages.CLI_ENABLE_AUTO,
+                    action="store_true",
                 ),
             ]
         )
