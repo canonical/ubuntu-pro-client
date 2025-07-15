@@ -362,6 +362,10 @@ AUTO_SELECTING_VARIANT = t.gettext(
 No variant specified. To specify a variant, use the variant option.
 Auto-selecting {variant} variant. Proceed? (y/N) """
 )
+NO_SERVICES_TO_AUTO_ENABLE = t.gettext(
+    """\
+No services to be enabled by default"""
+)
 
 # DISABLE
 REMOVING_APT_CONFIGURATION = t.gettext("Removing APT access to {title}")
