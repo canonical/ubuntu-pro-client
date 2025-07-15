@@ -631,3 +631,20 @@ Feature: CLI enable command
       | noble    | lxd-container |
       | oracular | lxd-container |
       | plucky   | lxd-container |
+
+  Scenario Outline: Running pro enable --auto
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo and options `--no-auto-enable`
+    Then I verify that `esm-infra` is disabled
+    Then I verify that `esm-apps` is disabled
+    When I run `pro enable --auto` with sudo
+    Then I verify that `esm-infra` is enabled
+    Then I verify that `esm-apps` is enabled
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
