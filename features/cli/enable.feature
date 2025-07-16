@@ -637,6 +637,16 @@ Feature: CLI enable command
     When I attach `contract_token` with sudo and options `--no-auto-enable`
     Then I verify that `esm-infra` is disabled
     Then I verify that `esm-apps` is disabled
+    When I verify that running `pro enable --auto --access-only` `with sudo` exits `1`
+    Then I will see the following on stderr:
+      """
+      Error: Cannot use --access-only together with --auto.
+      """
+    When I verify that running `pro enable --auto --variant test` `with sudo` exits `1`
+    Then I will see the following on stderr:
+      """
+      Error: Cannot use --variant together with --auto.
+      """
     When I run `pro enable --auto` with sudo
     Then I verify that `esm-infra` is enabled
     Then I verify that `esm-apps` is enabled
