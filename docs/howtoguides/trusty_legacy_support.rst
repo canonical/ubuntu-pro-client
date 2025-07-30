@@ -19,7 +19,7 @@ All Trusty systems come with ``ua`` pre-installed through the
     If you are running Trusty on a public cloud instance, you must install the updated
     package from this `PPA <https://launchpad.net/~ua-client/+archive/ubuntu/legacy-trusty>`_.
     Follow the instructions to add the PPA to your machine, then continue with
-    this guide
+    this guide.
 
 To make sure that you're running the latest version of ``ua``, run the following commands:
 
