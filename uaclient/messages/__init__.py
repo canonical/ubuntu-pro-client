@@ -364,7 +364,7 @@ Auto-selecting {variant} variant. Proceed? (y/N) """
 )
 NO_SERVICES_TO_AUTO_ENABLE = t.gettext(
     """\
-No services to be enabled by default"""
+All default services are already enabled"""
 )
 
 # DISABLE
