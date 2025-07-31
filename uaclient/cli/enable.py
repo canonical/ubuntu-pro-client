@@ -586,13 +586,18 @@ enable_command = ProCommand(
                     nargs="*",
                 ),
                 ProArgument(
+                    "--access-only",
+                    help=messages.CLI_ENABLE_ACCESS_ONLY,
+                    action="store_true",
+                ),
+                ProArgument(
                     "--assume-yes",
                     help=messages.CLI_ASSUME_YES.format(command="enable"),
                     action="store_true",
                 ),
                 ProArgument(
-                    "--access-only",
-                    help=messages.CLI_ENABLE_ACCESS_ONLY,
+                    "--auto",
+                    help=messages.CLI_ENABLE_AUTO,
                     action="store_true",
                 ),
                 ProArgument(
@@ -611,11 +616,6 @@ enable_command = ProCommand(
                     "--variant",
                     help=messages.CLI_ENABLE_VARIANT,
                     action="store",
-                ),
-                ProArgument(
-                    "--auto",
-                    help=messages.CLI_ENABLE_AUTO,
-                    action="store_true",
                 ),
             ]
         )
