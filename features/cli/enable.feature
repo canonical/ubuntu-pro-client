@@ -668,7 +668,7 @@ Feature: CLI enable command
     Then I will see the following on stdout:
       """
       One moment, checking your subscription first
-      No services to be enabled by default
+      All default services are already enabled
       """
 
     Examples: ubuntu release
