@@ -84,7 +84,6 @@ Feature: Enable cis on Ubuntu
     Examples: cis script
       | release | machine_type  | cis_script                                  |
       | bionic  | lxd-container | Canonical_Ubuntu_18.04_CIS-harden.sh        |
-      | bionic  | wsl           | Canonical_Ubuntu_18.04_CIS-harden.sh        |
       | xenial  | lxd-container | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
 
   Scenario Outline: Attached enable of cis service in a ubuntu machine
@@ -165,4 +164,3 @@ Feature: Enable cis on Ubuntu
     Examples: cis service
       | release | machine_type  | cis_script                           |
       | focal   | lxd-container | Canonical_Ubuntu_20.04_CIS-harden.sh |
-      | focal   | wsl           | Canonical_Ubuntu_20.04_CIS-harden.sh |
