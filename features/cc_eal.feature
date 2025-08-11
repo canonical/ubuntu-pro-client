@@ -27,7 +27,6 @@ Feature: Enable cc-eal on Ubuntu
       | release | machine_type  |
       | xenial  | lxd-container |
       | bionic  | lxd-container |
-      | bionic  | wsl           |
 
   @arm64
   Scenario Outline: Enable cc-eal with --access-only

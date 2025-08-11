@@ -417,11 +417,87 @@ Feature: CLI status command
       Enable services with: pro enable <service>
       """
 
+  @uses.config.contract_token @arm64
+  Scenario Outline: Attached status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +n/a      +.*
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      cis             +yes      +n/a      +Security compliance and audit tools
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
+
+      Enable services with: pro enable <service>
+      """
+
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | bionic  | wsl           |
+      | release | machine_type |
+      | bionic  | wsl          |
+
+  @uses.config.contract_token @arm64
+  Scenario Outline: Attached status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +n/a      +.*
+      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch       +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros             +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
+      usg             +yes      +n/a      +Security compliance and audit tools
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release | machine_type |
+      | focal   | wsl          |
 
   @uses.config.contract_token
   Scenario Outline: Attached status in a Focal ubuntu machine
@@ -468,7 +544,6 @@ Feature: CLI status command
     Examples: ubuntu release
       | release | machine_type  |
       | focal   | lxd-container |
-      | focal   | wsl           |
 
   @uses.config.contract_token
   Scenario Outline: Attached status in a Jammy ubuntu machine
