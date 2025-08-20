@@ -30,6 +30,11 @@ class TestServicesDependenciesV1:
                     name="esm-infra", incompatible_with=[], depends_on=[]
                 ),
                 ServiceWithDependencies(
+                    name="esm-infra-legacy",
+                    incompatible_with=[],
+                    depends_on=[],
+                ),
+                ServiceWithDependencies(
                     name="fips",
                     incompatible_with=[
                         ServiceWithReason(

@@ -144,9 +144,9 @@ Feature: Pro Client help text
 
       positional arguments:
         service              the name(s) of the Ubuntu Pro services to disable. One
-                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
-                             fips, fips-preview, fips-updates, landscape, livepatch,
-                             realtime-kernel, ros, ros-updates
+                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra, esm-
+                             infra-legacy, fips, fips-preview, fips-updates,
+                             landscape, livepatch, realtime-kernel, ros, ros-updates
 
       <options_string>:
         -h, --help           show this help message and exit
@@ -168,9 +168,9 @@ Feature: Pro Client help text
 
       positional arguments:
         service              the name(s) of the Ubuntu Pro services to enable. One
-                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra,
-                             fips, fips-preview, fips-updates, landscape, livepatch,
-                             realtime-kernel, ros, ros-updates
+                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra, esm-
+                             infra-legacy, fips, fips-preview, fips-updates,
+                             landscape, livepatch, realtime-kernel, ros, ros-updates
 
       <options_string>:
         -h, --help           show this help message and exit
