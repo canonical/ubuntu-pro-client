@@ -126,28 +126,30 @@ Feature: CLI status command
     And I run `pro status` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
-      cis             +yes      +disabled +Security compliance and audit tools
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      cc-eal           +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +disabled +Security compliance and audit tools
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      livepatch        +yes      +warning  +Current kernel is not covered by livepatch
       """
     When I verify root and non-root `pro status --all` calls have the same output
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
-      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
-      cis             +yes      +disabled +Security compliance and audit tools
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +warning  +Current kernel is not covered by livepatch
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +n/a      +Scalable Android in the cloud
+      cc-eal           +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +disabled +Security compliance and audit tools
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +warning  +Current kernel is not covered by livepatch
       """
 
     Examples: ubuntu release
@@ -177,17 +179,18 @@ Feature: CLI status command
     When I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +n/a      +Scalable Android in the cloud
-      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
-      cis             +yes      +disabled +Security compliance and audit tools
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +disabled +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +enabled  +Canonical Livepatch service
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +n/a      +Scalable Android in the cloud
+      cc-eal           +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +disabled +Security compliance and audit tools
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +enabled  +Canonical Livepatch service
       """
 
     Examples: ubuntu release
@@ -223,17 +226,18 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +disabled +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +enabled  +Canonical Livepatch service
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +Scalable Android in the cloud
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +enabled  +Canonical Livepatch service
+      usg              +yes      +disabled +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -266,18 +270,19 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +disabled +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +enabled  +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +Scalable Android in the cloud
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +enabled  +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      usg              +yes      +disabled +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -309,17 +314,18 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +enabled  +Canonical Livepatch service
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +Scalable Android in the cloud
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +enabled  +Canonical Livepatch service
+      usg              +yes      +disabled +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -353,21 +359,22 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +Scalable Android in the cloud
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +enabled  +Canonical Livepatch service
-      realtime-kernel +yes      +disabled +Ubuntu kernel with PREEMPT_RT patches integrated
-      ├ generic       *yes      +disabled +Generic version of the RT kernel \(default\)
-      ├ intel-iotg    *yes      +disabled +RT kernel optimized for Intel IOTG platform
-      └ raspi         *yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +Scalable Android in the cloud
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +enabled  +Canonical Livepatch service
+      realtime-kernel  +yes      +disabled +Ubuntu kernel with PREEMPT_RT patches integrated
+      ├ generic        *yes      +disabled +Generic version of the RT kernel \(default\)
+      ├ intel-iotg     *yes      +disabled +RT kernel optimized for Intel IOTG platform
+      └ raspi          *yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
+      usg              +yes      +disabled +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -377,20 +384,21 @@ Feature: CLI status command
   @uses.config.contract_token @arm64
   Scenario Outline: Attached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
+    When I attach `contract_token_staging` with sudo
     And I verify root and non-root `pro status` calls have the same output
     And I run `pro status` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
-      cis             +yes      +disabled +Security compliance and audit tools
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +disabled +NIST-certified FIPS crypto packages
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      ros             +yes      +disabled +Security Updates for the Robot Operating System
-      ros-updates     +yes      +disabled +All Updates for the Robot Operating System
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      cc-eal           +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +disabled +Security compliance and audit tools
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      ros              +yes      +disabled +Security Updates for the Robot Operating System
+      ros-updates      +yes      +disabled +All Updates for the Robot Operating System
 
       For a list of all Ubuntu Pro services, run 'pro status --all'
       Enable services with: pro enable <service>
@@ -399,23 +407,28 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +n/a      +.*
-      cc-eal          +yes      +disabled +Common Criteria EAL2 Provisioning Packages
-      cis             +yes      +disabled +Security compliance and audit tools
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +disabled +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +n/a      +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes      +disabled +Security Updates for the Robot Operating System
-      ros-updates     +yes      +disabled +All Updates for the Robot Operating System
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +n/a      +.*
+      cc-eal           +yes      +disabled +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +disabled +Security compliance and audit tools
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes      +disabled +Security Updates for the Robot Operating System
+      ros-updates      +yes      +disabled +All Updates for the Robot Operating System
 
       Enable services with: pro enable <service>
       """
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Attached status in a ubuntu machine
@@ -477,20 +490,21 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +n/a      +.*
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +n/a      +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes      +n/a      +Security Updates for the Robot Operating System
-      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-      usg             +yes      +n/a      +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +n/a      +.*
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+      usg              +yes      +n/a      +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
@@ -523,20 +537,21 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +.*
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +disabled +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +n/a      +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes      +disabled +Security Updates for the Robot Operating System
-      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +.*
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +disabled +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes      +disabled +Security Updates for the Robot Operating System
+      ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+      usg              +yes      +disabled +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
@@ -568,23 +583,24 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +.*
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +n/a      +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
-      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
-      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
-      ros             +yes      +n/a      +Security Updates for the Robot Operating System
-      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +.*
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +n/a      +Management and administration tool for Ubuntu
+      livepatch        +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ├ generic        +yes      +n/a      +Generic version of the RT kernel \(default\)
+      ├ intel-iotg     +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi          +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
+      ros              +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+      usg              +yes      +disabled +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
@@ -615,23 +631,24 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +disabled +.*
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +disabled +Management and administration tool for Ubuntu
-      livepatch       +yes      +n/a      +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ├ generic       +yes      +n/a      +Generic version of the RT kernel \(default\)
-      ├ intel-iotg    +yes      +n/a      +RT kernel optimized for Intel IOTG platform
-      └ raspi         +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
-      ros             +yes      +n/a      +Security Updates for the Robot Operating System
-      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-      usg             +yes      +disabled +Security compliance and audit tools
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +.*
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +disabled +Management and administration tool for Ubuntu
+      livepatch        +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ├ generic        +yes      +n/a      +Generic version of the RT kernel \(default\)
+      ├ intel-iotg     +yes      +n/a      +RT kernel optimized for Intel IOTG platform
+      └ raspi          +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
+      ros              +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+      usg              +yes      +disabled +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
@@ -703,17 +720,18 @@ Feature: CLI status command
     And I run `pro status` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +DESCRIPTION
-      (anbox-cloud   +(yes|no)  +.*)?
+      SERVICE          +AVAILABLE +DESCRIPTION
+      (anbox-cloud     +(yes|no)  +.*)?
       ?cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
-      cis             +yes       +Security compliance and audit tools
-      esm-apps        +yes       +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +NIST-certified FIPS crypto packages
-      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
-      livepatch       +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
-      ros             +yes       +Security Updates for the Robot Operating System
-      ros-updates     +yes       +All Updates for the Robot Operating System
+      cis              +yes       +Security compliance and audit tools
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes       +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes       +(Canonical Livepatch service|Current kernel is not covered by livepatch)
+      ros              +yes       +Security Updates for the Robot Operating System
+      ros-updates      +yes       +All Updates for the Robot Operating System
 
       For a list of all Ubuntu Pro services, run 'pro status --all'
 
@@ -724,20 +742,21 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +DESCRIPTION
-      anbox-cloud     +(yes|no)  +.*
-      cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
-      cis             +yes       +Security compliance and audit tools
-      esm-apps        +yes       +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +NIST-certified FIPS crypto packages
-      fips-preview    +no        +.*
-      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
-      landscape       +no        +Management and administration tool for Ubuntu
-      livepatch       +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
-      realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes       +Security Updates for the Robot Operating System
-      ros-updates     +yes       +All Updates for the Robot Operating System
+      SERVICE          +AVAILABLE +DESCRIPTION
+      anbox-cloud      +(yes|no)  +.*
+      cc-eal           +yes       +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +Security compliance and audit tools
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes       +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +NIST-certified FIPS crypto packages
+      fips-preview     +no        +.*
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +Management and administration tool for Ubuntu
+      livepatch        +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
+      realtime-kernel  +no        +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes       +Security Updates for the Robot Operating System
+      ros-updates      +yes       +All Updates for the Robot Operating System
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
@@ -751,17 +770,18 @@ Feature: CLI status command
     And I run `pro status` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +DESCRIPTION
-      (anbox-cloud   +(yes|no)  +.*)?
+      SERVICE          +AVAILABLE +DESCRIPTION
+      (anbox-cloud     +(yes|no)  +.*)?
       ?cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
-      cis             +yes       +Security compliance and audit tools
-      esm-apps        +yes       +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +NIST-certified FIPS crypto packages
-      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
-      livepatch       +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
-      ros             +yes       +Security Updates for the Robot Operating System
-      ros-updates     +yes       +All Updates for the Robot Operating System
+      cis              +yes       +Security compliance and audit tools
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes       +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
+      ros              +yes       +Security Updates for the Robot Operating System
+      ros-updates      +yes       +All Updates for the Robot Operating System
 
       FEATURES
       allow_beta: True
@@ -775,6 +795,86 @@ Feature: CLI status command
     Examples: ubuntu release
       | release | machine_type  |
       | xenial  | lxd-container |
+
+  @arm64
+  Scenario Outline: Unattached status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +DESCRIPTION
+      (anbox-cloud    +(yes|no)  +.*)?
+      ?cc-eal         +yes       +Common Criteria EAL2 Provisioning Packages
+      cis             +yes       +Security compliance and audit tools
+      esm-apps        +yes       +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      fips            +yes       +NIST-certified FIPS crypto packages
+      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
+      livepatch       +yes       +(Canonical Livepatch service|Current kernel is not covered by livepatch)
+      ros             +yes       +Security Updates for the Robot Operating System
+      ros-updates     +yes       +All Updates for the Robot Operating System
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE          +AVAILABLE +DESCRIPTION
+      anbox-cloud      +(yes|no)  +.*
+      cc-eal           +yes       +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +Security compliance and audit tools
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +NIST-certified FIPS crypto packages
+      fips-preview     +no        +.*
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +Management and administration tool for Ubuntu
+      livepatch        +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
+      realtime-kernel  +no        +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes       +Security Updates for the Robot Operating System
+      ros-updates      +yes       +All Updates for the Robot Operating System
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+    When I append the following on uaclient config:
+      """
+      features:
+          allow_beta: true
+      """
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE          +AVAILABLE +DESCRIPTION
+      (anbox-cloud     +(yes|no)  +.*)?
+      ?cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +Security compliance and audit tools
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      fips             +yes       +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes      +(Canonical Livepatch service|Current kernel is not covered by livepatch)
+      ros              +yes       +Security Updates for the Robot Operating System
+      ros-updates      +yes       +All Updates for the Robot Operating System
+
+      FEATURES
+      allow_beta: True
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
       | bionic  | lxd-container |
 
   Scenario Outline: Unattached status in a ubuntu machine
@@ -802,20 +902,21 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +DESCRIPTION
-      anbox-cloud     +yes       +.*
-      cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes       +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +NIST-certified FIPS crypto packages
-      fips-preview    +no        +.*
-      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
-      landscape       +no        +Management and administration tool for Ubuntu
-      livepatch       +yes       +Canonical Livepatch service
-      realtime-kernel +no        +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes       +Security Updates for the Robot Operating System
-      ros-updates     +no        +All Updates for the Robot Operating System
-      usg             +yes       +Security compliance and audit tools
+      SERVICE          +AVAILABLE +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +NIST-certified FIPS crypto packages
+      fips-preview     +no        +.*
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +Management and administration tool for Ubuntu
+      livepatch        +yes       +Canonical Livepatch service
+      realtime-kernel  +no        +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes       +Security Updates for the Robot Operating System
+      ros-updates      +no        +All Updates for the Robot Operating System
+      usg              +yes       +Security compliance and audit tools
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
@@ -877,20 +978,21 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +DESCRIPTION
-      anbox-cloud     +yes       +.*
-      cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes       +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-      fips            +no        +NIST-certified FIPS crypto packages
-      fips-preview    +yes       +.*
-      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
-      landscape       +no        +Management and administration tool for Ubuntu
-      livepatch       +yes       +Canonical Livepatch service
-      realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +no        +Security Updates for the Robot Operating System
-      ros-updates     +no        +All Updates for the Robot Operating System
-      usg             +yes       +Security compliance and audit tools
+      SERVICE          +AVAILABLE +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +no        +NIST-certified FIPS crypto packages
+      fips-preview     +yes       +.*
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +Management and administration tool for Ubuntu
+      livepatch        +yes       +Canonical Livepatch service
+      realtime-kernel  +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +no        +Security Updates for the Robot Operating System
+      ros-updates      +no        +All Updates for the Robot Operating System
+      usg              +yes       +Security compliance and audit tools
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
@@ -951,20 +1053,21 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +DESCRIPTION
-      anbox-cloud     +yes       +.*
-      cc-eal          +no        +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes       +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
-      fips            +no        +NIST-certified FIPS crypto packages
-      fips-preview    +no        +.*
-      fips-updates    +no        +FIPS compliant crypto packages with stable security updates
-      landscape       +yes       +Management and administration tool for Ubuntu
-      livepatch       +yes       +Canonical Livepatch service
-      realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +no        +Security Updates for the Robot Operating System
-      ros-updates     +no        +All Updates for the Robot Operating System
-      usg             +yes       +Security compliance and audit tools
+      SERVICE          +AVAILABLE +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +no        +NIST-certified FIPS crypto packages
+      fips-preview     +no        +.*
+      fips-updates     +no        +FIPS compliant crypto packages with stable security updates
+      landscape        +yes       +Management and administration tool for Ubuntu
+      livepatch        +yes       +Canonical Livepatch service
+      realtime-kernel  +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +no        +Security Updates for the Robot Operating System
+      ros-updates      +no        +All Updates for the Robot Operating System
+      usg              +yes       +Security compliance and audit tools
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
@@ -1006,40 +1109,83 @@ Feature: CLI status command
     When I do a preflight check for `contract_token` without the all flag
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
       (anbox-cloud     +yes       +.*)?
       ?cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
-      cis             +yes       +yes       +no           +Security compliance and audit tools
-      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
-      fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
-      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
-      ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
+      cis              +yes       +yes       +no           +Security compliance and audit tools
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes       +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      ros              +yes       +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +yes       +yes       +no           +All Updates for the Robot Operating System
       """
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-      anbox-cloud     +(yes|no)  +.*
-      cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
-      cis             +yes       +yes       +no           +Security compliance and audit tools
-      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
-      fips-preview    +.* +.* +.*
-      fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
-      landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
-      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
-      ros-updates     +yes       +yes       +no           +All Updates for the Robot Operating System
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud      +(yes|no)  +.*
+      cc-eal           +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +yes       +no           +Security compliance and audit tools
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes       +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-preview     +.* +.* +.*
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +yes       +no           +Management and administration tool for Ubuntu
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel  +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes       +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +yes       +yes       +no           +All Updates for the Robot Operating System
       """
 
     Examples: ubuntu release
       | release | machine_type  |
       | xenial  | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Simulate status in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I do a preflight check for `contract_token` without the all flag
+    Then stdout matches regexp:
+      """
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      (anbox-cloud     +yes       +.*)?
+      ?cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +yes       +no           +Security compliance and audit tools
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      ros              +yes       +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +yes       +yes       +no           +All Updates for the Robot Operating System
+      """
+    When I do a preflight check for `contract_token` with the all flag
+    Then stdout matches regexp:
+      """
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud      +(yes|no)  +.*
+      cc-eal           +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +yes       +no           +Security compliance and audit tools
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-preview     +.* +.* +.*
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +yes       +no           +Management and administration tool for Ubuntu
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel  +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes       +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +yes       +yes       +no           +All Updates for the Robot Operating System
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
       | bionic  | lxd-container |
 
   @uses.config.contract_token
@@ -1061,20 +1207,21 @@ Feature: CLI status command
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-      anbox-cloud     +yes       +.*
-      cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
-      fips-preview    +no        +yes       +no           +.*
-      fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
-      landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
-      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      realtime-kernel +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes       +yes       +no           +Security Updates for the Robot Operating System
-      ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
-      usg             +yes       +yes       +no           +Security compliance and audit tools
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-preview     +no        +yes       +no           +.*
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +yes       +no           +Management and administration tool for Ubuntu
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel  +no        +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes       +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +no        +yes       +no           +All Updates for the Robot Operating System
+      usg              +yes       +yes       +no           +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -1100,20 +1247,21 @@ Feature: CLI status command
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-      anbox-cloud     +yes       +.*
-      cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      fips            +no        +yes       +no           +NIST-certified FIPS crypto packages
-      fips-preview    +yes       +yes       +no           +.*
-      fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
-      landscape       +no        +yes       +no           +Management and administration tool for Ubuntu
-      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +no        +yes       +no           +Security Updates for the Robot Operating System
-      ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
-      usg             +yes       +yes       +no           +Security compliance and audit tools
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +no        +yes       +no           +NIST-certified FIPS crypto packages
+      fips-preview     +yes       +yes       +no           +.*
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      landscape        +no        +yes       +no           +Management and administration tool for Ubuntu
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel  +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +no        +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +no        +yes       +no           +All Updates for the Robot Operating System
+      usg              +yes       +yes       +no           +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -1138,20 +1286,21 @@ Feature: CLI status command
     When I do a preflight check for `contract_token` with the all flag
     Then stdout matches regexp:
       """
-      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
-      anbox-cloud     +yes       +.*
-      cc-eal          +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
-      esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      fips            +no        +yes       +no           +NIST-certified FIPS crypto packages
-      fips-preview    +no        +yes       +no           +.*
-      fips-updates    +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
-      landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
-      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +no        +yes       +no           +Security Updates for the Robot Operating System
-      ros-updates     +no        +yes       +no           +All Updates for the Robot Operating System
-      usg             +yes       +yes       +no           +Security compliance and audit tools
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +no        +yes       +no           +NIST-certified FIPS crypto packages
+      fips-preview     +no        +yes       +no           +.*
+      fips-updates     +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
+      landscape        +yes       +yes       +no           +Management and administration tool for Ubuntu
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      realtime-kernel  +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +no        +yes       +no           +Security Updates for the Robot Operating System
+      ros-updates      +no        +yes       +no           +All Updates for the Robot Operating System
+      usg              +yes       +yes       +no           +Security compliance and audit tools
       """
 
     Examples: ubuntu release
@@ -1189,22 +1338,70 @@ Feature: CLI status command
       Contract \".*\" expired on .*
       Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
 
-      SERVICE         +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
       (anbox-cloud     +(yes|no)       +.*)?
       ?cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
-      cis             +yes       +yes       +no           +Security compliance and audit tools
-      esm-apps        +yes       +no        +no           +Expanded Security Maintenance for Applications
-      esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      fips            +yes       +yes       +no           +NIST-certified FIPS crypto packages
-      fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
-      livepatch       +yes       +yes       +yes          +Canonical Livepatch service
-      ros             +yes       +no        +no           +Security Updates for the Robot Operating System
-      ros-updates     +yes       +no        +no           +All Updates for the Robot Operating System
+      cis              +yes       +yes       +no           +Security compliance and audit tools
+      esm-apps         +yes       +no        +no           +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +yes       +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      ros              +yes       +no        +no           +Security Updates for the Robot Operating System
+      ros-updates      +yes       +no        +no           +All Updates for the Robot Operating System
       """
 
     Examples: ubuntu release
       | release | machine_type  |
       | xenial  | lxd-container |
+
+  @uses.config.contract_token_staging_expired
+  Scenario Outline: Simulate status with expired token in a ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
+    And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
+    Then stdout is a json matching the `ua_status` schema
+    And stdout matches regexp:
+      """
+      \"result\": \"failure\"
+      """
+    And stdout matches regexp:
+      """
+      \"message\": \"Attach denied:\\nContract .* expired on .*\"
+      """
+    When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
+    Then stdout is a yaml matching the `ua_status` schema
+    Then stdout matches regexp:
+      """
+      errors:
+      - message: 'Attach denied:
+
+          Contract .* expired on .*
+      """
+    When I verify that a preflight check for `contract_token_staging_expired` without the all flag exits 1
+    Then stdout matches regexp:
+      """
+      This token is not valid.
+      Attach denied:
+      Contract \".*\" expired on .*
+      Visit https://ubuntu.com/pro/dashboard to manage contract tokens.
+
+      SERVICE          +AVAILABLE +ENTITLED  +AUTO_ENABLED +DESCRIPTION
+      (anbox-cloud     +(yes|no)       +.*)?
+      ?cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
+      cis              +yes       +yes       +no           +Security compliance and audit tools
+      esm-apps         +yes       +no        +no           +Expanded Security Maintenance for Applications
+      esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
+      livepatch        +yes       +yes       +yes          +Canonical Livepatch service
+      ros              +yes       +no        +no           +Security Updates for the Robot Operating System
+      ros-updates      +yes       +no        +no           +All Updates for the Robot Operating System
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  |
       | bionic  | lxd-container |
 
   @uses.config.contract_token_staging_expired

@@ -1391,6 +1391,17 @@ Ubuntu Pro. You can find out more about the service at
 {url}"""
 ).format(url=urls.ESM_HOME_PAGE)
 
+ESM_INFRA_LEGACY_TITLE = t.gettext("Ubuntu Pro: ESM Infra (Legacy)")
+ESM_INFRA_LEGACY_DESCRIPTION = t.gettext(
+    "Expanded Security Maintenance for Infrastructure on Legacy Instances"
+)
+ESM_INFRA_LEGACY_HELP_TEXT = t.gettext(
+    """\
+Expanded Security Maintenance (ESM) for Infrastructure on Legacy Instances provides access to a
+service which includes available high and critical vulnerability fixes for Ubuntu LTS packages in
+the Ubuntu Main repository after its end of life."""  # noqa
+)
+
 FIPS_TITLE = t.gettext("FIPS")
 FIPS_DESCRIPTION = t.gettext("NIST-certified FIPS crypto packages")
 FIPS_HELP_TEXT = t.gettext(
