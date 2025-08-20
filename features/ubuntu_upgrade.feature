@@ -207,3 +207,57 @@ Feature: Upgrade between releases when uaclient is attached
       | xenial  | lxd-container | bionic       | xenial     |
       | bionic  | lxd-container | focal        | bionic     |
       | focal   | lxd-container | jammy        | focal      |
+
+  @slow @upgrade
+  Scenario Outline: Attached and esm-infra-legacy enabled upgrade
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I run `pro enable esm-infra-legacy` with sudo
+    Then I verify that `esm-infra` is enabled
+    Then I verify that `esm-apps` is enabled
+    Then I verify that `esm-infra-legacy` is enabled
+    # Local PPAs are prepared and served only when testing with local debs
+    When I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
+    And I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --assume-yes` with sudo
+    # Some packages upgrade may require a reboot
+    And I reboot the machine
+    And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
+      """
+      [Sources]
+      AllowThirdParty=yes
+      """
+    And I run `sed -i 's/Prompt=lts/Prompt=<prompt>/' /etc/update-manager/release-upgrades` with sudo
+    And I run `do-release-upgrade --frontend DistUpgradeViewNonInteractive` `with sudo` and stdin `y\n`
+    And I reboot the machine
+    And I run `lsb_release -cs` as non-root
+    Then I will see the following on stdout:
+      """
+      <next_release>
+      """
+    And I verify that running `egrep "<release>|disabled" /etc/apt/sources.list.d/*` `as non-root` exits `2`
+    And I will see the following on stdout:
+      """
+      """
+    When I run `pro status --all` with sudo
+    Then stdout matches regexp:
+      """
+      esm-infra +yes +enabled
+      """
+    Then stdout matches regexp:
+      """
+      esm-apps +yes +enabled
+      """
+    Then stdout matches regexp:
+      """
+      esm-infra-legacy +yes +n/a
+      """
+    And I ensure apt update runs without errors
+    When I run `apt-cache policy` with sudo
+    Then stdout does not contain substring:
+      """
+      xenial-infra-legacy
+      """
+
+    Examples: ubuntu release
+      | release | machine_type  | next_release | prompt |
+      | xenial  | lxd-container | bionic       | lts    |
