@@ -1377,6 +1377,19 @@ its end of life. You can find out more about the esm service at
 {url}"""
 ).format(url=urls.ESM_HOME_PAGE)
 
+
+ESM_APPS_LEGACY_TITLE = t.gettext("Ubuntu Pro: ESM Apps (Legacy)")
+ESM_APPS_LEGACY_DESCRIPTION = t.gettext(
+    "Expanded Security Maintenance for Applications on Legacy Instances"
+)
+ESM_APPS_LEGACY_HELP_TEXT = t.gettext(
+    """\
+Expanded Security Maintenance (ESM) for Applications on Legacy Instances provides access to a
+service which includes available high and critical vulnerability fixes for Ubuntu LTS packages in
+the Ubuntu Main and Ubuntu Universe repositories from the Ubuntu LTS release date until its end of
+life."""  # noqa
+)
+
 ESM_INFRA_TITLE = t.gettext("Ubuntu Pro: ESM Infra")
 ESM_INFRA_DESCRIPTION = t.gettext(
     "Expanded Security Maintenance for Infrastructure"
