@@ -12,7 +12,10 @@ from uaclient.entitlements.cc import CommonCriteriaEntitlement
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.entitlement_status import ApplicabilityStatus
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient.entitlements.esm_legacy import ESMInfraLegacyEntitlement
+from uaclient.entitlements.esm_legacy import (
+    ESMAppsLegacyEntitlement,
+    ESMInfraLegacyEntitlement,
+)
 from uaclient.entitlements.landscape import LandscapeEntitlement
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.entitlements.realtime import RealtimeKernelEntitlement
@@ -25,6 +28,7 @@ ENTITLEMENT_CLASSES = [
     CommonCriteriaEntitlement,
     CISEntitlement,
     ESMAppsEntitlement,
+    ESMAppsLegacyEntitlement,
     ESMInfraEntitlement,
     ESMInfraLegacyEntitlement,
     fips.FIPSEntitlement,
