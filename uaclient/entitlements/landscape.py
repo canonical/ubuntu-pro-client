@@ -121,9 +121,10 @@ class LandscapeEntitlement(UAEntitlement):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
+        verbose: bool = True,
     ) -> bool:
         # overriding allow_enable to always be False for this entitlement
         # effectively prevents enableByDefault from ever happening
         return super().process_contract_deltas(
-            orig_access, deltas, allow_enable=False
+            orig_access, deltas, allow_enable=False, verbose=verbose
         )
