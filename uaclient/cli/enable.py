@@ -455,7 +455,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
 
     interactive_only_print(messages.REFRESH_CONTRACT_ENABLE)
     try:
-        contract.refresh(cfg)
+        contract.refresh(cfg, verbose=False)
     except (exceptions.ConnectivityError, exceptions.UbuntuProError):
         # Inability to refresh is not a critical issue during enable
         LOG.warning("Failed to refresh contract", exc_info=True)

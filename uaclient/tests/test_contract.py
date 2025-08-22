@@ -1149,9 +1149,12 @@ class TestProcessEntitlementDeltas:
             cfg=FakeConfig(),
             orig_access=original_access,
             new_access=new_access,
+            verbose=True,
         )
         expected_calls = [
-            mock.call(original_access, expected, allow_enable=False)
+            mock.call(
+                original_access, expected, allow_enable=False, verbose=True
+            )
         ]
         assert expected_calls == m_process_contract_deltas.call_args_list
 
@@ -1167,7 +1170,9 @@ class TestProcessEntitlementDeltas:
             cfg=FakeConfig(), orig_access={}, new_access=new_access
         )
         assert new_access == actual
-        expected_calls = [mock.call({}, new_access, allow_enable=False)]
+        expected_calls = [
+            mock.call({}, new_access, allow_enable=False, verbose=True)
+        ]
         assert expected_calls == m_process_contract_deltas.call_args_list
 
     @mock.patch(
@@ -1435,6 +1440,7 @@ class TestRefresh:
                 mock.sentinel.orig_entitlements,
                 mock.sentinel.new_entitlements,
                 allow_enable=False,
+                verbose=True,
             )
         ] == m_process_entitlements_deltas.call_args_list
 

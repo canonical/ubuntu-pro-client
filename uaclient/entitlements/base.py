@@ -1242,6 +1242,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
+        verbose: bool = True,
     ) -> bool:
         """Process any contract access deltas for this entitlement.
 
@@ -1252,6 +1253,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         :param allow_enable: Boolean set True if allowed to perform the enable
             operation. When False, a message will be logged to inform the user
             about the recommended enabled service.
+        :param verbose: If True, display output to stdout
 
         :return: True when delta operations are processed; False when noop.
         :raise: UbuntuProError when auto-enable fails unexpectedly.
@@ -1287,11 +1289,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         self.name,
                     )
                     self.disable(api.ProgressWrapper())
-                    event.info(
-                        messages.DISABLE_DURING_CONTRACT_REFRESH.format(
-                            service=self.name
+                    if verbose:
+                        event.info(
+                            messages.DISABLE_DURING_CONTRACT_REFRESH.format(
+                                service=self.name
+                            )
                         )
-                    )
                 else:
                     fail_msg = fail.message_value if fail else ""
 
@@ -1301,11 +1304,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         self.name,
                         fail_msg,
                     )
-                    event.info(
-                        messages.UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH.format(  # noqa: E501
-                            service=self.name
+                    if verbose:
+                        event.info(
+                            messages.UNABLE_TO_DISABLE_DURING_CONTRACT_REFRESH.format(  # noqa: E501
+                                service=self.name
+                            )
                         )
-                    )
             return True
 
         resourceToken = orig_access.get("resourceToken")
@@ -1321,14 +1325,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if allow_enable:
                 msg = messages.ENABLE_BY_DEFAULT_TMPL.format(name=self.name)
 
-                event.info(msg, file_type=sys.stderr)
+                if verbose:
+                    event.info(msg, file_type=sys.stderr)
                 self.enable(api.ProgressWrapper())
-                event.info(messages.ENABLED_TMPL.format(title=self.title))
+
+                if verbose:
+                    event.info(messages.ENABLED_TMPL.format(title=self.title))
             else:
-                msg = messages.ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
-                    name=self.name
-                )
-                event.info(msg, file_type=sys.stderr)
+                if verbose:
+                    msg = messages.ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
+                        name=self.name
+                    )
+                    event.info(msg, file_type=sys.stderr)
             return True
 
         return False
