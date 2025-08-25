@@ -131,7 +131,6 @@ Feature: CLI status command
       cis              +yes      +disabled +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
       livepatch        +yes      +warning  +Current kernel is not covered by livepatch
       """
     When I verify root and non-root `pro status --all` calls have the same output
@@ -144,7 +143,6 @@ Feature: CLI status command
       cis              +yes      +disabled +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
@@ -185,7 +183,6 @@ Feature: CLI status command
       cis              +yes      +disabled +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -275,7 +272,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -319,7 +315,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -364,7 +359,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -384,7 +378,7 @@ Feature: CLI status command
   @uses.config.contract_token @arm64
   Scenario Outline: Attached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token_staging` with sudo
+    When I attach `contract_token` with sudo
     And I verify root and non-root `pro status` calls have the same output
     And I run `pro status` as non-root
     Then stdout matches regexp:
@@ -394,7 +388,6 @@ Feature: CLI status command
       cis              +yes      +disabled +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +disabled +NIST-certified FIPS crypto packages
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
       ros              +yes      +disabled +Security Updates for the Robot Operating System
@@ -413,7 +406,6 @@ Feature: CLI status command
       cis              +yes      +disabled +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +disabled +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -495,7 +487,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
@@ -542,7 +533,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -588,7 +578,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +disabled +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -636,7 +625,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
@@ -725,6 +713,7 @@ Feature: CLI status command
       ?cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +Security compliance and audit tools
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +yes       +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +yes       +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +NIST-certified FIPS crypto packages
@@ -747,6 +736,7 @@ Feature: CLI status command
       cc-eal           +yes       +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +Security compliance and audit tools
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +yes       +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +yes       +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +NIST-certified FIPS crypto packages
@@ -775,6 +765,7 @@ Feature: CLI status command
       ?cc-eal          +yes       +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +Security compliance and audit tools
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +yes       +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +yes       +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +NIST-certified FIPS crypto packages
@@ -829,6 +820,7 @@ Feature: CLI status command
       cc-eal           +yes       +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +Security compliance and audit tools
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +NIST-certified FIPS crypto packages
@@ -906,6 +898,7 @@ Feature: CLI status command
       anbox-cloud      +yes       +.*
       cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +NIST-certified FIPS crypto packages
@@ -982,6 +975,7 @@ Feature: CLI status command
       anbox-cloud      +yes       +.*
       cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +no        +NIST-certified FIPS crypto packages
@@ -1057,6 +1051,7 @@ Feature: CLI status command
       anbox-cloud      +yes       +.*
       cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +no        +NIST-certified FIPS crypto packages
@@ -1114,8 +1109,9 @@ Feature: CLI status command
       ?cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +yes       +no           +Security compliance and audit tools
       esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +yes       +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes       +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      esm-infra-legacy +yes       +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
       fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
       livepatch        +yes       +yes       +yes          +Canonical Livepatch service
@@ -1130,8 +1126,9 @@ Feature: CLI status command
       cc-eal           +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +yes       +no           +Security compliance and audit tools
       esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +yes       +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes       +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      esm-infra-legacy +yes       +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
       fips-preview     +.* +.* +.*
       fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
@@ -1172,8 +1169,9 @@ Feature: CLI status command
       cc-eal           +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +yes       +no           +Security compliance and audit tools
       esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      esm-infra-legacy +no        +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
       fips-preview     +.* +.* +.*
       fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
@@ -1211,8 +1209,9 @@ Feature: CLI status command
       anbox-cloud      +yes       +.*
       cc-eal           +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      esm-infra-legacy +no        +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
       fips-preview     +no        +yes       +no           +.*
       fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
@@ -1251,8 +1250,9 @@ Feature: CLI status command
       anbox-cloud      +yes       +.*
       cc-eal           +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      esm-infra-legacy +no        +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +no        +yes       +no           +NIST-certified FIPS crypto packages
       fips-preview     +yes       +yes       +no           +.*
       fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
@@ -1290,8 +1290,9 @@ Feature: CLI status command
       anbox-cloud      +yes       +.*
       cc-eal           +no        +yes       +no           +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes       +yes       +yes          +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +no        +yes       +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      esm-infra-legacy +no        +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +no        +yes       +no           +NIST-certified FIPS crypto packages
       fips-preview     +no        +yes       +no           +.*
       fips-updates     +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
@@ -1343,6 +1344,7 @@ Feature: CLI status command
       ?cc-eal          +yes       +yes       +no           +Common Criteria EAL2 Provisioning Packages
       cis              +yes       +yes       +no           +Security compliance and audit tools
       esm-apps         +yes       +no        +no           +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +yes       +no        +no           +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
       esm-infra-legacy +yes       +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes       +yes       +no           +NIST-certified FIPS crypto packages
