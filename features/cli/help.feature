@@ -4,7 +4,7 @@ Feature: Pro Client help text
   Scenario Outline: Help text for the Pro Client commands
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `pro --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro [-h] [--debug] [--version] <command> ...
 
@@ -45,7 +45,7 @@ Feature: Pro Client help text
       """
     # '--help' and 'help' should both work and produce the same output
     When I run `pro help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro [-h] [--debug] [--version] <command> ...
 
@@ -85,7 +85,7 @@ Feature: Pro Client help text
       Use pro <command> --help for more information about a command.
       """
     When I run `pro collect-logs --help` as non-root
-    Then if `<release>` not in `plucky` I will see the following on stdout
+    Then if `<release>` not in `plucky` I will see the following on stdout:
       """
       usage: pro collect-logs [-h] [-o OUTPUT]
 
@@ -98,7 +98,7 @@ Feature: Pro Client help text
                               tarball where the logs will be stored. (Defaults to
                               ./pro_logs.tar.gz).
       """
-    And if `<release>` in `plucky` I will see the following on stdout
+    And if `<release>` in `plucky` I will see the following on stdout:
       """
       usage: pro collect-logs [-h] [-o OUTPUT]
 
@@ -135,7 +135,7 @@ Feature: Pro Client help text
         --data DATA           arguments in JSON format to the API endpoint
       """
     When I run `pro disable --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro disable [-h] [--assume-yes] [--format {cli,json}] [--purge]
                          service [service ...]
@@ -144,9 +144,10 @@ Feature: Pro Client help text
 
       positional arguments:
         service              the name(s) of the Ubuntu Pro services to disable. One
-                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra, esm-
-                             infra-legacy, fips, fips-preview, fips-updates,
-                             landscape, livepatch, realtime-kernel, ros, ros-updates
+                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-apps-
+                             legacy, esm-infra, esm-infra-legacy, fips, fips-
+                             preview, fips-updates, landscape, livepatch, realtime-
+                             kernel, ros, ros-updates
 
       <options_string>:
         -h, --help           show this help message and exit
@@ -157,7 +158,7 @@ Feature: Pro Client help text
                              packages (experimental)
       """
     When I run `pro enable --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro enable [-h] [--access-only] [--assume-yes] [--auto] [--beta]
                         [--format {cli,json}] [--variant VARIANT]
@@ -168,9 +169,10 @@ Feature: Pro Client help text
 
       positional arguments:
         service              the name(s) of the Ubuntu Pro services to enable. One
-                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-infra, esm-
-                             infra-legacy, fips, fips-preview, fips-updates,
-                             landscape, livepatch, realtime-kernel, ros, ros-updates
+                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-apps-
+                             legacy, esm-infra, esm-infra-legacy, fips, fips-
+                             preview, fips-updates, landscape, livepatch, realtime-
+                             kernel, ros, ros-updates
 
       <options_string>:
         -h, --help           show this help message and exit
@@ -185,7 +187,7 @@ Feature: Pro Client help text
                              service
       """
     When I run `pro attach --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro attach [-h] [--no-auto-enable] [--attach-config ATTACH_CONFIG]
                         [--format {cli,json}]
@@ -221,7 +223,7 @@ Feature: Pro Client help text
         --format {cli,json}   output in the specified format (default: cli)
       """
     When I run `pro auto-attach --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro auto-attach [-h]
 
@@ -231,7 +233,7 @@ Feature: Pro Client help text
         -h, --help  show this help message and exit
       """
     When I run `pro detach --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro detach [-h] [--assume-yes] [--format {cli,json}]
 
@@ -286,7 +288,7 @@ Feature: Pro Client help text
         --esm-apps            List and present information about esm-apps packages
       """
     When I run `pro fix --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro fix [-h] [--dry-run] [--no-related] security_issue
 
@@ -313,7 +315,7 @@ Feature: Pro Client help text
                         fix related USNs to the target USN.
       """
     When I run `pro status --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro status [-h] [--wait] [--format {tabular,json,yaml}]
                         [--simulate-with-token TOKEN] [--all]
@@ -361,7 +363,7 @@ Feature: Pro Client help text
         --all                 Include unavailable and beta services
       """
     When I run `pro refresh --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro refresh [-h] [{contract,config,messages}]
 
@@ -383,7 +385,7 @@ Feature: Pro Client help text
         -h, --help            show this help message and exit
       """
     When I run `pro system --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro system [-h] {reboot-required} ...
 
@@ -397,7 +399,7 @@ Feature: Pro Client help text
           reboot-required  does the system need to be rebooted
       """
     When I run `pro system reboot-required --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro system reboot-required [-h]
 
@@ -418,7 +420,7 @@ Feature: Pro Client help text
         -h, --help  show this help message and exit
       """
     When I run `pro config --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro config [-h] {show,set,unset} ...
 
@@ -435,7 +437,7 @@ Feature: Pro Client help text
                           default value.
       """
     When I run `pro config show --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro config show [-h] [key]
 
@@ -448,7 +450,7 @@ Feature: Pro Client help text
         -h, --help  show this help message and exit
       """
     When I run `pro config set --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro config set [-h] key_value_pair
 
@@ -467,7 +469,7 @@ Feature: Pro Client help text
         -h, --help      show this help message and exit
       """
     When I run `pro config unset --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro config unset [-h] key
 
@@ -485,7 +487,7 @@ Feature: Pro Client help text
         -h, --help  show this help message and exit
       """
     When I run `pro cves --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro cves [-h] [--unfixable] [--fixable]
 
@@ -497,7 +499,7 @@ Feature: Pro Client help text
         --fixable    List only vulnerabilities with a fix available
       """
     When I run `pro cve --help` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       usage: pro cve [-h] cve
 
