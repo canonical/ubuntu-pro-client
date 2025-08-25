@@ -13,7 +13,7 @@ from features.steps.shell import when_i_run_command
 from features.util import SafeLoaderWithoutDatetime, process_template_vars
 
 
-@then("I will see the following on {stream}")
+@then("I will see the following on {stream}:")
 def then_i_will_see_on_stream(context, stream):
     content = getattr(context.process, stream).strip()
     text = process_template_vars(context, context.text)
@@ -27,14 +27,14 @@ def then_i_will_see_on_stream(context, stream):
         )
 
 
-@then("if `{value1}` in `{value2}` I will see the following on {stream}")
+@then("if `{value1}` in `{value2}` I will see the following on {stream}:")
 def then_conditional_i_will_see_on_stream(context, value1, value2, stream):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_i_will_see_on_stream(context, stream)
 
 
-@then("if `{value1}` not in `{value2}` I will see the following on {stream}")
+@then("if `{value1}` not in `{value2}` I will see the following on {stream}:")
 def then_not_in_conditional_stream_matches_regexp(
     context, value1, value2, stream
 ):
@@ -43,14 +43,14 @@ def then_not_in_conditional_stream_matches_regexp(
         then_i_will_see_on_stream(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and {stream} matches regexp")
+@then("if `{value1}` in `{value2}` and {stream} matches regexp:")
 def then_conditional_stream_matches_regexp(context, value1, value2, stream):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_stream_matches_regexp(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and {stream} contains substring")
+@then("if `{value1}` in `{value2}` and {stream} contains substring:")
 def then_conditional_stdout_contains_substring(
     context, value1, value2, stream
 ):
@@ -58,7 +58,7 @@ def then_conditional_stdout_contains_substring(
         then_stream_contains_substring(context, stream)
 
 
-@then("if `{value1}` not in `{value2}` and {stream} contains substring")
+@then("if `{value1}` not in `{value2}` and {stream} contains substring:")
 def then_not_in_conditional_stdout_contains_substring(
     context, value1, value2, stream
 ):
@@ -66,14 +66,14 @@ def then_not_in_conditional_stdout_contains_substring(
         then_stream_contains_substring(context, stream)
 
 
-@then("if `{value1}` in `{value2}` and stdout does not match regexp")
+@then("if `{value1}` in `{value2}` and stdout does not match regexp:")
 def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_stream_does_not_match_regexp(context, "stdout")
 
 
-@then("if `{value1}` not in `{value2}` and stdout matches regexp")
+@then("if `{value1}` not in `{value2}` and stdout matches regexp:")
 def then_not_in_conditional_stdout_does_not_match_regexp(
     context, value1, value2
 ):
@@ -82,7 +82,7 @@ def then_not_in_conditional_stdout_does_not_match_regexp(
         then_stream_matches_regexp(context, "stdout")
 
 
-@then("{stream} does not match regexp")
+@then("{stream} does not match regexp:")
 def then_stream_does_not_match_regexp(context, stream):
     text = process_template_vars(context, context.text)
     content = getattr(context.process, stream).strip()
@@ -119,21 +119,21 @@ def process_api_data(context, api_key=None, escape=True):
         return json.dumps(json_data[api_key], indent=2)
 
 
-@then("API full output matches regexp")
+@then("API full output matches regexp:")
 def then_api_output_matches_regexp(context):
     content = process_api_data(context)
     text = process_template_vars(context, context.text)
     compare_regexp(text, content)
 
 
-@then("API data field output matches regexp")
+@then("API data field output matches regexp:")
 def then_api_data_output_matches_regexp(context):
     content = process_api_data(context, api_key="data")
     text = process_template_vars(context, context.text)
     compare_regexp(text, content)
 
 
-@then("API data field output is")
+@then("API data field output is:")
 def then_api_data_output_is(context):
     content = process_api_data(context, api_key="data", escape=False)
     text = process_template_vars(context, context.text)
@@ -145,14 +145,14 @@ def then_api_data_output_is(context):
         )
 
 
-@then("API {field} field output matches regexp")
+@then("API {field} field output matches regexp:")
 def then_api_field_output_matches_regexp(context, field):
     content = process_api_data(context, api_key=field)
     text = process_template_vars(context, context.text)
     compare_regexp(text, content)
 
 
-@then("API {field} field output is")
+@then("API {field} field output is:")
 def then_api_errors_output_is(context, field):
     content = process_api_data(context, api_key=field, escape=False)
     text = process_template_vars(context, context.text)
@@ -164,14 +164,14 @@ def then_api_errors_output_is(context, field):
         )
 
 
-@then("{stream} matches regexp")
+@then("{stream} matches regexp:")
 def then_stream_matches_regexp(context, stream):
     content = getattr(context.process, stream).strip()
     text = process_template_vars(context, context.text)
     compare_regexp(text, content)
 
 
-@then("{stream} contains substring")
+@then("{stream} contains substring:")
 def then_stream_contains_substring(context, stream):
     content = getattr(context.process, stream).strip()
     text = process_template_vars(context, context.text)
@@ -186,7 +186,7 @@ def then_stream_contains_substring(context, stream):
         )
 
 
-@then("{stream} does not contain substring")
+@then("{stream} does not contain substring:")
 def then_stream_not_contains_substring(context, stream):
     content = getattr(context.process, stream).strip()
     text = process_template_vars(context, context.text)
