@@ -3,7 +3,7 @@
 . /etc/os-release  # For VERSION_ID
 
 API_ENDPOINTS=$(/usr/bin/python3 -c 'from uaclient.api.api import VALID_ENDPOINTS; print(" ".join(VALID_ENDPOINTS))')
-SERVICES="anbox-cloud cc-eal cis esm-apps esm-infra fips fips-updates landscape livepatch realtime-kernel ros ros-updates usg"
+SERVICES="anbox-cloud cc-eal cis esm-apps esm-apps-legacy esm-infra esm-infra-legacy fips fips-updates landscape livepatch realtime-kernel ros ros-updates usg"
 SUBCMDS="--debug --help --version api attach auto-attach collect-logs config cve cves detach disable enable fix help refresh security-status status system version"
 
 _ua_complete()
