@@ -284,6 +284,8 @@ def build_debs(
 
     sbuild_cmd = [
         "sbuild",
+        "--chroot-mode",
+        "schroot",
         "--no-run-lintian",
         "--resolve-alternatives",
         "--no-clean-source",
