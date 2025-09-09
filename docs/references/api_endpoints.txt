@@ -18,6 +18,7 @@ The currently available endpoints are:
 - `u.pro.attach.auto.configure_retry_service.v1`_
 - `u.pro.attach.auto.full_auto_attach.v1`_
 - `u.pro.attach.auto.should_auto_attach.v1`_
+- `u.pro.attach.guest.get_guest_token.v1`_
 - `u.pro.attach.magic.initiate.v1`_
 - `u.pro.attach.magic.revoke.v1`_
 - `u.pro.attach.magic.wait.v1`_
@@ -336,6 +337,83 @@ Arguments:
 
          {
              "should_auto_attach": false
+         }
+
+
+
+
+u.pro.attach.guest.get_guest_token.v1
+=====================================
+
+This endpoint fetches a guest token from the backend.
+
+- Introduced in Ubuntu Pro Client Version: ``35~``
+- Requires network access: Yes
+
+Arguments:
+
+- This endpoint takes no arguments.
+
+.. tab-set::
+
+   .. tab-item:: Python API interaction
+      :sync: python
+
+      **Calling from Python code:**
+
+      .. code-block:: python
+
+         from uaclient.api.u.pro.attach.guest_token.get_guest_token.v1 import get_guest_token
+         get_guest_token()
+
+      **Expected return object:**
+
+      - ``uaclient.api.u.pro.attach.guest.get_guest_token.v1.GetGuestTokenResult``
+
+        .. list-table::
+           :header-rows: 1
+
+           * - Field Name
+             - Type
+             - Description
+           * - ``guest_token``
+             - ``str``
+             - The guest token
+           * - ``id``
+             - ``str``
+             - The ID of the guest token
+           * - ``expires``
+             - ``datetime``
+             - The expiration time of the guest token
+
+      **Raised exceptions:**
+
+      - ``UbuntuProError``: ``UbuntuProError`` is the base class of all exceptions raised by Ubuntu Pro Client and it is best practice to handle this error on any API call. (Note: if any API call raises an exception that does not inherit from ``UbuntuProError``, please report a bug).
+      - ``ConnectivityError``: Raised if it is not possible to connect to the contracts service.
+      - ``ContractAPIError``: Raised if there is an unexpected error in the contracts service interaction.
+      - ``NonRootUserError``: Raised if a non-root user executes this endpoint.
+      - ``UnattachedError``: Raised if the machine is not attached
+      - ``FeatureNotSupportedOldTokenError``: Raised if the machine needs to be re-attached first.
+
+   .. tab-item:: CLI interaction
+      :sync: CLI
+
+      **Calling from the CLI:**
+
+      .. code-block:: bash
+
+         pro api u.pro.attach.guest_token.get_guest_token.v1
+
+      
+
+      **Expected attributes in JSON structure:**
+
+      .. code-block:: js
+
+         {
+             "guest_token": "...",
+             "id": "...",
+             "expires": "..."
          }
 
 
@@ -1011,6 +1089,9 @@ Arguments:
              ]
          }
 
+
+
+
 u.pro.security.cves.v1
 ======================
 
@@ -1143,6 +1224,7 @@ Arguments:
          pro api u.pro.security.cves.v1
 
       
+
       **Expected attributes in JSON structure:**
 
       .. code-block:: js
@@ -1185,6 +1267,9 @@ Arguments:
                }
              },
          }
+
+
+
 
 u.pro.security.fix.cve.execute.v1
 =================================
@@ -2646,6 +2731,9 @@ Arguments:
              "reboot_required": "yes|no|yes-kernel-livepatches-applied"
          }
 
+
+
+
 u.pro.services.dependencies.v1
 ==============================
 
@@ -3427,5 +3515,3 @@ Arguments:
                    }
                }
            }
-
-
