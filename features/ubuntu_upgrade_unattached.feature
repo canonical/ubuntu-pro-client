@@ -21,7 +21,7 @@ Feature: Upgrade between releases when uaclient is unattached
     When I apt dist-upgrade
     # Some packages upgrade may require a reboot
     And I reboot the machine
-    And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
+    And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following:
       """
       [Sources]
       AllowThirdParty=yes

@@ -41,7 +41,7 @@ Feature: CLI attach command
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # simplest happy path
-    When I create the file `/tmp/attach.yaml` with the following
+    When I create the file `/tmp/attach.yaml` with the following:
       """
       token: <contract_token>
       """
@@ -59,7 +59,7 @@ Feature: CLI attach command
       Include the token in the attach-config file instead.
       """
     # happy path with service overrides
-    When I create the file `/tmp/attach.yaml` with the following
+    When I create the file `/tmp/attach.yaml` with the following:
       """
       token: <contract_token>
       enable_services:
@@ -73,7 +73,7 @@ Feature: CLI attach command
     And I verify that `<cis_or_usg>` is enabled
     When I run `pro detach --assume-yes` with sudo
     # missing token
-    When I create the file `/tmp/attach.yaml` with the following
+    When I create the file `/tmp/attach.yaml` with the following:
       """
       enable_services:
         - esm-apps
@@ -87,7 +87,7 @@ Feature: CLI attach command
       Expected value with type StringDataValue but got type: null
       """
     # other schema error
-    When I create the file `/tmp/attach.yaml` with the following
+    When I create the file `/tmp/attach.yaml` with the following:
       """
       token: <contract_token>
       enable_services: {cis: true}
@@ -101,7 +101,7 @@ Feature: CLI attach command
       Expected value with type list but got type: dict
       """
     # invalid service name
-    When I create the file `/tmp/attach.yaml` with the following
+    When I create the file `/tmp/attach.yaml` with the following:
       """
       token: <contract_token>
       enable_services:
