@@ -311,7 +311,7 @@ Feature: Livepatch
   Scenario Outline: Attach works when snapd cannot be installed
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt remove `snapd`
-    And I create the file `/etc/apt/preferences.d/no-snapd` with the following
+    And I create the file `/etc/apt/preferences.d/no-snapd` with the following:
       """
       Package: snapd
       Pin: release o=*
@@ -342,7 +342,7 @@ Feature: Livepatch
 
   Scenario Outline: Livepatch doesn't enable on wsl from a systemd service
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I create the file `/lib/systemd/system/test.service` with the following
+    When I create the file `/lib/systemd/system/test.service` with the following:
       """
       [Unit]
       Description=test

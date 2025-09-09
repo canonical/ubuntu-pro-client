@@ -968,7 +968,7 @@ Feature: Proxy configuration
     And I run `openssl req -newkey rsa:4096 -x509 -sha256 -days 3650 -nodes -out ca.crt -keyout ca.key -subj "/C=CN/ST=BJ/O=STS/CN=CA"` `with sudo` on the `proxy` machine
     And I run `openssl genrsa -out $behave_var{machine-name proxy}.lxd.key` `with sudo` on the `proxy` machine
     And I run `openssl req -new -key $behave_var{machine-name proxy}.lxd.key -out $behave_var{machine-name proxy}.lxd.csr -subj "/C=CN/ST=BJ/O=STS/CN=$behave_var{machine-name proxy}.lxd"` `with sudo` on the `proxy` machine
-    And I create the file `/home/ubuntu/data.ext` on the `proxy` machine with the following
+    And I create the file `/home/ubuntu/data.ext` on the `proxy` machine with the following:
       """
       authorityKeyIdentifier=keyid,issuer
       basicConstraints=CA:FALSE

@@ -158,7 +158,7 @@ Feature: Pro is expected version
     And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
     # We forge a candidate to see results
     When I delete the file `/run/ubuntu-advantage/candidate-version`
-    And I create the file `/run/ubuntu-advantage/candidate-version` with the following
+    And I create the file `/run/ubuntu-advantage/candidate-version` with the following:
       """
       2:99.9.9
       """

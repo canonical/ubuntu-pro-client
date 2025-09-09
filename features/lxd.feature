@@ -81,7 +81,7 @@ Feature: LXD Pro features
       """
     When I run `pro detach --assume-yes` with sudo
     Then I verify that no files exist matching `/var/lib/ubuntu-advantage/interfaces/lxd-config.json`
-    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following
+    When I create the file `/var/lib/ubuntu-advantage/private/user-config.json` with the following:
       """
       {"lxd_guest_attach": "on"}
       """
