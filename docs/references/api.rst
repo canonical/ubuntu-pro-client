@@ -37,7 +37,7 @@ standard structure, as can be seen below:
 Version dependencies
 ====================
 
-The package name of Ubuntu Pro Client is ``ubuntu-advantage-tools``.
+The Ubuntu Pro Client is shipped as the ``ubuntu-pro-client`` package.
 
 The documentation for each endpoint below states the first version to include
 that endpoint.
@@ -57,7 +57,7 @@ installed version is at least ``27.11~``:
 
 .. code-block::
 
-   ubuntu-advantage-tools (>= 27.11~)
+   ubuntu-pro-client (>= 27.11~)
 
 Runtime version detection
 -------------------------
@@ -67,7 +67,7 @@ to query ``dpkg``.
 
 .. code-block:: bash
 
-   dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools
+   dpkg-query --showformat='${Version}' --show ubuntu-pro-client
 
 If you need to compare versions at runtime, make sure you use the ``dpkg``
 version comparison algorithm. For example, the following will exit 0 if the
@@ -75,7 +75,7 @@ currently installed version of Pro Client is at least ``27.11~``:
 
 .. code-block:: bash
 
-   dpkg --compare-versions "$(dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools)" ge "27.11~"
+   dpkg --compare-versions "$(dpkg-query --showformat='${Version}' --show ubuntu-pro-client)" ge "27.11~"
 
 Runtime feature detection
 -------------------------

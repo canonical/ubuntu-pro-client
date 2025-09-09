@@ -3,7 +3,7 @@
 How to update MOTD and APT messages
 ***********************************
 
-Since ``ubuntu-advantage-tools`` is responsible for enabling ESM services, we
+Since ``ubuntu-pro-client`` is responsible for enabling ESM services, we
 advertise them on different applications through the system, such as MOTD and
 APT commands like ``upgrade``.
 
