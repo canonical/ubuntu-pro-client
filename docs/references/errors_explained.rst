@@ -32,7 +32,7 @@ Migration error 1
 
 * **Where you'll see it:**
 
-  During an ``apt upgrade`` or ``apt install ubuntu-advantage-tools``.
+  During an ``apt upgrade`` or ``apt install ubuntu-pro-client``.
 
 * **What does it mean:**
 
@@ -64,7 +64,7 @@ Migration error 2
 
 * **Where you'll see it:**
 
-  During an ``apt upgrade`` or ``apt install ubuntu-advantage-tools``
+  During an ``apt upgrade`` or ``apt install ubuntu-pro-client``
 
 * **What does it mean:**
 
@@ -89,7 +89,7 @@ Migration error 3
 
 * **Where you'll see it:**
 
-  During an ``apt upgrade`` or ``apt install ubuntu-advantage-tools``
+  During an ``apt upgrade`` or ``apt install ubuntu-pro-client``
 
 * **What does it mean:**
 
@@ -119,7 +119,7 @@ Warnings in versions >=27.14~
 * **Where you'll see it:**
 
   In ``/var/log/ubuntu-advantage.log`` after using the ``pro`` CLI or during
-  an ``apt upgrade`` to a newer version of ``ubuntu-advantage-tools``.
+  an ``apt upgrade`` to a newer version of ``ubuntu-pro-client``.
 
 * **What does it mean:**
 

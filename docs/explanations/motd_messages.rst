@@ -204,7 +204,7 @@ restore those files via:
 
 .. code-block:: bash
 
-    sudo apt install --reinstall -o Dpkg::Options::="--force-confask" ubuntu-advantage-tools update-notifier-common
+    sudo apt install --reinstall -o Dpkg::Options::="--force-confask" ubuntu-pro-client update-notifier-common
 
 Source: MOTD about available updates
 ====================================

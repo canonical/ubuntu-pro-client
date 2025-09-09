@@ -2,7 +2,7 @@ Check the status of the services
 ================================
 
 After you have :ref:`attached your subscription <attach>` and
-updated the ``ubuntu-advantage-tools`` package, you can check which services
+updated the ``ubuntu-pro-client`` package, you can check which services
 are enabled by running the following command:
 
 .. code-block:: bash

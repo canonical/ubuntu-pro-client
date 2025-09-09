@@ -10,7 +10,7 @@ On interim Ubuntu releases, ``pro status`` will report most of the services as
 "n/a" (not applicable), and disallow enabling those services.
 
 Here is a list of platforms and releases that Ubuntu Pro Client, through the
-``ubuntu-advantage-tools`` package, supports.
+``ubuntu-pro-client`` package, supports.
 
 .. list-table:: 
     :header-rows: 1
@@ -22,7 +22,7 @@ Here is a list of platforms and releases that Ubuntu Pro Client, through the
     * - Trusty
       - amd64, arm64, armhf, i386, powerpc, ppc64el
       - None
-      - 19.6
+      - 19.6 *
     * - Xenial
       - amd64, arm64, armhf, i386, powerpc, ppc64el, s390x
       - None
@@ -51,3 +51,5 @@ Here is a list of platforms and releases that Ubuntu Pro Client, through the
       - amd64, arm64, armhf, ppc64el, riscv64, s390x
       - TBD
       - Active SRU of all features
+
+\* Please note that, on Trusty, the package is called ``ubuntu-advantage-tools``.
