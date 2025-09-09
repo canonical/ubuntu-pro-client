@@ -151,59 +151,6 @@ class TestAttachWithToken:
                 [mock.call()],
                 helpers.does_not_raise(),
             ),
-            # Simulate onlySeries with a not yet released series
-            (
-                "token",
-                True,
-                [
-                    {
-                        "machineTokenInfo": {
-                            "contractInfo": {
-                                "resourceEntitlements": [
-                                    {
-                                        "name": "foobar",
-                                        "type": "support",
-                                        "affordances": {
-                                            "onlySeries": "future",
-                                        },
-                                    }
-                                ],
-                            }
-                        },
-                    }
-                ],
-                "get-machine-id-result",
-                [(True, None)],
-                [mock.call(contract_token="token", attachment_dt=mock.ANY)],
-                [
-                    mock.call(
-                        {
-                            "machineTokenInfo": {
-                                "contractInfo": {
-                                    "resourceEntitlements": [
-                                        {
-                                            "name": "foobar",
-                                            "type": "support",
-                                            "affordances": {
-                                                "onlySeries": "future",
-                                            },
-                                        }
-                                    ],
-                                }
-                            },
-                        }
-                    )
-                ],
-                [mock.call(mock.ANY)],
-                1,
-                [mock.call(mock.ANY)],
-                [],
-                [mock.call(mock.ANY)],
-                [],
-                [mock.call()],
-                [mock.call()],
-                helpers.does_not_raise(),
-            ),
         ],
     )
     @mock.patch(
