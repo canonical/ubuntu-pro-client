@@ -248,7 +248,17 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         our_m = re.search(
             r"(?P<kernel_version>\d+\.\d+\.\d+)", our_full_kernel_str
         )
-        fips_kernel_version_str = apt.get_pkg_candidate_version("linux-fips")
+        # This relies on the fact that fips has a single metapackage in
+        # additionalPackages. If more packages are added to additionalPackages
+        # for some reason, we fall back to "ubuntu-fips".
+        fips_package = "ubuntu-fips"
+        if len(self.packages) == 1:
+            fips_package = self.packages[0]
+
+        # We are interested in the actual kernel version
+        fips_kernel_version_str = apt.get_pkg_candidate_version(
+            fips_package.replace("ubuntu", "linux")
+        )
         if our_m is not None and fips_kernel_version_str is not None:
             our_kernel_version_str = our_m.group("kernel_version")
             LOG.debug(
