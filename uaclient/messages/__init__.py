@@ -69,8 +69,8 @@ REBOOT_SCRIPT_FAILED = t.gettext(
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
 
-RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = t.gettext(
-    "APT lock is held. Ubuntu Pro configuration will wait until it is released"
+RELEASE_UPGRADE_APT_LOCK_WAIT = t.gettext(
+    "Waiting for APT lock to start the Ubuntu Pro configuration"
 )
 RELEASE_UPGRADE_NO_PAST_RELEASE = t.gettext(
     "Could not find past release for {release}"

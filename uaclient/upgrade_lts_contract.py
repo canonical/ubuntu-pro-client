@@ -23,8 +23,8 @@ This script will detect differences like that and update the Xenial system
 to reflect them.
 """
 
+import fcntl
 import logging
-import time
 
 from uaclient import defaults, exceptions, messages, system, util
 from uaclient.api import ProgressWrapper
@@ -62,45 +62,37 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
         LOG.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
     LOG.debug("Starting upgrade-lts-contract.")
-    out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
-    if out:
-        print(messages.RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT)
 
     print(messages.RELEASE_UPGRADE_STARTING)
-    for name in entitlements_enable_order(cfg):
-        try:
-            entitlement = entitlement_factory(
-                cfg=cfg,
-                name=name,
-                variant="",
-            )
-        except exceptions.EntitlementNotFoundError:
-            LOG.debug("entitlement not found: %s", name)
 
-        application_status, _ = entitlement.application_status()
-        applicability_status, _ = entitlement.applicability_status()
+    print(messages.RELEASE_UPGRADE_APT_LOCK_WAIT)
+    # Get the apt lock when it's released after do-release-upgrade
+    with open("/var/lib/apt/lists/lock", "w") as lockfile:
+        fcntl.lockf(lockfile.fileno(), fcntl.LOCK_EX)
 
-        if (
-            application_status == ApplicationStatus.ENABLED
-            and applicability_status == ApplicabilityStatus.INAPPLICABLE
-        ):
-            retry_count = 0
-            while out:
-                # Loop until apt hold is released at the end of `do-release-upgrade`  # noqa
-                LOG.debug(
-                    "Detected that apt lock is held. Sleeping 10 seconds."
+        for name in entitlements_enable_order(cfg):
+            try:
+                entitlement = entitlement_factory(
+                    cfg=cfg,
+                    name=name,
+                    variant="",
                 )
-                time.sleep(10)
-                out, _err = system.subp(
-                    ["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1]
-                )
-                retry_count += 1
+            except exceptions.EntitlementNotFoundError:
+                LOG.debug("entitlement not found: %s", name)
 
-            LOG.debug("upgrade-lts-contract disabling %s", name)
-            ret = entitlement._perform_disable(progress=ProgressWrapper())
+            application_status, _ = entitlement.application_status()
+            applicability_status, _ = entitlement.applicability_status()
 
-            if not ret:
-                LOG.debug("upgrade-lts-contract failed disabling %s", name)
+            if (
+                application_status == ApplicationStatus.ENABLED
+                and applicability_status == ApplicabilityStatus.INAPPLICABLE
+            ):
+
+                LOG.debug("upgrade-lts-contract disabling %s", name)
+                ret = entitlement._perform_disable(progress=ProgressWrapper())
+
+                if not ret:
+                    LOG.debug("upgrade-lts-contract failed disabling %s", name)
 
     print(messages.RELEASE_UPGRADE_SUCCESS)
 
