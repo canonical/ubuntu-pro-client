@@ -59,7 +59,6 @@ Feature: Upgrade between releases when uaclient is attached
   Scenario Outline: Attached FIPS upgrade across LTS releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
-    And I apt install `lsof`
     And I run `pro disable livepatch` with sudo
     And I run `pro enable <fips-service> --assume-yes` with sudo
     Then stdout contains substring:
