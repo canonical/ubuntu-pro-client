@@ -1,0 +1,16 @@
+# On clones of machines that are currently attached, an activity ping
+# is required on boot to detect the clones
+# This requires using the ua-timer to update the activity id immediately
+
+[Unit]
+Description=Ubuntu Pro clone detection activity ping on boot
+After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/timer.py --run-on-boot
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
