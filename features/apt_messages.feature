@@ -227,7 +227,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -239,13 +239,13 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
     # Test that it is not shown in apt-get output
     When I apt-get upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -271,7 +271,7 @@ Feature: APT Messages
     # apt update stamp will prevent a apt_news refresh
     When I apt update
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -283,14 +283,14 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
     # manual refresh gets new message
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -304,7 +304,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one\ntwo\nthree"
       """
@@ -317,7 +317,7 @@ Feature: APT Messages
     # the apt-news.service unit runs in the background, give it some time to fetch the json file
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -331,7 +331,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one\ntwo\nthree"
       """
@@ -354,7 +354,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -363,7 +363,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -383,7 +383,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -392,7 +392,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -413,7 +413,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -422,7 +422,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -442,7 +442,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -454,7 +454,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
@@ -475,7 +475,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -484,7 +484,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -504,7 +504,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -513,7 +513,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -545,7 +545,7 @@ Feature: APT Messages
     # the apt-news.service unit runs in the background, give it some time to fetch the json file
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -559,7 +559,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "CAUTION: Your Ubuntu Pro subscription will expire in 2 days.\nRenew your subscription at https://ubuntu.com/pro/dashboard to ensure\ncontinued security coverage for your applications."
       """
@@ -598,7 +598,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -611,7 +611,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your subscription at https://ubuntu.com/pro/dashboard"
       """
@@ -627,7 +627,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -640,7 +640,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your subscription at https://ubuntu.com/pro/dashboard"
       """
@@ -696,7 +696,7 @@ Feature: APT Messages
     When I apt upgrade
     # Plucky shows the Calculating upgrade line more than once.
     # TODO: change those tests to have different output per release.
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -708,13 +708,13 @@ Feature: APT Messages
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
     # Test that it is not shown in apt-get output
     When I apt-get upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -791,7 +791,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -820,7 +820,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -1195,7 +1195,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1224,7 +1224,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1258,7 +1258,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1291,7 +1291,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1320,7 +1320,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1356,7 +1356,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     And I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1509,7 +1509,7 @@ Feature: APT Messages
     And I run `systemctl start apt-news.service` with sudo
     And I wait `5` seconds
     And I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1543,7 +1543,7 @@ Feature: APT Messages
     And I run `systemctl start apt-news.service` with sudo
     And I wait `5` seconds
     And I apt upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
@@ -1563,7 +1563,7 @@ Feature: APT Messages
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `apt upgrade --simulate` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
       """
@@ -1593,7 +1593,7 @@ Feature: APT Messages
       Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
       """
     When I apt-get upgrade
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...

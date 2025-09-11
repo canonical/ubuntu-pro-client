@@ -278,7 +278,7 @@ Feature: Livepatch
         block_disable_on_enable: true
       """
     Then I verify that running `pro enable livepatch` `with sudo` exits `1`
-    And I will see the following on stdout
+    And I will see the following on stdout:
       """
       One moment, checking your subscription first
       Cannot enable Livepatch when FIPS is enabled.
@@ -355,7 +355,7 @@ Feature: Livepatch
     When I replace `<contract_token>` in `/lib/systemd/system/test.service` with token `contract_token`
     When I run `systemctl start test.service` with sudo
     Then I verify that running `canonical-livepatch` `with sudo` exits `1`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       sudo: canonical-livepatch: command not found
       """

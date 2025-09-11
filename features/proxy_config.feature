@@ -997,14 +997,14 @@ Feature: Proxy configuration
     And I run `systemctl restart snapd.service` with sudo
     # error message to install pycurl
     When I verify that running `pro config set https_proxy=https://someuser:somepassword@$behave_var{machine-name proxy}.lxd:3129` `with sudo` exits `1`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       To use an HTTPS proxy for HTTPS connections, please install pycurl with `apt install python3-pycurl`
       """
     When I apt install `python3-pycurl`
     # error message on failed auth
     When I verify that running `pro config set https_proxy=https://someuser:wrongpassword@$behave_var{machine-name proxy}.lxd:3129` `with sudo` exits `1`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       Proxy authentication failed
       """
@@ -1024,22 +1024,22 @@ Feature: Proxy configuration
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I attach `contract_token` with sudo and options `--no-auto-enable`
     And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       CONNECT contracts.canonical.com:443 someuser
       """
-    And stdout does not contain substring
+    And stdout does not contain substring:
       """
       error:transaction-end-before-headers
       """
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I run `pro enable esm-infra` with sudo
     And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       CONNECT esm.ubuntu.com:443 someuser
       """
-    And stdout does not contain substring
+    And stdout does not contain substring:
       """
       error:transaction-end-before-headers
       """
@@ -1050,18 +1050,18 @@ Feature: Proxy configuration
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I run `pro enable livepatch` with sudo
     And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       CONNECT api.snapcraft.io:443 someuser
       """
-    And stdout does not contain substring
+    And stdout does not contain substring:
       """
       error:transaction-end-before-headers
       """
     When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
     And I apt install `hello`
     And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       CONNECT esm.ubuntu.com:443 someuser
       """

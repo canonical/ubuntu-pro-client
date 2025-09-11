@@ -394,7 +394,7 @@ Feature: Ua fix command behaviour
       .*✘.* CVE-2017-9233 is not resolved.
       """
     When I fix `USN-5079-2` by attaching to a subscription with `contract_token_staging_expired`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       USN-5079-2: curl vulnerabilities
       Associated CVEs:

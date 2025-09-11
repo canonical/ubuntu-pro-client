@@ -45,14 +45,14 @@ Feature: Enable cis on Ubuntu
       \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
       """
     When I verify that running `pro enable cis` `with sudo` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       One moment, checking your subscription first
       CIS Audit is already enabled - nothing to do.
       See: sudo pro status
       """
     When I run `cis-audit level1_server` with sudo
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Title.*Ensure no duplicate UIDs exist
       Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
@@ -64,7 +64,7 @@ Feature: Enable cis on Ubuntu
       Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
       Result.*fail
       """
-    And stdout matches regexp
+    And stdout matches regexp:
       """
       CIS audit scan completed
       """
@@ -76,7 +76,7 @@ Feature: Enable cis on Ubuntu
       Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
       Result.*pass
       """
-    And stdout matches regexp
+    And stdout matches regexp:
       """
       CIS audit scan completed
       """
@@ -122,7 +122,7 @@ Feature: Enable cis on Ubuntu
       \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
       """
     When I verify that running `pro enable cis` `with sudo` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       One moment, checking your subscription first
       From Ubuntu 20.04 onward 'pro enable cis' has been
@@ -132,7 +132,7 @@ Feature: Enable cis on Ubuntu
       See: sudo pro status
       """
     When I run `cis-audit level1_server` with sudo
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Title.*Ensure no duplicate UIDs exist
       Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
@@ -144,7 +144,7 @@ Feature: Enable cis on Ubuntu
       Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
       Result.*fail
       """
-    And stdout matches regexp
+    And stdout matches regexp:
       """
       CIS audit scan completed
       """
@@ -156,7 +156,7 @@ Feature: Enable cis on Ubuntu
       Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
       Result.*pass
       """
-    And stdout matches regexp
+    And stdout matches regexp:
       """
       CIS audit scan completed
       """

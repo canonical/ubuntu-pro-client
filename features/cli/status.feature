@@ -1572,85 +1572,85 @@ Feature: CLI status command
   Scenario Outline: Warn users not to redirect/pipe human readable output
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run shell command `pro version | cat` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     When I run shell command `pro version > version_out` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     When I run shell command `pro status | cat` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro status --format json`.
       """
     When I run shell command `pro status | cat` with sudo
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro status --format json`.
       """
     When I run shell command `pro status > status_out` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro status --format json`.
       """
     When I run shell command `pro status > status_out` with sudo
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro status --format json`.
       """
     When I run shell command `pro status --format tabular | cat` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro status --format json`.
       """
     When I run shell command `pro status --format tabular > status_out` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro status --format json`.
       """
     When I run shell command `pro status --format json | cat` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     When I run shell command `pro status --format json > status_out` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     # populate esm-cache
     When I apt update
     And I run shell command `pro security-status | cat` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro security-status --format json`.
       """
     When I run shell command `pro security-status > status_out` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: this output is intended to be human readable, and subject to change.
       In scripts, prefer using machine readable data from the `pro api` command,
       or use `pro security-status --format json`.
       """
     When I run shell command `pro security-status --format json | cat` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     When I run shell command `pro security-status --format json > status_out` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
 

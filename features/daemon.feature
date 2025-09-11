@@ -23,12 +23,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # verify installing pro created the cloud-id file
     When I run `cat /run/cloud-init/cloud-id` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
     When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
@@ -40,12 +40,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       (code=exited, status=0/SUCCESS)
       """
     When I run `cat /run/cloud-init/cloud-id` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
     When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
@@ -377,7 +377,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
   @skip_local_environment @skip_prebuilt_environment @uses.config.contract_token
   Scenario Outline: daemon should wait for cloud-config.service to finish
     # TODO: <caveat> when adding a 'noble' entry here, make sure the key is ubuntu_pro instead.
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
       """
       ubuntu_advantage: {}
       """

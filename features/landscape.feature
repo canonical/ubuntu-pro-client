@@ -17,7 +17,7 @@ Feature: Enable landscape on Ubuntu
       Installing landscape-client
       Executing `landscape-config --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key <REDACTED> --silent`
       """
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       Registration request sent successfully
       """
@@ -46,7 +46,7 @@ Feature: Enable landscape on Ubuntu
       """
     # Fail to enable with assume-yes
     When I verify that running `pro enable landscape --assume-yes -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       landscape-config command failed
       Could not enable Landscape.
@@ -79,7 +79,7 @@ Feature: Enable landscape on Ubuntu
     When I run `sudo pro disable landscape` with sudo
     # Fail to enable with assume-yes and format json
     When I verify that running `pro enable landscape --assume-yes --format=json -- --computer-title $behave_var{machine-name sut} --account-name pro-client-qa --registration-key wrong` `with sudo` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       {"_schema_version": "0.1", "errors": \[{"additional_info": {"stderr": .*, "stdout": .*}, "message": "landscape-config command failed", "message_code": "landscape-config-failed", "service": "landscape", "type": "service"}], "failed_services": \["landscape"], "needs_reboot": false, "processed_services": \[], "result": "failure", "warnings": \[]}
       """
