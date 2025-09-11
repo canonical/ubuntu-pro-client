@@ -91,7 +91,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
       {"_schema_version": "v1", "data": {"attributes": {"enabled_services": \[{"name": "realtime-kernel", "variant_enabled": true, "variant_name": "generic"}\]}, "meta": {"environment_vars": \[\]}, "type": "EnabledServices"}, "errors": \[\], "result": "success", "version": ".*", "warnings": \[\]}
       """
     When I verify that running `pro enable realtime-kernel` `with sudo` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       One moment, checking your subscription first
       Real-time kernel is already enabled - nothing to do.
@@ -119,7 +119,7 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
               but you must ensure this is correct before running it.
       """
     When I run `apt-cache policy ubuntu-realtime` as non-root
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Installed: (none)
       """

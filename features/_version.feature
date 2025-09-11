@@ -4,12 +4,12 @@ Feature: Pro is expected version
   Scenario Outline: Check pro version
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `dpkg-query --showformat='${Version}' --show ubuntu-pro-client` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
     When I run `pro version` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
@@ -90,12 +90,12 @@ Feature: Pro is expected version
   Scenario Outline: Check pro version
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `dpkg-query --showformat='${Version}' --show ubuntu-pro-client` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
     When I run `pro version` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
@@ -187,12 +187,12 @@ Feature: Pro is expected version
       to get the latest bug fixes and new features.
       """
     When I run `pro api u.pro.version.v1` as non-root
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       \"code\": \"new-version-available\"
       """
     When I verify that running `pro api u.pro.version.inexistent` `as non-root` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       \"code\": \"new-version-available\"
       """

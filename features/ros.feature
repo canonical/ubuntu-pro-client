@@ -10,13 +10,13 @@ Feature: Enable ROS on ubuntu
     And I verify that `esm-apps` is enabled
     And I verify that `esm-infra` is enabled
     When I verify that running `pro disable esm-apps` `with sudo` and stdin `N` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       ROS ESM Security Updates depends on Ubuntu Pro: ESM Apps.
       Disable ROS ESM Security Updates and proceed to disable Ubuntu Pro: ESM Apps\? \(y\/N\) Cannot disable Ubuntu Pro: ESM Apps when ROS ESM Security Updates is enabled.
       """
     When I run `pro disable esm-apps` `with sudo` and stdin `y`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       ROS ESM Security Updates depends on Ubuntu Pro: ESM Apps.
       Disable ROS ESM Security Updates and proceed to disable Ubuntu Pro: ESM Apps\? \(y\/N\) Disabling dependent service: ROS ESM Security Updates
@@ -28,13 +28,13 @@ Feature: Enable ROS on ubuntu
     And I verify that `ros` is disabled
     And I verify that `esm-apps` is disabled
     When I verify that running `pro enable ros` `with sudo` and stdin `N` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
       Enable Ubuntu Pro: ESM Apps and proceed to enable ROS ESM Security Updates\? \(y\/N\) Cannot enable ROS ESM Security Updates when Ubuntu Pro: ESM Apps is disabled.
       """
     When I run `pro enable ros` `with sudo` and stdin `y`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       One moment, checking your subscription first
       ROS ESM Security Updates cannot be enabled with Ubuntu Pro: ESM Apps disabled.
@@ -65,7 +65,7 @@ Feature: Enable ROS on ubuntu
     When I apt install `python3-catkin-pkg`
     Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-updates-source>`
     When I run `pro disable ros` `with sudo` and stdin `y`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       ROS ESM All Updates depends on ROS ESM Security Updates.
       Disable ROS ESM All Updates and proceed to disable ROS ESM Security Updates\? \(y\/N\) Disabling dependent service: ROS ESM All Updates
@@ -76,7 +76,7 @@ Feature: Enable ROS on ubuntu
       """
     And I verify that `ros-updates` is disabled
     When I run `pro enable ros-updates` `with sudo` and stdin `y`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       One moment, checking your subscription first
       ROS ESM All Updates cannot be enabled with ROS ESM Security Updates disabled.

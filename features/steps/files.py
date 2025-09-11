@@ -31,7 +31,7 @@ def when_i_push_file(context, file_name, machine_name=SUT):
     )
 
 
-@when("I add this text on `{file_name}` on `{machine_name}` above `{line}`")
+@when("I add this text on `{file_name}` on `{machine_name}` above `{line}`:")
 def when_i_add_this_text_on_file_above_line(
     context, file_name, machine_name, line
 ):

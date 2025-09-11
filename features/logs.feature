@@ -7,7 +7,7 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
     And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` <user_spec>
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     When I attach `contract_token` with sudo
@@ -15,7 +15,7 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
     And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` <user_spec>
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
 
@@ -40,7 +40,7 @@ Feature: Logs in Json Array Formatter
     Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log`
     When I verify `/var/log/ubuntu-advantage.log` is empty
     And I run `cat /home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log` as non-root
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Executed with sys.argv: ['/usr/bin/pro', 'status']
       """
@@ -48,7 +48,7 @@ Feature: Logs in Json Array Formatter
     And I attach `contract_token` with sudo
     And I verify `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log` is empty
     And I run `cat /var/log/ubuntu-advantage.log` with sudo
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Executed with sys.argv: ['/usr/bin/pro', 'attach'
       """
@@ -65,10 +65,10 @@ Feature: Logs in Json Array Formatter
 
   Scenario Outline: Non-root user log files included in collect logs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When i verify that running `pro status` `with sudo` exits `0`
+    When I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro collect-logs` `with sudo` exits `0`
     And I run `tar -tf pro_logs.tar.gz` as non-root
-    Then stdout does not contain substring
+    Then stdout does not contain substring:
       """
       user0.log
       """
@@ -76,7 +76,7 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro status` `as non-root` exits `0`
     And I verify that running `pro collect-logs` `with sudo` exits `0`
     And I run `tar -tf pro_logs.tar.gz` as non-root
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       user0.log
       """

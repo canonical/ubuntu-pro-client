@@ -65,7 +65,7 @@ Feature: Pro Install and Uninstall related tests
     When I run `make -C Python-3.10.0` with sudo
     When I run `make -C Python-3.10.0 install` with sudo
     When I run `python3 --version` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Python 3.10.0
       """
@@ -112,7 +112,7 @@ Feature: Pro Install and Uninstall related tests
 
   @skip_local_environment @skip_prebuilt_environment
   Scenario Outline: Does not cause deadlock when cloud-init installs ubuntu-advantage-tools
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
       """
       <user_data_field>: {}
       """

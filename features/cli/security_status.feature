@@ -377,7 +377,7 @@ Feature: CLI security-status command
       (.|\n)+
       """
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]
@@ -718,7 +718,7 @@ Feature: CLI security-status command
       (.|\n)+
       """
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]

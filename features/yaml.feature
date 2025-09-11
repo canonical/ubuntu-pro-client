@@ -61,7 +61,7 @@ Feature: YAML related interactions with Pro client
     # Known crash that can happen but we don't care about for this test because it isn't pro related
     When I run shell command `rm -f /var/crash/_usr_bin_cloud-id.*.crash` with sudo
     When I run `ls /var/crash` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       """
 
