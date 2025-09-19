@@ -33,7 +33,10 @@ profile ubuntu_pro_apt_news flags=(attach_disconnected) {
   /{,usr/}bin/python3.{1,}[0-9] mrix,
   # "import uuid" in focal triggers an uname call
   # And also see LP: #2067319
-  /{,usr/}bin/uname mrix,
+  # We are not using the variable @{coreutil_dirs} because it's only
+  # available in questing and this package is usually backported to
+  # older releases. (LP: #2123870)
+  /{bin/,usr/bin/,usr/bin/gnu,usr/lib/cargo/bin/coreutils/}uname mrix,
 
   /{,usr/}lib/apt/methods/http mrix,
   /{,usr/}lib/apt/methods/https mrix,

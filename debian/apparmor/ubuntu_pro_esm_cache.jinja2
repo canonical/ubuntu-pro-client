@@ -41,8 +41,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   /{,usr/}bin/apt-cache mrix,
   /{,usr/}bin/ischroot mrix,
   /{,usr/}bin/python3.{1,}[0-9] mrix,
-  # LP: #2067319
-  /{,usr/}bin/uname mrix,
+  # LP: #2067319, #2123870
+  /{bin/,usr/bin/,usr/bin/gnu,usr/lib/cargo/bin/coreutils/}uname mrix,
 
   /{,usr/}bin/cloud-id Cx -> cloud_id,
   # LP: #2067319
@@ -138,8 +138,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     /{,usr/}bin/ r,
     /{,usr/}bin/cloud-id r,
     /{,usr/}bin/python3.{1,}[0-9] mrix,
-    # LP: #2067319
-    /{,usr/}bin/uname mrix,
+    # LP: #2067319, #2123870
+    /{bin/,usr/bin/,usr/bin/gnu,usr/lib/cargo/bin/coreutils/}uname mrix,
 
     /usr/share/dpkg/** r,
 
@@ -242,7 +242,8 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     # there are just too many shell script tools that are called, like head,
     # tail, cut, sed, etc
-    /{,usr/}bin/* mrix,
+    # LP: #2123870
+    /{bin/,usr/bin/,usr/bin/gnu,usr/lib/cargo/bin/coreutils/}* mrix,
 
     /{,usr/}lib/apt/methods/gpgv mr,
 
