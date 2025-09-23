@@ -23,68 +23,63 @@ Feature: Pro is expected version
       """
 
     Examples: version
-      | release  | machine_type   |
-      | xenial   | lxd-container  |
-      | xenial   | lxd-vm         |
-      | xenial   | aws.generic    |
-      | xenial   | aws.pro        |
-      | xenial   | aws.pro-fips   |
-      | xenial   | azure.generic  |
-      | xenial   | azure.pro      |
-      | xenial   | azure.pro-fips |
-      | xenial   | gcp.generic    |
-      | xenial   | gcp.pro        |
-      | bionic   | lxd-container  |
-      | bionic   | lxd-vm         |
-      | bionic   | aws.generic    |
-      | bionic   | aws.pro        |
-      | bionic   | aws.pro-fips   |
-      | bionic   | azure.generic  |
-      | bionic   | azure.pro      |
-      | bionic   | azure.pro-fips |
-      | bionic   | gcp.generic    |
-      | bionic   | gcp.pro        |
-      | bionic   | gcp.pro-fips   |
-      | bionic   | wsl            |
-      | focal    | lxd-container  |
-      | focal    | lxd-vm         |
-      | focal    | aws.generic    |
-      | focal    | aws.pro        |
-      | focal    | aws.pro-fips   |
-      | focal    | azure.generic  |
-      | focal    | azure.pro      |
-      | focal    | azure.pro-fips |
-      | focal    | gcp.generic    |
-      | focal    | gcp.pro        |
-      | focal    | gcp.pro-fips   |
-      | focal    | wsl            |
-      | jammy    | lxd-container  |
-      | jammy    | lxd-vm         |
-      | jammy    | aws.generic    |
-      | jammy    | aws.pro        |
-      | jammy    | azure.generic  |
-      | jammy    | azure.pro      |
-      | jammy    | gcp.generic    |
-      | jammy    | gcp.pro        |
-      | jammy    | wsl            |
-      | noble    | lxd-container  |
-      | noble    | lxd-vm         |
-      | noble    | aws.generic    |
-      | noble    | aws.pro        |
-      | noble    | azure.generic  |
-      | noble    | azure.pro      |
-      | noble    | gcp.generic    |
-      | noble    | gcp.pro        |
-      | oracular | lxd-container  |
-      | oracular | lxd-vm         |
-      | oracular | aws.generic    |
-      | oracular | azure.generic  |
-      | oracular | gcp.generic    |
-      | plucky   | lxd-container  |
-      | plucky   | lxd-vm         |
-      | plucky   | aws.generic    |
-      | plucky   | azure.generic  |
-      | plucky   | gcp.generic    |
+      | release | machine_type   |
+      | xenial  | lxd-container  |
+      | xenial  | lxd-vm         |
+      | xenial  | aws.generic    |
+      | xenial  | aws.pro        |
+      | xenial  | aws.pro-fips   |
+      | xenial  | azure.generic  |
+      | xenial  | azure.pro      |
+      | xenial  | azure.pro-fips |
+      | xenial  | gcp.generic    |
+      | xenial  | gcp.pro        |
+      | bionic  | lxd-container  |
+      | bionic  | lxd-vm         |
+      | bionic  | aws.generic    |
+      | bionic  | aws.pro        |
+      | bionic  | aws.pro-fips   |
+      | bionic  | azure.generic  |
+      | bionic  | azure.pro      |
+      | bionic  | azure.pro-fips |
+      | bionic  | gcp.generic    |
+      | bionic  | gcp.pro        |
+      | bionic  | gcp.pro-fips   |
+      | bionic  | wsl            |
+      | focal   | lxd-container  |
+      | focal   | lxd-vm         |
+      | focal   | aws.generic    |
+      | focal   | aws.pro        |
+      | focal   | aws.pro-fips   |
+      | focal   | azure.generic  |
+      | focal   | azure.pro      |
+      | focal   | azure.pro-fips |
+      | focal   | gcp.generic    |
+      | focal   | gcp.pro        |
+      | focal   | gcp.pro-fips   |
+      | focal   | wsl            |
+      | jammy   | lxd-container  |
+      | jammy   | lxd-vm         |
+      | jammy   | aws.generic    |
+      | jammy   | aws.pro        |
+      | jammy   | azure.generic  |
+      | jammy   | azure.pro      |
+      | jammy   | gcp.generic    |
+      | jammy   | gcp.pro        |
+      | jammy   | wsl            |
+      | noble   | lxd-container  |
+      | noble   | lxd-vm         |
+      | noble   | aws.generic    |
+      | noble   | aws.pro        |
+      | noble   | azure.generic  |
+      | noble   | azure.pro      |
+      | noble   | gcp.generic    |
+      | noble   | gcp.pro        |
+      | plucky  | lxd-container  |
+      | plucky  | lxd-vm         |
+      | plucky  | aws.generic    |
+      | plucky  | azure.generic  |
+      | plucky  | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
@@ -109,14 +104,13 @@ Feature: Pro is expected version
       """
 
     Examples: version
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Attached show version in a ubuntu machine
@@ -132,14 +126,13 @@ Feature: Pro is expected version
     Then I will see the uaclient version on stdout
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @arm64
   Scenario Outline: Check for newer versions of the client in an ubuntu machine
@@ -216,11 +209,10 @@ Feature: Pro is expected version
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

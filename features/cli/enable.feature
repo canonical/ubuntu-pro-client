@@ -620,17 +620,16 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | bionic   | wsl           |
-      | focal    | lxd-container |
-      | focal    | wsl           |
-      | jammy    | lxd-container |
-      | jammy    | wsl           |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Running pro enable --auto
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

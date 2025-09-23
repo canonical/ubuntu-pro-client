@@ -470,14 +470,13 @@ Feature: CLI disable command
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | bionic   | wsl           |
-      | focal    | lxd-container |
-      | focal    | wsl           |
-      | jammy    | lxd-container |
-      | jammy    | wsl           |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

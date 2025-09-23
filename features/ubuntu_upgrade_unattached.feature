@@ -42,7 +42,7 @@ Feature: Upgrade between releases when uaclient is unattached
     When I apt update
     And I wait `30` seconds
     And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-apps.sources || true` with sudo
-    Then if `<next_release>` not in `oracular or plucky or questing` and stdout matches regexp:
+    Then if `<next_release>` not in `plucky or questing` and stdout matches regexp:
       """
       Types: deb
       URIs: https://esm.ubuntu.com/apps/ubuntu
@@ -58,11 +58,10 @@ Feature: Upgrade between releases when uaclient is unattached
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | next_release | prompt | devel_release   | service_status |
-      | xenial   | lxd-container | bionic       | lts    |                 | enabled        |
-      | bionic   | lxd-container | focal        | lts    |                 | enabled        |
-      | focal    | lxd-container | jammy        | lts    |                 | enabled        |
-      | jammy    | lxd-container | noble        | lts    |                 | enabled        |
-      | noble    | lxd-container | oracular     | normal |                 | n/a            |
-      | oracular | lxd-container | plucky       | normal |                 | n/a            |
-      | plucky   | lxd-container | questing     | normal | --devel-release | n/a            |
+      | release | machine_type  | next_release | prompt | devel_release   | service_status |
+      | xenial  | lxd-container | bionic       | lts    |                 | enabled        |
+      | bionic  | lxd-container | focal        | lts    |                 | enabled        |
+      | focal   | lxd-container | jammy        | lts    |                 | enabled        |
+      | jammy   | lxd-container | noble        | lts    |                 | enabled        |
+      | noble   | lxd-container | plucky       | normal |                 | n/a            |
+      | plucky  | lxd-container | questing     | normal | --devel-release | n/a            |

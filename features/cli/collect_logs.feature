@@ -48,14 +48,13 @@ Feature: CLI collect-logs command
     Then I verify that files exist matching `pro_logs.tar.gz`
 
     Examples: ubuntu release
-      | release  | machine_type  | user_spec   |
-      | xenial   | lxd-container | as non-root |
-      | bionic   | lxd-container | as non-root |
-      | focal    | lxd-container | as non-root |
-      | jammy    | lxd-container | as non-root |
-      | noble    | lxd-container | with sudo   |
-      | oracular | lxd-container | with sudo   |
-      | plucky   | lxd-container | with sudo   |
+      | release | machine_type  | user_spec   |
+      | xenial  | lxd-container | as non-root |
+      | bionic  | lxd-container | as non-root |
+      | focal   | lxd-container | as non-root |
+      | jammy   | lxd-container | as non-root |
+      | noble   | lxd-container | with sudo   |
+      | plucky  | lxd-container | with sudo   |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Run collect-logs on an attached machine

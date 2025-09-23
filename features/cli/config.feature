@@ -54,7 +54,7 @@ Feature: CLI config command
     Then I will see the following on stdout:
       """
       """
-    Then if `<release>` in `xenial or jammy or noble or oracular` and stderr contains substring:
+    Then if `<release>` in `xenial or jammy or noble` and stderr contains substring:
       """
       usage: pro config [-h] {show,set,unset} ...
       pro config: error: argument command: invalid choice: 'invalid' (choose from 'show', 'set', 'unset')
@@ -66,9 +66,8 @@ Feature: CLI config command
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
