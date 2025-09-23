@@ -62,9 +62,8 @@ Feature: Pro supports multiple languages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | plucky  | lxd-container |
 
   # Note: Translations do work on xenial, but our test environment triggers a bug in python that
   # causes it to think we're in an ascii-only environment
@@ -222,14 +221,13 @@ Feature: Pro supports multiple languages
     Then I will see the uaclient version on stdout
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Pro client's commands run successfully in a non-utf8 locale
@@ -281,11 +279,10 @@ Feature: Pro supports multiple languages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

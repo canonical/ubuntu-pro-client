@@ -658,7 +658,7 @@ Feature: APT Messages
       | noble   | lxd-container |
       | noble   | lxd-vm        |
 
-  # This is a subset of the above test, only checking proper outputs for Oracular
+  # This is a subset of the above test, only checking proper outputs for Plucky
   # At some point in time, ideally before next LTS, we need to invert this:
   # Have the new APT output in the full test, using latest releases, and a subset for the
   # old output.
@@ -723,11 +723,9 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
-      | oracular | lxd-vm        |
-      | plucky   | lxd-container |
-      | plucky   | lxd-vm        |
+      | release | machine_type  |
+      | plucky  | lxd-container |
+      | plucky  | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1556,9 +1554,8 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | wrong_release | package     | installed_version |
-      | oracular | lxd-container | jammy         | libcurl4t64 | 8.9.1-2ubuntu2    |
-      | plucky   | lxd-container | jammy         | pyzfs-doc   | 2.3.1-1ubuntu1    |
+      | release | machine_type  | wrong_release | package   | installed_version |
+      | plucky  | lxd-container | jammy         | pyzfs-doc | 2.3.1-1ubuntu1    |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1569,14 +1566,13 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1624,6 +1620,5 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | plucky  | lxd-container |

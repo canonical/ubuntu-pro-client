@@ -13,12 +13,11 @@ Feature: Timer for regular background jobs while attached
     Then I verify the `ua-timer` systemd timer is disabled
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Run timer script on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -88,15 +87,14 @@ Feature: Timer for regular background jobs while attached
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | focal    | wsl           |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Run timer script to validate machine activity endpoint
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

@@ -514,14 +514,13 @@ Feature: Pro Client help text
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | options_string     |
-      | xenial   | lxd-container | optional arguments |
-      | bionic   | lxd-container | optional arguments |
-      | focal    | lxd-container | optional arguments |
-      | jammy    | lxd-container | options            |
-      | noble    | lxd-container | options            |
-      | oracular | lxd-container | options            |
-      | plucky   | lxd-container | options            |
+      | release | machine_type  | options_string     |
+      | xenial  | lxd-container | optional arguments |
+      | bionic  | lxd-container | optional arguments |
+      | focal   | lxd-container | optional arguments |
+      | jammy   | lxd-container | options            |
+      | noble   | lxd-container | options            |
+      | plucky  | lxd-container | options            |
 
   Scenario Outline: Help command on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -563,14 +562,13 @@ Feature: Pro Client help text
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | infra-status |
-      | bionic   | lxd-container | enabled      |
-      | xenial   | lxd-container | enabled      |
-      | focal    | lxd-container | enabled      |
-      | jammy    | lxd-container | enabled      |
-      | noble    | lxd-container | enabled      |
-      | oracular | lxd-container | n/a          |
-      | plucky   | lxd-container | n/a          |
+      | release | machine_type  | infra-status |
+      | bionic  | lxd-container | enabled      |
+      | xenial  | lxd-container | enabled      |
+      | focal   | lxd-container | enabled      |
+      | jammy   | lxd-container | enabled      |
+      | noble   | lxd-container | enabled      |
+      | plucky  | lxd-container | n/a          |
 
   @arm64
   Scenario Outline: Help command on an unattached machine
@@ -610,14 +608,13 @@ Feature: Pro Client help text
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | infra-available |
-      | xenial   | lxd-container | yes             |
-      | bionic   | lxd-container | yes             |
-      | bionic   | wsl           | yes             |
-      | focal    | lxd-container | yes             |
-      | focal    | wsl           | yes             |
-      | jammy    | lxd-container | yes             |
-      | jammy    | wsl           | yes             |
-      | noble    | lxd-container | yes             |
-      | oracular | lxd-container | no              |
-      | plucky   | lxd-container | no              |
+      | release | machine_type  | infra-available |
+      | xenial  | lxd-container | yes             |
+      | bionic  | lxd-container | yes             |
+      | bionic  | wsl           | yes             |
+      | focal   | lxd-container | yes             |
+      | focal   | wsl           | yes             |
+      | jammy   | lxd-container | yes             |
+      | jammy   | wsl           | yes             |
+      | noble   | lxd-container | yes             |
+      | plucky  | lxd-container | no              |

@@ -10,13 +10,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim should run in postinst and on boot
@@ -290,11 +289,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type  |
-      | oracular | azure.generic |
-      | oracular | gcp.generic   |
-      | plucky   | azure.generic |
-      | plucky   | gcp.generic   |
+      | release | machine_type  |
+      | plucky  | azure.generic |
+      | plucky  | gcp.generic   |
 
   @uses.config.contract_token
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
@@ -316,14 +313,13 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type |
-      | xenial   | aws.generic  |
-      | bionic   | aws.generic  |
-      | focal    | aws.generic  |
-      | jammy    | aws.generic  |
-      | noble    | aws.generic  |
-      | oracular | aws.generic  |
-      | plucky   | aws.generic  |
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
+      | plucky  | aws.generic  |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

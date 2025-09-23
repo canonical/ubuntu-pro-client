@@ -20,14 +20,13 @@ Feature: Logs in Json Array Formatter
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | user_spec   |
-      | xenial   | lxd-container | as non-root |
-      | bionic   | lxd-container | as non-root |
-      | focal    | lxd-container | as non-root |
-      | jammy    | lxd-container | as non-root |
-      | noble    | lxd-container | with sudo   |
-      | oracular | lxd-container | with sudo   |
-      | plucky   | lxd-container | with sudo   |
+      | release | machine_type  | user_spec   |
+      | xenial  | lxd-container | as non-root |
+      | bionic  | lxd-container | as non-root |
+      | focal   | lxd-container | as non-root |
+      | jammy   | lxd-container | as non-root |
+      | noble   | lxd-container | with sudo   |
+      | plucky  | lxd-container | with sudo   |
 
   Scenario Outline: Non-root user and root user log files are different
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -54,14 +53,13 @@ Feature: Logs in Json Array Formatter
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Non-root user log files included in collect logs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -82,14 +80,13 @@ Feature: Logs in Json Array Formatter
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: logrotate configuration works
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -132,11 +129,10 @@ Feature: Logs in Json Array Formatter
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

@@ -160,14 +160,13 @@ Feature: CLI detach command
       """
 
     Examples: pro commands
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | bionic   | wsl           |
-      | focal    | lxd-container |
-      | focal    | wsl           |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | jammy    | wsl           |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

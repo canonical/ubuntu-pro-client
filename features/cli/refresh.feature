@@ -36,17 +36,16 @@ Feature: CLI refresh command
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | bionic   | wsl           |
-      | focal    | lxd-container |
-      | focal    | wsl           |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | jammy    | wsl           |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -63,14 +62,13 @@ Feature: CLI refresh command
       """
 
     Examples: pro commands
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | bionic   | wsl           |
-      | focal    | lxd-container |
-      | focal    | wsl           |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | jammy    | wsl           |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | bionic  | wsl           |
+      | focal   | lxd-container |
+      | focal   | wsl           |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | jammy   | wsl           |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

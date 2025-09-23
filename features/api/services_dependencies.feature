@@ -365,11 +365,10 @@ Feature: u.pro.services.dependencies
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
-      | plucky   | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

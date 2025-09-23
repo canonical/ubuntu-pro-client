@@ -65,16 +65,13 @@ Feature: Build docker images with pro services
     Then I verify that running `DOCKER_BUILDKIT=1 docker build . --no-cache --secret id=ua-attach-config,src=ua-attach-config.yaml -t ua-test` `with sudo` exits `1`
 
     Examples: ubuntu release
-      | release  | machine_type | container_release | enable_services | test_package_name | test_package_version |
-      | noble    | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
-      | noble    | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
-      | noble    | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
-      | oracular | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
-      | oracular | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
-      | oracular | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
-      | plucky   | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
-      | plucky   | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
-      | plucky   | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
+      | release | machine_type | container_release | enable_services | test_package_name | test_package_version |
+      | noble   | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
+      | noble   | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
+      | noble   | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
+      | plucky  | lxd-vm       | xenial            | [ esm-infra ]   | curl              | esm                  |
+      | plucky  | lxd-vm       | bionic            | [ fips ]        | openssl           | fips                 |
+      | plucky  | lxd-vm       | focal             | [ esm-apps ]    | hello             | esm                  |
 
   Scenario Outline: Build pro docker images auto-attached instances - settings_overrides method
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
