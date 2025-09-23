@@ -5,13 +5,13 @@ ubuntu-advantage-tools (37ubuntu0) questing; urgency=medium
   * New upstream release 37: (LP: #2125453)
     - attach: don't show a notice if attaching a one-time token set for a
       future release (GH: #3485)
-    - enable: add the --auto option to enable all dafault services based on
+    - enable: add the --auto option to enable all default services based on
       the contract
     - entitlements:
       + add esm-infra-legacy support
       + add esm-apps-legacy support
     - fips: show correct kernel versions when downgrading on clouds (GH: #3488)
-    - upgrade-lts-conract: (LP: #2107604)
+    - upgrade-lts-contract: (LP: #2107604)
       + remove implicit dependency on lsof
       + fix the logic to hold the apt lock while performing operations
   
