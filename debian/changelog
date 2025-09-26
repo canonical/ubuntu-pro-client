@@ -14,7 +14,7 @@ ubuntu-advantage-tools (37ubuntu0) questing; urgency=medium
     - upgrade-lts-contract: (LP: #2107604)
       + remove implicit dependency on lsof
       + fix the logic to hold the apt lock while performing operations
-  
+
  -- Renan Rodrigo <renanrodrigo@canonical.com>  Mon, 22 Sep 2025 21:51:46 -0300
 
 ubuntu-advantage-tools (36ubuntu0) questing; urgency=medium
