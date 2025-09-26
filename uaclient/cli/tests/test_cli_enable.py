@@ -95,6 +95,58 @@ class TestActionEnable:
                 [],
                 pytest.raises(exceptions.InvalidOptionCombination),
             ),
+            # variant + auto not allowed
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    format="cli",
+                    variant="variant",
+                    access_only=False,
+                    assume_yes=False,
+                    auto=True,
+                ),
+                {},
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                pytest.raises(exceptions.InvalidOptionCombination),
+            ),
+            # access_only + auto not allowed
+            (
+                IsAttachedResult(
+                    is_attached=True,
+                    contract_status="",
+                    contract_remaining_days=100,
+                    is_attached_and_contract_valid=True,
+                ),
+                Namespace(
+                    format="cli",
+                    variant="",
+                    access_only=True,
+                    assume_yes=False,
+                    auto=True,
+                ),
+                {},
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                [],
+                [],
+                pytest.raises(exceptions.InvalidOptionCombination),
+            ),
             # contract not valid
             (
                 IsAttachedResult(
