@@ -10,24 +10,24 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim should run in postinst and on boot
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # verify installing pro created the cloud-id file
     When I run `cat /run/cloud-init/cloud-id` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
     When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
@@ -39,12 +39,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       (code=exited, status=0/SUCCESS)
       """
     When I run `cat /run/cloud-init/cloud-id` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
     When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       lxd
       """
@@ -102,7 +102,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
     # TODO find out what caused memory to go up, try to lower it again
     Then on `xenial`, systemd status output says memory usage is less than `18` MB
-    Then on `bionic`, systemd status output says memory usage is less than `15` MB
+    Then on `bionic`, systemd status output says memory usage is less than `16` MB
     Then on `focal`, systemd status output says memory usage is less than `14` MB
     Then on `jammy`, systemd status output says memory usage is less than `15` MB
     Then on `noble`, systemd status output says memory usage is less than `17` MB
@@ -289,9 +289,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type  |
-      | oracular | azure.generic |
-      | oracular | gcp.generic   |
+      | release | machine_type  |
+      | plucky  | azure.generic |
+      | plucky  | gcp.generic   |
 
   @uses.config.contract_token
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
@@ -313,13 +313,13 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type |
-      | xenial   | aws.generic  |
-      | bionic   | aws.generic  |
-      | focal    | aws.generic  |
-      | jammy    | aws.generic  |
-      | noble    | aws.generic  |
-      | oracular | aws.generic  |
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
+      | plucky  | aws.generic  |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -373,7 +373,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
   @skip_local_environment @skip_prebuilt_environment @uses.config.contract_token
   Scenario Outline: daemon should wait for cloud-config.service to finish
     # TODO: <caveat> when adding a 'noble' entry here, make sure the key is ubuntu_pro instead.
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
       """
       ubuntu_advantage: {}
       """

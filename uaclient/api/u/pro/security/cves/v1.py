@@ -338,7 +338,7 @@ def _cves(
     cfg: UAConfig,
 ) -> CVEsResult:
     """
-    This endpoint shows the CVE vulnerabilites in the system.
+    This endpoint shows the CVE vulnerabilities in the system.
     By default, this API will show all CVEs that affect the system.
     """
 

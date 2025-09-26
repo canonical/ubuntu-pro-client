@@ -191,12 +191,12 @@ def attach_with_token(
                     series_codename=allowed_release.series_codename,
                 )
 
-        notices.add(
-            notices.Notice.LIMITED_TO_RELEASE,
-            release=allowed_release.release,
-            series_codename=allowed_release.series_codename,
-        )
-        only_series_check_marker_file.write(only_series)
+            notices.add(
+                notices.Notice.LIMITED_TO_RELEASE,
+                release=allowed_release.release,
+                series_codename=allowed_release.series_codename,
+            )
+            only_series_check_marker_file.write(only_series)
 
     machine_token_file.write(new_machine_token)
     try:

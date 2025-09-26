@@ -671,3 +671,7 @@ class FeatureNotSupportedOldTokenError(UbuntuProError):
 
 class ETagUnchanged(UbuntuProError):
     _formatted_msg_ = messages.E_ETAG_UNCHANGED
+
+
+class NoServicesToEnable(UbuntuProError):
+    _msg = messages.E_NO_SERVICES_TO_ENABLE

@@ -3,7 +3,7 @@ Feature: api.u.pro.attach.auto.configure_retry_service
   Scenario Outline: v1 successfully triggers retry service when run during startup
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I change contract to staging with sudo
-    When I create the file `/lib/systemd/system/apitest.service` with the following
+    When I create the file `/lib/systemd/system/apitest.service` with the following:
       """
       [Unit]
       Description=test

@@ -1,3 +1,22 @@
+ubuntu-advantage-tools (37ubuntu0) questing; urgency=medium
+
+  * d/apparmor/ubuntu_pro_[apt_news|esm_cache].jinja2: update coreutils path
+    Thanks to Georgia Garcia <georgia.garcia@canonical.com> (LP: #2123870)
+  * New upstream release 37: (LP: #2125453)
+    - attach: don't show a notice if attaching a one-time token set for a
+      future release (GH: #3485)
+    - enable: add the --auto option to enable all default services based on
+      the contract
+    - entitlements:
+      + add esm-infra-legacy support
+      + add esm-apps-legacy support
+    - fips: show correct kernel versions when downgrading on clouds (GH: #3488)
+    - upgrade-lts-contract: (LP: #2107604)
+      + remove implicit dependency on lsof
+      + fix the logic to hold the apt lock while performing operations
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Mon, 22 Sep 2025 21:51:46 -0300
+
 ubuntu-advantage-tools (36ubuntu0) questing; urgency=medium
 
   * d/apparmor/ubuntu_pro_esm_cache.jinja2: use openssl abstraction in the

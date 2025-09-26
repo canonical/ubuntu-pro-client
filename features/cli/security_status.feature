@@ -377,7 +377,7 @@ Feature: CLI security-status command
       (.|\n)+
       """
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]
@@ -468,12 +468,12 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
-      This machine is NOT attached to an Ubuntu Pro subscription.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled\.
+      This machine is NOT attached to an Ubuntu Pro subscription\.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
-      Main/Restricted packages until 2030.
+      Main/Restricted packages until 2030\. There (is|are) \d+ pending security update[s]?\.
 
       Ubuntu Pro with 'esm-apps' enabled provides security updates for
       Universe/Multiverse packages until 2030\. There (is|are) \d+ pending security update[s]?\.
@@ -488,13 +488,23 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ package[s]? from Ubuntu Main/Restricted repository
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled\.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
-      Main/Restricted packages until 2030.
+      Main/Restricted packages until 2030\. There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-infra' to learn more
+
+      Installed packages with an available esm-infra update:
+      (.|\n)+
+
+      Further installed packages covered by esm-infra:
+      (.|\n)+
+
+      For example, run:
+          apt-cache show .+
+      to learn more about that package\.
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -536,7 +546,7 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030.
+      Ubuntu Pro with 'esm-infra' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
       Ubuntu Pro with 'esm-apps' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
@@ -549,9 +559,19 @@ Feature: CLI security-status command
        +\d+ packages from Ubuntu Main/Restricted repository
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030.
+      Ubuntu Pro with 'esm-infra' enabled until 2030. There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-infra' to learn more
+
+      Installed packages with an available esm-infra update:
+      (.|\n)+
+
+      Further installed packages covered by esm-infra:
+      (.|\n)+
+
+      For example, run:
+          apt-cache show .+
+      to learn more about that package\.
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -593,7 +613,8 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030\.
+      Ubuntu Pro with 'esm-infra' enabled until 2030\. You have received \d+ security
+      update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
       Ubuntu Pro with 'esm-apps' enabled until 2030\. You have received \d+ security
@@ -614,8 +635,8 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
       This machine is attached to an Ubuntu Pro subscription.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
@@ -670,13 +691,16 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ packages from Ubuntu Main/Restricted repository
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
       Main/Restricted packages until 2030.
 
       Run 'pro help esm-infra' to learn more
+
+      Installed packages covered by esm-infra:
+      (.|\n)+
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -694,7 +718,7 @@ Feature: CLI security-status command
       (.|\n)+
       """
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]
@@ -718,8 +742,8 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
       This machine is attached to an Ubuntu Pro subscription.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
@@ -750,8 +774,8 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      This machine is receiving security patching for Ubuntu Main/Restricted
-      repository until 2025.
+      This machine is NOT receiving security patches because the LTS period has ended
+      and esm-infra is not enabled.
       This machine is attached to an Ubuntu Pro subscription.
 
       Ubuntu Pro with 'esm-infra' enabled provides security updates for
@@ -790,7 +814,7 @@ Feature: CLI security-status command
           pro security-status --help
       for a list of available options\.
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -801,7 +825,7 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ packages from Ubuntu Main/Restricted repository
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -832,7 +856,7 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
@@ -854,14 +878,14 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 7/2025\.
+      Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | plucky  | lxd-container |
 
   Scenario Outline: Pass custom APT configuration to the Client for updates information
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -963,6 +987,6 @@ Feature: CLI security-status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | pkg_in_updates               | pkg_in_security      |
-      | xenial  | lxd-container | base-files=9.4ubuntu4        | wget=1.17.1-1ubuntu1 |
-      | noble   | lxd-container | xz-utils=5.6.1+really5.4.5-1 | less=590-2ubuntu2    |
+      | release | machine_type  | pkg_in_updates        | pkg_in_security      |
+      | xenial  | lxd-container | base-files=9.4ubuntu4 | wget=1.17.1-1ubuntu1 |
+      | noble   | lxd-container | zip=3.0-13build1      | less=590-2ubuntu2    |

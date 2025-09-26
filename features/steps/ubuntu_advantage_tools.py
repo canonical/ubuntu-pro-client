@@ -32,12 +32,12 @@ deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main
 EOF
 cat > /etc/apt/preferences.d/lower-proposed << EOF
 Package: *
-Pin: release a={series}-proposed
+Pin: release a=*-proposed
 Pin-Priority: 400
 EOF
 cat > /etc/apt/preferences.d/upper-pro-posed << EOF
 Package: {packages}
-Pin: release a={series}-proposed
+Pin: release a=*-proposed
 Pin-Priority: 1001
 EOF
 sudo apt update""",

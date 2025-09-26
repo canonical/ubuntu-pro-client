@@ -128,7 +128,7 @@ def updates() -> PackageUpdatesResult:
 
 def _updates(cfg: UAConfig) -> PackageUpdatesResult:
     """
-    This endpoint shows available updates for packages in a system, categorised
+    This endpoint shows available updates for packages in a system, categorized
     by where they can be obtained.
     """
     ua_info = get_ua_info(cfg)

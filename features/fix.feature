@@ -22,13 +22,13 @@ Feature: Ua fix command behaviour
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -393,7 +393,7 @@ Feature: Ua fix command behaviour
       .*✘.* CVE-2017-9233 is not resolved.
       """
     When I fix `USN-5079-2` by attaching to a subscription with `contract_token_staging_expired`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       USN-5079-2: curl vulnerabilities
       Associated CVEs:

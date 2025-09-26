@@ -85,7 +85,7 @@ Feature: auto-attach retries periodically on failures
     When I run `systemctl restart ubuntu-advantage.service` with sudo
     And I wait `5` seconds
     Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Active: inactive (dead)
       """
@@ -209,7 +209,7 @@ Feature: auto-attach retries periodically on failures
     When I run `systemctl restart ubuntu-advantage.service` with sudo
     And I wait `5` seconds
     Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Active: inactive (dead)
       """
@@ -304,7 +304,7 @@ Feature: auto-attach retries periodically on failures
     # _should_ run and finish before the retry service has done anything
     When I run `pro auto-attach` with sudo
     When I verify that running `systemctl status ubuntu-advantage.service` `as non-root` exits `3`
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Active: inactive (dead)
       """
@@ -368,7 +368,7 @@ Feature: auto-attach retries periodically on failures
     When I run `systemctl start ubuntu-advantage.service` with sudo
     When I wait `1` seconds
     When I verify that running `systemctl status ubuntu-advantage.service` `as non-root` exits `0`
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Active: active (running)
       """
@@ -463,7 +463,7 @@ Feature: auto-attach retries periodically on failures
     And I run `pro status --wait` with sudo
     Then the machine is attached
     When I verify that running `systemctl status ubuntu-advantage.service` `as non-root` exits `3`
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Active: inactive (dead)
       """

@@ -191,8 +191,8 @@ Feature: Livepatch
       """
 
     Examples: ubuntu release
-      | release  | machine_type | pretty_name             |
-      | oracular | lxd-vm       | 24.10 (Oracular Oriole) |
+      | release | machine_type | pretty_name           |
+      | plucky  | lxd-vm       | 25.04 (Plucky Puffin) |
 
   Scenario Outline: Livepatch is supported on interim HWE kernel
     # This test is intended to ensure that an interim HWE kernel has the correct support status
@@ -277,7 +277,7 @@ Feature: Livepatch
         block_disable_on_enable: true
       """
     Then I verify that running `pro enable livepatch` `with sudo` exits `1`
-    And I will see the following on stdout
+    And I will see the following on stdout:
       """
       One moment, checking your subscription first
       Cannot enable Livepatch when FIPS is enabled.
@@ -310,7 +310,7 @@ Feature: Livepatch
   Scenario Outline: Attach works when snapd cannot be installed
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt remove `snapd`
-    And I create the file `/etc/apt/preferences.d/no-snapd` with the following
+    And I create the file `/etc/apt/preferences.d/no-snapd` with the following:
       """
       Package: snapd
       Pin: release o=*
@@ -341,7 +341,7 @@ Feature: Livepatch
 
   Scenario Outline: Livepatch doesn't enable on wsl from a systemd service
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I create the file `/lib/systemd/system/test.service` with the following
+    When I create the file `/lib/systemd/system/test.service` with the following:
       """
       [Unit]
       Description=test
@@ -354,7 +354,7 @@ Feature: Livepatch
     When I replace `<contract_token>` in `/lib/systemd/system/test.service` with token `contract_token`
     When I run `systemctl start test.service` with sudo
     Then I verify that running `canonical-livepatch` `with sudo` exits `1`
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       sudo: canonical-livepatch: command not found
       """

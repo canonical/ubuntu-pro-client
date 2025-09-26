@@ -6,13 +6,13 @@ Feature: Pro Install and Uninstall related tests
     Then I verify that running `dpkg-reconfigure <pkg_name>` `with sudo` exits `0`
 
     Examples: ubuntu release
-      | release  | machine_type  | pkg_name               |
-      | xenial   | lxd-container | ubuntu-advantage-tools |
-      | bionic   | lxd-container | ubuntu-advantage-tools |
-      | focal    | lxd-container | ubuntu-advantage-tools |
-      | jammy    | lxd-container | ubuntu-advantage-tools |
-      | noble    | lxd-container | ubuntu-pro-client      |
-      | oracular | lxd-container | ubuntu-pro-client      |
+      | release | machine_type  | pkg_name               |
+      | xenial  | lxd-container | ubuntu-advantage-tools |
+      | bionic  | lxd-container | ubuntu-advantage-tools |
+      | focal   | lxd-container | ubuntu-advantage-tools |
+      | jammy   | lxd-container | ubuntu-advantage-tools |
+      | noble   | lxd-container | ubuntu-pro-client      |
+      | plucky  | lxd-container | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: Purge package after attaching it to a machine
@@ -64,7 +64,7 @@ Feature: Pro Install and Uninstall related tests
     When I run `make -C Python-3.10.0` with sudo
     When I run `make -C Python-3.10.0 install` with sudo
     When I run `python3 --version` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Python 3.10.0
       """
@@ -111,7 +111,7 @@ Feature: Pro Install and Uninstall related tests
 
   @skip_local_environment @skip_prebuilt_environment
   Scenario Outline: Does not cause deadlock when cloud-init installs ubuntu-advantage-tools
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
       """
       <user_data_field>: {}
       """
@@ -122,13 +122,13 @@ Feature: Pro Install and Uninstall related tests
     Then I verify that `ubuntu-advantage-tools` is installed
 
     Examples: ubuntu release
-      | release  | machine_type  | user_data_field  |
-      | xenial   | lxd-container | ubuntu-advantage |
-      | bionic   | lxd-container | ubuntu_advantage |
-      | focal    | lxd-container | ubuntu_advantage |
-      | jammy    | lxd-container | ubuntu_advantage |
-      | noble    | lxd-container | ubuntu_pro       |
-      | oracular | lxd-container | ubuntu_pro       |
+      | release | machine_type  | user_data_field  |
+      | xenial  | lxd-container | ubuntu-advantage |
+      | bionic  | lxd-container | ubuntu_advantage |
+      | focal   | lxd-container | ubuntu_advantage |
+      | jammy   | lxd-container | ubuntu_advantage |
+      | noble   | lxd-container | ubuntu_pro       |
+      | plucky  | lxd-container | ubuntu_pro       |
 
   @uses.config.contract_token
   Scenario Outline: Create public machine token on postinst

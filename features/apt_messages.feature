@@ -133,6 +133,7 @@ Feature: APT Messages
       | release | machine_type  | version |
       | xenial  | lxd-container | 16      |
       | bionic  | lxd-container | 18      |
+      | focal   | lxd-container | 20      |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -191,8 +192,6 @@ Feature: APT Messages
       | release | machine_type  | package | more_msg                | learn_more_msg                                        |
       # TODO add noble when there is a package available in esm with a higher version than in noble (not true of hello)
       # | noble   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
-      | focal   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
-      | focal   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
 
@@ -228,7 +227,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -240,13 +239,13 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
     # Test that it is not shown in apt-get output
     When I apt-get upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -272,7 +271,7 @@ Feature: APT Messages
     # apt update stamp will prevent a apt_news refresh
     When I apt update
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -284,14 +283,14 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
     # manual refresh gets new message
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -305,7 +304,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one\ntwo\nthree"
       """
@@ -318,7 +317,7 @@ Feature: APT Messages
     # the apt-news.service unit runs in the background, give it some time to fetch the json file
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -332,7 +331,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one\ntwo\nthree"
       """
@@ -355,7 +354,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -364,7 +363,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -384,7 +383,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -393,7 +392,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -414,7 +413,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -423,7 +422,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -443,7 +442,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -455,7 +454,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
@@ -476,7 +475,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -485,7 +484,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -505,7 +504,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -514,7 +513,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       null
       """
@@ -546,7 +545,7 @@ Feature: APT Messages
     # the apt-news.service unit runs in the background, give it some time to fetch the json file
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -560,7 +559,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "CAUTION: Your Ubuntu Pro subscription will expire in 2 days.\nRenew your subscription at https://ubuntu.com/pro/dashboard to ensure\ncontinued security coverage for your applications."
       """
@@ -599,7 +598,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -612,7 +611,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your subscription at https://ubuntu.com/pro/dashboard"
       """
@@ -628,7 +627,7 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -641,7 +640,7 @@ Feature: APT Messages
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "*Your Ubuntu Pro subscription has EXPIRED*\nRenew your subscription at https://ubuntu.com/pro/dashboard"
       """
@@ -659,7 +658,7 @@ Feature: APT Messages
       | noble   | lxd-container |
       | noble   | lxd-vm        |
 
-  # This is a subset of the above test, only checking proper outputs for Oracular
+  # This is a subset of the above test, only checking proper outputs for Plucky
   # At some point in time, ideally before next LTS, we need to invert this:
   # Have the new APT output in the full test, using latest releases, and a subset for the
   # old output.
@@ -695,38 +694,38 @@ Feature: APT Messages
       """
     When I run `pro refresh messages` with sudo
     When I apt upgrade
-    Then I will see the following on stdout
+    # Plucky shows the Calculating upgrade line more than once.
+    # TODO: change those tests to have different output per release.
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       #
       Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I run shell command `pro api u.apt_news.current_news.v1 | jq .data.attributes.current_news` as non-root
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "one"
       """
     # Test that it is not shown in apt-get output
     When I apt-get upgrade
-    Then I will see the following on stdout
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      (Calculating upgrade...\n)+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
-      | oracular | lxd-vm        |
+      | release | machine_type  |
+      | plucky  | lxd-container |
+      | plucky  | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -790,7 +789,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -819,7 +818,7 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       Reading package lists...
       Building dependency tree...
@@ -1194,13 +1193,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -1224,13 +1222,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       # two
       #
@@ -1259,13 +1256,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       # two
       #
@@ -1293,13 +1289,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I create the file `/var/www/html/aptnews.json` on the `apt-news-server` machine with the following:
@@ -1323,13 +1318,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     When I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      #
+      (Calculating upgrade...\n)+#
       # one
       # two
       #
@@ -1360,13 +1354,12 @@ Feature: APT Messages
     When I run `systemctl start apt-news.service` with sudo
     When I wait `5` seconds
     And I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     # Testing package selector when package installed
@@ -1514,13 +1507,12 @@ Feature: APT Messages
     And I run `systemctl start apt-news.service` with sudo
     And I wait `5` seconds
     And I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Not upgrading:
+      (Calculating upgrade...\n)+Not upgrading:
         <package>
 
       Summary:
@@ -1549,13 +1541,12 @@ Feature: APT Messages
     And I run `systemctl start apt-news.service` with sudo
     And I wait `5` seconds
     And I apt upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Not upgrading:
+      (Calculating upgrade...\n)+Not upgrading:
         <package>
 
       Summary:
@@ -1563,25 +1554,25 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | wrong_release | package     | installed_version |
-      | oracular | lxd-container | jammy         | libcurl4t64 | 8.9.1-2ubuntu2    |
+      | release | machine_type  | wrong_release | package   | installed_version |
+      | plucky  | lxd-container | jammy         | pyzfs-doc | 2.3.1-1ubuntu1    |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `apt upgrade --simulate` as non-root
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1598,13 +1589,12 @@ Feature: APT Messages
       Get more security updates through Ubuntu Pro with 'esm-apps' enabled:
       """
     When I apt-get upgrade
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+      (Calculating upgrade...\n)+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
       """
     When I attach `contract_token` with sudo
     When I apt upgrade on a dry run
@@ -1613,8 +1603,7 @@ Feature: APT Messages
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
     When I apt upgrade
@@ -1626,11 +1615,10 @@ Feature: APT Messages
       Reading package lists...
       Building dependency tree...
       Reading state information...
-      Calculating upgrade...
-      Summary:
+      (Calculating upgrade...\n)+Summary:
         Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 0
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | plucky  | lxd-container |
