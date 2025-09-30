@@ -74,19 +74,19 @@ Feature: CLI cves command
     And I create the file `/tmp/response-overlay.json` with the following:
       """
       {
-        "https://security-metadata.canonical.com/oval/com.ubuntu.jammy.pkg.json.xz": [
-          {
-            "code": 200,
-            "response": {
-              "file_path": "/tmp/security_issues_jammy.json.xz"
-            }
-          }]
+      "https://security-metadata.canonical.com/oval/com.ubuntu.jammy.pkg.json.xz": [
+      {
+      "code": 200,
+      "response": {
+      "file_path": "/tmp/security_issues_jammy.json.xz"
+      }
+      }]
       }
       """
     And I append the following on uaclient config:
       """
       features:
-        serviceclient_url_responses: "/tmp/response-overlay.json"
+      serviceclient_url_responses: "/tmp/response-overlay.json"
       """
     And I apt install `nodejs`
     When I run `pro cves` as non-root

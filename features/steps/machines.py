@@ -273,7 +273,7 @@ def given_a_sut_machine(context, series, machine_type):
 
 
 @given(
-    "a `{series}` `{machine_type}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data"  # noqa: E501
+    "a `{series}` `{machine_type}` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:"  # noqa: E501
 )
 def given_a_sut_machine_with_user_data(context, series, machine_type):
     # doesn't support snapshot strategy because the test depends on

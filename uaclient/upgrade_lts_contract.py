@@ -23,14 +23,21 @@ This script will detect differences like that and update the Xenial system
 to reflect them.
 """
 
+import fcntl
 import logging
-import sys
-import time
 
-from uaclient import contract, defaults, messages, system, util
+from uaclient import defaults, exceptions, messages, system, util
+from uaclient.api import ProgressWrapper
 from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
 from uaclient.config import UAConfig
-from uaclient.files import machine_token
+from uaclient.entitlements import (
+    entitlement_factory,
+    entitlements_enable_order,
+)
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    ApplicationStatus,
+)
 
 # We consider the past release for LTSs to be the last LTS,
 # because we don't have any services available on non-LTS.
@@ -43,7 +50,8 @@ current_codename_to_past_codename = {
     "focal": "bionic",
     "jammy": "focal",
     "noble": "jammy",
-    "oracular": "noble",
+    "plucky": "noble",
+    "questing": "plucky",
 }
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
@@ -55,55 +63,38 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
         LOG.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
     LOG.debug("Starting upgrade-lts-contract.")
-    out, _err = system.subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
-    if out:
-        print(messages.RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT)
 
-    current_release = system.get_release_info().series
-    machine_token_file = machine_token.get_machine_token_file(cfg)
-
-    past_release = current_codename_to_past_codename.get(current_release)
-    if past_release is None:
-        print(
-            messages.RELEASE_UPGRADE_NO_PAST_RELEASE.format(
-                release=current_release
-            )
-        )
-        LOG.warning(
-            "Could not find past release for %s. Current known releases: %r.",
-            current_release,
-            current_codename_to_past_codename,
-        )
-        sys.exit(1)
-
-    past_entitlements = machine_token_file.entitlements(series=past_release)
-    new_entitlements = machine_token_file.entitlements()
-
-    retry_count = 0
-    while out:
-        # Loop until apt hold is released at the end of `do-release-upgrade`
-        LOG.debug("Detected that apt lock is held. Sleeping 10 seconds.")
-        time.sleep(10)
-        out, _err = system.subp(
-            ["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1]
-        )
-        retry_count += 1
-
-    LOG.debug(
-        "upgrade-lts-contract processing contract deltas: %s -> %s",
-        past_release,
-        current_release,
-    )
     print(messages.RELEASE_UPGRADE_STARTING)
 
-    contract.process_entitlements_delta(
-        cfg=cfg,
-        past_entitlements=past_entitlements,
-        new_entitlements=new_entitlements,
-        allow_enable=True,
-        series_overrides=False,
-    )
-    LOG.debug("upgrade-lts-contract succeeded after %s retries", retry_count)
+    print(messages.RELEASE_UPGRADE_APT_LOCK_WAIT)
+    # Get the apt lock when it's released after do-release-upgrade
+    with open("/var/lib/apt/lists/lock", "w") as lockfile:
+        fcntl.lockf(lockfile.fileno(), fcntl.LOCK_EX)
+
+        for name in entitlements_enable_order(cfg):
+            try:
+                entitlement = entitlement_factory(
+                    cfg=cfg,
+                    name=name,
+                    variant="",
+                )
+            except exceptions.EntitlementNotFoundError:
+                LOG.debug("entitlement not found: %s", name)
+
+            application_status, _ = entitlement.application_status()
+            applicability_status, _ = entitlement.applicability_status()
+
+            if (
+                application_status == ApplicationStatus.ENABLED
+                and applicability_status == ApplicabilityStatus.INAPPLICABLE
+            ):
+
+                LOG.debug("upgrade-lts-contract disabling %s", name)
+                ret = entitlement._perform_disable(progress=ProgressWrapper())
+
+                if not ret:
+                    LOG.debug("upgrade-lts-contract failed disabling %s", name)
+
     print(messages.RELEASE_UPGRADE_SUCCESS)
 
 

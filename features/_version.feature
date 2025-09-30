@@ -4,12 +4,12 @@ Feature: Pro is expected version
   Scenario Outline: Check pro version
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `dpkg-query --showformat='${Version}' --show ubuntu-pro-client` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
     When I run `pro version` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
@@ -23,76 +23,74 @@ Feature: Pro is expected version
       """
 
     Examples: version
-      | release  | machine_type   |
-      | xenial   | lxd-container  |
-      | xenial   | lxd-vm         |
-      | xenial   | aws.generic    |
-      | xenial   | aws.pro        |
-      | xenial   | aws.pro-fips   |
-      | xenial   | azure.generic  |
-      | xenial   | azure.pro      |
-      | xenial   | azure.pro-fips |
-      | xenial   | gcp.generic    |
-      | xenial   | gcp.pro        |
-      | xenial   | gcp.pro-fips   |
-      | bionic   | lxd-container  |
-      | bionic   | lxd-vm         |
-      | bionic   | aws.generic    |
-      | bionic   | aws.pro        |
-      | bionic   | aws.pro-fips   |
-      | bionic   | azure.generic  |
-      | bionic   | azure.pro      |
-      | bionic   | azure.pro-fips |
-      | bionic   | gcp.generic    |
-      | bionic   | gcp.pro        |
-      | bionic   | gcp.pro-fips   |
-      | focal    | lxd-container  |
-      | focal    | lxd-vm         |
-      | focal    | aws.generic    |
-      | focal    | aws.pro        |
-      | focal    | aws.pro-fips   |
-      | focal    | azure.generic  |
-      | focal    | azure.pro      |
-      | focal    | azure.pro-fips |
-      | focal    | gcp.generic    |
-      | focal    | gcp.pro        |
-      | focal    | gcp.pro-fips   |
-      | jammy    | lxd-container  |
-      | jammy    | lxd-vm         |
-      | jammy    | aws.generic    |
-      | jammy    | aws.pro        |
-      | jammy    | aws.pro-fips   |
-      | jammy    | azure.generic  |
-      | jammy    | azure.pro      |
-      | jammy    | azure.pro-fips |
-      | jammy    | gcp.generic    |
-      | jammy    | gcp.pro        |
-      | jammy    | gcp.pro-fips   |
-      | noble    | lxd-container  |
-      | noble    | lxd-vm         |
-      | noble    | aws.generic    |
-      | noble    | aws.pro        |
-      | noble    | aws.pro-fips   |
-      | noble    | azure.generic  |
-      | noble    | azure.pro      |
-      | noble    | azure.pro-fips |
-      | noble    | gcp.generic    |
-      | noble    | gcp.pro        |
-      | noble    | gcp.pro-fips   |
-      # no oracular on clouds yet - add it when those are available
-      | oracular | lxd-container  |
-      | oracular | lxd-vm         |
+      | release | machine_type   |
+      | xenial  | lxd-container  |
+      | xenial  | lxd-vm         |
+      | xenial  | aws.generic    |
+      | xenial  | aws.pro        |
+      | xenial  | aws.pro-fips   |
+      | xenial  | azure.generic  |
+      | xenial  | azure.pro      |
+      | xenial  | azure.pro-fips |
+      | xenial  | gcp.generic    |
+      | xenial  | gcp.pro        |
+      | bionic  | lxd-container  |
+      | bionic  | lxd-vm         |
+      | bionic  | aws.generic    |
+      | bionic  | aws.pro        |
+      | bionic  | aws.pro-fips   |
+      | bionic  | azure.generic  |
+      | bionic  | azure.pro      |
+      | bionic  | azure.pro-fips |
+      | bionic  | gcp.generic    |
+      | bionic  | gcp.pro        |
+      | bionic  | gcp.pro-fips   |
+      | bionic  | wsl            |
+      | focal   | lxd-container  |
+      | focal   | lxd-vm         |
+      | focal   | aws.generic    |
+      | focal   | aws.pro        |
+      | focal   | aws.pro-fips   |
+      | focal   | azure.generic  |
+      | focal   | azure.pro      |
+      | focal   | azure.pro-fips |
+      | focal   | gcp.generic    |
+      | focal   | gcp.pro        |
+      | focal   | gcp.pro-fips   |
+      | focal   | wsl            |
+      | jammy   | lxd-container  |
+      | jammy   | lxd-vm         |
+      | jammy   | aws.generic    |
+      | jammy   | aws.pro        |
+      | jammy   | azure.generic  |
+      | jammy   | azure.pro      |
+      | jammy   | gcp.generic    |
+      | jammy   | gcp.pro        |
+      | jammy   | wsl            |
+      | noble   | lxd-container  |
+      | noble   | lxd-vm         |
+      | noble   | aws.generic    |
+      | noble   | aws.pro        |
+      | noble   | azure.generic  |
+      | noble   | azure.pro      |
+      | noble   | gcp.generic    |
+      | noble   | gcp.pro        |
+      | plucky  | lxd-container  |
+      | plucky  | lxd-vm         |
+      | plucky  | aws.generic    |
+      | plucky  | azure.generic  |
+      | plucky  | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `dpkg-query --showformat='${Version}' --show ubuntu-pro-client` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
     When I run `pro version` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       $behave_var{version}
       """
@@ -106,13 +104,13 @@ Feature: Pro is expected version
       """
 
     Examples: version
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Attached show version in a ubuntu machine
@@ -128,13 +126,13 @@ Feature: Pro is expected version
     Then I will see the uaclient version on stdout
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   @arm64
   Scenario Outline: Check for newer versions of the client in an ubuntu machine
@@ -153,7 +151,7 @@ Feature: Pro is expected version
     And I verify that files exist matching `/run/ubuntu-advantage/candidate-version`
     # We forge a candidate to see results
     When I delete the file `/run/ubuntu-advantage/candidate-version`
-    And I create the file `/run/ubuntu-advantage/candidate-version` with the following
+    And I create the file `/run/ubuntu-advantage/candidate-version` with the following:
       """
       2:99.9.9
       """
@@ -182,12 +180,12 @@ Feature: Pro is expected version
       to get the latest bug fixes and new features.
       """
     When I run `pro api u.pro.version.v1` as non-root
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       \"code\": \"new-version-available\"
       """
     When I verify that running `pro api u.pro.version.inexistent` `as non-root` exits `1`
-    Then stdout matches regexp
+    Then stdout matches regexp:
       """
       \"code\": \"new-version-available\"
       """
@@ -211,10 +209,10 @@ Feature: Pro is expected version
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

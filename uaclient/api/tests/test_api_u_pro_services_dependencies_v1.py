@@ -27,7 +27,17 @@ class TestServicesDependenciesV1:
                     name="esm-apps", incompatible_with=[], depends_on=[]
                 ),
                 ServiceWithDependencies(
+                    name="esm-apps-legacy",
+                    incompatible_with=[],
+                    depends_on=[],
+                ),
+                ServiceWithDependencies(
                     name="esm-infra", incompatible_with=[], depends_on=[]
+                ),
+                ServiceWithDependencies(
+                    name="esm-infra-legacy",
+                    incompatible_with=[],
+                    depends_on=[],
                 ),
                 ServiceWithDependencies(
                     name="fips",

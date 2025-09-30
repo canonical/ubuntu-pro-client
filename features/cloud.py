@@ -406,9 +406,9 @@ class EC2(Cloud):
                 daily = True
 
             include_deprecated = False
-            if series == "xenial":
+            if series in ("xenial", "bionic", "focal"):
                 logging.debug(
-                    "including deprecated images when locating xenial on aws"
+                    "including deprecated images for EOSS series on aws"
                 )
                 include_deprecated = True
 

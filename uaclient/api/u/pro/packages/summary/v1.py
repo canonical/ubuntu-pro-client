@@ -97,7 +97,7 @@ def summary() -> PackageSummaryResult:
 def _summary(cfg: UAConfig) -> PackageSummaryResult:
     """
     This endpoint shows a summary of installed packages in the system,
-    categorised by origin.
+    categorized by origin.
     """
     packages = get_installed_packages_by_origin()
     summary = PackageSummary(

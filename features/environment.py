@@ -44,6 +44,8 @@ class UAClientBehaveConfig:
         Optional path the pycloudlib file containing the cloud credentials
     :param contract_token:
         A valid contract token to use during attach scenarios
+    :param contract_token_legacy:
+        A valid contract token with legacy support to use during attach
     :param contract_token_staging:
         A valid staging contract token to use during attach scenarios
     :param machine_types:
@@ -82,6 +84,7 @@ class UAClientBehaveConfig:
     str_options = [
         "cloud_credentials_path",
         "contract_token",
+        "contract_token_legacy",
         "contract_token_staging",
         "contract_token_staging_expired",
         "contract_token_staging_expired_sometimes",
@@ -107,6 +110,7 @@ class UAClientBehaveConfig:
     ]
     redact_options = [
         "contract_token",
+        "contract_token_legacy",
         "contract_token_staging",
         "contract_token_staging_expired",
         "contract_token_staging_expired_sometimes",
@@ -134,6 +138,7 @@ class UAClientBehaveConfig:
         private_key_file: Optional[str] = None,
         private_key_name: str = "uaclient-integration",
         contract_token: Optional[str] = None,
+        contract_token_legacy: Optional[str] = None,
         contract_token_staging: Optional[str] = None,
         contract_token_staging_expired: Optional[str] = None,
         contract_token_staging_expired_sometimes: Optional[str] = None,
@@ -160,6 +165,7 @@ class UAClientBehaveConfig:
         self.snapshot_strategy = snapshot_strategy
         self.sbuild_output_to_terminal = sbuild_output_to_terminal
         self.contract_token = contract_token
+        self.contract_token_legacy = contract_token_legacy
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
         self.contract_token_staging_expired_sometimes = (

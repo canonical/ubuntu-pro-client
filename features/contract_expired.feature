@@ -10,7 +10,7 @@ Feature: End of contract messages
     # HACK NOTICE: This part relies on implementation details of pro-client
     # we hack apt-helper to let pro enable go through to simulate being expired with services enabled
     # we can't just enable before expiring the contract because esm-auth is cached
-    When I create the file `/usr/bin/apt-helper-always-true` with the following
+    When I create the file `/usr/bin/apt-helper-always-true` with the following:
       """
       #!/usr/bin/bash
       true

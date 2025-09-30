@@ -48,4 +48,3 @@ Feature: Enable usg on Ubuntu
     Examples: cis service
       | release | machine_type  |
       | focal   | lxd-container |
-      | focal   | wsl           |

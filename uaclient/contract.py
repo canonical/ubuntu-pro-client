@@ -635,6 +635,7 @@ def process_entitlements_delta(
     new_entitlements: Dict[str, Any],
     allow_enable: bool,
     series_overrides: bool = True,
+    verbose: bool = True,
 ) -> None:
     """Iterate over all entitlements in new_entitlement and apply any delta
     found according to past_entitlements.
@@ -649,6 +650,7 @@ def process_entitlements_delta(
         about the recommended enabled service.
     :param series_overrides: Boolean set True if series overrides should be
         applied to the new_access dict.
+    :param verbose: If True, display output to stdout
     """
     from uaclient.entitlements import entitlements_enable_order
 
@@ -672,6 +674,7 @@ def process_entitlements_delta(
                 new_access=new_entitlement,
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
+                verbose=verbose,
             )
         except exceptions.UbuntuProError as e:
             LOG.exception(e)
@@ -725,6 +728,7 @@ def process_entitlement_delta(
     new_access: Dict[str, Any],
     allow_enable: bool = False,
     series_overrides: bool = True,
+    verbose: bool = True,
 ) -> Tuple[Dict, bool]:
     """Process a entitlement access dictionary deltas if they exist.
 
@@ -738,6 +742,7 @@ def process_entitlement_delta(
         about the recommended enabled service.
     :param series_overrides: Boolean set True if series overrides should be
         applied to the new_access dict.
+    :param verbose: If True, display output to stdout
 
     :raise UbuntuProError: on failure to process deltas.
     :return: A tuple containing a dict of processed deltas and a
@@ -777,7 +782,7 @@ def process_entitlement_delta(
             raise exc
 
         ret = entitlement.process_contract_deltas(
-            orig_access, deltas, allow_enable=allow_enable
+            orig_access, deltas, allow_enable=allow_enable, verbose=verbose
         )
     return deltas, ret
 
@@ -811,8 +816,10 @@ def _raise_attach_forbidden_message(
     raise exceptions.AttachExpiredToken()
 
 
-def refresh(cfg: UAConfig):
+def refresh(cfg: UAConfig, verbose=True):
     """Request contract refresh from ua-contracts service.
+
+    :param verbose: If True, display output to stdout
 
     :raise UbuntuProError: on failure to update contract or error processing
         contract deltas
@@ -841,6 +848,7 @@ def refresh(cfg: UAConfig):
         orig_entitlements,
         machine_token_file.entitlements(),
         allow_enable=False,
+        verbose=verbose,
     )
 
 

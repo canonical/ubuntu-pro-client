@@ -7,7 +7,7 @@ Feature: FIPS enablement in lxd VMs
     When I attach `contract_token` with sudo
     And I run shell command `pro status --format json` with sudo
     And I apply this jq filter `.services[] | select(.name == "fips") | .blocked_by[0].reason_code` to the output
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "livepatch-invalidates-fips"
       """
@@ -55,13 +55,13 @@ Feature: FIPS enablement in lxd VMs
     And I verify that `<fips-packages>` are installed from apt source `<fips-apt-source>`
     When I run shell command `pro status --format json --all` with sudo
     And I apply this jq filter `.services[] | select(.name == "livepatch") | .available` to the output
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "no"
       """
     When I run shell command `pro status --format json --all` with sudo
     And I apply this jq filter `.services[] | select(.name == "livepatch") | .blocked_by[0].reason_code` to the output
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       "livepatch-invalidates-fips"
       """
@@ -324,7 +324,7 @@ Feature: FIPS enablement in lxd VMs
       Livepatch enabled
       """
     When I run `pro enable fips --assume-yes` with sudo
-    Then I will see the following on stdout
+    Then I will see the following on stdout:
       """
       One moment, checking your subscription first
       Disabling incompatible service: Livepatch

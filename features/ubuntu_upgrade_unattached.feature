@@ -8,7 +8,7 @@ Feature: Upgrade between releases when uaclient is unattached
     # in case this still exists
     And I delete the file `/var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-infra.list`
     And I apt update
-    And I run `sleep 30` as non-root
+    And I wait `30` seconds
     And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-infra.sources || true` with sudo
     Then if `<release>` in `xenial or bionic` and stdout matches regexp:
       """
@@ -21,7 +21,7 @@ Feature: Upgrade between releases when uaclient is unattached
     When I apt dist-upgrade
     # Some packages upgrade may require a reboot
     And I reboot the machine
-    And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
+    And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following:
       """
       [Sources]
       AllowThirdParty=yes
@@ -40,8 +40,9 @@ Feature: Upgrade between releases when uaclient is unattached
       """
     And I verify that the folder `/var/lib/ubuntu-advantage/apt-esm` does not exist
     When I apt update
+    And I wait `30` seconds
     And I run shell command `cat /var/lib/ubuntu-advantage/apt-esm/etc/apt/sources.list.d/ubuntu-esm-apps.sources || true` with sudo
-    Then if `<next_release>` not in `noble` and stdout matches regexp:
+    Then if `<next_release>` not in `plucky or questing` and stdout matches regexp:
       """
       Types: deb
       URIs: https://esm.ubuntu.com/apps/ubuntu
@@ -57,10 +58,10 @@ Feature: Upgrade between releases when uaclient is unattached
       """
 
     Examples: ubuntu release
-      | release | machine_type  | next_release | prompt | devel_release | service_status |
-      | xenial  | lxd-container | bionic       | lts    |               | enabled        |
-      | bionic  | lxd-container | focal        | lts    |               | enabled        |
-      | focal   | lxd-container | jammy        | lts    |               | enabled        |
-
-# No path from Jammy to Noble until .1 is there
-# | jammy   | lxd-container | noble        | lts    |                 | enabled        |
+      | release | machine_type  | next_release | prompt | devel_release   | service_status |
+      | xenial  | lxd-container | bionic       | lts    |                 | enabled        |
+      | bionic  | lxd-container | focal        | lts    |                 | enabled        |
+      | focal   | lxd-container | jammy        | lts    |                 | enabled        |
+      | jammy   | lxd-container | noble        | lts    |                 | enabled        |
+      | noble   | lxd-container | plucky       | normal |                 | n/a            |
+      | plucky  | lxd-container | questing     | normal | --devel-release | n/a            |

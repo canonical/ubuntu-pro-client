@@ -25,41 +25,41 @@ Feature: Pro autocomplete commands
     When I press tab twice to autocomplete the `ua enable` command
     Then stdout matches regexp:
       """
-      anbox-cloud +esm-infra    +livepatch       +usg\s*
-      cc-eal      +fips         +realtime-kernel\s*
-      cis         +fips-updates +ros\s*
-      esm-apps    +landscape    +ros-updates\s*
+      anbox-cloud +esm-apps-legacy  +fips-updates      ros\s*
+      cc-eal      +esm-infra        +landscape         ros-updates\s*
+      cis         +esm-infra-legacy +livepatch         usg\s*
+      esm-apps    +fips             +realtime-kernel\s*
       """
     When I press tab twice to autocomplete the `pro enable` command
     Then stdout matches regexp:
       """
-      anbox-cloud +esm-infra    +livepatch       +usg\s*
-      cc-eal      +fips         +realtime-kernel\s*
-      cis         +fips-updates +ros\s*
-      esm-apps    +landscape    +ros-updates\s*
+      anbox-cloud +esm-apps-legacy  +fips-updates      ros\s*
+      cc-eal      +esm-infra        +landscape         ros-updates\s*
+      cis         +esm-infra-legacy +livepatch         usg\s*
+      esm-apps    +fips             +realtime-kernel\s*
       """
     When I press tab twice to autocomplete the `ua disable` command
     Then stdout matches regexp:
       """
-      anbox-cloud +esm-infra    +livepatch       +usg\s*
-      cc-eal      +fips         +realtime-kernel\s*
-      cis         +fips-updates +ros\s*
-      esm-apps    +landscape    +ros-updates\s*
+      anbox-cloud +esm-apps-legacy  +fips-updates      ros\s*
+      cc-eal      +esm-infra        +landscape         ros-updates\s*
+      cis         +esm-infra-legacy +livepatch         usg\s*
+      esm-apps    +fips             +realtime-kernel\s*
       """
     When I press tab twice to autocomplete the `pro disable` command
     Then stdout matches regexp:
       """
-      anbox-cloud +esm-infra    +livepatch       +usg\s*
-      cc-eal      +fips         +realtime-kernel\s*
-      cis         +fips-updates +ros\s*
-      esm-apps    +landscape    +ros-updates\s*
+      anbox-cloud +esm-apps-legacy  +fips-updates      ros\s*
+      cc-eal      +esm-infra        +landscape         ros-updates\s*
+      cis         +esm-infra-legacy +livepatch         usg\s*
+      esm-apps    +fips             +realtime-kernel\s*
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
+      | release | machine_type  |
       # | xenial  | lxd-container | Can't rely on Xenial because of bash sorting things weirdly
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

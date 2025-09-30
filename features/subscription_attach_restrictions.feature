@@ -123,3 +123,70 @@ Feature: One time pro subscription related tests
       | jammy   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
       | jammy   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
       | noble   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+
+  @arm64
+  Scenario Outline: Check attach works with future onlyseries
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/tmp/response-overlay.json` with the following:
+      """
+      {
+          "https://contracts.canonical.com/v1/context/machines/token": [
+          {
+            "code": 200,
+            "response": {
+              "machineTokenInfo": {
+                "accountInfo": {
+                  "name": "testName",
+                  "id": "testAccID"
+                },
+                "contractInfo": {
+                  "id": "testCID",
+                  "name": "testName",
+                  "resourceEntitlements": [
+                    {
+                      "type": "support",
+                      "affordances": {
+                        "onlySeries": "future"
+                      }
+                    }
+                  ]
+                },
+                "machineId": "testMID"
+              }
+            }
+        }],
+        "https://contracts.canonical.com/v1/contracts/testCID/context/machines/testMID": [
+          {
+            "code": 200,
+            "response": {
+              "activityToken": "test-activity-token",
+              "activityID": "test-activity-id",
+              "activityPingInterval": 123456789
+            }
+          }],
+          "https://contracts.canonical.com/v1/contracts/testCID/machine-activity/testMID": [
+          {
+            "code": 200,
+            "response": {
+              "activityToken": "test-activity-token",
+              "activityID": "test-activity-id",
+              "activityPingInterval": 123456789
+            }
+          }]
+      }
+      """
+    And I append the following on uaclient config:
+      """
+      features:
+        serviceclient_url_responses: "/tmp/response-overlay.json"
+      """
+    When I attach `contract_token` with sudo
+    Then the machine is attached
+
+    Examples: ubuntu release
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |

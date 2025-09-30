@@ -7,7 +7,7 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
     And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` <user_spec>
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
     When I attach `contract_token` with sudo
@@ -15,18 +15,18 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro enable test_entitlement` `with sudo` exits `1`
     And I run shell command `tail /var/log/ubuntu-advantage.log | jq -r .` <user_spec>
-    Then I will see the following on stderr
+    Then I will see the following on stderr:
       """
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | user_spec   |
-      | xenial   | lxd-container | as non-root |
-      | bionic   | lxd-container | as non-root |
-      | focal    | lxd-container | as non-root |
-      | jammy    | lxd-container | as non-root |
-      | noble    | lxd-container | with sudo   |
-      | oracular | lxd-container | with sudo   |
+      | release | machine_type  | user_spec   |
+      | xenial  | lxd-container | as non-root |
+      | bionic  | lxd-container | as non-root |
+      | focal   | lxd-container | as non-root |
+      | jammy   | lxd-container | as non-root |
+      | noble   | lxd-container | with sudo   |
+      | plucky  | lxd-container | with sudo   |
 
   Scenario Outline: Non-root user and root user log files are different
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -39,7 +39,7 @@ Feature: Logs in Json Array Formatter
     Then I verify that files exist matching `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log`
     When I verify `/var/log/ubuntu-advantage.log` is empty
     And I run `cat /home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log` as non-root
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Executed with sys.argv: ['/usr/bin/pro', 'status']
       """
@@ -47,26 +47,26 @@ Feature: Logs in Json Array Formatter
     And I attach `contract_token` with sudo
     And I verify `/home/ubuntu/.cache/ubuntu-pro/ubuntu-pro.log` is empty
     And I run `cat /var/log/ubuntu-advantage.log` with sudo
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       Executed with sys.argv: ['/usr/bin/pro', 'attach'
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: Non-root user log files included in collect logs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When i verify that running `pro status` `with sudo` exits `0`
+    When I verify that running `pro status` `with sudo` exits `0`
     And I verify that running `pro collect-logs` `with sudo` exits `0`
     And I run `tar -tf pro_logs.tar.gz` as non-root
-    Then stdout does not contain substring
+    Then stdout does not contain substring:
       """
       user0.log
       """
@@ -74,19 +74,19 @@ Feature: Logs in Json Array Formatter
     And I verify that running `pro status` `as non-root` exits `0`
     And I verify that running `pro collect-logs` `with sudo` exits `0`
     And I run `tar -tf pro_logs.tar.gz` as non-root
-    Then stdout contains substring
+    Then stdout contains substring:
       """
       user0.log
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |
 
   Scenario Outline: logrotate configuration works
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -129,10 +129,10 @@ Feature: Logs in Json Array Formatter
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | bionic   | lxd-container |
-      | focal    | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | bionic  | lxd-container |
+      | focal   | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

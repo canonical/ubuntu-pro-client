@@ -54,16 +54,20 @@ Feature: CLI config command
     Then I will see the following on stdout:
       """
       """
-    # When testing on plucky, the '' in the options need to be removed.
-    Then I will see the following on stderr:
+    Then if `<release>` in `xenial or jammy or noble` and stderr contains substring:
       """
       usage: pro config [-h] {show,set,unset} ...
       pro config: error: argument command: invalid choice: 'invalid' (choose from 'show', 'set', 'unset')
       """
+    Then if `<release>` in `plucky` and stderr contains substring:
+      """
+      usage: pro config [-h] {show,set,unset} ...
+      pro config: error: argument command: invalid choice: 'invalid' (choose from show, set, unset)
+      """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | jammy    | lxd-container |
-      | noble    | lxd-container |
-      | oracular | lxd-container |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | jammy   | lxd-container |
+      | noble   | lxd-container |
+      | plucky  | lxd-container |

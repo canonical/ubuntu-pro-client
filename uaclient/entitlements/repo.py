@@ -478,6 +478,7 @@ class RepoEntitlement(base.UAEntitlement):
         orig_access: Dict[str, Any],
         deltas: Dict[str, Any],
         allow_enable: bool = False,
+        verbose: bool = True,
     ) -> bool:
         """Process any contract access deltas for this entitlement.
 
@@ -488,10 +489,13 @@ class RepoEntitlement(base.UAEntitlement):
         :param allow_enable: Boolean set True if allowed to perform the enable
             operation. When False, a message will be logged to inform the user
             about the recommended enabled service.
+        :param verbose: If True, display output to stdout
 
         :return: True when delta operations are processed; False when noop.
         """
-        if super().process_contract_deltas(orig_access, deltas, allow_enable):
+        if super().process_contract_deltas(
+            orig_access, deltas, allow_enable, verbose=verbose
+        ):
             return True  # Already processed parent class deltas
 
         delta_entitlement = deltas.get("entitlement", {})
@@ -514,9 +518,13 @@ class RepoEntitlement(base.UAEntitlement):
                 self.name,
                 delta_apt_url,
             )
-            event.info(
-                messages.REPO_UPDATING_APT_SOURCES.format(service=self.name)
-            )
+
+            if verbose:
+                event.info(
+                    messages.REPO_UPDATING_APT_SOURCES.format(
+                        service=self.name
+                    )
+                )
 
             orig_entitlement = orig_access.get("entitlement", {})
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
@@ -531,11 +539,13 @@ class RepoEntitlement(base.UAEntitlement):
 
         if delta_packages:
             LOG.info("New additionalPackages, installing %r", delta_packages)
-            event.info(
-                messages.REPO_REFRESH_INSTALLING_PACKAGES.format(
-                    packages=", ".join(delta_packages)
+
+            if verbose:
+                event.info(
+                    messages.REPO_REFRESH_INSTALLING_PACKAGES.format(
+                        packages=", ".join(delta_packages)
+                    )
                 )
-            )
             self.install_packages(
                 api.ProgressWrapper(), package_list=delta_packages
             )

@@ -69,8 +69,8 @@ REBOOT_SCRIPT_FAILED = t.gettext(
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
 
-RELEASE_UPGRADE_APT_LOCK_HELD_WILL_WAIT = t.gettext(
-    "APT lock is held. Ubuntu Pro configuration will wait until it is released"
+RELEASE_UPGRADE_APT_LOCK_WAIT = t.gettext(
+    "Waiting for APT lock to start the Ubuntu Pro configuration"
 )
 RELEASE_UPGRADE_NO_PAST_RELEASE = t.gettext(
     "Could not find past release for {release}"
@@ -361,6 +361,10 @@ AUTO_SELECTING_VARIANT = t.gettext(
     """\
 No variant specified. To specify a variant, use the variant option.
 Auto-selecting {variant} variant. Proceed? (y/N) """
+)
+NO_SERVICES_TO_AUTO_ENABLE = t.gettext(
+    """\
+All default services are already enabled"""
 )
 
 # DISABLE
@@ -1108,6 +1112,7 @@ CLI_ENABLE_BETA = t.gettext("allow beta service to be enabled")
 CLI_ENABLE_VARIANT = t.gettext(
     "The name of the variant to use when enabling the service"
 )
+CLI_ENABLE_AUTO = t.gettext("enable all default services")
 
 CLI_DISABLE_DESC = t.gettext("Disable one or more Ubuntu Pro services.")
 CLI_DISABLE_SERVICE = t.gettext(
@@ -1372,6 +1377,19 @@ its end of life. You can find out more about the esm service at
 {url}"""
 ).format(url=urls.ESM_HOME_PAGE)
 
+
+ESM_APPS_LEGACY_TITLE = t.gettext("Ubuntu Pro: ESM Apps (Legacy)")
+ESM_APPS_LEGACY_DESCRIPTION = t.gettext(
+    "Expanded Security Maintenance for Applications on Legacy Instances"
+)
+ESM_APPS_LEGACY_HELP_TEXT = t.gettext(
+    """\
+Expanded Security Maintenance (ESM) for Applications on Legacy Instances provides access to a
+service which includes available high and critical vulnerability fixes for Ubuntu LTS packages in
+the Ubuntu Main and Ubuntu Universe repositories from the Ubuntu LTS release date until its end of
+life."""  # noqa
+)
+
 ESM_INFRA_TITLE = t.gettext("Ubuntu Pro: ESM Infra")
 ESM_INFRA_DESCRIPTION = t.gettext(
     "Expanded Security Maintenance for Infrastructure"
@@ -1385,6 +1403,17 @@ LTS security maintenance and its end of life. It is enabled by default with
 Ubuntu Pro. You can find out more about the service at
 {url}"""
 ).format(url=urls.ESM_HOME_PAGE)
+
+ESM_INFRA_LEGACY_TITLE = t.gettext("Ubuntu Pro: ESM Infra (Legacy)")
+ESM_INFRA_LEGACY_DESCRIPTION = t.gettext(
+    "Expanded Security Maintenance for Infrastructure on Legacy Instances"
+)
+ESM_INFRA_LEGACY_HELP_TEXT = t.gettext(
+    """\
+Expanded Security Maintenance (ESM) for Infrastructure on Legacy Instances provides access to a
+service which includes available high and critical vulnerability fixes for Ubuntu LTS packages in
+the Ubuntu Main repository after its end of life."""  # noqa
+)
 
 FIPS_TITLE = t.gettext("FIPS")
 FIPS_DESCRIPTION = t.gettext("NIST-certified FIPS crypto packages")
@@ -2897,4 +2926,9 @@ E_FILE_ALREADY_EXISTS = FormattedNamedMessage(
 E_VULNERABILITY_DATA_NOT_FOUND = NamedMessage(
     "vulnerability-data-not-found",
     t.gettext("Vulnerability data not found for the current Ubuntu release"),
+)
+
+E_NO_SERVICES_TO_ENABLE = NamedMessage(
+    "no-services-to-enable",
+    t.gettext("No services provided for enable operation"),
 )
