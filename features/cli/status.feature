@@ -69,13 +69,14 @@ Feature: CLI status command
     And I verify that `/var/lib/ubuntu-advantage/status.json` is owned by `root:root` with permission `644`
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | xenial   | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Non-root status can see in-progress operations
@@ -691,13 +692,14 @@ Feature: CLI status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | xenial   | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
 
   @arm64
   Scenario Outline: Unattached status in a ubuntu machine
@@ -1558,13 +1560,14 @@ Feature: CLI status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
 
   Scenario Outline: Warn users not to redirect/pipe human readable output
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1652,10 +1655,11 @@ Feature: CLI status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |

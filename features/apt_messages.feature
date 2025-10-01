@@ -723,9 +723,11 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | plucky  | lxd-container |
-      | plucky  | lxd-vm        |
+      | release  | machine_type  |
+      | plucky   | lxd-container |
+      | plucky   | lxd-vm        |
+      | questing | lxd-container |
+      | questing | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1566,13 +1568,14 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1620,5 +1623,6 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
