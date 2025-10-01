@@ -247,10 +247,11 @@ Feature: api.u.unattended_upgrades.status.v1
       """
 
     Examples: ubuntu release
-      | release | machine_type  | extra_field                                  |
-      | xenial  | lxd-container |                                              |
-      | bionic  | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "false" |
-      | focal   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
-      | jammy   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
-      | noble   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
-      | plucky  | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | release  | machine_type  | extra_field                                  |
+      | xenial   | lxd-container |                                              |
+      | bionic   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "false" |
+      | focal    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | jammy    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | noble    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | plucky   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | questing | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
