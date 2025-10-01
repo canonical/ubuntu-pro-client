@@ -66,8 +66,9 @@ Feature: CLI config command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
