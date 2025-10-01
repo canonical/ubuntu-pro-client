@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (37ubuntu0~25.04) plucky; urgency=medium
+
+  * Backport 37ubuntu0 to plucky (LP: #2125453)
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Wed, 01 Oct 2025 15:36:04 -0300
+
 ubuntu-advantage-tools (37ubuntu0) questing; urgency=medium
 
   * d/apparmor/ubuntu_pro_[apt_news|esm_cache].jinja2: update coreutils path
