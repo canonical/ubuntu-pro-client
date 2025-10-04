@@ -16,18 +16,18 @@ from uaclient import (
 )
 from uaclient.api.u.pro.services.dependencies.v1 import (
     ServiceWithDependencies,
-    _dependencies,
+    _dependencies,  # type: ignore[attr-defined]
 )
 from uaclient.api.u.pro.services.enable.v1 import (
     EnableOptions,
     EnableResult,
-    _enable,
+    _enable,  # type: ignore[attr-defined]
 )
 from uaclient.api.u.pro.status.enabled_services.v1 import (
     EnabledService,
-    _enabled_services,
+    _enabled_services,  # type: ignore[attr-defined]
 )
-from uaclient.api.u.pro.status.is_attached.v1 import _is_attached
+from uaclient.api.u.pro.status.is_attached.v1 import _is_attached  # type: ignore[attr-defined]
 from uaclient.cli import cli_util
 from uaclient.cli.commands import ProArgument, ProArgumentGroup, ProCommand
 from uaclient.cli.parser import HelpCategory
@@ -49,27 +49,43 @@ def _auto_enable_services(
     cfg: config.UAConfig,
     variant: str,
     assume_yes: bool,
-    json_output,
-):
-    interactive_only_print = cli_util.create_interactive_only_print_function(
+    json_output: bool,
+    json_response: Dict[str, Any],
+    processed_services: List[str],
+    failed_services: List[str],
+    errors: List[Dict[str, Any]],
+    warnings: List[Dict[str, Any]],
+) -> bool:
+    interactive_only_print: callable = cli_util.create_interactive_only_print_function(  # type: ignore[misc]
         json_output
-    )
-    machine_token_file = machine_token.get_machine_token_file(cfg)
+    )  # type: ignore[misc]
+    machine_token_file = machine_token.get_machine_token_file(cfg)  # type: ignore[misc]
     services_to_be_enabled = contract.get_enabled_by_default_services(
-        cfg, machine_token_file.entitlements()
+        cfg, machine_token_file.entitlements()  # type: ignore[misc]
     )
 
     if not services_to_be_enabled:
         interactive_only_print(messages.NO_SERVICES_TO_AUTO_ENABLE)
-        return
+        if json_output:
+            warnings.append(
+                {
+                    "type": "system",
+                    "message": messages.NO_SERVICES_TO_AUTO_ENABLE,
+                    "message_code": "no-services-to-auto-enable",
+                }
+            )
+        return True
 
     enabled_services = _enabled_services(cfg).enabled_services
     all_dependencies = _dependencies(cfg).services
 
+    success = True
+    needs_reboot = False
+
     for enable_by_default_service in services_to_be_enabled:
-        _enable_one_service(
+        result = _enable_one_service(
             cfg=cfg,
-            ent_name=enable_by_default_service.name,
+            ent_name=enable_by_default_service.name,  # type: ignore[misc]
             variant=variant,
             access_only=False,
             assume_yes=assume_yes,
@@ -79,11 +95,26 @@ def _auto_enable_services(
             all_dependencies=all_dependencies,
         )
 
+        if result.success:
+            processed_services.append(enable_by_default_service.name)  # type: ignore[misc]
+            if result.needs_reboot:
+                needs_reboot = True
+        else:
+            success = False
+            failed_services.append(enable_by_default_service.name)  # type: ignore[misc]
+            if result.error is not None:
+                errors.append(result.error)
+
+    if needs_reboot:
+        json_response["needs_reboot"] = True
+
+    return success
+
 
 def _enable_landscape(
     cfg: config.UAConfig,
     access_only: bool,
-    extra_args,
+    extra_args: Optional[List[str]],
     progress_object: Optional[api.AbstractProgress] = None,
 ):
     """
@@ -194,10 +225,10 @@ def prompt_for_dependency_handling(
         ),
         None,
     )
-    if variant_enabled is not None and variant is not None:
+    if variant_enabled is not None and variant:
         to_be_enabled_title = entitlements.get_title(cfg, service, variant)
         enabled_variant_title = entitlements.get_title(
-            cfg, service, variant_enabled.variant_name
+            cfg, service, variant_enabled.variant_name or ""
         )
         cfg_block_disable_on_enable = util.is_config_value_true(
             config=cfg.cfg,
@@ -255,9 +286,9 @@ def _enable_one_service(
     enabled_services: List[EnabledService],
     all_dependencies: List[ServiceWithDependencies],
 ) -> _EnableOneServiceResult:
-    interactive_only_print = cli_util.create_interactive_only_print_function(
+    interactive_only_print: callable = cli_util.create_interactive_only_print_function(  # type: ignore[misc]
         json_output
-    )
+    )  # type: ignore[misc]
     ent = entitlements.entitlement_factory(
         cfg,
         ent_name,
@@ -281,7 +312,7 @@ def _enable_one_service(
         None,
     )
     if already_enabled is not None:
-        msg = messages.ALREADY_ENABLED.format(title=ent_title)
+        msg = messages.ALREADY_ENABLED.format(title=ent_title)  # type: ignore[misc]
         interactive_only_print(msg.msg)
         interactive_only_print(messages.ENABLE_FAILED.format(title=ent_title))
         return _EnableOneServiceResult(
@@ -373,11 +404,11 @@ def _enable_one_service(
         )
 
     except exceptions.EntitlementNotEnabledError as e:
-        reason = e.additional_info["reason"]
-        err_code = reason["code"]
-        err_msg = reason["title"]
-        err_info = reason["additional_info"]
-        interactive_only_print(err_msg)
+        reason = e.additional_info["reason"]  # type: ignore[misc]
+        err_code: str = reason["code"]  # type: ignore[misc]
+        err_msg: str = reason["title"]  # type: ignore[misc]
+        err_info: Dict[str, Any] = reason["additional_info"]  # type: ignore[misc]
+        interactive_only_print(err_msg)  # type: ignore[misc]
         interactive_only_print(messages.ENABLE_FAILED.format(title=ent_title))
         return _EnableOneServiceResult(
             success=False,
@@ -401,37 +432,37 @@ def _enable_one_service(
                 "service": ent_name,
                 "message": e.msg,
                 "message_code": e.msg_code,
-                "additional_info": e.additional_info,
+                "additional_info": e.additional_info,  # type: ignore[misc]
             },
         )
 
 
-@cli_util.verify_json_format_args
-@cli_util.assert_root
-@cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)
-def action_enable(args, *, cfg, **kwargs) -> int:
+@cli_util.verify_json_format_args  # type: ignore[misc]
+@cli_util.assert_root  # type: ignore[misc]
+@cli_util.assert_attached(cli_util._raise_enable_disable_unattached_error)  # type: ignore[misc,attr-defined]
+def action_enable(args: Any, *, cfg: config.UAConfig, **kwargs: Any) -> int:
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    processed_services = []  # type: List[str]
-    failed_services = []  # type: List[str]
-    errors = []  # type: List[Dict[str, Any]]
-    warnings = []
+    processed_services: List[str] = []
+    failed_services: List[str] = []
+    errors: List[Dict[str, Any]] = []
+    warnings: List[Dict[str, Any]] = []
 
-    json_response = {
+    json_response: Dict[str, Any] = {
         "_schema_version": event_logger.JSON_SCHEMA_VERSION,
         "needs_reboot": False,
     }
 
-    json_output = args.format == "json"
+    json_output: bool = args.format == "json"
     # HACK NOTICE: interactive_only_print here will be a no-op "null_print"
     # function defined above if args.format == "json". We use this function
     # throughout enable for things that should get printed in the normal
     # interactive output so that they don't get printed for the json output.
-    interactive_only_print = cli_util.create_interactive_only_print_function(
+    interactive_only_print: callable = cli_util.create_interactive_only_print_function(  # type: ignore[misc]
         json_output
-    )
+    )  # type: ignore[misc]
 
     variant = getattr(args, "variant", "")
     access_only = args.access_only
@@ -489,12 +520,32 @@ def action_enable(args, *, cfg, **kwargs) -> int:
         return 1
 
     if auto:
-        return _auto_enable_services(
+        success = _auto_enable_services(
             cfg=cfg,
             variant="",
             assume_yes=True,
             json_output=json_output,
+            json_response=json_response,
+            processed_services=processed_services,
+            failed_services=failed_services,
+            errors=errors,
+            warnings=warnings,
         )
+
+        contract_client = contract.UAContractClient(cfg)
+        contract_client.update_activity_token()
+
+        _print_json_output(
+            json_output,
+            json_response,
+            processed_services,
+            failed_services,
+            errors,
+            warnings,
+            success=success,
+        )
+
+        return 0 if success else 1
 
     names = getattr(args, "service", [])
     if not names:
@@ -509,7 +560,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
 
     ret = True
     for ent_name in entitlements.order_entitlements_for_enabling(
-        cfg, entitlements_found
+        cfg, entitlements_found  # type: ignore[misc]
     ):
         result = _enable_one_service(
             cfg,
@@ -535,8 +586,8 @@ def action_enable(args, *, cfg, **kwargs) -> int:
     if entitlements_not_found:
         ret = False
         failed_services += entitlements_not_found
-        err = entitlements.create_enable_entitlements_not_found_error(
-            entitlements_not_found, cfg=cfg
+        err = entitlements.create_enable_entitlements_not_found_error(  # type: ignore
+            entitlements_not_found, cfg=cfg  # type: ignore[misc]
         )
         interactive_only_print(err.msg)
         errors.append(
@@ -545,7 +596,7 @@ def action_enable(args, *, cfg, **kwargs) -> int:
                 "service": None,
                 "message": err.msg,
                 "message_code": err.msg_code,
-                "additional_info": err.additional_info,
+                "additional_info": err.additional_info,  # type: ignore[misc]
             }
         )
 
