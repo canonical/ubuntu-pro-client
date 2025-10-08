@@ -96,11 +96,13 @@ html_css_files = [
     "css/header.css",
     "css/furo_colors.css",
     "css/highlight.css",
+    "css/cookie-banner.css",
 ]
 html_js_files = [
     "js/github_issue_links.js",
     "js/header-nav.js",
     "js/synced_tab_links.js",
+    "js/bundle.js",
 ]
 html_favicon = "_static/favicon.ico"
 
