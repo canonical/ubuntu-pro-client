@@ -111,7 +111,7 @@ linkcheck_ignore = [
 ]
 
 
-ogp_site_url = 'https://canonical-ubuntu-pro-client.readthedocs-hosted.com/'
+ogp_site_url = 'https://documentation.ubuntu.com/pro-client/en/latest/'
 ogp_site_name = project
 ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg'
 
