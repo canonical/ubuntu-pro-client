@@ -187,12 +187,12 @@ Feature: CLI disable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | msg                                                                                                                                            |
-      | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-      | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-infra, fips, fips-preview,\nfips-updates, landscape, livepatch, realtime-kernel, ros, ros-updates. |
-      | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-      | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
-      | noble   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-infra, fips, fips-preview, fips-updates,\nlandscape, livepatch, realtime-kernel, ros, ros-updates, usg. |
+      | release | machine_type  | msg                                                                                                                                                                                |
+      | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | noble   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
 
   Scenario Outline: Disable with purge does not work with assume-yes
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
