@@ -71,29 +71,29 @@ def process_contract_delta_after_apt_lock(cfg: UAConfig) -> None:
     with open("/var/lib/apt/lists/lock", "w") as lockfile:
         fcntl.lockf(lockfile.fileno(), fcntl.LOCK_EX)
 
-        for name in entitlements_enable_order(cfg):
-            try:
-                entitlement = entitlement_factory(
-                    cfg=cfg,
-                    name=name,
-                    variant="",
-                )
-            except exceptions.EntitlementNotFoundError:
-                LOG.debug("entitlement not found: %s", name)
+    for name in entitlements_enable_order(cfg):
+        try:
+            entitlement = entitlement_factory(
+                cfg=cfg,
+                name=name,
+                variant="",
+            )
+        except exceptions.EntitlementNotFoundError:
+            LOG.debug("entitlement not found: %s", name)
 
-            application_status, _ = entitlement.application_status()
-            applicability_status, _ = entitlement.applicability_status()
+        application_status, _ = entitlement.application_status()
+        applicability_status, _ = entitlement.applicability_status()
 
-            if (
-                application_status == ApplicationStatus.ENABLED
-                and applicability_status == ApplicabilityStatus.INAPPLICABLE
-            ):
+        if (
+            application_status == ApplicationStatus.ENABLED
+            and applicability_status == ApplicabilityStatus.INAPPLICABLE
+        ):
 
-                LOG.debug("upgrade-lts-contract disabling %s", name)
-                ret = entitlement._perform_disable(progress=ProgressWrapper())
+            LOG.debug("upgrade-lts-contract disabling %s", name)
+            ret = entitlement._perform_disable(progress=ProgressWrapper())
 
-                if not ret:
-                    LOG.debug("upgrade-lts-contract failed disabling %s", name)
+            if not ret:
+                LOG.debug("upgrade-lts-contract failed disabling %s", name)
 
     print(messages.RELEASE_UPGRADE_SUCCESS)
 
