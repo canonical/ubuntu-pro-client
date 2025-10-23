@@ -1152,7 +1152,7 @@ Feature: APT Messages
     Examples: ubuntu release
       | release | machine_type  | wrong_release | package         | installed_version |
       | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
-      | bionic  | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
+      | bionic  | lxd-container | focal         | xz-utils        | 5.2.2-1.3         |
       | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
       | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
       | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
