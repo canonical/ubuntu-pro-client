@@ -590,7 +590,13 @@ Feature: Fix execute API endpoints
                       {
                         "name": "matanza",
                         "pocket": null
-                      },
+                      }
+                    ],
+                    "reason": "Sorry, no fix is available."
+                  },
+                  {
+                    "error_type": "security-issue-not-fixed",
+                    "failed_upgrades": [
                       {
                         "name": "swish-e",
                         "pocket": null
@@ -641,7 +647,13 @@ Feature: Fix execute API endpoints
                       {
                         "name": "matanza",
                         "pocket": null
-                      },
+                      }
+                    ],
+                    "reason": "Sorry, no fix is available."
+                  },
+                  {
+                    "error_type": "security-issue-not-fixed",
+                    "failed_upgrades": [
                       {
                         "name": "swish-e",
                         "pocket": null
@@ -702,7 +714,13 @@ Feature: Fix execute API endpoints
                       {
                         "name": "matanza",
                         "pocket": null
-                      },
+                      }
+                    ],
+                    "reason": "Sorry, no fix is available."
+                  },
+                  {
+                    "error_type": "security-issue-not-fixed",
+                    "failed_upgrades": [
                       {
                         "name": "swish-e",
                         "pocket": null

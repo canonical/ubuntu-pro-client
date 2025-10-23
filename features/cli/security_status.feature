@@ -205,7 +205,8 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2026\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until 2026\. You have received \d+ security
+      update[s]?\. There (is|are) \d+ pending security update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
       Ubuntu Pro with 'esm-apps' enabled until 2026\. There (is|are) \d+ pending security update[s]?\.
@@ -218,7 +219,8 @@ Feature: CLI security-status command
        +\d+ packages from Ubuntu Main/Restricted repository
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2026\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until 2026\. You have received \d+ security
+      update[s]?\. There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-infra' to learn more
 
