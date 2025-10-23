@@ -8,6 +8,7 @@ Feature: Upgrade between releases when uaclient is attached
     And I run `<before_cmd>` with sudo
     # Local PPAs are prepared and served only when testing with local debs
     And I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
+    And I apt upgrade including phased updates
     And I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --assume-yes` with sudo
     # Some packages upgrade may require a reboot
     And I reboot the machine
