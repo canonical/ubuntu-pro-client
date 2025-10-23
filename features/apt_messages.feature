@@ -94,7 +94,7 @@ Feature: APT Messages
       Calculating upgrade...
       The following security updates require Ubuntu Pro with 'esm-infra' enabled:
         ([-+.\w\s]*)
-      Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04
+      <ad_message>
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
       """
     When I apt-get upgrade
@@ -130,10 +130,10 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | version |
-      | xenial  | lxd-container | 16      |
-      | bionic  | lxd-container | 18      |
-      | focal   | lxd-container | 20      |
+      | release | machine_type  | ad_message                                                                                   |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                    |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -723,9 +723,11 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | plucky  | lxd-container |
-      | plucky  | lxd-vm        |
+      | release  | machine_type  |
+      | plucky   | lxd-container |
+      | plucky   | lxd-vm        |
+      | questing | lxd-container |
+      | questing | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1150,7 +1152,7 @@ Feature: APT Messages
     Examples: ubuntu release
       | release | machine_type  | wrong_release | package         | installed_version |
       | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
-      | bionic  | lxd-container | focal         | libcurl4        | 7.58.0-2ubuntu3   |
+      | bionic  | lxd-container | focal         | xz-utils        | 5.2.2-1.3         |
       | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
       | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
       | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
@@ -1566,13 +1568,14 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1620,5 +1623,6 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | plucky   | lxd-container |
+      | questing | lxd-container |

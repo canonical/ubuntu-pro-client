@@ -8,6 +8,7 @@ Feature: Upgrade between releases when uaclient is attached
     And I run `<before_cmd>` with sudo
     # Local PPAs are prepared and served only when testing with local debs
     And I prepare the local PPAs to upgrade from `<release>` to `<next_release>`
+    And I apt upgrade including phased updates
     And I run `DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --assume-yes` with sudo
     # Some packages upgrade may require a reboot
     And I reboot the machine
@@ -209,8 +210,7 @@ Feature: Upgrade between releases when uaclient is attached
   @slow @upgrade
   Scenario Outline: Attached and esm-infra-legacy enabled upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I run `pro enable esm-infra-legacy` with sudo
+    When I attach `contract_token_legacy` with sudo
     Then I verify that `esm-infra` is enabled
     Then I verify that `esm-apps` is enabled
     Then I verify that `esm-infra-legacy` is enabled

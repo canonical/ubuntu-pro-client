@@ -22,13 +22,14 @@ Feature: Ua fix command behaviour
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | plucky   | lxd-container |
+      | questing | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -367,7 +368,9 @@ Feature: Ua fix command behaviour
        - https://ubuntu.com/security/CVE-2017-9233
 
       3 affected source packages are installed: expat, matanza, swish-e
-      \(1/3, 2/3\) matanza, swish-e:
+      \(1/3\) matanza:
+      Sorry, no fix is available.
+      \(2/3\) swish-e:
       Ubuntu security engineers are investigating this issue.
       \(3/3\) expat:
       A fix is available in Ubuntu standard updates.
@@ -383,7 +386,9 @@ Feature: Ua fix command behaviour
        - https://ubuntu.com/security/CVE-2017-9233
 
       3 affected source packages are installed: expat, matanza, swish-e
-      \(1/3, 2/3\) matanza, swish-e:
+      \(1/3\) matanza:
+      Sorry, no fix is available.
+      \(2/3\) swish-e:
       Ubuntu security engineers are investigating this issue.
       \(3/3\) expat:
       A fix is available in Ubuntu standard updates.

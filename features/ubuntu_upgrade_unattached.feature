@@ -18,7 +18,8 @@ Feature: Upgrade between releases when uaclient is unattached
       Components: main
       Signed-By: /usr/share/keyrings/ubuntu-pro-esm-infra.gpg
       """
-    When I apt dist-upgrade
+    When I apt upgrade including phased updates
+    And I apt dist-upgrade
     # Some packages upgrade may require a reboot
     And I reboot the machine
     And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following:
