@@ -228,7 +228,6 @@ Feature: CLI status command
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      esm-infra-legacy +yes      +n/a      +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +yes      +disabled +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
       fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
@@ -610,6 +609,7 @@ Feature: CLI status command
       anbox-cloud     +yes      +disabled +.*
       esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
       landscape       +yes      +disabled +Management and administration tool for Ubuntu
       usg             +yes      +disabled +Security compliance and audit tools
 
@@ -627,7 +627,7 @@ Feature: CLI status command
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
       landscape        +yes      +disabled +Management and administration tool for Ubuntu
       livepatch        +yes      +n/a      +Canonical Livepatch service
       realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -1033,6 +1033,7 @@ Feature: CLI status command
       anbox-cloud     +yes       +.*
       esm-apps        +yes       +Expanded Security Maintenance for Applications
       esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
       realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -1056,7 +1057,7 @@ Feature: CLI status command
       esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +no        +NIST-certified FIPS crypto packages
       fips-preview     +no        +.*
-      fips-updates     +no        +FIPS compliant crypto packages with stable security updates
+      fips-updates     +yes       +FIPS compliant crypto packages with stable security updates
       landscape        +yes       +Management and administration tool for Ubuntu
       livepatch        +yes       +Canonical Livepatch service
       realtime-kernel  +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -1080,6 +1081,7 @@ Feature: CLI status command
       anbox-cloud     +yes       +.*
       esm-apps        +yes       +Expanded Security Maintenance for Applications
       esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      fips-updates    +yes       +FIPS compliant crypto packages with stable security updates
       landscape       +yes       +Management and administration tool for Ubuntu
       livepatch       +yes       +Canonical Livepatch service
       realtime-kernel +yes       +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -1278,6 +1280,7 @@ Feature: CLI status command
       anbox-cloud     +yes       +.*
       esm-apps        +yes       +yes       +yes          +Expanded Security Maintenance for Applications
       esm-infra       +yes       +yes       +yes          +Expanded Security Maintenance for Infrastructure
+      fips-updates    +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
       landscape       +yes       +yes       +no           +Management and administration tool for Ubuntu
       livepatch       +yes       +yes       +yes          +Canonical Livepatch service
       realtime-kernel +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated
@@ -1295,7 +1298,7 @@ Feature: CLI status command
       esm-infra-legacy +no        +no        +no           +Expanded Security Maintenance for Infrastructure on Legacy Instances
       fips             +no        +yes       +no           +NIST-certified FIPS crypto packages
       fips-preview     +no        +yes       +no           +.*
-      fips-updates     +no        +yes       +no           +FIPS compliant crypto packages with stable security updates
+      fips-updates     +yes       +yes       +no           +FIPS compliant crypto packages with stable security updates
       landscape        +yes       +yes       +no           +Management and administration tool for Ubuntu
       livepatch        +yes       +yes       +yes          +Canonical Livepatch service
       realtime-kernel  +yes       +yes       +no           +Ubuntu kernel with PREEMPT_RT patches integrated

@@ -94,7 +94,7 @@ Feature: APT Messages
       Calculating upgrade...
       The following security updates require Ubuntu Pro with 'esm-infra' enabled:
         ([-+.\w\s]*)
-      Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04
+      <ad_message>
       0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded\.
       """
     When I apt-get upgrade
@@ -130,10 +130,10 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | version |
-      | xenial  | lxd-container | 16      |
-      | bionic  | lxd-container | 18      |
-      | focal   | lxd-container | 20      |
+      | release | machine_type  | ad_message                                                                                   |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                    |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade

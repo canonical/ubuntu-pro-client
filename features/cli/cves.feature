@@ -90,25 +90,43 @@ Feature: CLI cves command
       """
     And I apt install `nodejs`
     When I run `pro cves` as non-root
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
-      Package     Priority  Origin    Vulnerability
-      libnode72   high      esm-apps  CVE-2023-44487
-      nodejs      high      esm-apps  CVE-2023-44487
-      nodejs-doc  high      -         CVE-2023-44487
+      libnode72 +high +esm-apps +CVE-2023-44487
+      """
+    And stdout matches regexp:
+      """
+      nodejs +high +esm-apps +CVE-2023-44487
+      """
+    And stdout matches regexp:
+      """
+      nodejs-doc +high +- +CVE-2023-44487
       """
     When I run `pro cves --fixable` as non-root
-    Then I will see the following on stdout:
+    Then stdout matches regexp:
       """
-      Package    Priority  Origin    Vulnerability
-      libnode72  high      esm-apps  CVE-2023-44487
-      nodejs     high      esm-apps  CVE-2023-44487
+      libnode72 +high +esm-apps +CVE-2023-44487
+      """
+    And stdout matches regexp:
+      """
+      nodejs +high +esm-apps +CVE-2023-44487
+      """
+    And stdout does not match regexp:
+      """
+      nodejs-doc +high +- +CVE-2023-44487
       """
     When I run `pro cves --unfixable` as non-root
-    Then I will see the following on stdout:
+    Then stdout does not match regexp:
       """
-      Package     Priority  Origin  Vulnerability
-      nodejs-doc  high      -       CVE-2023-44487
+      libnode72 +high +esm-apps +CVE-2023-44487
+      """
+    And stdout does not match regexp:
+      """
+      nodejs +high +esm-apps +CVE-2023-44487
+      """
+    And stdout matches regexp:
+      """
+      nodejs-doc +high +- +CVE-2023-44487
       """
 
     Examples: ubuntu release

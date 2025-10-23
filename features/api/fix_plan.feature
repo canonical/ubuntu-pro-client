@@ -882,7 +882,7 @@ Feature: Fix plan API endpoints
                       ]
                     },
                     "operation": "apt-upgrade",
-                    "order": 2
+                    "order": 3
                   }
                 ],
                 "title": "CVE-2017-9233",
@@ -890,12 +890,21 @@ Feature: Fix plan API endpoints
                   {
                     "data": {
                       "source_packages": [
-                        "matanza",
+                        "matanza"
+                      ],
+                      "status": "deferred"
+                    },
+                    "order": 1,
+                    "warning_type": "security-issue-not-fixed"
+                  },
+                  {
+                    "data": {
+                      "source_packages": [
                         "swish-e"
                       ],
                       "status": "needs-triage"
                     },
-                    "order": 1,
+                    "order": 2,
                     "warning_type": "security-issue-not-fixed"
                   }
                 ]
@@ -985,7 +994,7 @@ Feature: Fix plan API endpoints
                       ]
                     },
                     "operation": "apt-upgrade",
-                    "order": 2
+                    "order": 3
                   }
                 ],
                 "title": "CVE-2017-9233",
@@ -993,12 +1002,21 @@ Feature: Fix plan API endpoints
                   {
                     "data": {
                       "source_packages": [
-                        "matanza",
+                        "matanza"
+                      ],
+                      "status": "deferred"
+                    },
+                    "order": 1,
+                    "warning_type": "security-issue-not-fixed"
+                  },
+                  {
+                    "data": {
+                      "source_packages": [
                         "swish-e"
                       ],
                       "status": "needs-triage"
                     },
-                    "order": 1,
+                    "order": 2,
                     "warning_type": "security-issue-not-fixed"
                   }
                 ]

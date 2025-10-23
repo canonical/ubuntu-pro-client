@@ -158,11 +158,39 @@ Feature: Pro Client help text
                              packages (experimental)
       """
     When I run `pro enable --help` as non-root
-    Then I will see the following on stdout:
+    Then if `<release>` in `xenial or bionic or focal` I will see the following on stdout:
       """
       usage: pro enable [-h] [--access-only] [--assume-yes] [--auto] [--beta]
                         [--format {cli,json}] [--variant VARIANT]
                         [service [service ...]]
+
+      Activate and configure this machine's access to one or more Ubuntu Pro
+      services.
+
+      positional arguments:
+        service              the name(s) of the Ubuntu Pro services to enable. One
+                             of: anbox-cloud, cc-eal, cis, esm-apps, esm-apps-
+                             legacy, esm-infra, esm-infra-legacy, fips, fips-
+                             preview, fips-updates, landscape, livepatch, realtime-
+                             kernel, ros, ros-updates
+
+      <options_string>:
+        -h, --help           show this help message and exit
+        --access-only        do not auto-install packages. Valid for cc-eal, cis and
+                             realtime-kernel.
+        --assume-yes         do not prompt for confirmation before performing the
+                             enable
+        --auto               enable all default services
+        --beta               allow beta service to be enabled
+        --format {cli,json}  output in the specified format (default: cli)
+        --variant VARIANT    The name of the variant to use when enabling the
+                             service
+      """
+    Then if `<release>` not in `xenial or bionic or focal` I will see the following on stdout:
+      """
+      usage: pro enable [-h] [--access-only] [--assume-yes] [--auto] [--beta]
+                        [--format {cli,json}] [--variant VARIANT]
+                        [service ...]
 
       Activate and configure this machine's access to one or more Ubuntu Pro
       services.

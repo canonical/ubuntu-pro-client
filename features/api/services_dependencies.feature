@@ -31,7 +31,17 @@ Feature: u.pro.services.dependencies
             {
               "depends_on": [],
               "incompatible_with": [],
+              "name": "esm-apps-legacy"
+            },
+            {
+              "depends_on": [],
+              "incompatible_with": [],
               "name": "esm-infra"
+            },
+            {
+              "depends_on": [],
+              "incompatible_with": [],
+              "name": "esm-infra-legacy"
             },
             {
               "depends_on": [],
@@ -246,7 +256,13 @@ Feature: u.pro.services.dependencies
         name: esm-apps
       - depends_on: []
         incompatible_with: []
+        name: esm-apps-legacy
+      - depends_on: []
+        incompatible_with: []
         name: esm-infra
+      - depends_on: []
+        incompatible_with: []
+        name: esm-infra-legacy
       - depends_on: []
         incompatible_with:
         - name: livepatch
