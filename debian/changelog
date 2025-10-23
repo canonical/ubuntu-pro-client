@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (37.1ubuntu0) resolute; urgency=medium
+
+  * do-release-upgrade: immediately release the APT lock acquired to run the
+    post-upgrade hook (LP: #2129712)
+
+ -- Renan Rodrigo <rr@ubuntu.com>  Thu, 23 Oct 2025 16:30:36 -0300
+
 ubuntu-advantage-tools (37ubuntu0) questing; urgency=medium
 
   * d/apparmor/ubuntu_pro_[apt_news|esm_cache].jinja2: update coreutils path
