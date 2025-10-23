@@ -210,8 +210,7 @@ Feature: Upgrade between releases when uaclient is attached
   @slow @upgrade
   Scenario Outline: Attached and esm-infra-legacy enabled upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I run `pro enable esm-infra-legacy` with sudo
+    When I attach `contract_token_legacy` with sudo
     Then I verify that `esm-infra` is enabled
     Then I verify that `esm-apps` is enabled
     Then I verify that `esm-infra-legacy` is enabled
