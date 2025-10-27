@@ -892,7 +892,7 @@ class TestFixPlan:
                 }
             ),
         }
-        m_merge_usn_pkgs.return_valuev = {
+        m_merge_usn_pkgs.return_value = {
             "pkg1": {
                 "source": {
                     "description": "description",

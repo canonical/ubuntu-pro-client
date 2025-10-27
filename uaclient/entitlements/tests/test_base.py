@@ -490,7 +490,7 @@ class TestEntitlementEnable:
     def test_enable_false_when_fails_to_enable_required_service(
         self,
         m_handle_msg,
-        m_prompt_for_confirmation,
+        _m_prompt_for_confirmation,
         enable_fail_message,
         base_entitlement_factory,
         mock_entitlement,
@@ -509,8 +509,6 @@ class TestEntitlementEnable:
         enable_fail_reason = CanEnableFailure(
             CanEnableFailureReason.NOT_ENTITLED, message=msg
         )
-
-        m_prompt_for_confirmation.return_vale = True
 
         m_required_service_cls, m_required_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.DISABLED, ""),

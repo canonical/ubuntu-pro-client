@@ -316,7 +316,7 @@ class TestCVEs:
     def test_parse_data(
         self,
         m_get_source_pkgs,
-        m_vulnerability_data_refreshed,
+        _m_vulnerability_data_refreshed,
         m_vulnerability_data_get,
         m_get_apt_cache_datetime,
         _m_vulnerability_result_save_cache,
@@ -325,7 +325,6 @@ class TestCVEs:
         cve_options,
         expected_result,
     ):
-        m_vulnerability_data_refreshed.return_vale = True
         m_get_source_pkgs.return_value = installed_pkgs_by_source
         m_vulnerability_data_get.return_value = copy.deepcopy(
             vulnerabilities_data
