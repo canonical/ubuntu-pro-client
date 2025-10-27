@@ -474,7 +474,7 @@ class TestRepoEnable:
     def test_failed_install_removes_apt_config_and_packages(
         self, m_subp, _m_setup_apt_proxy, entitlement
     ):
-        def fake_subp(args, *other_args, **kwargs):
+        def fake_subp(args, *_other_args, **_kwargs):
             if "install" in args:
                 raise exceptions.ProcessExecutionError(args)
 
@@ -545,7 +545,7 @@ class TestPerformEnable:
         self,
         m_setup_apt_config,
         m_install_packages,
-        m_check_for_reboot_msg,
+        _m_check_for_reboot_msg,
         supports_access_only,
         access_only,
         expected_setup_apt_calls,
@@ -1186,7 +1186,7 @@ class TestSetupAptConfig:
         self,
         _m_contract_overrides,
         m_run_apt_install_command,
-        m_add_auth_repo,
+        _m_add_auth_repo,
         _m_setup_apt_proxy,
         entitlement,
     ):
@@ -1237,7 +1237,7 @@ class TestSetupAptConfig:
         m_get_release_info,
         m_add_ppa_pinning,
         m_run_apt_update_command,
-        m_add_auth_repo,
+        _m_add_auth_repo,
         m_update_sources_list,
         _m_setup_apt_proxy,
         entitlement_factory,

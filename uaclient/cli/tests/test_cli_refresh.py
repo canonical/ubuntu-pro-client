@@ -79,8 +79,8 @@ class TestActionRefresh:
         self,
         m_remove_notice,
         refresh,
-        logging_error,
-        m_check_log_info,
+        _m_logging_exception,
+        _m_check_log_info,
         FakeConfig,
         fake_machine_token_file,
     ):
@@ -214,7 +214,7 @@ class TestActionRefresh:
     def test_refresh_config_error_on_failure_to_process_config(
         self,
         _m_process_config,
-        _m_logging_error,
+        _m_logging_exception,
         _m_check_lock_info,
         FakeConfig,
         fake_machine_token_file,

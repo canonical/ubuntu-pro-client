@@ -359,7 +359,7 @@ class TestAddAuthAptRepo:
     def test_add_auth_apt_repo_writes_sources_file(
         self,
         m_get_release_info,
-        m_valid_creds,
+        _m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
@@ -413,7 +413,7 @@ class TestAddAuthAptRepo:
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
         self,
         m_get_release_info,
-        m_valid_creds,
+        _m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
@@ -482,7 +482,7 @@ class TestAddAuthAptRepo:
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
         self,
         m_get_release_info,
-        m_valid_creds,
+        _m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
@@ -548,7 +548,7 @@ class TestAddAuthAptRepo:
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
         self,
         m_get_release_info,
-        m_valid_creds,
+        _m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,
@@ -586,7 +586,7 @@ class TestAddAuthAptRepo:
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
         self,
         m_get_release_info,
-        m_valid_creds,
+        _m_valid_creds,
         m_get_apt_auth_file,
         m_subp,
         m_gpg_export,

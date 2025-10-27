@@ -956,7 +956,7 @@ class TestFixPlan:
         m_get_pkg_candidate_version,
         m_get_cve_affected_pkgs,
         m_merge_usn_pkgs,
-        m_should_update_esm_cache,
+        _m_should_update_esm_cache,
         m_update_esm_caches,
         m_is_attached,
         m_enabled_services,
