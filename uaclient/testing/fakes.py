@@ -1,15 +1,11 @@
 from uaclient import exceptions, http, messages
-from uaclient.contract import API_V1_GET_CONTRACT_MACHINE, UAContractClient
+from uaclient.contract import UAContractClient
 
 
 class FakeContractClient(UAContractClient):
 
     _requests = []
     _responses = {}
-
-    refresh_route = API_V1_GET_CONTRACT_MACHINE.format(
-        contract="cid", machine="mid"
-    )
 
     def __init__(self, cfg, responses=None):
         super().__init__(cfg)

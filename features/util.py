@@ -24,10 +24,6 @@ from uaclient.system import get_dpkg_arch
 
 SUT = "sut"  # system under test
 BUILDER_NAME_PREFIX = "builder-"
-LXC_PROPERTY_MAP = {
-    "image": {"series": "properties.release", "machine_type": "Type"},
-    "container": {"series": "image.release", "machine_type": "image.type"},
-}
 UA_TMP_DIR = os.path.join(tempfile.gettempdir(), "uaclient-behave")
 SOURCE_PR_TGZ = os.path.join(UA_TMP_DIR, "pr_source.tar.gz")
 SOURCE_PR_UNTAR_DIR = os.path.join(UA_TMP_DIR, "behave-ua-src")

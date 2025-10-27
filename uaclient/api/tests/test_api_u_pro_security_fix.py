@@ -202,18 +202,7 @@ CVE_PKG_STATUS_RELEASED_ESM_INFRA = {
     "pocket": "esm-infra",
     "status": "released",
 }
-CVE_PKG_STATUS_RELEASED_ESM_APPS = {
-    "description": "2.1",
-    "pocket": "esm-apps",
-    "status": "released",
-}
 CVE_PKG_STATUS_NEEDED = {"description": "", "pocket": None, "status": "needed"}
-
-
-def shallow_merge_dicts(a, b):
-    c = a.copy()
-    c.update(b)
-    return c
 
 
 class TestCVE:

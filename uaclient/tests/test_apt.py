@@ -47,21 +47,13 @@ from uaclient.apt import (
     update_esm_caches,
     update_sources_list,
 )
-from uaclient.entitlements.base import UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
-from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.testing import fakes
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
 -32768 https://esm.ubuntu.com/ubuntu/ {0}-updates/main amd64 Packages
      release v=14.04,o={1},a={0}-updates,n={0},l=UbuntuESM,c=main
      origin esm.ubuntu.com
-"""
-
-APT_LIST_RETURN_STRING = """\
-"Listing... Done
-a/release, now 1.2+3 arch123 [i,a]
-b/release-updates, now 1.2+3 arch123 [i,a]
 """
 
 
@@ -683,33 +675,6 @@ class TestAddAptAuthConfEntry:
         )
         expected_content = content_template.format(APT_AUTH_COMMENT)
         assert expected_content == system.load_file(auth_file)
-
-
-class TestCleanAptFiles:
-    @pytest.fixture(params=[RepoEntitlement, UAEntitlement])
-    def mock_apt_entitlement(self, request, tmpdir):
-        # Set up our tmpdir with some fake list files
-        entitlement_name = "test_ent"
-        repo_tmpl = tmpdir.join("source-{name}").strpath
-        pref_tmpl = tmpdir.join("pref-{name}").strpath
-
-        class TestRepo(request.param):
-            name = entitlement_name
-            repo_file_tmpl = repo_tmpl
-            repo_pref_file_tmpl = pref_tmpl
-            is_repo = request.param == RepoEntitlement
-
-        for series in ["acidic", "base"]:
-            source_name = repo_tmpl.format(name=entitlement_name)
-            pref_name = pref_tmpl.format(name=entitlement_name)
-
-            with open(source_name, "w") as f:
-                f.write("")
-
-            with open(pref_name, "w") as f:
-                f.write("")
-
-        return TestRepo
 
 
 @pytest.fixture(params=(mock.sentinel.default, None, "some_string"))
