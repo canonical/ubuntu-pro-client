@@ -87,7 +87,7 @@ class TestProCommand:
             mock.call(inner_subparsers)
         ] == example_subcommand2.register.call_args_list
 
-    def has_help_entry(self):
+    def test_has_help_entry(self):
         mock_subparsers = mock.MagicMock()
 
         example_command = ProCommand(
