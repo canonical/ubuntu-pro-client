@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (37.1ubuntu0~24.04) noble; urgency=medium
+
+  * Backport 37.1ubuntu0 to noble (LP: #2129712)
+
+ -- Renan Rodrigo <rr@ubuntu.com>  Mon, 27 Oct 2025 09:42:14 -0300
+
 ubuntu-advantage-tools (37.1ubuntu0) resolute; urgency=medium
 
   * do-release-upgrade: immediately release the APT lock acquired to run the
