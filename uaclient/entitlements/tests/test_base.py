@@ -1081,7 +1081,7 @@ class TestEntitlementProcessContractDeltas:
         ),
     )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
-        self, m_platform_info, base_entitlement_factory, orig_access, delta
+        self, _m_platform_info, base_entitlement_factory, orig_access, delta
     ):
         """If deltas do not represent transition to unentitled, do nothing."""
         entitlement = base_entitlement_factory(
@@ -1413,7 +1413,7 @@ class TestHandleRequiredPackages:
         m_apt_update,
         m_apt_install,
         m_update_sources_list,
-        m_get_system_sources_file,
+        _m_get_system_sources_file,
         required_packages_directive,
         expected_apt_update_calls,
         expected_apt_install_calls,

@@ -428,7 +428,7 @@ class TestProcessConfig:
     @mock.patch("uaclient.config.user_config_file.user_config.write")
     def test_process_config(
         self,
-        m_write,
+        _m_write,
         m_apt_configure_proxy,
         m_snap_is_snapd_installed,
         m_snap_configure_proxy,

@@ -335,7 +335,7 @@ class TestCollectLogs:
         m_env_vars,
         m_log_warning,
         m_status,
-        m_write_cmd,
+        _m_write_cmd,
         tmpdir,
     ):
         m_env_vars.return_value = {"test": "test"}

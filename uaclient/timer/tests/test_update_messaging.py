@@ -53,7 +53,7 @@ class TestGetContractExpiryStatus:
     def test_update_contract_expiry(
         self,
         m_get_contract_machine,
-        m_machine_token_write,
+        _m_machine_token_write,
         expiry,
         is_updated,
         FakeConfig,
