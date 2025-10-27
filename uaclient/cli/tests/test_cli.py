@@ -13,8 +13,6 @@ from uaclient.exceptions import (
     UnattachedError,
 )
 
-M_PATH_UACONFIG = "uaclient.config.UAConfig."
-
 
 class TestMain:
     @pytest.mark.parametrize(

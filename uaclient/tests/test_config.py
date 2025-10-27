@@ -17,7 +17,6 @@ from uaclient.files.notices import NoticesManager
 from uaclient.util import depth_first_merge_overlay_dict
 from uaclient.yaml import safe_dump
 
-KNOWN_DATA_PATHS = (("machine-id", "machine-id"),)
 M_PATH = "uaclient.entitlements."
 
 
@@ -132,38 +131,6 @@ class TestNotices:
             notices.remove(label)
         assert expected == notices.list()
 
-
-CFG_BASE_CONTENT = """\
-# Ubuntu Pro client config file.
-# If you modify this file, run "pro refresh config" to ensure changes are
-# picked up by Ubuntu Pro client.
-
-contract_url: https://contracts.canonical.com
-data_dir: /var/lib/ubuntu-advantage
-log_file: /var/log/ubuntu-advantage.log
-log_level: debug
-security_url: https://ubuntu.com/security
-"""
-
-CFG_FEATURES_CONTENT = """\
-# Ubuntu Pro client config file.
-# If you modify this file, run "pro refresh config" to ensure changes are
-# picked up by Ubuntu Pro client.
-
-contract_url: https://contracts.canonical.com
-data_dir: /var/lib/ubuntu-advantage
-features:
-  extra_security_params:
-    hide: true
-  new: 2
-  show_beta: true
-log_file: /var/log/ubuntu-advantage.log
-log_level: debug
-security_url: https://ubuntu.com/security
-settings_overrides:
-  c: 1
-  d: 2
-"""
 
 USER_CFG_DICT = {
     "apt_http_proxy": None,

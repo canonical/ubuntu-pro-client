@@ -11,7 +11,6 @@ from uaclient.lock import RetryLock
 from uaclient.messages import E_INVALID_LOCK_FILE, LOCK_HELD
 
 M_PATH = "uaclient.lock."
-M_PATH_UACONFIG = "uaclient.config.UAConfig."
 
 
 class TestRetryLock:

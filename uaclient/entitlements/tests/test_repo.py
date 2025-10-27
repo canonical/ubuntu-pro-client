@@ -806,16 +806,12 @@ class TestPurge:
         )
 
     @pytest.mark.parametrize(
-        ["remove", "reinstall", "expected_print", "expected_progress_emits"],
+        ["remove", "reinstall", "expected_progress_emits"],
         (
             (
                 packages_to_remove,
                 packages_to_reinstall,
                 [
-                    mock.call(["remove1", "remove2"]),
-                    mock.call(["reinstall1", "reinstall2"]),
-                ],
-                [
                     mock.call("info", messages.WARN_PACKAGES_REMOVAL),
                     mock.call("info", "  remove1 remove2\n"),
                     mock.call("info", messages.WARN_PACKAGES_REINSTALL),
@@ -829,7 +825,6 @@ class TestPurge:
             (
                 packages_to_remove,
                 [],
-                [mock.call(["remove1", "remove2"])],
                 [
                     mock.call("info", messages.WARN_PACKAGES_REMOVAL),
                     mock.call("info", "  remove1 remove2\n"),
@@ -842,7 +837,6 @@ class TestPurge:
             (
                 [],
                 packages_to_reinstall,
-                [mock.call(["reinstall1", "reinstall2"])],
                 [
                     mock.call("info", messages.WARN_PACKAGES_REINSTALL),
                     mock.call("info", "  reinstall1 reinstall2\n"),
@@ -852,14 +846,13 @@ class TestPurge:
                     ),
                 ],
             ),
-            ([], [], [], []),
+            ([], [], []),
         ),
     )
     def test_prompt_for_purge(
         self,
         remove,
         reinstall,
-        expected_print,
         expected_progress_emits,
         entitlement_factory,
     ):

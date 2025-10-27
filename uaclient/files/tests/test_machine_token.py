@@ -17,33 +17,6 @@ def all_resources_available(FakeConfig):
     return resources
 
 
-@pytest.fixture
-def all_resources_entitled(FakeConfig):
-    resources = [
-        {"type": name, "entitled": True}
-        for name in valid_services(cfg=FakeConfig())
-    ]
-    return resources
-
-
-@pytest.fixture
-def no_resources_entitled(FakeConfig):
-    resources = [
-        {"type": name, "entitled": False}
-        for name in valid_services(cfg=FakeConfig())
-    ]
-    return resources
-
-
-@pytest.fixture
-def resp_only_fips_resource_available(FakeConfig):
-    resources = [
-        {"name": name, "available": name == "fips"}
-        for name in valid_services(cfg=FakeConfig())
-    ]
-    return resources
-
-
 class TestAccounts:
     @mock.patch("uaclient.files.machine_token.MachineTokenFile.read")
     def test_accounts_returns_none_when_no_cached_account_value(

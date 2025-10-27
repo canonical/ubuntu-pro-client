@@ -227,10 +227,6 @@ class TestUAContractClient:
     @pytest.mark.parametrize(
         "machine_id_response", (("contract-machine-id"), None)
     )
-    @pytest.mark.parametrize(
-        "detach,expected_http_method",
-        ((None, "POST"), (False, "POST"), (True, "DELETE")),
-    )
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @mock.patch("uaclient.contract.system.get_release_info")
     @mock.patch.object(UAContractClient, "_get_activity_info")
@@ -240,17 +236,11 @@ class TestUAContractClient:
         get_release_info,
         get_machine_id,
         request_url,
-        detach,
-        expected_http_method,
         machine_id_response,
         machine_id_param,
         activity_id,
         fake_machine_token_file,
     ):
-        def fake_platform_data(machine_id):
-            machine_id = "machine-id" if not machine_id else machine_id
-            return {"machineId": machine_id}
-
         m_activity_info.return_value = {
             "architecture": "a",
             "series": "b",
