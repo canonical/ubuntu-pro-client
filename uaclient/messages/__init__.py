@@ -72,9 +72,6 @@ REBOOT_SCRIPT_FAILED = t.gettext(
 RELEASE_UPGRADE_APT_LOCK_WAIT = t.gettext(
     "Waiting for APT lock to start the Ubuntu Pro configuration"
 )
-RELEASE_UPGRADE_NO_PAST_RELEASE = t.gettext(
-    "Could not find past release for {release}"
-)
 RELEASE_UPGRADE_STARTING = t.gettext(
     "Starting upgrade of Ubuntu Pro service configuration"
 )
@@ -152,7 +149,6 @@ APT_UPDATING_LIST = t.gettext("Updating {name} package lists")
 APT_UPDATE_FAILED = t.gettext("APT update failed.")
 APT_INSTALL_FAILED = t.gettext("APT install failed.")
 
-BACKING_UP_FILE = t.gettext("Backing up {original} as {backup}")
 WARN_PACKAGES_REMOVAL = t.gettext("The following package(s) will be REMOVED:")
 WARN_PACKAGES_REINSTALL = t.gettext(
     "The following package(s) will be reinstalled from the archive:"
@@ -380,10 +376,6 @@ DISABLING_DEPENDENT_SERVICE = t.gettext(
     """\
 Disabling dependent service: {required_service}"""
 )
-APT_REMOVING_SOURCE_FILE = t.gettext("Removing apt source file: {filename}")
-APT_REMOVING_PREFERENCES_FILE = t.gettext(
-    "Removing apt preferences file: {filename}"
-)
 PURGING_PACKAGES = t.gettext(
     "Uninstalling all packages installed from {title}"
 )
@@ -441,7 +433,6 @@ RETRY_ERROR_DETAIL_LOCK_HELD = t.gettext("the pro lock was held by pid {pid}")
 RETRY_ERROR_DETAIL_CONTRACT_API_ERROR = t.gettext(
     'an error from Canonical servers: "{error_msg}"'
 )
-RETRY_ERROR_DETAIL_CONNECTIVITY_ERROR = t.gettext("a connectivity error")
 RETRY_ERROR_DETAIL_URL_ERROR_URL = t.gettext("an error while reaching {url}")
 
 # These are related messages but actually occur during a "refresh"
@@ -482,7 +473,6 @@ SECURITY_FIX_RENEW_PROMPT = t.gettext(
 Choose: [R]enew your subscription (at {url}) [C]ancel"""
 ).format(url=urls.PRO_DASHBOARD)
 SECURITY_FIX_RELEASE_STREAM = t.gettext("A fix is available in {fix_stream}.")
-SECURITY_UPDATE_NOT_INSTALLED = t.gettext("The update is not yet installed.")
 SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = t.gettext(
     """\
 The update is not installed because this system is not attached to a
@@ -541,7 +531,6 @@ SECURITY_AFFECTED_PKGS = P(
 SECURITY_NO_AFFECTED_PKGS = t.gettext(
     "No affected source packages are installed."
 )
-CVE_FIXED = t.gettext("{issue} is resolved.")
 CVE_FIXED_BY_LIVEPATCH = OKGREEN_CHECK + t.gettext(
     " {issue} is resolved by livepatch patch version: {version}."
 )
@@ -593,11 +582,6 @@ SECURITY_UA_SERVICE_WITH_EXPIRED_SUB = t.gettext(
 SECURITY_UA_SERVICE_NOT_ENABLED_SHORT = t.gettext(
     """\
 {service} is required for upgrade, but it is not enabled."""
-)
-SECURITY_UA_APT_FAILURE = t.gettext(
-    """\
-APT failed to install the package.
-"""
 )
 SECURITY_CVE_STATUS_NEEDED = t.gettext(
     """\
@@ -1216,23 +1200,6 @@ CLI_ROOT_REFRESH = t.gettext("refresh Ubuntu Pro services")
 CLI_ROOT_STATUS = t.gettext("current status of all Ubuntu Pro services")
 CLI_ROOT_SYSTEM = t.gettext("show system information related to Pro services")
 
-CLI_ROOT_VULNERABILITY = t.gettext(
-    "show information about system vulnerabilities"
-)
-CLI_VULNERABILITY_DESC = t.gettext(
-    """\
-Allow users to better visualize the vulnerability issues that affects
-the system. By default, this command will execute pro vulnerability list"""
-)
-
-CLI_VULNERABILITY_DATE_OUTDATED = t.gettext(
-    """\
-The vulnerabilities data used in the system is outdated by {t_diff} days/hours
-To update the data please run with --update:
-
-    $ {cmd} --update
-"""
-)
 
 CLI_CVE = t.gettext("show information about a CVE")
 CLI_CVE_DESC = t.gettext(
@@ -2889,21 +2856,11 @@ E_INVALID_URL = FormattedNamedMessage(
     t.gettext("Invalid URL: {url}"),
 )
 
-E_UNKNOWN_PROCESSOR_TYPE = FormattedNamedMessage(
-    "unknown-processor-type",
-    t.gettext("Unknown processor type: {processor_type}"),
-)
-
 E_UNSUPPORTED_MANIFEST_FILE = FormattedNamedMessage(
     "unsupported-manifest-file",
     t.gettext("Unsupported manifest file format: {manifest_file}"),
 )
 
-
-E_MANIFEST_PARSE_ERROR = FormattedNamedMessage(
-    "manifest-parse-error",
-    t.gettext("Error parsing {name} for line:\n{error_line}"),
-)
 
 E_FEATURE_NOT_SUPPORTED_OLD_TOKEN = FormattedNamedMessage(
     "feature-not-supported-old-token",
