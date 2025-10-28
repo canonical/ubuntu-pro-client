@@ -1,5 +1,3 @@
-import base64
-import json
 import logging
 import os
 from typing import Any, Dict, List, Optional  # noqa: F401
@@ -73,23 +71,6 @@ class GCPAutoAttachInstance(PublicCloudAutoAttachInstance):
                 return True
 
         return False
-
-    def get_licenses_from_identity(self) -> List[str]:
-        """Get a list of licenses from the GCP metadata.
-
-        Instance identity token (jwt) carries a list of licenses
-        associated with the instance itself.
-
-        Returns an empty list if licenses are not present in the metadata.
-        """
-        token = self.identity_doc["identityToken"]
-        identity = base64.urlsafe_b64decode(token.split(".")[1] + "===")
-        identity_dict = json.loads(identity.decode("utf-8"))
-        return (
-            identity_dict.get("google", {})
-            .get("compute_engine", {})
-            .get("license_id", [])
-        )
 
     def should_poll_for_pro_license(self) -> bool:
         series = system.get_release_info().series

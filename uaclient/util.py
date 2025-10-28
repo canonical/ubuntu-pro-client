@@ -408,7 +408,7 @@ def depth_first_merge_overlay_dict(base_dict, overlay_dict):
         id_key = merge_id_key_map.get(key)
         for overlay_value in overlay_values:
             was_replaced = False
-            for base_value_idx, base_value in enumerate(base_values):
+            for _, base_value in enumerate(base_values):
                 if base_value.get(id_key) == overlay_value.get(id_key):
                     depth_first_merge_overlay_dict(base_value, overlay_value)
                     was_replaced = True

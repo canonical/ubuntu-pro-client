@@ -24,7 +24,6 @@ from uaclient.timer.update_messaging import update_motd_messages
 LOG = logging.getLogger("ubuntupro.timer")
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 METERING_INTERVAL = 14400  # 4 hours
-CHECK_RELEASE_SERIES_INTERVAL = 86400  # 24 hours
 
 
 class TimedJob:

@@ -13,9 +13,6 @@ class SecretManager:
     def secrets(self) -> List[str]:
         return self._secrets
 
-    def clear_secrets(self) -> None:
-        self._secrets.clear()
-
     def redact_secrets(self, log_record: str) -> str:
         redacted_record = log_record
         for secret in self._secrets:

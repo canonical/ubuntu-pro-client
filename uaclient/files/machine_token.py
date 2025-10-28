@@ -238,13 +238,6 @@ class MachineTokenFile:
         return None
 
     @property
-    def resource_tokens(self):
-        if self.machine_token:
-            return self.machine_token.get("resourceTokens", [])
-
-        return None
-
-    @property
     def only_series(self):
         only_series = (
             self.entitlements()
