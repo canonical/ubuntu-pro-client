@@ -264,7 +264,7 @@ def check_entitlement_apt_directives_are_unique(
                     }
                 )
 
-        for def_path, ent_directive in entitlement_directives.items():
+        for _, ent_directive in entitlement_directives.items():
             if len(ent_directive) > 1:
                 ent_apt_url = ent_directive[0]["apt_url"]
                 ent_suite = ent_directive[0]["suite"]

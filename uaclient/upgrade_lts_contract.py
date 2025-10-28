@@ -39,21 +39,6 @@ from uaclient.entitlements.entitlement_status import (
     ApplicationStatus,
 )
 
-# We consider the past release for LTSs to be the last LTS,
-# because we don't have any services available on non-LTS.
-# This makes it safer for us to try to process contract deltas.
-# For example, we had "jammy": "focal" even when Impish was
-# still supported.
-current_codename_to_past_codename = {
-    "xenial": "trusty",
-    "bionic": "xenial",
-    "focal": "bionic",
-    "jammy": "focal",
-    "noble": "jammy",
-    "plucky": "noble",
-    "questing": "plucky",
-}
-
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
