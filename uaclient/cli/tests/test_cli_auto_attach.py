@@ -13,7 +13,6 @@ from uaclient.cli.auto_attach import auto_attach_command
 from uaclient.testing import fakes
 
 M_PATH = "uaclient.cli.auto_attach."
-M_ID_PATH = "uaclient.clouds.identity."
 
 
 @mock.patch(M_PATH + "cli_util.util.we_are_currently_root", return_value=False)

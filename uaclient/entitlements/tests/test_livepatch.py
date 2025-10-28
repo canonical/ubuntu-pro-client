@@ -26,8 +26,6 @@ M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
 DISABLED_APP_STATUS = (ApplicationStatus.DISABLED, "")
 
-M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
-
 DEFAULT_AFFORDANCES = {
     "architectures": ["x86_64"],
     "minKernelVersion": "4.4",
@@ -386,7 +384,7 @@ class TestLivepatchEntitlementEnable:
         m_app_status,
         m_which,
         m_run_apt_update,
-        m_run_apt_install,
+        _m_run_apt_install,
         m_update_sources_list,
         _m_contract_overrides,
         m_subp,
@@ -466,7 +464,7 @@ class TestLivepatchEntitlementEnable:
         m_app_status,
         m_which,
         m_run_apt_update,
-        m_run_apt_install,
+        _m_run_apt_install,
         m_update_sources_list,
         _m_contract_overrides,
         m_subp,

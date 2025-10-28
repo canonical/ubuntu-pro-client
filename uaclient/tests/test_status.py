@@ -151,7 +151,7 @@ class TestFormatTabular:
     def test_support_colouring(
         self,
         m_isatty,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         support_level,
         expected_colour,
         istty,
@@ -171,7 +171,7 @@ class TestFormatTabular:
 
     @pytest.mark.parametrize("origin", ["free", "not-free"])
     def test_header_alignment(
-        self, m_on_supported_kernel, origin, status_dict_attached
+        self, _m_on_supported_kernel, origin, status_dict_attached
     ):
         status_dict_attached["origin"] = origin
         tabular_output = format_tabular(status_dict_attached)
@@ -196,7 +196,7 @@ class TestFormatTabular:
     )
     def test_correct_header_keys_included(
         self,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         origin,
         expected_headers,
         status_dict_attached,
@@ -218,7 +218,7 @@ class TestFormatTabular:
         assert list(expected_headers) == headers
 
     def test_correct_unattached_column_alignment(
-        self, m_on_supported_kernel, status_dict_unattached
+        self, _m_on_supported_kernel, status_dict_unattached
     ):
         tabular_output = format_tabular(status_dict_unattached)
         [header, eal_service_line] = [
@@ -235,7 +235,7 @@ class TestFormatTabular:
     @pytest.mark.parametrize("attached", [True, False])
     def test_no_leading_newline(
         self,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         attached,
         status_dict_attached,
         status_dict_unattached,
@@ -257,7 +257,7 @@ class TestFormatTabular:
     )
     def test_custom_descr(
         self,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         description_override,
         uf_status,
         uf_descr,
@@ -304,7 +304,7 @@ class TestStatus:
         _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         ros_desc,
         esm_desc,
         show_all,
@@ -391,7 +391,7 @@ class TestStatus:
         _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         avail_res,
         entitled_res,
         uf_entitled,
@@ -563,7 +563,7 @@ class TestStatus:
         _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         FakeConfig,
     ):
         m_public_config.return_value = UserConfigData()
@@ -595,7 +595,7 @@ class TestStatus:
         _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         FakeConfig,
         fake_machine_token_file,
     ):
@@ -658,7 +658,7 @@ class TestStatus:
         _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         all_resources_available,
         entitlements,
         show_all,
@@ -864,7 +864,7 @@ class TestStatus:
         _m_status_cache_file,
         _m_should_reboot,
         _m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         all_resources_available,
         FakeConfig,
         fake_machine_token_file,
@@ -926,7 +926,7 @@ class TestStatus:
         m_reboot_cmd_marker_file,
         _m_should_reboot,
         m_remove_notice,
-        m_on_supported_kernel,
+        _m_on_supported_kernel,
         FakeConfig,
     ):
         m_public_config.return_value = UserConfigData()

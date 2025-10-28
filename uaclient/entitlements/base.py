@@ -51,9 +51,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Required: short name of the entitlement
     name = None  # type: str
 
-    # Optional URL for top-level product service information
-    help_doc_url = None  # type: str
-
     # Whether the entitlement supports the --access-only flag
     supports_access_only = False
 
@@ -312,7 +309,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         else:
             self.extra_args = []
         self._called_name = called_name
-        self._valid_service = None  # type: Optional[bool]
         self._is_sources_list_updated = False
 
     def _base_entitlement_cfg(self):

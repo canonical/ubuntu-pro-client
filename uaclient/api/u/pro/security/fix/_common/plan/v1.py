@@ -1171,7 +1171,7 @@ def _generate_fix_plan(
                 fix_plan.register_step(
                     operation=FixStepType.ATTACH,
                     data={
-                        "reason": "required-pro-service",
+                        "reason": FixPlanAttachReason.REQUIRED_PRO_SERVICE.value,  # noqa: E501
                         "source_packages": source_pkgs,
                         "required_service": service_to_check,
                     },
@@ -1182,7 +1182,7 @@ def _generate_fix_plan(
                     fix_plan.register_step(
                         operation=FixStepType.ATTACH,
                         data={
-                            "reason": FixPlanAttachReason.EXPIRED_CONTRACT.value,  # noqa
+                            "reason": FixPlanAttachReason.EXPIRED_CONTRACT.value,  # noqa: E501
                             "source_packages": source_pkgs,
                         },
                     )

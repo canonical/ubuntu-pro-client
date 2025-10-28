@@ -661,10 +661,6 @@ class GPGKeyNotFound(UbuntuProError):
     _formatted_msg = messages.E_GPG_KEY_NOT_FOUND
 
 
-class UnknownProcessorType(UbuntuProError):
-    _formatted_msg = messages.E_UNKNOWN_PROCESSOR_TYPE
-
-
 class FeatureNotSupportedOldTokenError(UbuntuProError):
     _formatted_msg = messages.E_FEATURE_NOT_SUPPORTED_OLD_TOKEN
 

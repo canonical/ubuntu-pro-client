@@ -93,7 +93,6 @@ class CanEnableFailureReason(enum.Enum):
     NOT_ENTITLED = object()
     ALREADY_ENABLED = object()
     INAPPLICABLE = object()
-    IS_BETA = object()
     INCOMPATIBLE_SERVICE = object()
     INACTIVE_REQUIRED_SERVICES = object()
     ACCESS_ONLY_NOT_SUPPORTED = object()
@@ -120,7 +119,6 @@ class CanDisableFailureReason(enum.Enum):
     NOT_APPLICABLE = object()
     ACTIVE_DEPENDENT_SERVICES = object()
     PURGE_NOT_SUPPORTED = object()
-    NOT_FOUND_DEPENDENT_SERVICE = object()
     NO_PURGE_WITHOUT_ORIGIN = object()
 
 

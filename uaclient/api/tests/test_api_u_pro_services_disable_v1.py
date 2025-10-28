@@ -113,7 +113,7 @@ class TestDisable:
         m_enabled_services_names,
         m_entitlement_factory,
         m_spin_lock,
-        m_clear_lock_file_if_present,
+        _m_clear_lock_file_if_present,
         m_status,
         options,
         we_are_currently_root,

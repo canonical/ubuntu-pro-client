@@ -95,8 +95,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     # services. And security/CPC signoff on expected conf behavior.
     apt_noninteractive = True
 
-    help_doc_url = messages.urls.FIPS_HOME_PAGE
-
     fips_pro_package_holds = [
         "fips-initramfs",
         "fips-initramfs-generic",

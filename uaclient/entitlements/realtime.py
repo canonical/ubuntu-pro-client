@@ -21,7 +21,6 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     title = messages.REALTIME_TITLE
     description = messages.REALTIME_DESCRIPTION
     help_text = messages.REALTIME_HELP_TEXT
-    help_doc_url = messages.urls.REALTIME_HOME_PAGE
     repo_key_file = "ubuntu-pro-realtime-kernel.gpg"
     apt_noninteractive = True
     supports_access_only = True

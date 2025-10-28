@@ -524,7 +524,7 @@ class TestActionEnable:
         self,
         m_is_attached,
         m_we_are_currently_root,
-        m_create_interactive_only_print_function,
+        _m_create_interactive_only_print_function,
         m_refresh,
         m_print_json_output,
         m_get_valid_entitlement_names,
@@ -771,7 +771,7 @@ class TestActionEnable:
     @mock.patch("uaclient.cli.cli_util.create_interactive_only_print_function")
     def test_enable_one_service(
         self,
-        m_create_interactive_only_print_function,
+        _m_create_interactive_only_print_function,
         m_entitlement_factory,
         m_prompt_for_dependency_handling,
         m_progress_class,
@@ -847,7 +847,7 @@ class TestActionEnable:
     def test_enable_landscape(
         self,
         m_landscape_entitlement,
-        m_lock,
+        _m_lock,
         enable_side_effect,
         expected_raises,
         expected_result,

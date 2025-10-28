@@ -16,7 +16,6 @@ class LandscapeEntitlement(UAEntitlement):
     name = "landscape"
     title = messages.LANDSCAPE_TITLE
     description = messages.LANDSCAPE_DESCRIPTION
-    help_doc_url = messages.urls.LANDSCAPE_HOME_PAGE
     help_text = messages.LANDSCAPE_HELP_TEXT
 
     def enable_steps(self) -> int:

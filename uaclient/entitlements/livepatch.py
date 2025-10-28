@@ -16,8 +16,6 @@ from uaclient.entitlements.base import EntitlementWithMessage, UAEntitlement
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.types import StaticAffordance
 
-LIVEPATCH_RETRIES = [0.5, 1.0]
-
 ERROR_MSG_MAP = {
     "Unknown Auth-Token": "Invalid Auth-Token provided to livepatch.",
     "unsupported kernel": "Your running kernel is not supported by Livepatch.",
@@ -28,7 +26,6 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class LivepatchEntitlement(UAEntitlement):
-    help_doc_url = messages.urls.LIVEPATCH_HOME_PAGE
     name = "livepatch"
     title = messages.LIVEPATCH_TITLE
     description = messages.LIVEPATCH_DESCRIPTION

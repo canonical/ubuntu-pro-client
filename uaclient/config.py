@@ -30,10 +30,6 @@ from uaclient.yaml import safe_load
 
 LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
-MERGE_ID_KEY_MAP = {
-    "availableResources": "name",
-    "resourceEntitlements": "type",
-}
 UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
 
 # Keys visible and configurable using `pro config set|unset|show` subcommands

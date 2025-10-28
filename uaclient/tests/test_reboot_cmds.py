@@ -9,9 +9,9 @@ from uaclient.testing.helpers import does_not_raise
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 
 
-@mock.patch("uaclient.entitlements.fips.FIPSEntitlement.install_packages")
-@mock.patch("uaclient.entitlements.fips.FIPSEntitlement.setup_apt_config")
-@mock.patch("uaclient.entitlements.fips.FIPSEntitlement.application_status")
+@mock.patch(M_FIPS_PATH + "install_packages")
+@mock.patch(M_FIPS_PATH + "setup_apt_config")
+@mock.patch(M_FIPS_PATH + "application_status")
 class TestFixProPkgHolds:
     @pytest.mark.parametrize(
         [

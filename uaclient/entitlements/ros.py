@@ -6,7 +6,6 @@ from uaclient.entitlements.base import EntitlementWithMessage, UAEntitlement
 
 
 class ROSCommonEntitlement(repo.RepoEntitlement):
-    help_doc_url = messages.urls.ROS_HOME_PAGE
     repo_key_file = "ubuntu-pro-ros.gpg"
 
 

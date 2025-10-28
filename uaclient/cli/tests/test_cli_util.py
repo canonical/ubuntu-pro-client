@@ -16,8 +16,6 @@ from uaclient.exceptions import (
 )
 from uaclient.files.notices import Notice
 
-M_PATH_UACONFIG = "uaclient.config.UAConfig."
-
 
 class TestAssertLockFile:
     @mock.patch("uaclient.lock.check_lock_info", return_value=(-1, ""))

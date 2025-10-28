@@ -490,7 +490,7 @@ class TestEntitlementEnable:
     def test_enable_false_when_fails_to_enable_required_service(
         self,
         m_handle_msg,
-        m_prompt_for_confirmation,
+        _m_prompt_for_confirmation,
         enable_fail_message,
         base_entitlement_factory,
         mock_entitlement,
@@ -509,8 +509,6 @@ class TestEntitlementEnable:
         enable_fail_reason = CanEnableFailure(
             CanEnableFailureReason.NOT_ENTITLED, message=msg
         )
-
-        m_prompt_for_confirmation.return_vale = True
 
         m_required_service_cls, m_required_service_obj = mock_entitlement(
             application_status=(ApplicationStatus.DISABLED, ""),
@@ -1081,7 +1079,7 @@ class TestEntitlementProcessContractDeltas:
         ),
     )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
-        self, m_platform_info, base_entitlement_factory, orig_access, delta
+        self, _m_platform_info, base_entitlement_factory, orig_access, delta
     ):
         """If deltas do not represent transition to unentitled, do nothing."""
         entitlement = base_entitlement_factory(
@@ -1413,7 +1411,7 @@ class TestHandleRequiredPackages:
         m_apt_update,
         m_apt_install,
         m_update_sources_list,
-        m_get_system_sources_file,
+        _m_get_system_sources_file,
         required_packages_directive,
         expected_apt_update_calls,
         expected_apt_install_calls,
