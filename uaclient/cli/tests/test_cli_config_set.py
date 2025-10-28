@@ -220,159 +220,106 @@ class TestActionConfigSet:
         assert cfg.ua_apt_http_proxy is None
 
     @pytest.mark.parametrize(
-        "key,value,scope,apt_equ,ua_apt_equ",
+        "proxy_type,proxy_url,ua_apt_proxy",
         (
             (
-                "global_apt_http_proxy",
+                "http",
                 "http://proxy",
-                apt.AptProxyScope.GLOBAL,
-                None,
                 None,
             ),
             (
-                "global_apt_https_proxy",
-                "https://proxy",
-                apt.AptProxyScope.GLOBAL,
+                "https",
                 "https://proxy",
                 None,
             ),
             (
-                "global_apt_http_proxy",
-                "https://proxy",
-                apt.AptProxyScope.GLOBAL,
-                "https://proxy",
-                None,
+                "http",
+                "http://proxynew",
+                "http://proxyold",
             ),
             (
-                "global_apt_http_proxy",
-                "https://proxy",
-                apt.AptProxyScope.GLOBAL,
-                None,
-                "https://proxy",
-            ),
-            (
-                "global_apt_https_proxy",
-                "https://proxy",
-                apt.AptProxyScope.GLOBAL,
-                None,
-                "https://proxy",
-            ),
-            (
-                "global_apt_https_proxy",
-                "https://proxy",
-                apt.AptProxyScope.GLOBAL,
-                "https://proxy",
-                "https://proxy",
-            ),
-            (
-                "global_apt_http_proxy",
-                "https://proxy",
-                apt.AptProxyScope.GLOBAL,
-                "https://proxy",
-                "https://proxy",
+                "https",
+                "https://proxynew",
+                "https://proxyold",
             ),
         ),
     )
     @mock.patch("uaclient.cli.cli_util.configure_apt_proxy")
     @mock.patch("uaclient.http.validate_proxy")
-    def test_set_global_apt_http_and_global_apt_https_proxy(
+    def test_set_global_apt_http_and_https_proxy(
         self,
         validate_proxy,
         configure_apt_proxy,
         _m_resources,
         _write,
-        key,
-        value,
-        scope,
-        apt_equ,
-        ua_apt_equ,
+        proxy_type,
+        proxy_url,
+        ua_apt_proxy,
         FakeConfig,
         capsys,
     ):
         """Test setting of global_apt_* proxies"""
-        args = mock.MagicMock(key_value_pair="{}={}".format(key, value))
+        args = mock.MagicMock(
+            key_value_pair="{}={}".format(
+                "global_apt_{}_proxy".format(proxy_type), proxy_url
+            )
+        )
         cfg = FakeConfig()
-        cfg.ua_apt_https_proxy = ua_apt_equ
-        cfg.ua_apt_http_proxy = ua_apt_equ
+        cfg.ua_apt_https_proxy = ua_apt_proxy
+        cfg.ua_apt_http_proxy = ua_apt_proxy
         set_subcommand.action(args, cfg=cfg)
-        out, err = capsys.readouterr()  # will need to check output
-        if ua_apt_equ:
-            assert [
-                mock.call(cfg, scope, key, value)
-            ] == configure_apt_proxy.call_args_list
+
+        assert [
+            mock.call(
+                cfg,
+                apt.AptProxyScope.GLOBAL,
+                "global_apt_{}_proxy".format(proxy_type),
+                proxy_url,
+            )
+        ] == configure_apt_proxy.call_args_list
+        if ua_apt_proxy:
+            out, _ = capsys.readouterr()
             assert (
                 messages.WARNING_APT_PROXY_OVERWRITE.format(
                     current_proxy="global apt", previous_proxy="pro scoped apt"
                 )
                 in out
             )
-        else:
-            assert [
-                mock.call(cfg, apt.AptProxyScope.GLOBAL, key, value)
-            ] == configure_apt_proxy.call_args_list
 
-        proxy_type = key.replace("global_apt_", "")
-        if proxy_type == "http_proxy":
-            url = http.PROXY_VALIDATION_APT_HTTP_URL
-        else:
-            url = http.PROXY_VALIDATION_APT_HTTPS_URL
+        validation_urls = {
+            "http": http.PROXY_VALIDATION_APT_HTTP_URL,
+            "https": http.PROXY_VALIDATION_APT_HTTPS_URL,
+        }
+
         assert [
-            mock.call(proxy_type.replace("_proxy", ""), value, url)
+            mock.call(proxy_type, proxy_url, validation_urls.get(proxy_type))
         ] == validate_proxy.call_args_list
+
         assert cfg.ua_apt_https_proxy is None
         assert cfg.ua_apt_http_proxy is None
 
     @pytest.mark.parametrize(
-        "key,value,scope,apt_equ,global_apt_equ",
+        "proxy_type,proxy_url,global_apt_proxy",
         (
             (
-                "ua_apt_http_proxy",
+                "http",
                 "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                None,
                 None,
             ),
             (
-                "ua_apt_https_proxy",
-                "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                "https://proxy",
-                "https://proxy",
-            ),
-            (
-                "ua_apt_https_proxy",
-                "http://proxy",
-                apt.AptProxyScope.UACLIENT,
+                "https",
                 "https://proxy",
                 None,
             ),
             (
-                "ua_apt_http_proxy",
-                "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                "https://proxy",
-                None,
+                "http",
+                "http://proxynew",
+                "http://proxyold",
             ),
             (
-                "ua_apt_https_proxy",
-                "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                None,
-                "https://proxy",
-            ),
-            (
-                "ua_apt_http_proxy",
-                "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                None,
-                "https://proxy",
-            ),
-            (
-                "ua_apt_http_proxy",
-                "http://proxy",
-                apt.AptProxyScope.UACLIENT,
-                "https://proxy",
-                "https://proxy",
+                "https",
+                "https://proxynew",
+                "https://proxyold",
             ),
         ),
     )
@@ -384,44 +331,48 @@ class TestActionConfigSet:
         configure_apt_proxy,
         _m_resources,
         _write,
-        key,
-        value,
-        scope,
-        apt_equ,
-        global_apt_equ,
+        proxy_type,
+        proxy_url,
+        global_apt_proxy,
         FakeConfig,
         capsys,
     ):
         """Test setting of ua_apt_* proxies"""
-        args = mock.MagicMock(key_value_pair="{}={}".format(key, value))
+        args = mock.MagicMock(
+            key_value_pair="{}={}".format(
+                "ua_apt_{}_proxy".format(proxy_type), proxy_url
+            )
+        )
         cfg = FakeConfig()
-        cfg.global_apt_http_proxy = global_apt_equ
-        cfg.global_apt_https_proxy = global_apt_equ
+        cfg.global_apt_http_proxy = global_apt_proxy
+        cfg.global_apt_https_proxy = global_apt_proxy
         set_subcommand.action(args, cfg=cfg)
-        out, err = capsys.readouterr()  # will need to check output
-        if global_apt_equ:
-            assert [
-                mock.call(cfg, scope, key, value)
-            ] == configure_apt_proxy.call_args_list
+
+        assert [
+            mock.call(
+                cfg,
+                apt.AptProxyScope.UACLIENT,
+                "ua_apt_{}_proxy".format(proxy_type),
+                proxy_url,
+            )
+        ] == configure_apt_proxy.call_args_list
+        if global_apt_proxy:
+            out, _ = capsys.readouterr()
             assert (
                 messages.WARNING_APT_PROXY_OVERWRITE.format(
                     current_proxy="pro scoped apt", previous_proxy="global apt"
                 )
                 in out
             )
-        else:
-            assert [
-                mock.call(cfg, apt.AptProxyScope.UACLIENT, key, value)
-            ] == configure_apt_proxy.call_args_list
 
-        proxy_type = key.replace("ua_apt_", "")
-        if proxy_type == "http_proxy":
-            url = http.PROXY_VALIDATION_APT_HTTP_URL
-        else:
-            url = http.PROXY_VALIDATION_APT_HTTPS_URL
+        validation_urls = {
+            "http": http.PROXY_VALIDATION_APT_HTTP_URL,
+            "https": http.PROXY_VALIDATION_APT_HTTPS_URL,
+        }
         assert [
-            mock.call(proxy_type.replace("_proxy", ""), value, url)
+            mock.call(proxy_type, proxy_url, validation_urls.get(proxy_type))
         ] == validate_proxy.call_args_list
+
         assert cfg.global_apt_https_proxy is None
         assert cfg.global_apt_http_proxy is None
 
