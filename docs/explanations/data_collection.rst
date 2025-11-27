@@ -46,7 +46,9 @@ these services.
 - ``cc-eal``
 - ``cis``
 - ``esm-apps``
+- ``esm-apps-legacy``
 - ``esm-infra``
+- ``esm-infra-legacy``
 - ``fips``
 - ``fips-preview``
 - ``fips-updates``

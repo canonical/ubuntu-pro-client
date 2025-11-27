@@ -28,6 +28,7 @@ APT package-based services
 Many services are delivered via authenticated APT repositories. These include:
 
 - ``esm-infra`` and ``esm-apps``
+- ``esm-infra-legacy`` and ``esm-apps-legacy``
 - ``fips`` and ``fips-updates``
 - ``cis`` and ``usg``
 - ``cc-eal``
