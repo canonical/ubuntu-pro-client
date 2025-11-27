@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+
+  * Open next development version
+
+ -- Renan Rodrigo <rr@ubuntu.com>  Thu, 27 Nov 2025 11:18:48 -0300
+
 ubuntu-advantage-tools (37.1ubuntu0) resolute; urgency=medium
 
   * do-release-upgrade: immediately release the APT lock acquired to run the
