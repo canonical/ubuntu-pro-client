@@ -189,7 +189,7 @@ pro enable
 
 **Usage:**
 
-``pro enable [-h] [--assume-yes] [--access-only] [--beta] [--format {cli,json}] [--variant VARIANT] service [service ...]``
+``pro enable [-h] [--access-only] [--assume-yes] [--auto] [--beta] [--format {cli,json}] [--variant VARIANT] [service ...]``
 
 **Description:**
 
