@@ -76,6 +76,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   @{PROC}/@{pid}/stat r,
   @{PROC}/sys/kernel/osrelease r,
 
+  # LP: #2131292
+  /sys/firmware/devicetree/base/model r,
+
 {% if ubuntu_codename in ["bionic", "xenial"] %}
   # see https://bugs.python.org/issue40501
   /sbin/ldconfig rix,
@@ -325,4 +328,6 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     @{PROC}/1/cmdline r,
     @{PROC}/sys/kernel/osrelease r,
 
+    # LP: #2131292
+    /sys/firmware/dmi/entries/0-0/raw r,
   }
