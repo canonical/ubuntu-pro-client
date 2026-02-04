@@ -198,10 +198,10 @@ def then_i_consolidate_services_on_the_same_mirror(
     context, services_list, machine_name
 ):
     services = services_list.split(",")
-    all_mirrors_path = "/var/spool/apt-mirror/mirror/all-mirrors/"
+    all_mirrors_path = "/var/spool/ditto-repo/all-mirrors/"
 
     for service in services:
-        cmd = "rsync -a /var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/ {}".format(  # noqa
+        cmd = "rsync -a /var/spool/ditto-repo/{}/ {}".format(  # noqa
             service.split("-")[1], all_mirrors_path
         )
         when_i_run_command(
@@ -246,8 +246,8 @@ def set_ditto_repo_config_with_credentials(
                 "components": ["main"],
                 "archs": ["amd64"],
                 "languages": ["en"],
-                "download-path": "/var/spool/ditto-repo/{}/{}/".format(
-                    service_type, dist_suffix
+                "download-path": "/var/spool/ditto-repo/{}/ubuntu/".format(
+                    service_type,
                 ),
                 "workers": 5,
             }
