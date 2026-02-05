@@ -11,12 +11,9 @@ Feature: Performing attach using pro-airgapped
     And I download the service credentials on the `mirror` machine
     And I extract the `esm-infra` credentials from the `mirror` machine
     And I extract the `esm-apps` credentials from the `mirror` machine
-    And I set the ditto-repo config file for `<release>` with the `esm-infra,esm-apps` credentials on the `mirror` machine
-    And I download the ditto binary from `https://github.com/canonical/ditto-repo/releases/download/v0.2.0/ditto` on the `mirror` machine
-    And I run ditto with the `infra_updates` config on the `mirror` machine
-    And I run ditto with the `infra_security` config on the `mirror` machine
-    And I run ditto with the `apps_updates` config on the `mirror` machine
-    And I run ditto with the `apps_security` config on the `mirror` machine
+    And I download the ditto binary from `https://github.com/canonical/ditto-repo/releases/download/v0.3.0/ditto` on the `mirror` machine
+    And I run ditto for `esm-infra` on `jammy` on the `mirror` machine
+    And I run ditto for `esm-apps` on `jammy` on the `mirror` machine
     And I serve the `esm-infra` mirror using port `8000` on the `mirror` machine
     And I serve the `esm-apps` mirror using port `9000` on the `mirror` machine
     # set up the pro-airgapped configuration
@@ -62,12 +59,9 @@ Feature: Performing attach using pro-airgapped
     And I download the service credentials on the `mirror` machine
     And I extract the `esm-infra` credentials from the `mirror` machine
     And I extract the `esm-apps` credentials from the `mirror` machine
-    And I set the ditto-repo config file for `<release>` with the `esm-infra,esm-apps` credentials on the `mirror` machine
-    And I download the ditto binary from `http://10.149.172.1:8000/ditto` on the `mirror` machine
-    And I run ditto with the `infra_updates` config on the `mirror` machine
-    And I run ditto with the `infra_security` config on the `mirror` machine
-    And I run ditto with the `apps_updates` config on the `mirror` machine
-    And I run ditto with the `apps_security` config on the `mirror` machine
+    And I download the ditto binary from `https://github.com/canonical/ditto-repo/releases/download/v0.3.0/ditto` on the `mirror` machine
+    And I run ditto for `esm-infra` on `jammy` on the `mirror` machine
+    And I run ditto for `esm-apps` on `jammy` on the `mirror` machine
     And I consolidate `esm-infra,esm-apps` on a single mirror on the `mirror` machine
     And I serve the `all-mirrors` mirror using port `8000` on the `mirror` machine
     # set up the pro-airgapped configuration
