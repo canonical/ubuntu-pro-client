@@ -261,16 +261,24 @@ def run_ditto_for_service(context, service, release, machine_name):
         )
 
     token = context.service_mirror_cfg[service_key]["credentials"]
-    service_type = service.split("-")[1]
+
+    if "esm" in service:
+        service_type = service.split("-")[1]
+    else:
+        service_type = service
 
     repo_url = "https://bearer:{}@esm.ubuntu.com/{}/ubuntu/".format(
         token, service_type
     )
 
-    dists = [
-        "{}-{}-{}".format(release, service_type, dist_suffix)
-        for dist_suffix in ["updates", "security"]
-    ]
+    if "esm" in service:
+        dists = [
+            "{}-{}-{}".format(release, service_type, dist_suffix)
+            for dist_suffix in ["updates", "security"]
+        ]
+    else:
+        dists = [release]
+
     download_path = "/var/spool/ditto-repo/{}/ubuntu/".format(service_type)
 
     if "path" not in context.service_mirror_cfg[service_key]:
