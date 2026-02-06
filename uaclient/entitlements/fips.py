@@ -549,23 +549,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             messages.FIPS_REBOOT_REQUIRED,
         )
 
-    def remove_packages(self) -> None:
-        """Remove fips meta package to disable the service.
-
-        FIPS meta-package will unset grub config options which will deactivate
-        FIPS on any related packages.
-        """
-        installed_packages = set(apt.get_installed_packages_names())
-        fips_metapackage = set(self.packages).difference(
-            set(self.conditional_packages)
-        )
-        remove_packages = fips_metapackage.intersection(installed_packages)
-        if remove_packages:
-            apt.remove_packages(
-                list(fips_metapackage),
-                messages.DISABLE_FAILED_TMPL.format(title=self.title),
-            )
-
     def _perform_enable(self, progress: api.ProgressWrapper) -> bool:
         if super()._perform_enable(progress):
             notices.remove(

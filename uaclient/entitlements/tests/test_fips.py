@@ -9,7 +9,7 @@ import mock
 import pytest
 
 import uaclient.entitlements.fips as fips
-from uaclient import apt, exceptions, messages, system, util
+from uaclient import messages, system, util
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
@@ -631,71 +631,6 @@ class TestFIPSEntitlementEnable:
             "Could not determine cloud, defaulting to generic FIPS package."
             in logs
         )
-
-
-class TestFIPSEntitlementRemovePackages:
-    @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
-    @mock.patch(M_PATH + "system.is_container", return_value=False)
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
-    @mock.patch(M_PATH + "system.subp")
-    @mock.patch(M_PATH + "apt.get_installed_packages_names")
-    def test_remove_packages_only_removes_if_package_is_installed(
-        self,
-        m_get_installed_packages,
-        m_subp,
-        _m_get_release_info,
-        _m_is_container,
-        installed_pkgs,
-        entitlement,
-    ):
-        m_subp.return_value = ("success", "")
-        m_get_installed_packages.return_value = installed_pkgs
-        entitlement.remove_packages()
-        remove_cmd = mock.call(
-            [
-                "apt-get",
-                "remove",
-                "--assume-yes",
-                '-o Dpkg::Options::="--force-confdef"',
-                '-o Dpkg::Options::="--force-confold"',
-                "ubuntu-fips",
-            ],
-            capture=True,
-            retry_sleeps=apt.APT_RETRIES,
-            override_env_vars={"DEBIAN_FRONTEND": "noninteractive"},
-        )
-        if "ubuntu-fips" in installed_pkgs:
-            assert [remove_cmd] == m_subp.call_args_list
-        else:
-            assert [] == m_subp.call_args_list
-
-    @mock.patch(
-        "uaclient.system.get_release_info",
-        return_value=mock.MagicMock(series="xenial"),
-    )
-    @mock.patch(M_PATH + "system.subp")
-    @mock.patch(M_PATH + "apt.get_installed_packages_names")
-    def test_remove_packages_output_message_when_fail(
-        self,
-        m_get_installed_packages,
-        m_subp,
-        _m_get_release_info,
-        entitlement,
-    ):
-        m_get_installed_packages.return_value = ["ubuntu-fips"]
-        m_subp.side_effect = exceptions.ProcessExecutionError(cmd="test")
-        expected_msg = (
-            "Unexpected APT error.\nCould not disable {}.\nSee "
-            "/var/log/ubuntu-advantage.log"
-        ).format(entitlement.title)
-
-        with pytest.raises(exceptions.UbuntuProError) as exc_info:
-            entitlement.remove_packages()
-
-        assert exc_info.value.msg.strip() == expected_msg
 
 
 class TestFIPSCheckForRebootMsg:
