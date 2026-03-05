@@ -308,6 +308,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     include <abstractions/base>
 
     capability sys_ptrace,
+    capability perfmon,
 
     ptrace read peer=unconfined,
 {% if ubuntu_codename in ["xenial"] %}
