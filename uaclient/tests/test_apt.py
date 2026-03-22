@@ -1346,6 +1346,42 @@ class TestGetPkgCandidateversion:
         actual_value = get_pkg_candidate_version("pkg1", check_esm_cache=True)
         assert "1.2" == actual_value
 
+    @mock.patch("uaclient.apt.apt_pkg.DepCache")
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    def test_get_pkg_candidate_version_when_phased(
+        self,
+        m_apt_cache,
+        m_dep_cache,
+    ):
+        """Return None when candidate exists but phasing is not yet applied."""
+        m_pkg = mock.MagicMock()
+        m_apt_cache.return_value = {"pkg1": m_pkg}
+        m_dep_cache.return_value.get_candidate_ver.return_value = (
+            mock.MagicMock(ver_str="1.2")
+        )
+        m_dep_cache.return_value.phasing_applied.return_value = False
+
+        actual_value = get_pkg_candidate_version("pkg1")
+        assert actual_value is None
+
+    @mock.patch("uaclient.apt.apt_pkg.DepCache")
+    @mock.patch("uaclient.apt.get_apt_pkg_cache")
+    def test_get_pkg_candidate_version_when_phasing_complete(
+        self,
+        m_apt_cache,
+        m_dep_cache,
+    ):
+        """Return candidate version when phasing is fully applied."""
+        m_pkg = mock.MagicMock()
+        m_apt_cache.return_value = {"pkg1": m_pkg}
+        m_dep_cache.return_value.get_candidate_ver.return_value = (
+            mock.MagicMock(ver_str="1.2")
+        )
+        m_dep_cache.return_value.phasing_applied.return_value = True
+
+        actual_value = get_pkg_candidate_version("pkg1")
+        assert actual_value == "1.2"
+
     @mock.patch("uaclient.apt.get_apt_pkg_cache")
     def test_get_pkg_candidate_version_when_package_doesnt_exist(
         self,
