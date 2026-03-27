@@ -103,7 +103,7 @@ lxc exec $name -- systemctl start esm-cache.service || true
 sleep 3
 
 echo "Checking journal for AppArmor denials from ubuntu_pro_esm_cache..."
-DENIALS=$(lxc exec $name -- sh -c "journalctl -b --no-pager 2>/dev/null | grep -c 'apparmor.*DENIED.*ubuntu_pro_esm_cache'" || echo "0")
+DENIALS=$(lxc exec $name -- sh -c "journalctl -b --no-pager 2>/dev/null | grep -c 'apparmor.*DENIED.*ubuntu_pro_esm_cache'" | awk '{print $1}' || echo "0")
 
 if [ "$DENIALS" -eq 0 ]; then
   echo "PASS: No AppArmor denials for ubuntu_pro_esm_cache"
