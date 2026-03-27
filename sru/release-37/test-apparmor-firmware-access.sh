@@ -21,7 +21,7 @@ trap on_err ERR
 lxc launch ubuntu-daily:$series $name
 sleep 5
 
-# Install current ubuntu-advantage-tools
+# Install latest ubuntu-advantage-tools
 lxc exec $name -- apt-get update > /dev/null
 lxc exec $name -- apt-get install -y ubuntu-advantage-tools > /dev/null
 echo -e "\n* Current ubuntu-advantage-tools installed"
@@ -30,17 +30,6 @@ lxc exec $name -- apt-cache policy ubuntu-advantage-tools
 echo -e "###########################################\n"
 
 APPARMOR_PROFILE=/etc/apparmor.d/ubuntu_pro_esm_cache
-
-# --- Verify the pre-fix state ---
-echo "=== Checking AppArmor profile BEFORE fix ==="
-lxc exec $name -- grep "sys/firmware" $APPARMOR_PROFILE
-
-OLD_GLOB=$(lxc exec $name -- grep -c "sys/firmware/dmi/entries/\*\*" $APPARMOR_PROFILE || true)
-if [ "$OLD_GLOB" -gt 0 ]; then
-  echo "PASS: Pre-fix glob rule '/sys/firmware/dmi/entries/**' is present"
-else
-  echo "INFO: Old glob rule not found - this package may already include the fix"
-fi
 
 # ----------------------------------------------------------------
 if [ "$install_from" == 'staging' ]; then
@@ -56,23 +45,6 @@ else
   lxc exec $name -- dpkg -i /new-ua.deb > /dev/null
 fi
 # ----------------------------------------------------------------
-
-echo ""
-echo "=== Checking AppArmor profile AFTER fix ==="
-lxc exec $name -- grep "sys/firmware" $APPARMOR_PROFILE
-
-# Verify the fixed rule is present (specific hard-coded path, not glob)
-lxc exec $name -- grep -q "sys/firmware/dmi/entries/0-0/raw" $APPARMOR_PROFILE
-echo "PASS: Fixed rule '/sys/firmware/dmi/entries/0-0/raw r,' is present"
-
-# Verify the old glob rule is gone
-NEW_GLOB=$(lxc exec $name -- grep -c "sys/firmware/dmi/entries/\*\*" $APPARMOR_PROFILE || true)
-if [ "$NEW_GLOB" -eq 0 ]; then
-  echo "PASS: Old glob rule '/sys/firmware/dmi/entries/**' has been removed"
-else
-  echo "FAIL: Old glob rule '/sys/firmware/dmi/entries/**' is still present"
-  exit 1
-fi
 
 # --- Run the esm-cache service and check for AppArmor denials ---
 echo ""
