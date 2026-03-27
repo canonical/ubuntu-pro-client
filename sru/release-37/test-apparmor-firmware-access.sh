@@ -1,18 +1,4 @@
 #!/bin/bash
-# SRU test for LP: #2131292
-# Fix: AppArmor denied audit messages when devicetree exists
-#
-# The ubuntu_pro_esm_cache AppArmor profile previously used the glob rule:
-#   /sys/firmware/dmi/entries/** r,
-# which generated denial audit messages on systems where /sys/firmware/devicetree
-# exists (ARM systems). The fix hard-codes the exact path that systemd-detect-virt
-# accesses:
-#   /sys/firmware/dmi/entries/0-0/raw r,
-#
-# Usage: ./test-apparmor-firmware-access.sh <series> <install_from>
-#   series:       Ubuntu series name (e.g. jammy, noble)
-#   install_from: path to a .deb file, 'staging', or 'proposed'
-
 set -e
 
 series=$1
