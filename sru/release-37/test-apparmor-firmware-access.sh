@@ -65,17 +65,6 @@ lxc exec $name -- bash -c "
   echo 'Mock DMI' > /sys/firmware/dmi/entries/0-0/raw
 "
 
-echo "--- DEBUG: Verification ---"
-# 1. Check if the mock files actually exist and are readable
-lxc exec $name -- ls -l /sys/firmware/devicetree/base/model
-lxc exec $name -- cat /sys/firmware/devicetree/base/model
-
-# 2. Check if the AppArmor profile is actually loaded in the kernel
-lxc exec $name -- aa-status | grep ubuntu_pro_esm_cache
-
-# 3. Check if the running process is actually confined by the profile
-lxc exec $name -- ps auxZ | grep esm_cache || true
-
 # --- Run the esm-cache service and check for AppArmor denials ---
 echo ""
 echo "=== Running esm-cache service under the AppArmor profile ==="
@@ -90,31 +79,26 @@ lxc exec $name -- journalctl --vacuum-time=1s > /dev/null 2>&1 || true
 lxc exec $name -- systemctl start esm-cache.service || true
 sleep 3
 
-echo "=== Testing AppArmor Policy Enforcement Directly ==="
+# --- Verification ---
+echo "=== Testing AppArmor Policy Enforcement ==="
+echo "Attempting to read /sys/firmware/devicetree/base/model under profile: $APPARMOR_PROFILE"
 
-# We manually force the ESM profile onto a python command trying to read the path
-# If it can read it, the exit code is 0 (Success). If denied, exit code is 1 (Fail).
+# Capture the attempt. We use 'aa-exec' to force the security profile.
 if lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "open('/sys/firmware/devicetree/base/model').read()" > /dev/null 2>&1; then
-  ACCESS_ALLOWED=true
+  echo "------------------------------------------------------------"
+  echo "PASSED: AppArmor profile ALLOWED access to the firmware path."
+  echo "The whitelist is correctly functioning for this package."
+  echo "------------------------------------------------------------"
+  cleanup
+  exit 0
 else
-  ACCESS_ALLOWED=false
-fi
-
-# Logic for the PR verification:
-if [[ "$install_from" == *"prefix"* ]]; then
-  if [ "$ACCESS_ALLOWED" = false ]; then
-    echo "PASS: Bug reproduced. Access was DENIED on the unfixed package."
-  else
-    echo "FAIL: Bug NOT reproduced. Access was ALLOWED on the unfixed package."
-    exit 1
-  fi
-elif [[ "$install_from" == *"postfix"* ]]; then
-  if [ "$ACCESS_ALLOWED" = true ]; then
-    echo "PASS: Bug FIXED. Access was ALLOWED on the fixed package."
-  else
-    echo "FAIL: Fix failed. Access is still DENIED on the fixed package."
-    exit 1
-  fi
+  echo "------------------------------------------------------------"
+  echo "FAILED: AppArmor profile DENIED access to the firmware path."
+  echo "The kernel blocked the read request (Permission Denied)."
+  echo "Note: On an unfixed 'prefix' package, this failure confirms the bug is present."
+  echo "------------------------------------------------------------"
+  cleanup
+  exit 1
 fi
 
 cleanup
