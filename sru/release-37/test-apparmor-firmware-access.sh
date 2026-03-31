@@ -18,7 +18,7 @@ function on_err {
 trap on_err ERR
 
 
-lxc launch ubuntu-daily:$series $name
+lxc launch ubuntu-daily:$series $name -c security.nesting=true -c security.privileged=true
 sleep 5
 
 # Install latest ubuntu-advantage-tools
@@ -46,6 +46,36 @@ else
 fi
 # ----------------------------------------------------------------
 
+echo "Setting up hardware mocks to trigger AppArmor..."
+
+lxc exec $name -- bash -c "
+  # 1. Force the code path
+  rm -f /var/lib/ubuntu-advantage/status.json
+  
+  # 2. Create the writeable canvas
+  # We mount a tmpfs over /sys/firmware so we can create directories
+  mount -t tmpfs tmpfs /sys/firmware
+  
+  # 3. Re-create the hardware structure
+  mkdir -p /sys/firmware/devicetree/base/
+  mkdir -p /sys/firmware/dmi/entries/0-0/
+  
+  # 4. Create the dummy hardware ID files
+  echo 'Mock Model' > /sys/firmware/devicetree/base/model
+  echo 'Mock DMI' > /sys/firmware/dmi/entries/0-0/raw
+"
+
+echo "--- DEBUG: Verification ---"
+# 1. Check if the mock files actually exist and are readable
+lxc exec $name -- ls -l /sys/firmware/devicetree/base/model
+lxc exec $name -- cat /sys/firmware/devicetree/base/model
+
+# 2. Check if the AppArmor profile is actually loaded in the kernel
+lxc exec $name -- aa-status | grep ubuntu_pro_esm_cache
+
+# 3. Check if the running process is actually confined by the profile
+lxc exec $name -- ps auxZ | grep esm_cache || true
+
 # --- Run the esm-cache service and check for AppArmor denials ---
 echo ""
 echo "=== Running esm-cache service under the AppArmor profile ==="
@@ -60,18 +90,31 @@ lxc exec $name -- journalctl --vacuum-time=1s > /dev/null 2>&1 || true
 lxc exec $name -- systemctl start esm-cache.service || true
 sleep 3
 
-echo "Checking journal for AppArmor denials from ubuntu_pro_esm_cache..."
-DENIALS=$(lxc exec $name -- sh -c "journalctl -b --no-pager 2>/dev/null | grep -c 'apparmor.*DENIED.*ubuntu_pro_esm_cache'" | awk '{print $1}' || echo "0")
+echo "=== Testing AppArmor Policy Enforcement Directly ==="
 
-if [ "$DENIALS" -eq 0 ]; then
-  echo "PASS: No AppArmor denials for ubuntu_pro_esm_cache"
+# We manually force the ESM profile onto a python command trying to read the path
+# If it can read it, the exit code is 0 (Success). If denied, exit code is 1 (Fail).
+if lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "open('/sys/firmware/devicetree/base/model').read()" > /dev/null 2>&1; then
+  ACCESS_ALLOWED=true
 else
-  echo "AppArmor denial messages found:"
-  lxc exec $name -- sh -c "journalctl -b --no-pager 2>/dev/null | grep 'apparmor.*DENIED.*ubuntu_pro_esm_cache'" || true
-  echo "FAIL: $DENIALS AppArmor denial(s) detected after applying the fix"
-  exit 1
+  ACCESS_ALLOWED=false
 fi
 
-echo ""
-echo "=== All tests passed ==="
+# Logic for the PR verification:
+if [[ "$install_from" == *"prefix"* ]]; then
+  if [ "$ACCESS_ALLOWED" = false ]; then
+    echo "PASS: Bug reproduced. Access was DENIED on the unfixed package."
+  else
+    echo "FAIL: Bug NOT reproduced. Access was ALLOWED on the unfixed package."
+    exit 1
+  fi
+elif [[ "$install_from" == *"postfix"* ]]; then
+  if [ "$ACCESS_ALLOWED" = true ]; then
+    echo "PASS: Bug FIXED. Access was ALLOWED on the fixed package."
+  else
+    echo "FAIL: Fix failed. Access is still DENIED on the fixed package."
+    exit 1
+  fi
+fi
+
 cleanup
