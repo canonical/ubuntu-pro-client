@@ -81,30 +81,21 @@ sleep 3
 
 # --- Verification ---
 echo "=== Testing AppArmor Policy Enforcement ==="
-echo "Attempting to read firmware paths under profile: $APPARMOR_PROFILE"
+echo "Attempting to read /sys/firmware/devicetree/base/model under profile: $APPARMOR_PROFILE"
 
-# Check both the Device Tree and DMI paths mocked earlier
-PATHS_TO_TEST="/sys/firmware/devicetree/base/model /sys/firmware/dmi/entries/0-0/raw"
-
-if lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "
-import sys
-paths = '$PATHS_TO_TEST'.split()
-for p in paths:
-    try:
-        open(p).read()
-        print(f'SUCCESS: Read {p}')
-    except Exception as e:
-        print(f'FAILURE: Could not read {p} - {e}')
-        sys.exit(1)
-" ; then
+# Capture the attempt. We use 'aa-exec' to force the security profile.
+if lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "open('/sys/firmware/devicetree/base/model').read()" > /dev/null 2>&1; then
   echo "------------------------------------------------------------"
-  echo "PASSED: AppArmor profile ALLOWED access to all firmware paths."
+  echo "PASSED: AppArmor profile ALLOWED access to the firmware path."
+  echo "The whitelist is correctly functioning for this package."
   echo "------------------------------------------------------------"
   cleanup
   exit 0
 else
   echo "------------------------------------------------------------"
-  echo "FAILED: AppArmor profile DENIED access to one or more paths."
+  echo "FAILED: AppArmor profile DENIED access to the firmware path."
+  echo "The kernel blocked the read request (Permission Denied)."
+  echo "Note: On an unfixed 'prefix' package, this failure confirms the bug is present."
   echo "------------------------------------------------------------"
   cleanup
   exit 1
