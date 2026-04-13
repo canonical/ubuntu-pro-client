@@ -47,6 +47,7 @@ fi
 
 echo "Setting up hardware mocks to trigger AppArmor..."
 lxc exec $name -- bash -c "
+  rm -f /var/lib/ubuntu-advantage/status.json
   mount -t tmpfs tmpfs /sys/firmware
   mkdir -p /sys/firmware/devicetree/base/
   mkdir -p /sys/firmware/dmi/entries/0-0/
