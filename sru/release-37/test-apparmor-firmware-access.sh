@@ -83,21 +83,43 @@ sleep 3
 echo "=== Testing AppArmor Policy Enforcement ==="
 
 # 1. Check Devicetree path under the main profile
+# This works because 'ubuntu_pro_esm_cache' includes <abstractions/python>
 echo "Testing: ubuntu_pro_esm_cache -> /sys/firmware/devicetree/base/model"
 if ! lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "open('/sys/firmware/devicetree/base/model').read()" > /dev/null 2>&1; then
   echo "FAILED: AppArmor profile DENIED access to the devicetree path."
+  lxc exec $name -- dmesg | grep "apparmor=\"DENIED\"" | grep "ubuntu_pro_esm_cache" | tail -n 5
   cleanup
   exit 1
 fi
+echo "  - OK"
 
-# 2. Check DMI path under the systemd-detect-virt transition profile
+# 2. Check DMI path under the systemd-detect-virt profile
+# PROBLEM: This profile doesn't allow python. 
+# SOLUTION: Temporarily replace systemd-detect-virt with cat to test the path.
 echo "Testing: ubuntu_pro_esm_cache_systemd_detect_virt -> /sys/firmware/dmi/entries/0-0/raw"
-if ! lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache_systemd_detect_virt python3 -c "open('/sys/firmware/dmi/entries/0-0/raw').read()" > /dev/null 2>&1; then
+
+# Backup the real binary and replace it with 'cat'
+lxc exec $name -- mv /usr/bin/systemd-detect-virt /usr/bin/systemd-detect-virt.bak
+lxc exec $name -- cp /usr/bin/cat /usr/bin/systemd-detect-virt
+
+# Now we run our 'fake' systemd-detect-virt under the sub-profile.
+# Since the profile allows this binary name and 'cat' is simple enough 
+# to run with abstractions/base, this should succeed.
+if ! lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache_systemd_detect_virt systemd-detect-virt /sys/firmware/dmi/entries/0-0/raw > /dev/null 2>&1; then
   echo "FAILED: AppArmor profile DENIED access to the DMI path."
+  echo "Showing recent AppArmor denials from dmesg:"
+  lxc exec $name -- dmesg | grep "apparmor=\"DENIED\"" | grep "systemd_detect_virt" | tail -n 5
+  # Restore and fail
+  lxc exec $name -- mv /usr/bin/systemd-detect-virt.bak /usr/bin/systemd-detect-virt
   cleanup
   exit 1
 fi
 
+# Restore the original binary
+lxc exec $name -- mv /usr/bin/systemd-detect-virt.bak /usr/bin/systemd-detect-virt
+
+echo "  - OK"
+echo ""
 echo "------------------------------------------------------------"
 echo "PASSED: All firmware paths are accessible under correct profiles."
 echo "------------------------------------------------------------"
