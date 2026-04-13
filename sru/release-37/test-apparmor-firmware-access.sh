@@ -81,24 +81,25 @@ sleep 3
 
 # --- Verification ---
 echo "=== Testing AppArmor Policy Enforcement ==="
-echo "Attempting to read /sys/firmware/devicetree/base/model under profile: $APPARMOR_PROFILE"
 
-# Capture the attempt. We use 'aa-exec' to force the security profile.
-if lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "open('/sys/firmware/devicetree/base/model').read()" > /dev/null 2>&1; then
-  echo "------------------------------------------------------------"
-  echo "PASSED: AppArmor profile ALLOWED access to the firmware path."
-  echo "The whitelist is correctly functioning for this package."
-  echo "------------------------------------------------------------"
-  cleanup
-  exit 0
-else
-  echo "------------------------------------------------------------"
-  echo "FAILED: AppArmor profile DENIED access to the firmware path."
-  echo "The kernel blocked the read request (Permission Denied)."
-  echo "Note: On an unfixed 'prefix' package, this failure confirms the bug is present."
-  echo "------------------------------------------------------------"
+# 1. Check Devicetree path under the main profile
+echo "Testing: ubuntu_pro_esm_cache -> /sys/firmware/devicetree/base/model"
+if ! lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache python3 -c "open('/sys/firmware/devicetree/base/model').read()" > /dev/null 2>&1; then
+  echo "FAILED: AppArmor profile DENIED access to the devicetree path."
   cleanup
   exit 1
 fi
+
+# 2. Check DMI path under the systemd-detect-virt transition profile
+echo "Testing: ubuntu_pro_esm_cache_systemd_detect_virt -> /sys/firmware/dmi/entries/0-0/raw"
+if ! lxc exec $name -- aa-exec -p ubuntu_pro_esm_cache_systemd_detect_virt python3 -c "open('/sys/firmware/dmi/entries/0-0/raw').read()" > /dev/null 2>&1; then
+  echo "FAILED: AppArmor profile DENIED access to the DMI path."
+  cleanup
+  exit 1
+fi
+
+echo "------------------------------------------------------------"
+echo "PASSED: All firmware paths are accessible under correct profiles."
+echo "------------------------------------------------------------"
 
 cleanup
