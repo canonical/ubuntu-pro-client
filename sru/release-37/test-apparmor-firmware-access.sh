@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# NOTE: LXC is an unsuitable way to get comprehensive testing for AppArmor 
+# fixes for LP: #2131292. This is not a comprehensive test; we are 
+# specifically emulating the read behavior to verify the profile.
+# TODO: Revisit this test in the future if environment improvements allow.
+
 series=$1
 install_from=$2  # either path to a .deb, or 'staging', or 'proposed'
 
