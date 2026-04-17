@@ -22,10 +22,21 @@ PRO_CLOUD_URLS = {
     "gce": messages.urls.PRO_ON_GCP_HOME_PAGE,
 }
 
+CONTRACT_CLOUD_TYPE_ALIASES = {
+    "aws-china": "aws",
+    "aws-gov": "aws",
+}
+
 
 class NoCloudTypeReason(Enum):
     NO_CLOUD_DETECTED = 0
     CLOUD_ID_ERROR = 1
+
+
+def cloud_type_to_contract_cloud_type(
+    cloud_type: Optional[str],
+) -> Optional[str]:
+    return CONTRACT_CLOUD_TYPE_ALIASES.get(cloud_type, cloud_type)
 
 
 def get_instance_id() -> Optional[str]:

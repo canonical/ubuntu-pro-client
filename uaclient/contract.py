@@ -251,9 +251,11 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the contract-token.
         """
+        from uaclient.clouds.identity import cloud_type_to_contract_cloud_type
+
         response = self.request_url(
             API_V1_GET_CONTRACT_TOKEN_FOR_CLOUD_INSTANCE.format(
-                cloud_type=cloud_type
+                cloud_type=cloud_type_to_contract_cloud_type(cloud_type)
             ),
             data=data,
         )
@@ -925,7 +927,10 @@ def apply_contract_overrides(
 
     :param orig_access: Dict with original entitlement access details
     """
-    from uaclient.clouds.identity import get_cloud_type
+    from uaclient.clouds.identity import (
+        cloud_type_to_contract_cloud_type,
+        get_cloud_type,
+    )
 
     if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
         raise RuntimeError(
@@ -937,6 +942,7 @@ def apply_contract_overrides(
         system.get_release_info().series if series is None else series
     )
     cloud_type, _ = get_cloud_type()
+    cloud_type = cloud_type_to_contract_cloud_type(cloud_type)
     orig_entitlement = orig_access.get("entitlement", {})
 
     overrides = _select_overrides(
