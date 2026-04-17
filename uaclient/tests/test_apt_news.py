@@ -114,6 +114,17 @@ class TestAptNews:
             ),
             (
                 apt_news.AptNewsMessageSelectors(
+                    clouds=["aws"],
+                ),
+                "xenial",
+                ("aws-china", None),
+                False,
+                None,
+                None,
+                True,
+            ),
+            (
+                apt_news.AptNewsMessageSelectors(
                     pro=False, architectures=["amd64"]
                 ),
                 "xenial",
