@@ -94,7 +94,6 @@ class TestCloudTypeToContractCloudType:
         (
             ("aws", "aws"),
             ("aws-gov", "aws"),
-            ("aws-china", "aws"),
             ("azure", "azure"),
             (None, None),
         ),

@@ -23,7 +23,6 @@ PRO_CLOUD_URLS = {
 }
 
 CONTRACT_CLOUD_TYPE_ALIASES = {
-    "aws-china": "aws",
     "aws-gov": "aws",
 }
 
