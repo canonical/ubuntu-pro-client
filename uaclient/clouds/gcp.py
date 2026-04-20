@@ -22,12 +22,21 @@ LAST_ETAG = "&last_etag={etag}"
 DMI_PRODUCT_NAME = "/sys/class/dmi/id/product_name"
 GCP_PRODUCT_NAME = "Google Compute Engine"
 
+# Maps Ubuntu LTS releases to their corresponding GCP license IDs. Used by the
+# client at boot time to detect in-place upgrades from regular Ubuntu LTS to
+# Ubuntu Pro on GCP. The client checks instance metadata against these IDs to
+# confirm if a Pro license has been appended. If a release is missing from this
+# dict, users on regular GCP instances will not be able to perform in-place
+# upgrades to Pro for that release.
+#
+# NOTE: Append license IDs of every new LTS prior to release!
 GCP_LICENSES = {  # Base [0], Minimal [1]
     "xenial": ["8045211386737108299"],
     "bionic": ["6022427724719891830", "7427070211152946628"],
     "focal": ["599959289349842382", "7818678586103571931"],
     "jammy": ["2592866803419978320", "160084055690847662"],
     "noble": ["2176054482269786025", "4168323874790319525"],
+    "resolute": ["9208223505600398646", "94031624764048077"],
 }
 
 
