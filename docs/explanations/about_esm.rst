@@ -121,4 +121,4 @@ pinning and priorities.
 
 .. LINKS
 
-.. _APT configuration article: https://wiki.debian.org/AptConfiguration#apt_preferences_.28APT_pinning.29
+.. _APT configuration article: https://wiki.debian.org/AptConfiguration#Using_pinning

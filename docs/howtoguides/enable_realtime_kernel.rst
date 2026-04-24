@@ -134,12 +134,14 @@ After rebooting, you'll be running Real-time Ubuntu.
 Install the hardware enablement (HWE) real-time kernel
 ======================================================
 
-Once you have Real-time Ubuntu enabled, you can install the HWE real-time 
-kernel to get support for newer hardware.
+Once you have Real-time Ubuntu enabled, you can install the HWE real-time
+kernel to get support for newer hardware. To learn more about what kernel
+versions and variants are supported by the HWE real-time kernel, refer to
+`the supported releases page <rt_releases_>`_.
 
 .. caution::
 
-   Note: The HWE real-time kernel only supports generic Real-time Ubuntu, 
+   The HWE real-time kernel only supports generic Real-time Ubuntu,
    not Real-time Ubuntu for Raspberry Pi or Intel IOTG.
 
 .. tab-set::
@@ -151,7 +153,7 @@ kernel to get support for newer hardware.
          sudo apt install linux-realtime-hwe-22.04
 
       .. note::
-         The HWE real-time kernel for Ubuntu 22.04 LTS is based on the 6.8 
+         The HWE real-time kernel for Ubuntu 22.04 LTS is based on the 6.8
          kernel.
 
    .. tab-item:: Ubuntu 24.04 LTS
@@ -161,7 +163,7 @@ kernel to get support for newer hardware.
          sudo apt install linux-realtime-hwe-24.04
 
       .. note::
-         The HWE real-time kernel for Ubuntu 24.04 LTS is based on the 6.17 
+         The HWE real-time kernel for Ubuntu 24.04 LTS is based on the 6.17
          kernel.
 
 After rebooting, you'll be running the HWE kernel for Real-time Ubuntu.
