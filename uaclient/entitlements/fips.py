@@ -5,7 +5,11 @@ from itertools import groupby
 from typing import List, Optional, Tuple
 
 from uaclient import api, apt, event_logger, exceptions, messages, system, util
-from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
+from uaclient.clouds.identity import (
+    NoCloudTypeReason,
+    cloud_type_to_contract_cloud_type,
+    get_cloud_type,
+)
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import EntitlementWithMessage
 from uaclient.entitlements.entitlement_status import ApplicationStatus
@@ -469,6 +473,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         cloud_titles = {"aws": "an AWS", "azure": "an Azure", "gce": "a GCP"}
         cloud_id, _ = get_cloud_type()
+        cloud_id = cloud_type_to_contract_cloud_type(cloud_id)
         if cloud_id is None:
             cloud_id = ""
 
