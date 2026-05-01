@@ -45,6 +45,7 @@ howtoguides
 html
 http
 https
+HWE
 IaaS
 init
 internetless

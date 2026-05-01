@@ -74,7 +74,7 @@ greater control over when those patches roll out across your infrastructure.
 
 .. _Customer Support teams: https://ubuntu.com/support
 .. _install Landscape: https://ubuntu.com/landscape/docs/how-to-install-landscape-in-an-air-gapped-or-offline-environment
-.. _manage repositories: https://ubuntu.com/landscape/docs/how-to-manage-repositories-in-an-air-gapped-or-offline-environment
+.. _manage repositories: https://documentation.ubuntu.com/landscape/how-to-guides/repository-mirrors/manage-repositories-in-an-air-gapped-or-offline-environment/
 .. _Snap-store-proxy: https://snapcraft.io/snap-store-proxy
 .. _Livepatch on-prem: https://ubuntu.com/security/livepatch/docs/livepatch_on_prem
 .. _operate in offline mode: https://docs.ubuntu.com/snap-store-proxy/en/airgap
