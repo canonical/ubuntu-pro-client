@@ -57,4 +57,4 @@ directing the reader to the replacement.
 .. LINKS
 
 .. _Stable Release Update: https://wiki.ubuntu.com/StableReleaseUpdates
-.. _devel: https://canonical-ubuntu-packaging-guide.readthedocs-hosted.com/en/latest/reference/glossary/#term-Devel
+.. _devel: https://documentation.ubuntu.com/project/how-ubuntu-is-made/concepts/glossary/#term-Devel
