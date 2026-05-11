@@ -1,0 +1,7 @@
+name: ubuntu-pro-client
+base: ubuntu@24.04
+sdks:
+  - name: uv
+    channel: latest/stable
+
+# TODO check out GitHub Runner SDK

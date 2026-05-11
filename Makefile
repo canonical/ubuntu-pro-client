@@ -20,6 +20,7 @@ deps:
 	}
 	mk-build-deps --tool "apt-get --no-install-recommends --yes" \
 		--install --remove ${mkfile_dir}/debian/control
+	apt install python3-apt
 
 test:
 	@tox
