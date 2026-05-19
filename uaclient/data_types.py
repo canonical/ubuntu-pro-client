@@ -11,8 +11,8 @@ LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 class IncorrectTypeError(exceptions.UbuntuProError):
     _formatted_msg = messages.E_INCORRECT_TYPE_ERROR_MESSAGE
-    expected_type = None  # type: str
-    got_type = None  # type: str
+    expected_type = None  # type: Optional[str]
+    got_type = None  # type: Optional[str]
 
 
 class IncorrectListElementTypeError(IncorrectTypeError):
@@ -37,7 +37,7 @@ class IncorrectDictElementTypeError(IncorrectTypeError):
 
 class IncorrectFieldTypeError(IncorrectTypeError):
     _formatted_msg = messages.E_INCORRECT_FIELD_TYPE_ERROR_MESSAGE
-    key = None  # type: str
+    key = None  # type: Optional[str]
 
     def __init__(self, *, err: IncorrectTypeError, key: str):
         super().__init__(key=key, nested_msg=err.msg)
