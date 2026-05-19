@@ -49,7 +49,7 @@ class EntitlementWithMessage:
 
 class UAEntitlement(metaclass=abc.ABCMeta):
     # Required: short name of the entitlement
-    name: str
+    name = None  # type: str  # type: ignore[assignment]
 
     # Whether the entitlement supports the --access-only flag
     supports_access_only = False

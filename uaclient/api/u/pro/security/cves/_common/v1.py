@@ -205,7 +205,7 @@ class VulnerabilitiesAlreadyFixed:
 
 
 class VulnerabilityParser(metaclass=abc.ABCMeta):
-    vulnerability_type: str
+    vulnerability_type = None  # type: str  # type: ignore[assignment]
 
     @abc.abstractmethod
     def get_package_vulnerabilities(
