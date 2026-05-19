@@ -1,1 +1,2 @@
 sudo make deps
+pre-commit install

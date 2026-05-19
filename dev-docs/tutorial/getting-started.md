@@ -11,11 +11,19 @@ development hosts for Ubuntu Pro Client.
 
 ## From nothing to unit tests
 
-In your terminal, install necessary host tooling:
+### Using Workshop (recommended)
+
+See [Set up Workshop](../how-to/setup-workshop.md) for step-by-step instructions.
+
+### Using the tooling directly (alternative)
+
+If you prefer to manage the toolchain yourself, install the necessary host
+tooling:
 
 ```bash
 sudo apt install git tox pre-commit intltool libapt-pkg-dev sbuild-launchpad-chroot
 ```
+
 > **Note**
 > Python comes installed by default on Ubuntu. Do not install Python via any
 non-Ubuntu means. That includes `conda`, `pyenv`, `asdf`, `ppa:deadsnakes/ppa`,

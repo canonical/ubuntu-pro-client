@@ -5,6 +5,20 @@ The `ubuntu-pro-client` code base is formatted using
 [isort](https://github.com/PyCQA/isort). When making changes, you should ensure
 that your code is blackened and isorted, or it will be rejected by CI.
 
+## Using Workshop (recommended)
+
+If you have [Canonical Workshop](https://canonical-workshop.readthedocs-hosted.com/)
+installed, format the codebase with:
+
+```shell
+workshop format
+```
+
+Workshop handles the Python toolchain automatically, so no additional setup is
+needed.
+
+## Using tox or black directly (alternative)
+
 Formatting the whole codebase is as simple as running:
 
 ```shell

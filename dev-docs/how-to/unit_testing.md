@@ -4,22 +4,34 @@ Before proceeding with unit tests, ensure you have completed the setup
 instructions in the [Getting Started Tutorial](../tutorial/getting-started.md).
 This guide covers essential setup information required to run the tests.
 
-All unit and lint tests are run using `tox`. However, before we can run our
-tests, we need to install some package dependencies. This can be achieved
-through our Makefile script. To install those dependencies, first install
-`make`:
+## Using Workshop (recommended)
+
+If you have [Canonical Workshop](https://canonical-workshop.readthedocs-hosted.com/)
+installed, running the unit tests is as simple as:
+
+```shell
+workshop test
+```
+
+To run a specific test file:
+
+```shell
+workshop test -- uaclient/tests/test_actions.py
+```
+
+Workshop handles the Python toolchain automatically, so no additional setup is
+needed.
+
+## Using tox directly (alternative)
+
+First install the necessary package dependencies via the Makefile:
 
 ```shell
 sudo apt install make
-```
-
-Next, run `make` against the dependency install target.
-
-```shell
 sudo make deps
 ```
 
-After that, you can run the unit and lint tests:
+Then run the unit and lint tests:
 
 ```shell
 tox

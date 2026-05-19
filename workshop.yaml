@@ -6,6 +6,6 @@ sdks:
 
 actions:
   test: uv run tox -e test "$@"
-  lint: uv run tox -e flake8
-  typecheck: uv run tox -e mypy
-  format: uv run tox -e black
+  lint: uv run tox -e flake8 "$@"
+  typecheck: uv run tox -e mypy "$@"
+  format: uv run tox -e black "$@"
