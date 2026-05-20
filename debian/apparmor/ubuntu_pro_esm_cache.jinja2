@@ -308,7 +308,11 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     include <abstractions/base>
 
     capability sys_ptrace,
+    # LP: #2143251
+    # Include perfmon only for noble+; avoid changing releases that don't report the bug.
+{% if ubuntu_codename not in ["xenial", "bionic", "focal", "jammy"] %}
     capability perfmon,
+{% endif %}
 
     ptrace read peer=unconfined,
 {% if ubuntu_codename in ["xenial"] %}
