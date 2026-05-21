@@ -1,14 +1,12 @@
 # Add capability `perfmon` to `cloud_id`
 
-This bug is hard to reproduce locally since it only detectable on Azure VMs.
+This bug is hard to reproduce locally since it only detectable on Azure VMs. This only adds a capability; releases that didn't need this capability won't be affected. Releases that didn't define this capability are explicitly excluded using the templating.
 
-## Notes for SRU
+The CPC team has confirmed that the addition of this capability fixes their issue and has provided reproduction steps.
 
-This only adds a capability; releases that didn't need this capability won't be affected. Releases that didn't define this capability are explicitly excluded using the templating.
+## Reproduction
 
-The CPC team has confirmed that the addition of this capability fixes their issue and has provided reproduction steps:
-
-Reproduce using canonical:ubuntu-24_04-lts:server:latest image on Azure
+Reproduce using canonical:ubuntu-24_04-lts:server:latest image on Azure.
 
 Confirm there no are no denials present initially:
 
@@ -30,3 +28,5 @@ Confirm that denials appear after attaching:
 sudo apt update
 journalctl --no-pager | grep 'apparmor="DENIED"' | grep 'cloud_id'
 ```
+
+When using a build including this fix, there should be no denials after attaching.
