@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 from uaclient import messages
 
@@ -56,7 +56,7 @@ class UbuntuProError(Exception):
                 **kwargs
             )  # type: messages.NamedMessage
         else:
-            self.named_msg = self._msg  # type: ignore[assignment]
+            self.named_msg = cast(messages.NamedMessage, self._msg)
 
         self.additional_info = kwargs
 
