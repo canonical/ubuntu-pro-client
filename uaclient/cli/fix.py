@@ -344,7 +344,10 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
 
 def _inform_ubuntu_pro_existence_if_applicable() -> None:
     """Alert the user when running Pro on cloud with PRO support."""
+    from uaclient.clouds.identity import cloud_type_to_contract_cloud_type
+
     cloud_type, _ = get_cloud_type()
+    cloud_type = cloud_type_to_contract_cloud_type(cloud_type)
     if cloud_type in PRO_CLOUD_URLS.keys():
         print(
             messages.SECURITY_USE_PRO_TMPL.format(

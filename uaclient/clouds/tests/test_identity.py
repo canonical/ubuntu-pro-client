@@ -5,6 +5,7 @@ from uaclient import exceptions
 from uaclient.clouds.identity import (
     NoCloudTypeReason,
     cloud_instance_factory,
+    cloud_type_to_contract_cloud_type,
     get_cloud_type,
     get_instance_id,
 )
@@ -85,6 +86,21 @@ class TestGetCloudType:
 
         m_load_file.return_value = settings_overrides
         assert get_cloud_type.__wrapped__() == (expected_value, None)
+
+
+class TestCloudTypeToContractCloudType:
+    @pytest.mark.parametrize(
+        "cloud_type,expected",
+        (
+            ("aws", "aws"),
+            ("aws-gov", "aws"),
+            ("aws-china", "aws"),
+            ("azure", "azure"),
+            (None, None),
+        ),
+    )
+    def test_cloud_aliases(self, cloud_type, expected):
+        assert cloud_type_to_contract_cloud_type(cloud_type) == expected
 
 
 @mock.patch(M_PATH + "get_cloud_type")
