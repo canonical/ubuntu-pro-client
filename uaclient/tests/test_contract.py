@@ -1684,6 +1684,50 @@ class TestApplyContractOverrides:
 
 @mock.patch("uaclient.http.serviceclient.UAServiceClient.request_url")
 class TestRequestAutoAttach:
+    def test_request_normalizes_aws_gov_cloud_type(
+        self, m_request_url, FakeConfig
+    ):
+        cfg = FakeConfig()
+        contract = UAContractClient(cfg)
+
+        m_request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={"contractToken": "token"},
+            json_list=[],
+        )
+
+        contract.get_contract_token_for_cloud_instance(
+            cloud_type="aws-gov", data={"pkcs7": "doc"}
+        )
+
+        assert [
+            mock.call("/v1/clouds/aws/token", data={"pkcs7": "doc"})
+        ] == m_request_url.call_args_list
+
+    def test_request_normalizes_aws_china_cloud_type(
+        self, m_request_url, FakeConfig
+    ):
+        cfg = FakeConfig()
+        contract = UAContractClient(cfg)
+
+        m_request_url.return_value = http.HTTPResponse(
+            code=200,
+            headers={},
+            body="",
+            json_dict={"contractToken": "token"},
+            json_list=[],
+        )
+
+        contract.get_contract_token_for_cloud_instance(
+            cloud_type="aws-china", data={"pkcs7": "doc"}
+        )
+
+        assert [
+            mock.call("/v1/clouds/aws/token", data={"pkcs7": "doc"})
+        ] == m_request_url.call_args_list
+
     @mock.patch("uaclient.contract.LOG.debug")
     def test_request_for_invalid_pro_image(
         self, m_logging_debug, m_request_url, FakeConfig
@@ -1719,3 +1763,63 @@ class TestRequestAutoAttach:
         assert expected_message.msg == exc_error.value.msg
         assert expected_args == m_logging_debug.call_args_list
         assert exc_error.value.msg_code == "invalid-pro-image"
+
+
+class TestApplyContractOverridesCloudAliases:
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="ubuntuX"),
+    )
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type",
+        return_value=("aws-gov", None),
+    )
+    def test_aws_gov_matches_aws_cloud_selector(
+        self, _m_cloud_type, _m_release_info
+    ):
+        orig_access = {
+            "entitlement": {
+                "affordances": {"packages": ["ubuntu-fips"]},
+                "overrides": [
+                    {
+                        "selector": {"cloud": "aws"},
+                        "affordances": {"packages": ["ubuntu-aws-fips"]},
+                    }
+                ],
+            }
+        }
+
+        apply_contract_overrides(orig_access)
+
+        assert orig_access["entitlement"]["affordances"] == {
+            "packages": ["ubuntu-aws-fips"]
+        }
+
+    @mock.patch(
+        "uaclient.system.get_release_info",
+        return_value=mock.MagicMock(series="ubuntuX"),
+    )
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type",
+        return_value=("aws-china", None),
+    )
+    def test_aws_china_matches_aws_cloud_selector(
+        self, _m_cloud_type, _m_release_info
+    ):
+        orig_access = {
+            "entitlement": {
+                "affordances": {"packages": ["ubuntu-fips"]},
+                "overrides": [
+                    {
+                        "selector": {"cloud": "aws"},
+                        "affordances": {"packages": ["ubuntu-aws-fips"]},
+                    }
+                ],
+            }
+        }
+
+        apply_contract_overrides(orig_access)
+
+        assert orig_access["entitlement"]["affordances"] == {
+            "packages": ["ubuntu-aws-fips"]
+        }

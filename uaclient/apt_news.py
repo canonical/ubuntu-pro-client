@@ -113,9 +113,12 @@ def do_selectors_apply(
             return False
 
     if selectors.clouds is not None:
+        from uaclient.clouds.identity import cloud_type_to_contract_cloud_type
+
         cloud_id, fail = get_cloud_type()
         if fail is not None:
             return False
+        cloud_id = cloud_type_to_contract_cloud_type(cloud_id)
         if cloud_id not in selectors.clouds:
             return False
 
