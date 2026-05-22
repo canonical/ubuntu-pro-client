@@ -290,7 +290,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     ptrace read peer=unconfined,
 
-{% if ubuntu_codename in ["noble"] %}
+    # LP: #2143251
+    # Include only for noble+; avoid changing releases that don't report the bug.
+{% if ubuntu_codename not in ["xenial", "bionic", "focal", "jammy"] %}
     unix bind addr=@*/bus/systemctl/{,system},
 {% endif %}
 
@@ -313,6 +315,11 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     include <abstractions/base>
 
     capability sys_ptrace,
+    # LP: #2143251
+    # Include only for noble+; avoid changing releases that don't report the bug.
+{% if ubuntu_codename not in ["xenial", "bionic", "focal", "jammy"] %}
+    capability perfmon,
+{% endif %}
 
     ptrace read peer=unconfined,
 {% if ubuntu_codename in ["xenial"] %}
