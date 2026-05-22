@@ -2,7 +2,7 @@ import copy
 import logging
 import socket
 from collections import namedtuple
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
@@ -942,7 +942,11 @@ def apply_contract_overrides(
         system.get_release_info().series if series is None else series
     )
     cloud_type, _ = get_cloud_type()
-    cloud_type = cloud_type_to_contract_cloud_type(cloud_type)
+
+    # TODO(srunde3): in practice this is always a string (`_select_overrides`
+    # expects a string), but signatures allow for `None`.
+    # Fix these code paths so that it is always a string.
+    cloud_type = cast(str, cloud_type_to_contract_cloud_type(cloud_type))
     orig_entitlement = orig_access.get("entitlement", {})
 
     overrides = _select_overrides(
