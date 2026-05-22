@@ -285,6 +285,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     ptrace read peer=unconfined,
 
+    # LP: #2143251
     # Include only for noble+; avoid changing releases that don't report the bug.
 {% if ubuntu_codename not in ["xenial", "bionic", "focal", "jammy"] %}
     unix bind addr=@*/bus/systemctl/{,system},
