@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 from uaclient import messages
 
@@ -52,11 +52,15 @@ class UbuntuProError(Exception):
 
     def __init__(self, **kwargs) -> None:
         if self._formatted_msg is not None:
-            self.named_msg = self._formatted_msg.format(
-                **kwargs
-            )  # type: messages.NamedMessage
+            self.named_msg = self._formatted_msg.format(**kwargs)
         else:
-            self.named_msg = cast(messages.NamedMessage, self._msg)
+            if self._msg is None:
+                raise AttributeError(
+                    "{} must define either _msg or _formatted_msg".format(
+                        self.__class__.__name__
+                    )
+                )
+            self.named_msg = self._msg
 
         self.additional_info = kwargs
 
