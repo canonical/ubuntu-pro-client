@@ -53,14 +53,15 @@ class UbuntuProError(Exception):
     def __init__(self, **kwargs) -> None:
         if self._formatted_msg is not None:
             self.named_msg = self._formatted_msg.format(**kwargs)
-        else:
-            if self._msg is None:
-                raise AttributeError(
-                    "{} must define either _msg or _formatted_msg".format(
-                        self.__class__.__name__
-                    )
-                )
+        elif self._msg is not None:
             self.named_msg = self._msg
+        else:
+            # This should not be reached in practice; subclasses should
+            # override either _msg or _formatted_msg. Provide a safe default
+            # just in case.
+            self.named_msg = messages.NamedMessage(
+                "ubuntu-pro-error", "an unexpected error occurred."
+            )
 
         self.additional_info = kwargs
 
