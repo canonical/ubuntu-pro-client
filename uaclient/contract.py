@@ -2,7 +2,7 @@ import copy
 import logging
 import socket
 from collections import namedtuple
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
@@ -868,8 +868,8 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
 
 
 def _get_override_weight(
-    override_selector: Mapping[str, str],
-    selector_values: Mapping[str, Optional[str]],
+    override_selector: Dict[str, str],
+    selector_values: Dict[str, Optional[str]],
 ) -> int:
     override_weight = 0
     for selector, value in override_selector.items():
