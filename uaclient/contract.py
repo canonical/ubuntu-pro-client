@@ -2,7 +2,7 @@ import copy
 import logging
 import socket
 from collections import namedtuple
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 import uaclient.files.machine_token as mtf
 from uaclient import (
@@ -868,7 +868,8 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
 
 
 def _get_override_weight(
-    override_selector: Dict[str, str], selector_values: Dict[str, str]
+    override_selector: Mapping[str, str],
+    selector_values: Mapping[str, Optional[str]],
 ) -> int:
     override_weight = 0
     for selector, value in override_selector.items():
@@ -882,7 +883,7 @@ def _get_override_weight(
 def _select_overrides(
     entitlement: Dict[str, Any],
     series_name: str,
-    cloud_type: str,
+    cloud_type: Optional[str],
     variant: Optional[str] = None,
 ) -> Dict[int, Dict[str, Any]]:
     overrides = {}
@@ -943,10 +944,7 @@ def apply_contract_overrides(
     )
     cloud_type, _ = get_cloud_type()
 
-    # TODO(srunde3): in practice this is always a string (`_select_overrides`
-    # expects a string), but signatures allow for `None`.
-    # Fix these code paths so that it is always a string.
-    cloud_type = cast(str, cloud_type_to_contract_cloud_type(cloud_type))
+    cloud_type = cloud_type_to_contract_cloud_type(cloud_type)
     orig_entitlement = orig_access.get("entitlement", {})
 
     overrides = _select_overrides(
