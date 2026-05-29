@@ -10,3 +10,6 @@ build:
       # Docs are kept in separate docs and docs-devel branches.
       - exit 183
 
+sphinx:
+  configuration: docs/conf.py
+  
