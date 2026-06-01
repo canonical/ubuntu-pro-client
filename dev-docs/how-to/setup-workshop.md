@@ -2,15 +2,14 @@
 
 [Canonical Workshop](https://canonical-workshop.readthedocs-hosted.com/) is the
 recommended way to get a development environment running quickly. It manages a
-sandboxed Ubuntu VM with all required tooling pre-installed.
+sandboxed Ubuntu container with all required tooling pre-installed.
 
 ## Prerequisites
 
-Workshop uses [Multipass](https://multipass.run/) to manage VMs. Install it
-before proceeding:
+Workshop uses [LXD](https://documentation.ubuntu.com/lxd/default/tutorial/first_steps/) to manage containers. Install it before proceeding:
 
 ```bash
-sudo snap install multipass
+sudo snap install lxd
 ```
 
 ## Install Workshop
