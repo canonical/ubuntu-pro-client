@@ -775,83 +775,114 @@ def _get_usn_data(
 
 
 def _get_upgradable_pkgs(
-    binary_pkgs: List[BinaryPackageFix],
-    check_esm_cache: bool,
+    binary_packages: List[BinaryPackageFix],
+    should_check_esm_cache: bool,
 ) -> Tuple[List[str], List[UnfixedPackage]]:
-    upgrade_pkgs = []
-    unfixed_pkgs = []
+    """Split binary fixes into apt-upgradable package names and unfixed entries.
 
-    for binary_pkg in sorted(binary_pkgs):
+    A binary is considered upgradable when the apt candidate exists and is at
+    least the required fixed version. Otherwise, it is returned as an unfixed
+    package for warning generation.
+    """
+    upgradable_binary_packages = []
+    unavailable_binary_fixes = []
+
+    for binary_package in sorted(binary_packages):
         candidate_version = apt.get_pkg_candidate_version(
-            binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
+            binary_package.binary_pkg,
+            check_esm_cache=should_check_esm_cache,
         )
         if (
             candidate_version
             and apt.version_compare(
-                binary_pkg.fixed_version, candidate_version
+                binary_package.fixed_version, candidate_version
             )
             <= 0
         ):
-            upgrade_pkgs.append(binary_pkg.binary_pkg)
+            upgradable_binary_packages.append(binary_package.binary_pkg)
         else:
-            unfixed_pkgs.append(
+            unavailable_binary_fixes.append(
                 UnfixedPackage(
-                    source_package=binary_pkg.source_pkg,
-                    binary_package=binary_pkg.binary_pkg,
-                    version=binary_pkg.fixed_version,
+                    source_package=binary_package.source_pkg,
+                    binary_package=binary_package.binary_pkg,
+                    version=binary_package.fixed_version,
                 )
             )
 
-    return upgrade_pkgs, unfixed_pkgs
+    return upgradable_binary_packages, unavailable_binary_fixes
 
 
 def _get_upgradable_package_candidates_by_pocket(
-    pkg_status_group: List[Tuple[str, CVEPackageStatus]],
+    source_package_status_group: List[Tuple[str, CVEPackageStatus]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
-    installed_pkgs: Dict[str, Dict[str, str]],
+    installed_source_packages: Dict[str, Dict[str, str]],
 ):
-    binary_pocket_pkgs = defaultdict(list)
-    src_pocket_pkgs = defaultdict(list)
+    """Group released source packages and upgrade candidates by pocket.
 
-    for src_pkg, pkg_status in pkg_status_group:
-        src_pocket_pkgs[pkg_status.pocket_source].append((src_pkg, pkg_status))
-        for binary_pkg, version in installed_pkgs[src_pkg].items():
-            usn_released_src = usn_released_pkgs.get(src_pkg, {})
-            if binary_pkg not in usn_released_src:
-                continue
-            fixed_version = usn_released_src.get(binary_pkg, {}).get(
-                "version", ""
+    Returns two pocket-indexed mappings:
+    1. All released source package statuses,
+    2. Binary upgrade candidates whose required fixed version is newer than
+       the currently installed version.
+    """
+    binary_packages_by_pocket = defaultdict(list)
+    source_packages_by_pocket = defaultdict(list)
+
+    for source_package, package_status in source_package_status_group:
+        source_packages_by_pocket[package_status.pocket_source].append(
+            (source_package, package_status)
+        )
+        for (
+            binary_package,
+            installed_version,
+        ) in installed_source_packages[source_package].items():
+            released_binary_packages_for_source = usn_released_pkgs.get(
+                source_package, {}
             )
+            if binary_package not in released_binary_packages_for_source:
+                continue
+            required_fixed_version = released_binary_packages_for_source.get(
+                binary_package, {}
+            ).get("version", "")
 
-            if apt.version_compare(fixed_version, version) > 0:
-                binary_pocket_pkgs[pkg_status.pocket_source].append(
+            if (
+                apt.version_compare(required_fixed_version, installed_version)
+                > 0
+            ):
+                binary_packages_by_pocket[package_status.pocket_source].append(
                     BinaryPackageFix(
-                        source_pkg=src_pkg,
-                        binary_pkg=binary_pkg,
-                        fixed_version=fixed_version,
+                        source_pkg=source_package,
+                        binary_pkg=binary_package,
+                        fixed_version=required_fixed_version,
                     )
                 )
 
-    return src_pocket_pkgs, binary_pocket_pkgs
+    return source_packages_by_pocket, binary_packages_by_pocket
 
 
 def _get_cve_description(
     cve: CVE,
-    installed_pkgs: Dict[str, Dict[str, str]],
+    installed_source_packages: Dict[str, Dict[str, str]],
 ):
+    """Choose the most relevant CVE description for installed source packages.
+
+    Prefers the first notice title whose release packages intersect installed
+    sources; otherwise falls back to the first notice title, or CVE text when
+    no notices are present.
+    """
     if not cve.notices:
         return cve.description
 
     for notice in cve.notices:
         usn_pkgs = notice.release_packages.keys()
         for pkg in usn_pkgs:
-            if pkg in installed_pkgs:
+            if pkg in installed_source_packages:
                 return notice.title
 
     return cve.notices[0].title
 
 
 def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
+    """Build a CVE fix plan, including livepatch short-circuit behavior."""
     livepatch_cve_status, patch_version = _check_cve_fixed_by_livepatch(
         issue_id
     )
@@ -869,7 +900,7 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
         return fix_plan.fix_plan
 
     client = UASecurityClient(cfg=cfg)
-    installed_pkgs = query_installed_source_pkg_versions()
+    installed_source_packages = query_installed_source_pkg_versions()
 
     try:
         cve, usns = _get_cve_data(issue_id=issue_id, client=client)
@@ -882,27 +913,28 @@ def _fix_plan_cve(issue_id: str, cfg: UAConfig) -> FixPlanResult:
         return fix_plan.fix_plan
 
     affected_pkg_status = get_cve_affected_source_packages_status(
-        cve=cve, installed_packages=installed_pkgs
+        cve=cve, installed_packages=installed_source_packages
     )
     usn_released_pkgs = merge_usn_released_binary_package_versions(
         usns, beta_pockets={}
     )
 
-    cve_description = _get_cve_description(cve, installed_pkgs)
+    cve_description = _get_cve_description(cve, installed_source_packages)
 
     return _generate_fix_plan(
         issue_id=issue_id,
         issue_description=cve_description,
         affected_pkg_status=affected_pkg_status,
         usn_released_pkgs=usn_released_pkgs,
-        installed_pkgs=installed_pkgs,
+        installed_pkgs=installed_source_packages,
         cfg=cfg,
     )
 
 
 def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
+    """Build fix plans for a USN and any related USNs."""
     client = UASecurityClient(cfg=cfg)
-    installed_pkgs = query_installed_source_pkg_versions()
+    installed_source_packages = query_installed_source_pkg_versions()
 
     try:
         usn, related_usns = _get_usn_data(issue_id=issue_id, client=client)
@@ -918,7 +950,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
         )
 
     affected_pkg_status = get_affected_packages_from_usn(
-        usn=usn, installed_packages=installed_pkgs
+        usn=usn, installed_packages=installed_source_packages
     )
     usn_released_pkgs = merge_usn_released_binary_package_versions(
         [usn], beta_pockets={}
@@ -935,7 +967,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
         issue_description=usn.title,
         affected_pkg_status=affected_pkg_status,
         usn_released_pkgs=usn_released_pkgs,
-        installed_pkgs=installed_pkgs,
+        installed_pkgs=installed_source_packages,
         cfg=cfg,
         additional_data=additional_data,
     )
@@ -943,7 +975,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
     related_usns_plan = []  # type: List[FixPlanResult]
     for usn in related_usns:
         affected_pkg_status = get_affected_packages_from_usn(
-            usn=usn, installed_packages=installed_pkgs
+            usn=usn, installed_packages=installed_source_packages
         )
         usn_released_pkgs = merge_usn_released_binary_package_versions(
             [usn], beta_pockets={}
@@ -961,7 +993,7 @@ def _fix_plan_usn(issue_id: str, cfg: UAConfig) -> FixPlanUSNResult:
                 issue_description=usn.title,
                 affected_pkg_status=affected_pkg_status,
                 usn_released_pkgs=usn_released_pkgs,
-                installed_pkgs=installed_pkgs,
+                installed_pkgs=installed_source_packages,
                 cfg=cfg,
                 additional_data=additional_data,
             )
@@ -1010,13 +1042,18 @@ def get_pocket_short_name(pocket: str):
 
 
 def _should_update_esm_cache(
-    check_esm_cache: bool,
-    esm_cache_updated: bool,
+    should_check_esm_cache: bool,
+    has_updated_esm_cache: bool,
     cfg: UAConfig,
 ) -> bool:
+    """Return whether ESM apt caches should be refreshed before candidate lookups.
+
+    Updates are attempted only for non-standard pockets, only once per plan,
+    and only when the system is unattached and cache metadata is stale.
+    """
     if (
-        check_esm_cache
-        and not esm_cache_updated
+        should_check_esm_cache
+        and not has_updated_esm_cache
         and not _is_attached(cfg).is_attached
     ):
         last_apt_update = apt.get_apt_cache_datetime()
@@ -1041,8 +1078,15 @@ def _generate_fix_plan(
     cfg: UAConfig,
     additional_data=None
 ) -> FixPlanResult:
+    """Generate the actionable fix plan from affected packages and release data.
+
+    The planner groups package status by release state and pocket, emits
+    warnings for unresolved statuses, determines upgradeable binaries, and then
+    produces NOOP/ATTACH/ENABLE/APT_UPGRADE steps that reflect system state.
+    """
     count = len(affected_pkg_status)
-    src_pocket_pkgs = defaultdict(list)
+    source_packages_by_pocket = defaultdict(list)
+    binary_packages_by_pocket = defaultdict(list)
     esm_cache_updated = False
 
     fix_plan = get_fix_plan(
@@ -1064,17 +1108,20 @@ def _generate_fix_plan(
     else:
         fix_plan.current_status = FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
 
-    pkg_status_groups = group_by_usn_package_status(
+    package_status_groups = group_by_usn_package_status(
         affected_pkg_status, usn_released_pkgs
     )
 
-    for status_value, pkg_status_group in sorted(pkg_status_groups.items()):
+    for status_value, source_package_status_group in sorted(
+        package_status_groups.items()
+    ):
         if status_value != "released":
             fix_plan.register_warning(
                 warning_type=FixWarningType.SECURITY_ISSUE_NOT_FIXED,
                 data={
                     "source_packages": [
-                        src_pkg for src_pkg, _ in pkg_status_group
+                        source_package
+                        for source_package, _ in source_package_status_group
                     ],
                     "status": status_value,
                 },
@@ -1084,15 +1131,15 @@ def _generate_fix_plan(
             )
         else:
             (
-                src_pocket_pkgs,
-                binary_pocket_pkgs,
+                source_packages_by_pocket,
+                binary_packages_by_pocket,
             ) = _get_upgradable_package_candidates_by_pocket(
-                pkg_status_group,
+                source_package_status_group,
                 usn_released_pkgs,
                 installed_pkgs,
             )
 
-    if not src_pocket_pkgs:
+    if not source_packages_by_pocket:
         return fix_plan.fix_plan
 
     for pocket in [
@@ -1100,13 +1147,15 @@ def _generate_fix_plan(
         messages.SECURITY_UA_INFRA_POCKET,
         messages.SECURITY_UA_APPS_POCKET,
     ]:
-        pkg_src_group = src_pocket_pkgs[pocket]
-        binary_pkgs = binary_pocket_pkgs[pocket]
-        source_pkgs = [src_pkg for src_pkg, _ in pkg_src_group]
+        source_package_statuses = source_packages_by_pocket[pocket]
+        binary_packages = binary_packages_by_pocket[pocket]
+        source_packages = [
+            source_package for source_package, _ in source_package_statuses
+        ]
         pocket_name = get_pocket_short_name(pocket)
 
-        if not binary_pkgs:
-            if source_pkgs:
+        if not binary_packages:
+            if source_packages:
                 fix_plan.current_status = (
                     FixStatus.SYSTEM_NON_VULNERABLE.value.msg
                 )
@@ -1114,17 +1163,19 @@ def _generate_fix_plan(
                     operation=FixStepType.NOOP,
                     data={
                         "status": FixPlanNoOpStatus.ALREADY_FIXED.value,
-                        "source_packages": source_pkgs,
+                        "source_packages": source_packages,
                         "pocket": pocket_name,
                     },
                 )
             continue
 
-        check_esm_cache = (
+        should_check_esm_cache = (
             pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
         )
 
-        if _should_update_esm_cache(check_esm_cache, esm_cache_updated, cfg):
+        if _should_update_esm_cache(
+            should_check_esm_cache, esm_cache_updated, cfg
+        ):
             try:
                 apt.update_esm_caches(cfg)
                 esm_cache_updated = True
@@ -1141,22 +1192,22 @@ def _generate_fix_plan(
                     },
                 )
 
-        upgrade_pkgs, unfixed_pkgs = _get_upgradable_pkgs(
-            binary_pkgs, check_esm_cache
+        upgradable_binary_packages, unavailable_binary_fixes = (
+            _get_upgradable_pkgs(binary_packages, should_check_esm_cache)
         )
 
-        if unfixed_pkgs:
+        if unavailable_binary_fixes:
             fix_plan.current_status = (
                 FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
             )
-            for unfixed_pkg in unfixed_pkgs:
+            for unavailable_fix in unavailable_binary_fixes:
                 fix_plan.register_warning(
                     warning_type=FixWarningType.PACKAGE_CANNOT_BE_INSTALLED,
                     data={
-                        "binary_package": unfixed_pkg.binary_package,
-                        "binary_package_version": unfixed_pkg.version,
-                        "source_package": unfixed_pkg.source_package,
-                        "related_source_packages": source_pkgs,
+                        "binary_package": unavailable_fix.binary_package,
+                        "binary_package_version": unavailable_fix.version,
+                        "source_package": unavailable_fix.source_package,
+                        "related_source_packages": source_packages,
                         "pocket": pocket_name,
                     },
                 )
@@ -1172,7 +1223,7 @@ def _generate_fix_plan(
                     operation=FixStepType.ATTACH,
                     data={
                         "reason": FixPlanAttachReason.REQUIRED_PRO_SERVICE.value,  # noqa: E501
-                        "source_packages": source_pkgs,
+                        "source_packages": source_packages,
                         "required_service": service_to_check,
                     },
                 )
@@ -1183,7 +1234,7 @@ def _generate_fix_plan(
                         operation=FixStepType.ATTACH,
                         data={
                             "reason": FixPlanAttachReason.EXPIRED_CONTRACT.value,  # noqa: E501
-                            "source_packages": source_pkgs,
+                            "source_packages": source_packages,
                         },
                     )
 
@@ -1198,15 +1249,15 @@ def _generate_fix_plan(
                     operation=FixStepType.ENABLE,
                     data={
                         "service": service_to_check,
-                        "source_packages": source_pkgs,
+                        "source_packages": source_packages,
                     },
                 )
 
         fix_plan.register_step(
             operation=FixStepType.APT_UPGRADE,
             data={
-                "binary_packages": upgrade_pkgs,
-                "source_packages": source_pkgs,
+                "binary_packages": upgradable_binary_packages,
+                "source_packages": source_packages,
                 "pocket": pocket_name,
             },
         )
