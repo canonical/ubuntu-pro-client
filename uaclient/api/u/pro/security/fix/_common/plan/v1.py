@@ -9,7 +9,6 @@ from uaclient.api.u.pro.security.fix._common import (
     CVE,
     CVE_OR_USN_REGEX,
     USN,
-    BinaryPackageFix,
     CVEPackageStatus,
     FixStatus,
     UASecurityClient,
@@ -38,6 +37,12 @@ from uaclient.data_types import (
 STANDARD_UPDATES_POCKET = "standard-updates"
 ESM_INFRA_POCKET = "esm-infra"
 ESM_APPS_POCKET = "esm-apps"
+
+_ORDERED_FIX_POCKETS = (
+    messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET,
+    messages.SECURITY_UA_INFRA_POCKET,
+    messages.SECURITY_UA_APPS_POCKET,
+)
 
 UnfixedPackage = NamedTuple(
     "UnfixedPackage",
@@ -69,6 +74,29 @@ class BinaryPackageCategorization:
         self.binary_package = binary_package
         self.installed_version = installed_version
         self.required_fixed_version = required_fixed_version
+
+    @classmethod
+    def from_release_metadata(
+        cls,
+        source_package: str,
+        binary_package: str,
+        installed_version: str,
+        released_binaries_for_source: Dict[str, Dict[str, str]],
+    ) -> "BinaryPackageCategorization":
+        if binary_package in released_binaries_for_source:
+            required_fixed_version = released_binaries_for_source.get(
+                binary_package, {}
+            ).get(
+                "version", ""
+            )  # type: Optional[str]
+        else:
+            required_fixed_version = None
+        return cls(
+            source_package=source_package,
+            binary_package=binary_package,
+            installed_version=installed_version,
+            required_fixed_version=required_fixed_version,
+        )
 
     @property
     def is_listed_as_fixing_issue(self) -> bool:
@@ -112,15 +140,41 @@ class SourcePackageCategorization:
         )
 
     @property
-    def upgradable_fixes(self) -> List[BinaryPackageFix]:
+    def binaries_needing_upgrade(self) -> List[BinaryPackageCategorization]:
         return [
-            BinaryPackageFix(
-                source_pkg=bc.source_package,
-                binary_pkg=bc.binary_package,
-                fixed_version=bc.required_fixed_version or "",
-            )
-            for bc in self.binary_categorizations
-            if bc.needs_upgrade_to_fix
+            bc for bc in self.binary_categorizations if bc.needs_upgrade_to_fix
+        ]
+
+
+class PocketCategorization:
+    """All affected source packages in a single pocket."""
+
+    def __init__(
+        self,
+        pocket: str,
+        source_categorizations: List[SourcePackageCategorization],
+    ):
+        self.pocket = pocket
+        self.source_categorizations = source_categorizations
+
+    @property
+    def pocket_short_name(self) -> str:
+        return get_pocket_short_name(self.pocket)
+
+    @property
+    def should_check_esm_cache(self) -> bool:
+        return self.pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
+
+    @property
+    def source_packages(self) -> List[str]:
+        return [s.source_package for s in self.source_categorizations]
+
+    @property
+    def binaries_needing_upgrade(self) -> List[BinaryPackageCategorization]:
+        return [
+            bc
+            for s in self.source_categorizations
+            for bc in s.binaries_needing_upgrade
         ]
 
 
@@ -849,11 +903,11 @@ def _get_usn_data(
     return usn, usns
 
 
-def _get_upgradable_pkgs(
-    binary_packages: List[BinaryPackageFix],
+def _partition_by_apt_availability(
+    binaries_needing_upgrade: List[BinaryPackageCategorization],
     should_check_esm_cache: bool,
 ) -> Tuple[List[str], List[UnfixedPackage]]:
-    """Split binary fixes into apt-upgradable package names and unfixed entries.
+    """Split needs-upgrade binaries into apt-upgradable names and unfixed entries.
 
     A binary is considered upgradable when the apt candidate exists and is at
     least the required fixed version. Otherwise, it is returned as an unfixed
@@ -862,25 +916,31 @@ def _get_upgradable_pkgs(
     upgradable_binary_packages = []
     unavailable_binary_fixes = []
 
-    for binary_package in sorted(binary_packages):
+    for bc in sorted(
+        binaries_needing_upgrade,
+        key=lambda x: (
+            x.source_package,
+            x.binary_package,
+            x.required_fixed_version or "",
+        ),
+    ):
         candidate_version = apt.get_pkg_candidate_version(
-            binary_package.binary_pkg,
+            bc.binary_package,
             check_esm_cache=should_check_esm_cache,
         )
+        required_fixed_version = bc.required_fixed_version or ""
         if (
             candidate_version
-            and apt.version_compare(
-                binary_package.fixed_version, candidate_version
-            )
+            and apt.version_compare(required_fixed_version, candidate_version)
             <= 0
         ):
-            upgradable_binary_packages.append(binary_package.binary_pkg)
+            upgradable_binary_packages.append(bc.binary_package)
         else:
             unavailable_binary_fixes.append(
                 UnfixedPackage(
-                    source_package=binary_package.source_pkg,
-                    binary_package=binary_package.binary_pkg,
-                    version=binary_package.fixed_version,
+                    source_package=bc.source_package,
+                    binary_package=bc.binary_package,
+                    version=required_fixed_version,
                 )
             )
 
@@ -891,38 +951,33 @@ def _categorize_packages_by_pocket(
     source_package_status_group: List[Tuple[str, CVEPackageStatus]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_source_packages: Dict[str, Dict[str, str]],
-) -> Dict[str, List[SourcePackageCategorization]]:
-    """Categorize each affected source package's installed binaries by pocket."""
-    categorizations_by_pocket = defaultdict(
+) -> List[PocketCategorization]:
+    """Categorize each affected source package's installed binaries by pocket.
+
+    Returns one ``PocketCategorization`` per pocket in
+    ``_ORDERED_FIX_POCKETS``; pockets with no affected sources are still
+    represented (with an empty ``source_categorizations`` list) so callers can
+    iterate the result in fixed order.
+    """
+    sources_by_pocket = defaultdict(
         list
     )  # type: Dict[str, List[SourcePackageCategorization]]
 
     for source_package, package_status in source_package_status_group:
         released_binaries = usn_released_pkgs.get(source_package, {})
-        binary_categorizations = []
-        for (
-            binary_package,
-            installed_version,
-        ) in installed_source_packages[source_package].items():
-            if binary_package in released_binaries:
-                required_fixed_version = released_binaries.get(
-                    binary_package, {}
-                ).get(
-                    "version", ""
-                )  # type: Optional[str]
-            else:
-                required_fixed_version = None
-
-            binary_categorizations.append(
-                BinaryPackageCategorization(
-                    source_package=source_package,
-                    binary_package=binary_package,
-                    installed_version=installed_version,
-                    required_fixed_version=required_fixed_version,
-                )
+        binary_categorizations = [
+            BinaryPackageCategorization.from_release_metadata(
+                source_package=source_package,
+                binary_package=binary_package,
+                installed_version=installed_version,
+                released_binaries_for_source=released_binaries,
             )
+            for binary_package, installed_version in installed_source_packages[
+                source_package
+            ].items()
+        ]
 
-        categorizations_by_pocket[package_status.pocket_source].append(
+        sources_by_pocket[package_status.pocket_source].append(
             SourcePackageCategorization(
                 source_package=source_package,
                 pocket=package_status.pocket_source,
@@ -931,7 +986,13 @@ def _categorize_packages_by_pocket(
             )
         )
 
-    return categorizations_by_pocket
+    return [
+        PocketCategorization(
+            pocket=pocket,
+            source_categorizations=sources_by_pocket[pocket],
+        )
+        for pocket in _ORDERED_FIX_POCKETS
+    ]
 
 
 def _get_cve_description(
@@ -1160,9 +1221,7 @@ def _generate_fix_plan(
     produces NOOP/ATTACH/ENABLE/APT_UPGRADE steps that reflect system state.
     """
     count = len(affected_pkg_status)
-    categorizations_by_pocket = defaultdict(
-        list
-    )  # type: Dict[str, List[SourcePackageCategorization]]
+    pocket_categorizations = []  # type: List[PocketCategorization]
     esm_cache_updated = False
 
     fix_plan = get_fix_plan(
@@ -1206,28 +1265,21 @@ def _generate_fix_plan(
                 FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
             )
         else:
-            categorizations_by_pocket = _categorize_packages_by_pocket(
+            pocket_categorizations = _categorize_packages_by_pocket(
                 source_package_status_group,
                 usn_released_pkgs,
                 installed_pkgs,
             )
 
-    if not categorizations_by_pocket:
+    if not pocket_categorizations:
         return fix_plan.fix_plan
 
-    for pocket in [
-        messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET,
-        messages.SECURITY_UA_INFRA_POCKET,
-        messages.SECURITY_UA_APPS_POCKET,
-    ]:
-        source_categorizations = categorizations_by_pocket[pocket]
-        source_packages = [s.source_package for s in source_categorizations]
-        upgradable_fixes = [
-            fix for s in source_categorizations for fix in s.upgradable_fixes
-        ]
-        pocket_name = get_pocket_short_name(pocket)
+    for pc in pocket_categorizations:
+        source_packages = pc.source_packages
+        binaries_needing_upgrade = pc.binaries_needing_upgrade
+        pocket_name = pc.pocket_short_name
 
-        if not upgradable_fixes:
+        if not binaries_needing_upgrade:
             if source_packages:
                 fix_plan.current_status = (
                     FixStatus.SYSTEM_NON_VULNERABLE.value.msg
@@ -1242,9 +1294,7 @@ def _generate_fix_plan(
                 )
             continue
 
-        should_check_esm_cache = (
-            pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET
-        )
+        should_check_esm_cache = pc.should_check_esm_cache
 
         if _should_update_esm_cache(
             should_check_esm_cache, esm_cache_updated, cfg
@@ -1266,7 +1316,9 @@ def _generate_fix_plan(
                 )
 
         upgradable_binary_packages, unavailable_binary_fixes = (
-            _get_upgradable_pkgs(upgradable_fixes, should_check_esm_cache)
+            _partition_by_apt_availability(
+                binaries_needing_upgrade, should_check_esm_cache
+            )
         )
 
         if unavailable_binary_fixes:
@@ -1285,8 +1337,8 @@ def _generate_fix_plan(
                     },
                 )
 
-        if pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
-            if pocket == messages.SECURITY_UA_INFRA_POCKET:
+        if pc.pocket != messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET:
+            if pc.pocket == messages.SECURITY_UA_INFRA_POCKET:
                 service_to_check = "esm-infra"
             else:
                 service_to_check = "esm-apps"
