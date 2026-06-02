@@ -49,6 +49,81 @@ UnfixedPackage = NamedTuple(
 )
 
 
+class BinaryPackageCategorization:
+    """One installed binary classified against release metadata for an issue.
+
+    ``required_fixed_version is None`` means the binary is not listed in
+    release metadata as fixing this issue; an empty string means it is listed
+    but no usable version was provided. Derived properties name the
+    combinations the planner actually consumes.
+    """
+
+    def __init__(
+        self,
+        source_package: str,
+        binary_package: str,
+        installed_version: str,
+        required_fixed_version: Optional[str],
+    ):
+        self.source_package = source_package
+        self.binary_package = binary_package
+        self.installed_version = installed_version
+        self.required_fixed_version = required_fixed_version
+
+    @property
+    def is_listed_as_fixing_issue(self) -> bool:
+        return self.required_fixed_version is not None
+
+    @property
+    def needs_upgrade_to_fix(self) -> bool:
+        if self.required_fixed_version is None:
+            return False
+        return (
+            apt.version_compare(
+                self.required_fixed_version, self.installed_version
+            )
+            > 0
+        )
+
+    @property
+    def is_already_at_fix_version(self) -> bool:
+        return self.is_listed_as_fixing_issue and not self.needs_upgrade_to_fix
+
+
+class SourcePackageCategorization:
+    """Installed binaries of one affected source package in one pocket."""
+
+    def __init__(
+        self,
+        source_package: str,
+        pocket: str,
+        package_status: CVEPackageStatus,
+        binary_categorizations: List[BinaryPackageCategorization],
+    ):
+        self.source_package = source_package
+        self.pocket = pocket
+        self.package_status = package_status
+        self.binary_categorizations = binary_categorizations
+
+    @property
+    def has_any_listed_binary(self) -> bool:
+        return any(
+            bc.is_listed_as_fixing_issue for bc in self.binary_categorizations
+        )
+
+    @property
+    def upgradable_fixes(self) -> List[BinaryPackageFix]:
+        return [
+            BinaryPackageFix(
+                source_pkg=bc.source_package,
+                binary_pkg=bc.binary_package,
+                fixed_version=bc.required_fixed_version or "",
+            )
+            for bc in self.binary_categorizations
+            if bc.needs_upgrade_to_fix
+        ]
+
+
 @enum.unique
 class FixStepType(enum.Enum):
     ATTACH = "attach"
@@ -812,51 +887,51 @@ def _get_upgradable_pkgs(
     return upgradable_binary_packages, unavailable_binary_fixes
 
 
-def _get_upgradable_package_candidates_by_pocket(
+def _categorize_packages_by_pocket(
     source_package_status_group: List[Tuple[str, CVEPackageStatus]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_source_packages: Dict[str, Dict[str, str]],
-):
-    """Group released source packages and upgrade candidates by pocket.
-
-    Returns two pocket-indexed mappings:
-    1. All released source package statuses,
-    2. Binary upgrade candidates whose required fixed version is newer than
-       the currently installed version.
-    """
-    binary_packages_by_pocket = defaultdict(list)
-    source_packages_by_pocket = defaultdict(list)
+) -> Dict[str, List[SourcePackageCategorization]]:
+    """Categorize each affected source package's installed binaries by pocket."""
+    categorizations_by_pocket = defaultdict(
+        list
+    )  # type: Dict[str, List[SourcePackageCategorization]]
 
     for source_package, package_status in source_package_status_group:
-        source_packages_by_pocket[package_status.pocket_source].append(
-            (source_package, package_status)
-        )
+        released_binaries = usn_released_pkgs.get(source_package, {})
+        binary_categorizations = []
         for (
             binary_package,
             installed_version,
         ) in installed_source_packages[source_package].items():
-            released_binary_packages_for_source = usn_released_pkgs.get(
-                source_package, {}
-            )
-            if binary_package not in released_binary_packages_for_source:
-                continue
-            required_fixed_version = released_binary_packages_for_source.get(
-                binary_package, {}
-            ).get("version", "")
+            if binary_package in released_binaries:
+                required_fixed_version = released_binaries.get(
+                    binary_package, {}
+                ).get(
+                    "version", ""
+                )  # type: Optional[str]
+            else:
+                required_fixed_version = None
 
-            if (
-                apt.version_compare(required_fixed_version, installed_version)
-                > 0
-            ):
-                binary_packages_by_pocket[package_status.pocket_source].append(
-                    BinaryPackageFix(
-                        source_pkg=source_package,
-                        binary_pkg=binary_package,
-                        fixed_version=required_fixed_version,
-                    )
+            binary_categorizations.append(
+                BinaryPackageCategorization(
+                    source_package=source_package,
+                    binary_package=binary_package,
+                    installed_version=installed_version,
+                    required_fixed_version=required_fixed_version,
                 )
+            )
 
-    return source_packages_by_pocket, binary_packages_by_pocket
+        categorizations_by_pocket[package_status.pocket_source].append(
+            SourcePackageCategorization(
+                source_package=source_package,
+                pocket=package_status.pocket_source,
+                package_status=package_status,
+                binary_categorizations=binary_categorizations,
+            )
+        )
+
+    return categorizations_by_pocket
 
 
 def _get_cve_description(
@@ -1085,8 +1160,9 @@ def _generate_fix_plan(
     produces NOOP/ATTACH/ENABLE/APT_UPGRADE steps that reflect system state.
     """
     count = len(affected_pkg_status)
-    source_packages_by_pocket = defaultdict(list)
-    binary_packages_by_pocket = defaultdict(list)
+    categorizations_by_pocket = defaultdict(
+        list
+    )  # type: Dict[str, List[SourcePackageCategorization]]
     esm_cache_updated = False
 
     fix_plan = get_fix_plan(
@@ -1130,16 +1206,13 @@ def _generate_fix_plan(
                 FixStatus.SYSTEM_STILL_VULNERABLE.value.msg
             )
         else:
-            (
-                source_packages_by_pocket,
-                binary_packages_by_pocket,
-            ) = _get_upgradable_package_candidates_by_pocket(
+            categorizations_by_pocket = _categorize_packages_by_pocket(
                 source_package_status_group,
                 usn_released_pkgs,
                 installed_pkgs,
             )
 
-    if not source_packages_by_pocket:
+    if not categorizations_by_pocket:
         return fix_plan.fix_plan
 
     for pocket in [
@@ -1147,14 +1220,14 @@ def _generate_fix_plan(
         messages.SECURITY_UA_INFRA_POCKET,
         messages.SECURITY_UA_APPS_POCKET,
     ]:
-        source_package_statuses = source_packages_by_pocket[pocket]
-        binary_packages = binary_packages_by_pocket[pocket]
-        source_packages = [
-            source_package for source_package, _ in source_package_statuses
+        source_categorizations = categorizations_by_pocket[pocket]
+        source_packages = [s.source_package for s in source_categorizations]
+        upgradable_fixes = [
+            fix for s in source_categorizations for fix in s.upgradable_fixes
         ]
         pocket_name = get_pocket_short_name(pocket)
 
-        if not binary_packages:
+        if not upgradable_fixes:
             if source_packages:
                 fix_plan.current_status = (
                     FixStatus.SYSTEM_NON_VULNERABLE.value.msg
@@ -1193,7 +1266,7 @@ def _generate_fix_plan(
                 )
 
         upgradable_binary_packages, unavailable_binary_fixes = (
-            _get_upgradable_pkgs(binary_packages, should_check_esm_cache)
+            _get_upgradable_pkgs(upgradable_fixes, should_check_esm_cache)
         )
 
         if unavailable_binary_fixes:
