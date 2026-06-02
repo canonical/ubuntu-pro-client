@@ -13,6 +13,7 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     AdditionalData,
     AptUpgradeData,
     AttachData,
+    BinaryPackageCategorization,
     EnableData,
     FailUpdatingESMCacheData,
     FixPlanAptUpgradeStep,
@@ -31,7 +32,9 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     NoOpData,
     NoOpLivepatchFixData,
     PackageCannotBeInstalledData,
+    PocketCategorization,
     SecurityIssueNotFixedData,
+    SourcePackageCategorization,
     USNAdditionalData,
     _get_cve_description,
     fix_plan_cve,
@@ -1255,3 +1258,220 @@ class TestGetCVEDescription:
         assert expected_description == _get_cve_description(
             cve, installed_pkgs
         )
+
+
+class TestCategorizationClasses:
+    def test_binary_from_release_metadata_with_version(self):
+        categorization = BinaryPackageCategorization.from_release_metadata(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.0",
+            released_binaries_for_source={"bin1": {"version": "1.2"}},
+        )
+
+        assert categorization.source_package == "pkg1"
+        assert categorization.binary_package == "bin1"
+        assert categorization.installed_version == "1.0"
+        assert categorization.required_fixed_version == "1.2"
+        assert categorization.is_listed_as_fixing_issue
+
+    def test_binary_from_release_metadata_without_version_key(self):
+        categorization = BinaryPackageCategorization.from_release_metadata(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.0",
+            released_binaries_for_source={"bin1": {"name": "bin1"}},
+        )
+
+        assert categorization.required_fixed_version == ""
+        assert categorization.is_listed_as_fixing_issue
+
+    def test_binary_from_release_metadata_when_binary_not_present(self):
+        categorization = BinaryPackageCategorization.from_release_metadata(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.0",
+            released_binaries_for_source={"bin2": {"version": "1.2"}},
+        )
+
+        assert categorization.required_fixed_version is None
+        assert not categorization.is_listed_as_fixing_issue
+        assert not categorization.needs_upgrade_to_fix
+        assert not categorization.is_already_at_fix_version
+
+    @mock.patch("uaclient.apt.version_compare")
+    def test_binary_needs_upgrade_to_fix(self, m_version_compare):
+        m_version_compare.return_value = 1
+        categorization = BinaryPackageCategorization(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.0",
+            required_fixed_version="1.2",
+        )
+
+        assert categorization.needs_upgrade_to_fix
+        m_version_compare.assert_called_once_with("1.2", "1.0")
+
+    @mock.patch("uaclient.apt.version_compare")
+    def test_binary_is_already_at_fix_version_when_listed_and_not_newer(
+        self, m_version_compare
+    ):
+        m_version_compare.return_value = 0
+        categorization = BinaryPackageCategorization(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.2",
+            required_fixed_version="1.2",
+        )
+
+        assert not categorization.needs_upgrade_to_fix
+        assert categorization.is_already_at_fix_version
+
+    @mock.patch("uaclient.apt.version_compare")
+    def test_binary_with_no_required_fix_version_skips_comparison(
+        self, m_version_compare
+    ):
+        categorization = BinaryPackageCategorization(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.0",
+            required_fixed_version=None,
+        )
+
+        assert not categorization.needs_upgrade_to_fix
+        assert not categorization.is_already_at_fix_version
+        m_version_compare.assert_not_called()
+
+    def test_source_has_any_listed_binary_true_when_any_binary_listed(self):
+        source = SourcePackageCategorization(
+            source_package="pkg1",
+            pocket="security",
+            package_status=mock.MagicMock(),
+            binary_categorizations=[
+                BinaryPackageCategorization(
+                    source_package="pkg1",
+                    binary_package="bin1",
+                    installed_version="1.0",
+                    required_fixed_version=None,
+                ),
+                BinaryPackageCategorization(
+                    source_package="pkg1",
+                    binary_package="bin2",
+                    installed_version="1.0",
+                    required_fixed_version="",
+                ),
+            ],
+        )
+
+        assert source.has_any_listed_binary
+
+    def test_source_has_any_listed_binary_false_when_none_listed(self):
+        source = SourcePackageCategorization(
+            source_package="pkg1",
+            pocket="security",
+            package_status=mock.MagicMock(),
+            binary_categorizations=[
+                BinaryPackageCategorization(
+                    source_package="pkg1",
+                    binary_package="bin1",
+                    installed_version="1.0",
+                    required_fixed_version=None,
+                )
+            ],
+        )
+
+        assert not source.has_any_listed_binary
+
+    @mock.patch("uaclient.apt.version_compare")
+    def test_source_binaries_needing_upgrade_filters_correctly(
+        self, m_version_compare
+    ):
+        m_version_compare.side_effect = [1, 0]
+        needs_upgrade = BinaryPackageCategorization(
+            source_package="pkg1",
+            binary_package="bin1",
+            installed_version="1.0",
+            required_fixed_version="1.2",
+        )
+        already_fixed = BinaryPackageCategorization(
+            source_package="pkg1",
+            binary_package="bin2",
+            installed_version="1.2",
+            required_fixed_version="1.2",
+        )
+        unlisted = BinaryPackageCategorization(
+            source_package="pkg1",
+            binary_package="bin3",
+            installed_version="1.0",
+            required_fixed_version=None,
+        )
+        source = SourcePackageCategorization(
+            source_package="pkg1",
+            pocket="security",
+            package_status=mock.MagicMock(),
+            binary_categorizations=[needs_upgrade, already_fixed, unlisted],
+        )
+
+        assert source.binaries_needing_upgrade == [needs_upgrade]
+        assert m_version_compare.call_count == 2
+
+    @pytest.mark.parametrize(
+        "pocket,expected_short_name",
+        (
+            (
+                messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET,
+                "standard-updates",
+            ),
+            (messages.SECURITY_UA_INFRA_POCKET, "esm-infra"),
+            (messages.SECURITY_UA_APPS_POCKET, "esm-apps"),
+            ("custom-pocket", "custom-pocket"),
+        ),
+    )
+    def test_pocket_short_name(self, pocket, expected_short_name):
+        categorization = PocketCategorization(
+            pocket=pocket,
+            source_categorizations=[],
+        )
+
+        assert categorization.pocket_short_name == expected_short_name
+
+    @pytest.mark.parametrize(
+        "pocket,expected",
+        (
+            (messages.SECURITY_UBUNTU_STANDARD_UPDATES_POCKET, False),
+            (messages.SECURITY_UA_INFRA_POCKET, True),
+            (messages.SECURITY_UA_APPS_POCKET, True),
+        ),
+    )
+    def test_pocket_should_check_esm_cache(self, pocket, expected):
+        categorization = PocketCategorization(
+            pocket=pocket,
+            source_categorizations=[],
+        )
+
+        assert categorization.should_check_esm_cache is expected
+
+    def test_pocket_source_packages_preserves_order(self):
+        source_one = mock.MagicMock(source_package="pkg2")
+        source_two = mock.MagicMock(source_package="pkg1")
+        categorization = PocketCategorization(
+            pocket=messages.SECURITY_UA_INFRA_POCKET,
+            source_categorizations=[source_one, source_two],
+        )
+
+        assert categorization.source_packages == ["pkg2", "pkg1"]
+
+    def test_pocket_binaries_needing_upgrade_flattens_sources(self):
+        binary_one = mock.MagicMock(binary_package="bin1")
+        binary_two = mock.MagicMock(binary_package="bin2")
+        source_one = mock.MagicMock(binaries_needing_upgrade=[binary_one])
+        source_two = mock.MagicMock(binaries_needing_upgrade=[binary_two])
+        categorization = PocketCategorization(
+            pocket=messages.SECURITY_UA_APPS_POCKET,
+            source_categorizations=[source_one, source_two],
+        )
+
+        assert categorization.binaries_needing_upgrade == [
+            binary_one,
+            binary_two,
+        ]
