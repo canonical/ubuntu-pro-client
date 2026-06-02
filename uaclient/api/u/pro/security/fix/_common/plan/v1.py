@@ -99,11 +99,20 @@ class BinaryPackageCategorization:
         )
 
     @property
-    def is_listed_as_fixing_issue(self) -> bool:
+    def has_release_metadata_entry(self) -> bool:
+        """Whether release metadata contains an entry for this binary."""
         return self.required_fixed_version is not None
 
     @property
+    def has_usable_fix_version(self) -> bool:
+        """Whether release metadata provides a non-empty required version."""
+        return bool(self.required_fixed_version)
+
+    @property
     def needs_upgrade_to_fix(self) -> bool:
+        """Whether this binary package needs an upgrade in order to fix a
+        vulnerability it is affected .
+        """
         if self.required_fixed_version is None:
             return False
         return (
@@ -112,10 +121,6 @@ class BinaryPackageCategorization:
             )
             > 0
         )
-
-    @property
-    def is_already_at_fix_version(self) -> bool:
-        return self.is_listed_as_fixing_issue and not self.needs_upgrade_to_fix
 
 
 class SourcePackageCategorization:
@@ -136,7 +141,7 @@ class SourcePackageCategorization:
     @property
     def has_any_listed_binary(self) -> bool:
         return any(
-            bc.is_listed_as_fixing_issue for bc in self.binary_categorizations
+            bc.has_release_metadata_entry for bc in self.binary_categorizations
         )
 
     @property

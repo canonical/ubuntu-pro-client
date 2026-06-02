@@ -1274,7 +1274,8 @@ class TestCategorizationClasses:
         assert categorization.binary_package == "bin1"
         assert categorization.installed_version == "1.0"
         assert categorization.required_fixed_version == "1.2"
-        assert categorization.is_listed_as_fixing_issue
+        assert categorization.has_release_metadata_entry
+        assert categorization.has_usable_fix_version
 
     def test_binary_from_release_metadata_without_version_key(self):
         """Treat listed binaries missing a version field as empty-string required version."""
@@ -1286,7 +1287,8 @@ class TestCategorizationClasses:
         )
 
         assert categorization.required_fixed_version == ""
-        assert categorization.is_listed_as_fixing_issue
+        assert categorization.has_release_metadata_entry
+        assert not categorization.has_usable_fix_version
 
     def test_binary_from_release_metadata_when_binary_not_present(self):
         """Mark binaries absent from release metadata as unlisted and not upgradable."""
@@ -1298,9 +1300,9 @@ class TestCategorizationClasses:
         )
 
         assert categorization.required_fixed_version is None
-        assert not categorization.is_listed_as_fixing_issue
+        assert not categorization.has_release_metadata_entry
+        assert not categorization.has_usable_fix_version
         assert not categorization.needs_upgrade_to_fix
-        assert not categorization.is_already_at_fix_version
 
     @mock.patch("uaclient.apt.version_compare")
     def test_binary_needs_upgrade_to_fix(self, m_version_compare):
@@ -1330,7 +1332,6 @@ class TestCategorizationClasses:
         )
 
         assert not categorization.needs_upgrade_to_fix
-        assert categorization.is_already_at_fix_version
 
     @mock.patch("uaclient.apt.version_compare")
     def test_binary_with_no_required_fix_version_skips_comparison(
@@ -1345,7 +1346,6 @@ class TestCategorizationClasses:
         )
 
         assert not categorization.needs_upgrade_to_fix
-        assert not categorization.is_already_at_fix_version
         m_version_compare.assert_not_called()
 
     def test_source_has_any_listed_binary_true_when_any_binary_listed(self):
