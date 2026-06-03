@@ -99,16 +99,6 @@ class BinaryPackageCategorization:
         )
 
     @property
-    def has_release_metadata_entry(self) -> bool:
-        """Whether release metadata contains an entry for this binary."""
-        return self.required_fixed_version is not None
-
-    @property
-    def has_usable_fix_version(self) -> bool:
-        """Whether release metadata provides a non-empty required version."""
-        return bool(self.required_fixed_version)
-
-    @property
     def needs_upgrade_to_fix(self) -> bool:
         """Whether this binary package needs an upgrade in order to fix a
         vulnerability it is affected .
@@ -137,12 +127,6 @@ class SourcePackageCategorization:
         self.pocket = pocket
         self.package_status = package_status
         self.binary_categorizations = binary_categorizations
-
-    @property
-    def has_any_listed_binary(self) -> bool:
-        return any(
-            bc.has_release_metadata_entry for bc in self.binary_categorizations
-        )
 
     @property
     def binaries_needing_upgrade(self) -> List[BinaryPackageCategorization]:

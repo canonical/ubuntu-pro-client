@@ -1274,8 +1274,6 @@ class TestCategorizationClasses:
         assert categorization.binary_package == "bin1"
         assert categorization.installed_version == "1.0"
         assert categorization.required_fixed_version == "1.2"
-        assert categorization.has_release_metadata_entry
-        assert categorization.has_usable_fix_version
 
     def test_binary_from_release_metadata_without_version_key(self):
         """Treat listed binaries missing a version field as empty-string required version."""
@@ -1287,11 +1285,9 @@ class TestCategorizationClasses:
         )
 
         assert categorization.required_fixed_version == ""
-        assert categorization.has_release_metadata_entry
-        assert not categorization.has_usable_fix_version
 
     def test_binary_from_release_metadata_when_binary_not_present(self):
-        """Mark binaries absent from release metadata as unlisted and not upgradable."""
+        """Mark binaries absent from release metadata as not upgradable."""
         categorization = BinaryPackageCategorization.from_release_metadata(
             source_package="pkg1",
             binary_package="bin1",
@@ -1300,8 +1296,6 @@ class TestCategorizationClasses:
         )
 
         assert categorization.required_fixed_version is None
-        assert not categorization.has_release_metadata_entry
-        assert not categorization.has_usable_fix_version
         assert not categorization.needs_upgrade_to_fix
 
     @mock.patch("uaclient.apt.version_compare")
@@ -1347,48 +1341,6 @@ class TestCategorizationClasses:
 
         assert not categorization.needs_upgrade_to_fix
         m_version_compare.assert_not_called()
-
-    def test_source_has_any_listed_binary_true_when_any_binary_listed(self):
-        """Return true when at least one binary in the source is listed as fixing."""
-        source = SourcePackageCategorization(
-            source_package="pkg1",
-            pocket="security",
-            package_status=mock.MagicMock(),
-            binary_categorizations=[
-                BinaryPackageCategorization(
-                    source_package="pkg1",
-                    binary_package="bin1",
-                    installed_version="1.0",
-                    required_fixed_version=None,
-                ),
-                BinaryPackageCategorization(
-                    source_package="pkg1",
-                    binary_package="bin2",
-                    installed_version="1.0",
-                    required_fixed_version="",
-                ),
-            ],
-        )
-
-        assert source.has_any_listed_binary
-
-    def test_source_has_any_listed_binary_false_when_none_listed(self):
-        """Return false when no binaries in the source are listed as fixing."""
-        source = SourcePackageCategorization(
-            source_package="pkg1",
-            pocket="security",
-            package_status=mock.MagicMock(),
-            binary_categorizations=[
-                BinaryPackageCategorization(
-                    source_package="pkg1",
-                    binary_package="bin1",
-                    installed_version="1.0",
-                    required_fixed_version=None,
-                )
-            ],
-        )
-
-        assert not source.has_any_listed_binary
 
     @mock.patch("uaclient.apt.version_compare")
     def test_source_binaries_needing_upgrade_filters_correctly(
