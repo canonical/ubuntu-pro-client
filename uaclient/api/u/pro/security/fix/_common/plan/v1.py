@@ -1208,6 +1208,19 @@ def _generate_fix_plan(
     The planner groups package status by release state and pocket, emits
     warnings for unresolved statuses, determines upgradeable binaries, and then
     produces NOOP/ATTACH/ENABLE/APT_UPGRADE steps that reflect system state.
+
+    :param issue_id: The string identifier for the CVE/USN, e.g., CVE-2025-1234
+    :param issue_description: the assigned description for the issue.
+    :param affected_pkg_status: a map of package names to their CVE statuses.
+    :param usn_released_pkgs: a map of source package names names to their USN
+        metadata. The metadata is another mapping of binary package name to
+        binary package metadata. See `merge_usn_released_binary_package_versions`
+        for details on the shape.
+    :param installed_pkgs: The packages that are installed on the system. See
+        `query_installed_source_pkg_versions` for details on the shape.
+    :param cfg: The client configuration.
+    :param additional_data: Optionally, additional CVE metadata to use in the
+        fix plan.
     """
     count = len(affected_pkg_status)
     pocket_categorizations = []  # type: List[PocketCategorization]
