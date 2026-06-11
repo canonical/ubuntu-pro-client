@@ -45,18 +45,23 @@ class UbuntuProError(Exception):
     All possible exceptions from our API should extend this class.
     """
 
-    _msg = None  # type: messages.NamedMessage
-    _formatted_msg = None  # type: messages.FormattedNamedMessage
+    _msg = None  # type: Optional[messages.NamedMessage]
+    _formatted_msg = None  # type: Optional[messages.FormattedNamedMessage]
 
     exit_code = 1
 
     def __init__(self, **kwargs) -> None:
         if self._formatted_msg is not None:
-            self.named_msg = self._formatted_msg.format(
-                **kwargs
-            )  # type: messages.NamedMessage
-        else:
+            self.named_msg = self._formatted_msg.format(**kwargs)
+        elif self._msg is not None:
             self.named_msg = self._msg
+        else:
+            # This should not be reached in practice; subclasses should
+            # override either _msg or _formatted_msg. Provide a safe default
+            # just in case.
+            self.named_msg = messages.NamedMessage(
+                "ubuntu-pro-error", "an unexpected error occurred."
+            )
 
         self.additional_info = kwargs
 
@@ -198,9 +203,9 @@ class ProxyAuthenticationFailed(UbuntuProError):
 
 class ExternalAPIError(UbuntuProError):
     _formatted_msg = messages.E_EXTERNAL_API_ERROR
-    code = None  # type: int
-    url = None  # type: str
-    body = None  # type: str
+    code = None  # type: Optional[int]
+    url = None  # type: Optional[str]
+    body = None  # type: Optional[str]
 
     def __str__(self):
         return "{}: [{}], {}".format(self.code, self.url, self.body)
@@ -449,7 +454,7 @@ class NonInteractiveKernelPurgeDisallowed(UbuntuProError):
 
 class InvalidProImage(UbuntuProError):
     _formatted_msg = messages.E_INVALID_PRO_IMAGE
-    error_msg = None  # type: str
+    error_msg = None  # type: Optional[str]
 
 
 class CloudMetadataError(UbuntuProError):
@@ -638,7 +643,7 @@ class LockHeldError(UbuntuProError):
     """
 
     _formatted_msg = messages.E_LOCK_HELD_ERROR
-    pid = None  # type: int
+    pid = None  # type: Optional[int]
 
 
 class NonRootUserError(UbuntuProError):

@@ -868,7 +868,8 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
 
 
 def _get_override_weight(
-    override_selector: Dict[str, str], selector_values: Dict[str, str]
+    override_selector: Dict[str, str],
+    selector_values: Dict[str, Optional[str]],
 ) -> int:
     override_weight = 0
     for selector, value in override_selector.items():
@@ -882,7 +883,7 @@ def _get_override_weight(
 def _select_overrides(
     entitlement: Dict[str, Any],
     series_name: str,
-    cloud_type: str,
+    cloud_type: Optional[str],
     variant: Optional[str] = None,
 ) -> Dict[int, Dict[str, Any]]:
     overrides = {}
@@ -942,6 +943,7 @@ def apply_contract_overrides(
         system.get_release_info().series if series is None else series
     )
     cloud_type, _ = get_cloud_type()
+
     cloud_type = cloud_type_to_contract_cloud_type(cloud_type)
     orig_entitlement = orig_access.get("entitlement", {})
 

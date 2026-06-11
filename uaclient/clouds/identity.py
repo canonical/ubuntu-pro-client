@@ -36,6 +36,8 @@ class NoCloudTypeReason(Enum):
 def cloud_type_to_contract_cloud_type(
     cloud_type: Optional[str],
 ) -> Optional[str]:
+    if cloud_type is None:
+        return None
     return CONTRACT_CLOUD_TYPE_ALIASES.get(cloud_type, cloud_type)
 
 

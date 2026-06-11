@@ -13,7 +13,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
     url_timeout = 30  # type: Optional[int]
     # Cached serviceclient_url_responses if provided in uaclient.conf
     # via features: {serviceclient_url_responses: /some/file.json}
-    _response_overlay = None  # type: Dict[str, Any]
+    _response_overlay = None  # type: Optional[Dict[str, Any]]
 
     @property
     @abc.abstractmethod

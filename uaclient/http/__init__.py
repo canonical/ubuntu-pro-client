@@ -107,7 +107,7 @@ def validate_proxy(
         raise exceptions.ProxyNotWorkingError(proxy=proxy)
 
 
-_global_proxy_dict = {}
+_global_proxy_dict = {}  # type: Dict[str, str]
 
 
 def configure_web_proxy(
