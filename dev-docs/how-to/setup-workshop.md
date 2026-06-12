@@ -9,7 +9,7 @@ sandboxed Ubuntu container with all required tooling pre-installed.
 Workshop uses [LXD](https://documentation.ubuntu.com/lxd/default/tutorial/first_steps/) to manage containers. Install it before proceeding:
 
 ```bash
-sudo snap install lxd
+sudo snap install --channel 6/stable lxd
 ```
 
 ## Install Workshop
