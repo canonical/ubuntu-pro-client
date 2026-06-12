@@ -4,6 +4,19 @@ This section contains developer documentation for the Ubuntu Pro Client project.
 
 ## Getting started
 
+The recommended way to get a working development environment is
+[Canonical Workshop](https://canonical-workshop.readthedocs-hosted.com/).
+Install it, then from the repository root run:
+
+```bash
+workshop test
+```
+
+Workshop handles the Python toolchain automatically and exposes `workshop <COMMAND>` for common tasks.
+
+If you prefer a manual setup, or need to run the integration tests, follow the
+full tutorial:
+
 * [Get started developing for Ubuntu Pro Client](dev-docs/tutorial/getting-started.md)
 * [How to contribute documentation](dev-docs/tutorial/contribute_docs.md)
 

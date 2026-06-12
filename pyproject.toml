@@ -26,3 +26,9 @@ module = [
   "hamcrest",
 ]
 ignore_missing_imports = "true"
+
+[dependency-groups]
+dev = [
+    "tox>=4.53.1",
+    "tox-uv>=1.25.0",
+]
