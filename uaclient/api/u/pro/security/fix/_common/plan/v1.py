@@ -101,7 +101,7 @@ class BinaryPackageCategorization:
     @property
     def needs_upgrade_to_fix(self) -> bool:
         """Whether this binary package needs an upgrade in order to fix a
-        vulnerability it is affected .
+        vulnerability it is affected.
         """
         if self.required_fixed_version is None:
             return False
@@ -896,7 +896,8 @@ def _partition_by_apt_availability(
     binaries_needing_upgrade: List[BinaryPackageCategorization],
     should_check_esm_cache: bool,
 ) -> Tuple[List[str], List[UnfixedPackage]]:
-    """Split needs-upgrade binaries into apt-upgradable names and unfixed entries.
+    """Split needs-upgrade binaries into apt-upgradable names and unfixed
+    entries.
 
     A binary is considered upgradable when the apt candidate exists and is at
     least the required fixed version. Otherwise, it is returned as an unfixed
@@ -1171,7 +1172,8 @@ def _should_update_esm_cache(
     has_updated_esm_cache: bool,
     cfg: UAConfig,
 ) -> bool:
-    """Return whether ESM apt caches should be refreshed before candidate lookups.
+    """Return whether ESM apt caches should be refreshed before
+    candidate lookups.
 
     Updates are attempted only for non-standard pockets, only once per plan,
     and only when the system is unattached and cache metadata is stale.
@@ -1203,7 +1205,8 @@ def _generate_fix_plan(
     cfg: UAConfig,
     additional_data=None
 ) -> FixPlanResult:
-    """Generate the actionable fix plan from affected packages and release data.
+    """Generate the actionable fix plan from affected packages and
+    release data.
 
     The planner groups package status by release state and pocket, emits
     warnings for unresolved statuses, determines upgradeable binaries, and then
@@ -1214,8 +1217,8 @@ def _generate_fix_plan(
     :param affected_pkg_status: a map of package names to their CVE statuses.
     :param usn_released_pkgs: a map of source package names names to their USN
         metadata. The metadata is another mapping of binary package name to
-        binary package metadata. See `merge_usn_released_binary_package_versions`
-        for details on the shape.
+        binary package metadata. See
+        `merge_usn_released_binary_package_versions` for details on the shape.
     :param installed_pkgs: The packages that are installed on the system. See
         `query_installed_source_pkg_versions` for details on the shape.
     :param cfg: The client configuration.

@@ -1262,7 +1262,8 @@ class TestGetCVEDescription:
 
 class TestCategorizationClasses:
     def test_binary_from_release_metadata_with_version(self):
-        """Populate required fixed version when binary release metadata includes version."""
+        """Populate required fixed version when binary release metadata
+        includes version."""
         categorization = BinaryPackageCategorization.from_release_metadata(
             source_package="pkg1",
             binary_package="bin1",
@@ -1276,7 +1277,8 @@ class TestCategorizationClasses:
         assert categorization.required_fixed_version == "1.2"
 
     def test_binary_from_release_metadata_without_version_key(self):
-        """Treat listed binaries missing a version field as empty-string required version."""
+        """Treat listed binaries missing a version field as empty-string
+        required version."""
         categorization = BinaryPackageCategorization.from_release_metadata(
             source_package="pkg1",
             binary_package="bin1",
@@ -1300,7 +1302,8 @@ class TestCategorizationClasses:
 
     @mock.patch("uaclient.apt.version_compare")
     def test_binary_needs_upgrade_to_fix(self, m_version_compare):
-        """Require upgrade when fixed version compares newer than installed version."""
+        """Require upgrade when fixed version compares newer than
+        installed version."""
         m_version_compare.return_value = 1
         categorization = BinaryPackageCategorization(
             source_package="pkg1",
@@ -1316,7 +1319,8 @@ class TestCategorizationClasses:
     def test_binary_is_already_at_fix_version_when_listed_and_not_newer(
         self, m_version_compare
     ):
-        """Mark listed binaries as already fixed when required version is not newer."""
+        """Mark listed binaries as already fixed when required version
+        is not newer."""
         m_version_compare.return_value = 0
         categorization = BinaryPackageCategorization(
             source_package="pkg1",
@@ -1331,7 +1335,8 @@ class TestCategorizationClasses:
     def test_binary_with_no_required_fix_version_skips_comparison(
         self, m_version_compare
     ):
-        """Skip apt version comparison entirely when no required fixed version is known."""
+        """Skip apt version comparison entirely when no required fixed
+        version is known."""
         categorization = BinaryPackageCategorization(
             source_package="pkg1",
             binary_package="bin1",
@@ -1389,7 +1394,8 @@ class TestCategorizationClasses:
         ),
     )
     def test_pocket_short_name(self, pocket, expected_short_name):
-        """Map known security pockets to public short names and passthrough unknown values."""
+        """Map known security pockets to public short names and
+        passthrough unknown values."""
         categorization = PocketCategorization(
             pocket=pocket,
             source_categorizations=[],
@@ -1415,7 +1421,8 @@ class TestCategorizationClasses:
         assert categorization.should_check_esm_cache is expected
 
     def test_pocket_source_packages_preserves_order(self):
-        """Expose source package names in the same order as source categorizations."""
+        """Expose source package names in the same order as source
+        categorizations."""
         source_one = mock.MagicMock(source_package="pkg2")
         source_two = mock.MagicMock(source_package="pkg1")
         categorization = PocketCategorization(
@@ -1426,7 +1433,8 @@ class TestCategorizationClasses:
         assert categorization.source_packages == ["pkg2", "pkg1"]
 
     def test_pocket_binaries_needing_upgrade_flattens_sources(self):
-        """Flatten per-source upgrade lists into a single pocket-level binary list."""
+        """Flatten per-source upgrade lists into a single pocket-level
+        binary list."""
         binary_one = mock.MagicMock(binary_package="bin1")
         binary_two = mock.MagicMock(binary_package="bin2")
         source_one = mock.MagicMock(binaries_needing_upgrade=[binary_one])
