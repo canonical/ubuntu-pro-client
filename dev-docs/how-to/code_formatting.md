@@ -11,7 +11,7 @@ If you have [Canonical Workshop](https://canonical-workshop.readthedocs-hosted.c
 installed, format the codebase with:
 
 ```shell
-workshop format
+workshop run format
 ```
 
 Workshop handles the Python toolchain automatically, so no additional setup is
