@@ -36,9 +36,10 @@ Feature: Enable anbox on Ubuntu
     Then I verify that `anbox-cloud` is disabled
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Enable Anbox cloud service in an unsupported release
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -127,6 +128,7 @@ Feature: Enable anbox on Ubuntu
     And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
 
     Examples: ubuntu release
-      | release | machine_type |
-      | jammy   | lxd-vm       |
-      | noble   | lxd-vm       |
+      | release  | machine_type |
+      | jammy    | lxd-vm       |
+      | noble    | lxd-vm       |
+      | resolute | lxd-vm       |
