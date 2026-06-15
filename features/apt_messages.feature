@@ -130,10 +130,10 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | ad_message                                                                                   |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                    |
+      | release | machine_type  | ad_message                                                                                |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\\/\\/ubuntu\\.com\\/pro                             |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -195,6 +195,9 @@ Feature: APT Messages
       | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
 
+  # TODO add resolute when packages are ready
+  # | resolute| lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
+  # | resolute| wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
   @uses.config.contract_token
   Scenario Outline: APT News
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -646,17 +649,19 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | xenial  | lxd-vm        |
-      | bionic  | lxd-container |
-      | bionic  | lxd-vm        |
-      | focal   | lxd-container |
-      | focal   | lxd-vm        |
-      | jammy   | lxd-container |
-      | jammy   | lxd-vm        |
-      | noble   | lxd-container |
-      | noble   | lxd-vm        |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | xenial   | lxd-vm        |
+      | bionic   | lxd-container |
+      | bionic   | lxd-vm        |
+      | focal    | lxd-container |
+      | focal    | lxd-vm        |
+      | jammy    | lxd-container |
+      | jammy    | lxd-vm        |
+      | noble    | lxd-container |
+      | noble    | lxd-vm        |
+      | resolute | lxd-container |
+      | resolute | lxd-vm        |
 
   # This is a subset of the above test, only checking proper outputs for Plucky
   # At some point in time, ideally before next LTS, we need to invert this:
@@ -724,10 +729,10 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | plucky   | lxd-container |
-      | plucky   | lxd-vm        |
       | questing | lxd-container |
       | questing | lxd-vm        |
+      | resolute | lxd-container |
+      | resolute | lxd-vm        |
 
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1556,8 +1561,8 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | wrong_release | package   | installed_version |
-      | plucky  | lxd-container | jammy         | pyzfs-doc | 2.3.1-1ubuntu1    |
+      | release  | machine_type  | wrong_release | package   | installed_version |
+      | resolute | lxd-container | noble         | pyzfs-doc | 2.3.1-1ubuntu1    |
 
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1574,8 +1579,8 @@ Feature: APT Messages
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1624,5 +1629,4 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | plucky   | lxd-container |
       | questing | lxd-container |

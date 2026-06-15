@@ -27,6 +27,23 @@
   2. "Enable Anbox cloud service in a VM" — lxd-container, lxd-vm
 - **Reason:** Anbox Cloud APT archive URL is parameterized; supports new releases seamlessly.
 
+#### `apt_messages.feature`
+
+- **Status:** ✅ Partially updated; drops applied
+- **Scenarios Updated:**
+  1. "APT Hook advertises esm-infra on upgrade" — resolute removed; this test only applies to EOL releases where esm-infra is meaningful
+  2. "APT Hook advertises esm-apps on upgrade" — resolute commented out with TODO; needs esm packages with higher version than archives for both noble and resolute
+  3. "APT News" (old output format, full-range) — added resolute
+  4. "APT News" (new output format, questing+) — dropped plucky; added resolute
+  5. "APT news selectors" (old output format) — kept xenial through noble; moved resolute to scenario 6
+  6. "APT news selectors" (new output format) — replaced plucky with resolute (noble→resolute wrong_release)
+  7. "APT Hook does not error when run as non-root" — dropped plucky; added resolute
+  8. "APT Hook do not advertises esm-apps on upgrade for interim releases" — dropped plucky; kept questing
+- **Scenarios Unchanged:**
+  1. "APT JSON Hook on xenial" — xenial-only legacy test; kept as-is
+  2. "Cloud and series-specific URLs" — hardcoded cloud URLs for legacy releases; kept as-is
+- **Drop rationale:** plucky dropped throughout as it is superseded by questing/resolute for coverage of new APT output format
+
 ---
 
 ### ⏭️ Tests Skipped (Not Updated)
@@ -42,18 +59,7 @@
 
 ### 🔄 Tests Under Evaluation
 
-#### `apt_messages.feature`
-
-- **Current Releases:** Complex — varies by scenario
-  - Scenario 1 (APT JSON Hook on xenial): xenial only
-  - Scenario 2 (APT Hook advertises esm-infra): xenial, bionic, focal
-  - Scenario 3 (APT Hook advertises esm-apps): jammy (TODO comment suggests noble needs esm package)
-  - Scenario 4 (APT News): xenial, bionic, focal, jammy, noble
-  - Scenario 5 (APT News plucky variant): plucky, questing
-  - Scenario 6 (Cloud and series-specific URLs): Multiple release × cloud combinations
-  - Scenario 7-10 (APT news selectors & edge cases): Various
-- **Outstanding Question:** How should we handle this large, multi-scenario file? Add resolute everywhere questing appears, or is deeper review needed?
-- **Status:** Awaiting user guidance
+(None currently)
 
 ---
 
