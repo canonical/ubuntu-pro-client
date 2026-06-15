@@ -75,16 +75,16 @@ Feature: Pro is expected version
       | noble    | azure.pro      |
       | noble    | gcp.generic    |
       | noble    | gcp.pro        |
-      | plucky   | lxd-container  |
-      | plucky   | lxd-vm         |
-      | plucky   | aws.generic    |
-      | plucky   | azure.generic  |
-      | plucky   | gcp.generic    |
       | questing | lxd-container  |
       | questing | lxd-vm         |
       | questing | aws.generic    |
       | questing | azure.generic  |
       | questing | gcp.generic    |
+      | resolute | lxd-container  |
+      | resolute | lxd-vm         |
+      | resolute | aws.generic    |
+      | resolute | azure.generic  |
+      | resolute | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
@@ -115,8 +115,8 @@ Feature: Pro is expected version
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Attached show version in a ubuntu machine
@@ -138,8 +138,8 @@ Feature: Pro is expected version
       | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: Check for newer versions of the client in an ubuntu machine
@@ -222,5 +222,5 @@ Feature: Pro is expected version
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
