@@ -316,8 +316,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
 
     capability sys_ptrace,
     # LP: #2143251
-    # Include only for noble+; avoid changing releases that don't report the bug.
-{% if ubuntu_codename not in ["xenial", "bionic", "focal", "jammy"] %}
+    # LP: #2156929
+    # Include only for jammy+; avoid changing releases that don't report the bug.
+{% if ubuntu_codename not in ["xenial", "bionic", "focal"] %}
     capability perfmon,
 {% endif %}
 
