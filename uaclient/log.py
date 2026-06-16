@@ -104,9 +104,6 @@ def get_all_user_log_files() -> List[str]:
             defaults.USER_CACHE_SUBDIR,
             "ubuntu-pro.log",
         )
-        if os.path.islink(user_path):
-            logger.warning("Skipping symlinked user log file: %s", user_path)
-            continue
         if os.path.isfile(user_path):
             log_files.append(user_path)
     return log_files
