@@ -61,3 +61,7 @@ sudo apt update
 # Confirm still no logs
 journalctl --no-pager | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
 ```
+
+## Amended to include jammy
+
+Amended to include jammy as well as of [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156929). This has the same reproduction steps and was confirmed to fix the issue on jammy by the CPC team.
