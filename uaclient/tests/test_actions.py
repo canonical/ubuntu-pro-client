@@ -385,6 +385,7 @@ class TestCollectLogs:
         m_log_warning,
         m_status,
         _m_write_cmd,
+        _m_shutil_copy,
         tmpdir,
     ):
         m_env_vars.return_value = {"test": "test"}
