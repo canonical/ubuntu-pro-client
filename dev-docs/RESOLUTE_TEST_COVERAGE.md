@@ -242,7 +242,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 1 note:** follows noble+ pattern with `user_spec: with sudo` for resolute (matching root-only logging on LTS)
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- lxd.feature
+#### `lxd.feature`
+
+- **Status:** ⏭️ Deferred
+- **Decision:** remove resolute coverage for now; revisit once AppArmor fix is upstream
+- **Reason:** resolute `lxd-vm` runs are currently blocked by AppArmor DENIED in the global behave `after_step` gate before scenario logic executes
+- **Revisit note:** when re-enabling resolute coverage, include the scenario-3 host setup fix to install LXD when absent before refresh (`snap list lxd || snap install ...`) because some resolute VM images do not have the `lxd` snap preinstalled
+
 - motd_messages.feature
 - network_failures.feature
 - proxy_config.feature
