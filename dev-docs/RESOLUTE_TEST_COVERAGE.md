@@ -345,7 +345,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** scenarios 2-7 are generic auto-attach/Pro-image behaviors already covered through noble; scenario 1 remains on its existing older matrix.
 - **Test note:** run skipped in-session; cloud-instance coverage required
 
-- ubuntu_pro_fips.feature
+#### `ubuntu_pro_fips.feature`
+
+- **Status:** ⏭️ Evaluated; not applicable to resolute
+- **Decision:** no resolute additions
+- **Reason:** the feature is a FIPS cloud-image matrix scoped to xenial/bionic/focal (`*.pro-fips` machine types) with release-specific kernel/meta/package expectations; resolute FIPS cloud coverage is not established in this file.
+- **Revisit:** re-evaluate when resolute FIPS cloud image support and expected package/kernel behavior are confirmed.
+
 - ubuntu_upgrade.feature
 - ubuntu_upgrade_unattached.feature
 - usg.feature
