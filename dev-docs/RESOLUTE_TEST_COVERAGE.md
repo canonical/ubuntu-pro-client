@@ -204,7 +204,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 6** "Pro client's commands run successfully in a non-utf8 locale": dropped `plucky`; added `resolute | lxd-container`
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- install_uninstall.feature
+#### `install_uninstall.feature`
+
+- **Status:** ⏭️ Evaluated; not applicable to resolute
+- **Decision:** no resolute additions
+- **Reason:** all 7 scenarios are xenial/bionic only, covering legacy install/uninstall and cloud-init behaviors specific to those older releases
+- **Revisit:** no action expected; this file is legacy coverage only
+
 - landscape.feature
 - legacy.feature
 - livepatch.feature
