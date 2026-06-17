@@ -164,7 +164,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** scenario assertions are tied to current PRO-cloud FIPS kernel/package expectations on bionic/focal; resolute applicability is not established yet.
 - **Revisit:** re-evaluate when resolute PRO-cloud FIPS availability and expected package/kernel behavior are confirmed.
 
-- enable_fips_vm.feature
+#### `enable_fips_vm.feature`
+
+- **Status:** ⏭️ Evaluated; not yet applicable to resolute
+- **Decision:** no resolute additions for all scenarios in this file
+- **Reason:** scenario assertions are tightly coupled to current VM FIPS entitlement/kernel/package behavior (xenial/bionic/focal/jammy matrices, service interactions, and explicit output expectations); resolute applicability is not established yet.
+- **Revisit:** re-evaluate once resolute VM FIPS availability and expected behavior/output contracts are confirmed.
+
 - esm.feature
 - esm_cache.feature
 - fix.feature
