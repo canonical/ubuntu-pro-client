@@ -186,7 +186,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 2** "esm cache failures don't generate errors on xenial" (`@no_gh`): kept xenial-only unchanged
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- fix.feature
+#### `fix.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Useful SSL failure message when there aren't any ca-certs": dropped `plucky`; added `resolute | lxd-container`
+- **Scenarios 2-6:** kept unchanged (release-specific legacy coverage on focal/xenial/bionic with hardcoded package/version and source-list expectations)
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - i18n.feature
 - install_uninstall.feature
 - landscape.feature
