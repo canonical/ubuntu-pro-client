@@ -193,7 +193,17 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenarios 2-6:** kept unchanged (release-specific legacy coverage on focal/xenial/bionic with hardcoded package/version and source-list expectations)
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- i18n.feature
+#### `i18n.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Translation works" (LTS path): added `resolute | lxd-container`
+- **Scenario 2** "Translation works" (non-LTS path): kept non-LTS only; dropped `plucky`, kept `questing`
+- **Scenario 3** "Translation doesn't error when python thinks it's ascii only": kept xenial-only unchanged
+- **Scenario 4** "apt-hook translations work": kept focal-only unchanged
+- **Scenario 5** "Pro client's commands run successfully in a different locale": dropped `plucky`; added `resolute | lxd-container`
+- **Scenario 6** "Pro client's commands run successfully in a non-utf8 locale": dropped `plucky`; added `resolute | lxd-container`
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - install_uninstall.feature
 - landscape.feature
 - legacy.feature
