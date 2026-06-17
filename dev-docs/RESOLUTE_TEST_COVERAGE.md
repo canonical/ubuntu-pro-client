@@ -321,7 +321,15 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** scenarios validate attach restriction and messaging behavior using response overlays and release-parameterized expectations; no hardcoded package/version coupling blocks resolute coverage
 - **Test note:** run skipped in-session per ongoing workflow
 
-- timer.feature
+#### `timer.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Timer is stopped when detached, started when attached": dropped `plucky`; added `resolute | lxd-container`
+- **Scenario 2** "Run timer script on an attached machine": dropped `plucky`; added `resolute | lxd-container`
+- **Scenario 3** "Run timer script to validate machine activity endpoint": added `resolute | lxd-container`
+- **Reason:** timer/service behavior and contract activity validation are release-agnostic in these scenarios and follow existing noble/questing LTS progression
+- **Test note:** run skipped in-session per ongoing workflow
+
 - ubuntu_pro.feature
 - ubuntu_pro_fips.feature
 - ubuntu_upgrade.feature
