@@ -110,8 +110,14 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 
 ### 📋 Tests Pending Evaluation
 
-- contract_expired.feature
-- daemon.feature
+#### `contract_expired.feature`
+
+- **Status:** ⏭️ Skipped
+- **Current Releases:** jammy (lxd-container)
+- **Reason:** Skipped for now. Revisit to evaluate whether noble and resolute should be added — the test logic (esm-apps, update-motd, expired subscription messages) is generic enough to apply to newer releases.
+
+#### `daemon.feature`
+
 - detached_auto_attach.feature
 - docker.feature
 - enable_fips_cloud.feature
