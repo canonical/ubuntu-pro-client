@@ -305,7 +305,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** scenario assertions are retry-state/status and message-flow checks, with no release-specific package/version coupling in the matrices
 - **Test note:** run skipped in-session; this feature is cloud-only and requires cloud instance coverage
 
-- ros.feature
+#### `ros.feature`
+
+- **Status:** ⏭️ Evaluated; not applicable to resolute
+- **Decision:** no resolute additions
+- **Reason:** this feature is legacy-scoped with a xenial/bionic-only matrix and explicit ROS ESM source URL assertions tied to those releases.
+- **Revisit:** re-evaluate only if ROS entitlement coverage is intentionally expanded to newer releases with updated source expectations.
+
 - subscription_attach_restrictions.feature
 - timer.feature
 - ubuntu_pro.feature
