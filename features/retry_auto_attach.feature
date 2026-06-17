@@ -116,17 +116,19 @@ Feature: auto-attach retries periodically on failures
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | azure.generic |
-      | xenial  | gcp.generic   |
-      | bionic  | azure.generic |
-      | bionic  | gcp.generic   |
-      | focal   | azure.generic |
-      | focal   | gcp.generic   |
-      | jammy   | azure.generic |
-      | jammy   | gcp.generic   |
-      | noble   | azure.generic |
-      | noble   | gcp.generic   |
+      | release  | machine_type  |
+      | xenial   | azure.generic |
+      | xenial   | gcp.generic   |
+      | bionic   | azure.generic |
+      | bionic   | gcp.generic   |
+      | focal    | azure.generic |
+      | focal    | gcp.generic   |
+      | jammy    | azure.generic |
+      | jammy    | gcp.generic   |
+      | noble    | azure.generic |
+      | noble    | gcp.generic   |
+      | resolute | azure.generic |
+      | resolute | gcp.generic   |
 
   Scenario Outline: auto-attach retries for a month and updates status
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -240,12 +242,13 @@ Feature: auto-attach retries periodically on failures
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.generic  |
-      | bionic  | aws.generic  |
-      | focal   | aws.generic  |
-      | jammy   | aws.generic  |
-      | noble   | aws.generic  |
+      | release  | machine_type |
+      | xenial   | aws.generic  |
+      | bionic   | aws.generic  |
+      | focal    | aws.generic  |
+      | jammy    | aws.generic  |
+      | noble    | aws.generic  |
+      | resolute | aws.generic  |
 
   Scenario Outline: auto-attach retries stop if manual auto-attach succeeds
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -322,22 +325,25 @@ Feature: auto-attach retries periodically on failures
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
-      | bionic  | aws.pro      |
-      | bionic  | azure.pro    |
-      | bionic  | gcp.pro      |
-      | focal   | aws.pro      |
-      | focal   | azure.pro    |
-      | focal   | gcp.pro      |
-      | jammy   | aws.pro      |
-      | jammy   | azure.pro    |
-      | jammy   | gcp.pro      |
-      | noble   | aws.pro      |
-      | noble   | azure.pro    |
-      | noble   | gcp.pro      |
+      | release  | machine_type |
+      | xenial   | aws.pro      |
+      | xenial   | azure.pro    |
+      | xenial   | gcp.pro      |
+      | bionic   | aws.pro      |
+      | bionic   | azure.pro    |
+      | bionic   | gcp.pro      |
+      | focal    | aws.pro      |
+      | focal    | azure.pro    |
+      | focal    | gcp.pro      |
+      | jammy    | aws.pro      |
+      | jammy    | azure.pro    |
+      | jammy    | gcp.pro      |
+      | noble    | aws.pro      |
+      | noble    | azure.pro    |
+      | noble    | gcp.pro      |
+      | resolute | aws.pro      |
+      | resolute | azure.pro    |
+      | resolute | gcp.pro      |
 
   Scenario Outline: gcp auto-detect triggers retries on fail
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -397,12 +403,13 @@ Feature: auto-attach retries periodically on failures
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | gcp.pro      |
-      | bionic  | gcp.pro      |
-      | focal   | gcp.pro      |
-      | jammy   | gcp.pro      |
-      | noble   | gcp.pro      |
+      | release  | machine_type |
+      | xenial   | gcp.pro      |
+      | bionic   | gcp.pro      |
+      | focal    | gcp.pro      |
+      | jammy    | gcp.pro      |
+      | noble    | gcp.pro      |
+      | resolute | gcp.pro      |
 
   Scenario Outline: auto-attach retries eventually succeed and clean up
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -481,19 +488,22 @@ Feature: auto-attach retries periodically on failures
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
-      | bionic  | aws.pro      |
-      | bionic  | azure.pro    |
-      | bionic  | gcp.pro      |
-      | focal   | aws.pro      |
-      | focal   | azure.pro    |
-      | focal   | gcp.pro      |
-      | jammy   | aws.pro      |
-      | jammy   | azure.pro    |
-      | jammy   | gcp.pro      |
-      | noble   | aws.pro      |
-      | noble   | azure.pro    |
-      | noble   | gcp.pro      |
+      | release  | machine_type |
+      | xenial   | aws.pro      |
+      | xenial   | azure.pro    |
+      | xenial   | gcp.pro      |
+      | bionic   | aws.pro      |
+      | bionic   | azure.pro    |
+      | bionic   | gcp.pro      |
+      | focal    | aws.pro      |
+      | focal    | azure.pro    |
+      | focal    | gcp.pro      |
+      | jammy    | aws.pro      |
+      | jammy    | azure.pro    |
+      | jammy    | gcp.pro      |
+      | noble    | aws.pro      |
+      | noble    | azure.pro    |
+      | noble    | gcp.pro      |
+      | resolute | aws.pro      |
+      | resolute | azure.pro    |
+      | resolute | gcp.pro      |

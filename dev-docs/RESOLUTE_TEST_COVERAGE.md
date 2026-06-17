@@ -297,7 +297,14 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** this scenario is focal-only and validates FIPS-specific reboot command behavior with hardcoded package/version expectations (`strongswan` and `fips` flow). Resolute applicability is not established in the current FIPS support matrix.
 - **Revisit:** re-evaluate if/when resolute gains the required FIPS reboot-cmd behavior and package expectations for this flow.
 
-- retry_auto_attach.feature
+#### `retry_auto_attach.feature`
+
+- **Status:** ✅ Updated
+- **Scenarios 1-5** (auto-attach retry flow/status updates, manual recovery, gcp auto-detect retry path, and eventual-success cleanup): added `resolute` rows following existing noble cloud matrices
+- **Machine types updated:** `azure.generic`, `gcp.generic`, `aws.generic`, `aws.pro`, `azure.pro`, `gcp.pro`
+- **Reason:** scenario assertions are retry-state/status and message-flow checks, with no release-specific package/version coupling in the matrices
+- **Test note:** run skipped in-session; this feature is cloud-only and requires cloud instance coverage
+
 - ros.feature
 - subscription_attach_restrictions.feature
 - timer.feature
