@@ -249,7 +249,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** resolute `lxd-vm` runs are currently blocked by AppArmor DENIED in the global behave `after_step` gate before scenario logic executes
 - **Revisit note:** when re-enabling resolute coverage, include the scenario-3 host setup fix to install LXD when absent before refresh (`snap list lxd || snap install ...`) because some resolute VM images do not have the `lxd` snap preinstalled
 
-- motd_messages.feature
+#### `motd_messages.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Contract update prevents contract expiration messages": added `resolute | lxd-container | esm-apps`
+- **Scenario 2** "Contract Expiration Messages": kept unchanged (xenial/bionic + wsl matrix with `esm-infra` service) to preserve existing release-specific behavior expectations
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - network_failures.feature
 - proxy_config.feature
 - realtime_kernel.feature
