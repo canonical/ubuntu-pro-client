@@ -62,5 +62,5 @@ Feature: Pro autocomplete commands
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
