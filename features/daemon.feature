@@ -15,8 +15,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim should run in postinst and on boot
@@ -107,6 +107,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Then on `focal`, systemd status output says memory usage is less than `14` MB
     Then on `jammy`, systemd status output says memory usage is less than `15` MB
     Then on `noble`, systemd status output says memory usage is less than `17` MB
+    Then on `resolute`, systemd status output says memory usage is less than `17` MB
     When I run `journalctl -o cat -u ubuntu-advantage.service` with sudo
     Then stdout contains substring:
       """
@@ -197,12 +198,13 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type | pkg_name               |
-      | xenial  | gcp.generic  | ubuntu-advantage-tools |
-      | bionic  | gcp.generic  | ubuntu-advantage-tools |
-      | focal   | gcp.generic  | ubuntu-advantage-tools |
-      | jammy   | gcp.generic  | ubuntu-advantage-tools |
-      | noble   | gcp.generic  | ubuntu-pro-client      |
+      | release  | machine_type | pkg_name               |
+      | xenial   | gcp.generic  | ubuntu-advantage-tools |
+      | bionic   | gcp.generic  | ubuntu-advantage-tools |
+      | focal    | gcp.generic  | ubuntu-advantage-tools |
+      | jammy    | gcp.generic  | ubuntu-advantage-tools |
+      | noble    | gcp.generic  | ubuntu-pro-client      |
+      | resolute | gcp.generic  | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: daemon should run when appropriate on azure generic lts
@@ -264,12 +266,13 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release | machine_type  |
-      | xenial  | azure.generic |
-      | bionic  | azure.generic |
-      | focal   | azure.generic |
-      | jammy   | azure.generic |
-      | noble   | azure.generic |
+      | release  | machine_type  |
+      | xenial   | azure.generic |
+      | bionic   | azure.generic |
+      | focal    | azure.generic |
+      | jammy    | azure.generic |
+      | noble    | azure.generic |
+      | resolute | azure.generic |
 
   @uses.config.contract_token
   Scenario Outline: daemon does not start on gcp,azure generic non lts
@@ -291,8 +294,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type  |
-      | plucky   | azure.generic |
-      | plucky   | gcp.generic   |
       | questing | azure.generic |
       | questing | gcp.generic   |
 
@@ -322,8 +323,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | focal    | aws.generic  |
       | jammy    | aws.generic  |
       | noble    | aws.generic  |
-      | plucky   | aws.generic  |
       | questing | aws.generic  |
+      | resolute | aws.generic  |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

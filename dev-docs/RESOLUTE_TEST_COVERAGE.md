@@ -118,6 +118,17 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 
 #### `daemon.feature`
 
+- **Status:** ✅ Updated; tested on resolute ✓. Needs testing on cloud instances.
+- **Added resolute to:**
+  - S1 "cloud-id-shim not installed" — lxd-container (generic check); dropped plucky
+  - S3 "daemon runs on gcp generic LTS" — gcp.generic; added `resolute | gcp.generic | ubuntu-pro-client`; added `Then on resolute, systemd status output says memory usage is less than 17 MB`
+  - S4 "daemon runs on azure generic LTS" — azure.generic
+  - S6 "daemon does not start on non-gcp/azure" — aws.generic; dropped plucky
+- **Skipped for resolute:**
+  - S2 "cloud-id-shim runs on xenial" — xenial-only; no action
+  - S5 "daemon does NOT start on non-LTS gcp/azure" — resolute is LTS, must NOT be here; dropped plucky, kept questing only
+  - S7 "daemon does not start on cloud Pro" — older releases only (xenial→focal); no action
+
 - detached_auto_attach.feature
 - docker.feature
 - enable_fips_cloud.feature
