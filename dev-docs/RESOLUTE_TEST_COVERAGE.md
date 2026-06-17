@@ -179,7 +179,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 3** "esm apt auth includes snapshot urls": added `resolute | lxd-container`
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- esm_cache.feature
+#### `esm_cache.feature`
+
+- **Status:** ✅ Updated
+- **Scenario 1** "esm cache failures don't generate errors": added `resolute | lxd-container`
+- **Scenario 2** "esm cache failures don't generate errors on xenial" (`@no_gh`): kept xenial-only unchanged
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - fix.feature
 - i18n.feature
 - install_uninstall.feature
