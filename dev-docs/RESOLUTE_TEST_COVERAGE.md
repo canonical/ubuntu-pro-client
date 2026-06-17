@@ -283,7 +283,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
   - Scenario 9 "Enable realtime kernel through proxy on a machine with no internet"
 - **Test note:** run skipped in-session; tracker updated to match the final feature-file edits
 
-- realtime_kernel.feature
+#### `realtime_kernel.feature`
+
+- **Status:** ⏭️ Evaluated; no resolute test updates applied
+- **Decision:** do not update this feature's release matrix
+- **Reason:** realtime-kernel is no longer managed through Ubuntu Pro in the current product direction
+- **TODO:** define the best way to make this explicit in test coverage, potentially by introducing a dedicated tombstone/deprecation test that asserts expected non-managed behavior instead of keeping legacy enable-flow expansion
+
 - reboot_cmds.feature
 - retry_auto_attach.feature
 - ros.feature
