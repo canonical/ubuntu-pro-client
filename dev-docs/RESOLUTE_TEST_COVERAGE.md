@@ -171,7 +171,14 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** scenario assertions are tightly coupled to current VM FIPS entitlement/kernel/package behavior (xenial/bionic/focal/jammy matrices, service interactions, and explicit output expectations); resolute applicability is not established yet.
 - **Revisit:** re-evaluate once resolute VM FIPS availability and expected behavior/output contracts are confirmed.
 
-- esm.feature
+#### `esm.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "enable esm in a machine with -updates disabled" (`/etc/apt/sources.list` path): no resolute addition; kept xenial/bionic/focal/jammy
+- **Scenario 2** "enable esm in a machine with -updates disabled" (`/etc/apt/sources.list.d/ubuntu.sources` path): added `resolute | lxd-container`
+- **Scenario 3** "esm apt auth includes snapshot urls": added `resolute | lxd-container`
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - esm_cache.feature
 - fix.feature
 - i18n.feature
