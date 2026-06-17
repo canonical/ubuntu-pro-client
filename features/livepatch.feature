@@ -36,10 +36,11 @@ Feature: Livepatch
       """
 
     Examples: ubuntu release
-      | release | machine_type | livepatch_status |
-      | xenial  | lxd-vm       | warning          |
-      | bionic  | lxd-vm       | enabled          |
-      | noble   | lxd-vm       | enabled          |
+      | release  | machine_type | livepatch_status |
+      | xenial   | lxd-vm       | warning          |
+      | bionic   | lxd-vm       | enabled          |
+      | noble    | lxd-vm       | enabled          |
+      | resolute | lxd-vm       | enabled          |
 
   Scenario Outline: Unattached livepatch status shows warning when on unsupported kernel
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -192,7 +193,6 @@ Feature: Livepatch
 
     Examples: ubuntu release
       | release  | machine_type | pretty_name             |
-      | plucky   | lxd-vm       | 25.04 (Plucky Puffin)   |
       | questing | lxd-vm       | 25.10 (Questing Quokka) |
 
   Scenario Outline: Livepatch is supported on interim HWE kernel

@@ -227,7 +227,14 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** all scenarios are xenial-only and tied to legacy-contract behavior (`contract_token_legacy`, `esm-infra-legacy`, `esm-apps-legacy`)
 - **Revisit:** no action expected; this file is legacy coverage only
 
-- livepatch.feature
+#### `livepatch.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Attached disable of livepatch in a lxd vm": added `resolute | lxd-vm | enabled`
+- **Scenario 5** "Livepatch is not enabled by default and can't be enabled on interim releases": dropped `plucky`, kept `questing` (resolute is LTS, so not part of interim-only behavior)
+- **Scenarios 2-4 and 6-11:** kept unchanged (targeted focal/jammy/xenial/bionic/wsl/fips/snapd-specific behaviors)
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - logs.feature
 - lxd.feature
 - motd_messages.feature
