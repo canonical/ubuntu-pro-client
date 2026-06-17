@@ -510,7 +510,7 @@ def _get_relevant_apparmor_logs(context):
         sut = context.machines[SUT]
         if sut.cloud == "lxd-container":
             # get apparmor DENIED messages from the host
-            with open("/var/log/syslog", "r") as syslog_fd:
+            with open("/var/log/syslog", "r", errors="replace") as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
             apparmor_denied = [
                 msg.strip()
