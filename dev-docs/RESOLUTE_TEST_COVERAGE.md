@@ -290,7 +290,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** realtime-kernel is no longer managed through Ubuntu Pro in the current product direction
 - **TODO:** define the best way to make this explicit in test coverage, potentially by introducing a dedicated tombstone/deprecation test that asserts expected non-managed behavior instead of keeping legacy enable-flow expansion
 
-- reboot_cmds.feature
+#### `reboot_cmds.feature`
+
+- **Status:** ⏭️ Evaluated; not applicable to resolute
+- **Decision:** no resolute additions
+- **Reason:** this scenario is focal-only and validates FIPS-specific reboot command behavior with hardcoded package/version expectations (`strongswan` and `fips` flow). Resolute applicability is not established in the current FIPS support matrix.
+- **Revisit:** re-evaluate if/when resolute gains the required FIPS reboot-cmd behavior and package expectations for this flow.
+
 - retry_auto_attach.feature
 - ros.feature
 - subscription_attach_restrictions.feature
