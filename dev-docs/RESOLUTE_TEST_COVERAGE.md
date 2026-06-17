@@ -118,7 +118,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 
 #### `daemon.feature`
 
-- **Status:** ✅ Updated; tested on resolute ✓. Needs testing on cloud instances.
+- **Status:** ✅ Updated; tested on resolute ✓. **NOTE: needs testing on cloud instances**
 - **Added resolute to:**
   - S1 "cloud-id-shim not installed" — lxd-container (generic check); dropped plucky
   - S3 "daemon runs on gcp generic LTS" — gcp.generic; added `resolute | gcp.generic | ubuntu-pro-client`; added `Then on resolute, systemd status output says memory usage is less than 17 MB`
@@ -129,7 +129,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
   - S5 "daemon does NOT start on non-LTS gcp/azure" — resolute is LTS, must NOT be here; dropped plucky, kept questing only
   - S7 "daemon does not start on cloud Pro" — older releases only (xenial→focal); no action
 
-- detached_auto_attach.feature
+#### `detached_auto_attach.feature`
+
+- **Status:** ✅ Updated; **NOTE: needs testing on cloud instances** (all scenarios require aws/azure/gcp.generic)
+- **Scenario:** "No detaching on manually attached machine on all clouds" — generic logic; `esm-infra` is available on resolute (LTS)
+- **Added:** `resolute | aws.generic`, `resolute | azure.generic`, `resolute | gcp.generic`
+- **No plucky to drop** (questing also absent from this file)
+
 - docker.feature
 - enable_fips_cloud.feature
 - enable_fips_container.feature
