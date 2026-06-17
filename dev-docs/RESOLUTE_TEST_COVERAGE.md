@@ -220,7 +220,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 5** ("Landscape inapplicable on unsupported release"): xenial/jammy only; resolute is supported so must not appear here
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- legacy.feature
+#### `legacy.feature`
+
+- **Status:** ⏭️ Evaluated; not applicable to resolute
+- **Decision:** no resolute additions
+- **Reason:** all scenarios are xenial-only and tied to legacy-contract behavior (`contract_token_legacy`, `esm-infra-legacy`, `esm-apps-legacy`)
+- **Revisit:** no action expected; this file is legacy coverage only
+
 - livepatch.feature
 - logs.feature
 - lxd.feature
