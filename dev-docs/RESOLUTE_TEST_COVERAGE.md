@@ -256,7 +256,15 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 2** "Contract Expiration Messages": kept unchanged (xenial/bionic + wsl matrix with `esm-infra` service) to preserve existing release-specific behavior expectations
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- network_failures.feature
+#### `network_failures.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Various HTTP errors are handled gracefully on attaching contract token": added `resolute | lxd-container`
+- **Scenario 2** "Network errors for attaching contract token are handled gracefully": added `resolute | lxd-container`
+- **Scenario 3** "Network errors for enabling Realtime kernel and Livepatch are handled gracefully": added `resolute | lxd-container | livepatch`; kept resolute `lxd-vm | realtime-kernel` out for now
+- **Reason:** generic error-handling coverage on LTS releases; livepatch container path mapped cleanly from noble, but resolute `lxd-vm` realtime-kernel runs currently fail in the global behave AppArmor gate before scenario logic executes
+- **Test note:** explicit resolute run attempted; scenarios 1, 2, and livepatch container path passed, while the resolute realtime-kernel VM row hit the same upstream AppArmor blocker seen in `lxd.feature`
+
 - proxy_config.feature
 - realtime_kernel.feature
 - reboot_cmds.feature
