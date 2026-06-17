@@ -235,7 +235,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenarios 2-4 and 6-11:** kept unchanged (targeted focal/jammy/xenial/bionic/wsl/fips/snapd-specific behaviors)
 - **Test note:** run skipped in-session per user confirmation of local passing tests
 
-- logs.feature
+#### `logs.feature`
+
+- **Status:** ✅ Updated
+- **Scenarios 1-4** ("The log file can be successfully parsed as json array", "Non-root user and root user log files are different", "Non-root user log files included in collect logs", "logrotate configuration works"): all had identical release matrices (xenial-questing); added `resolute | lxd-container` to all 4; dropped `plucky` from scenarios 2-4
+- **Scenario 1 note:** follows noble+ pattern with `user_spec: with sudo` for resolute (matching root-only logging on LTS)
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - lxd.feature
 - motd_messages.feature
 - network_failures.feature
