@@ -330,7 +330,21 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** timer/service behavior and contract activity validation are release-agnostic in these scenarios and follow existing noble/questing LTS progression
 - **Test note:** run skipped in-session per ongoing workflow
 
-- ubuntu_pro.feature
+#### `ubuntu_pro.feature`
+
+- **Status:** ✅ Partially updated
+- **Added resolute to:**
+  - Scenario 2 "Attached refresh in an Ubuntu pro cloud machine" (`aws.pro`, `azure.pro`, `gcp.pro`)
+  - Scenario 3 "Auto-attach service works on Pro Machine" (`azure.pro`, `gcp.pro`)
+  - Scenario 4 "Auto-attach service works on Pro Machine on aws.pro" (`resolute`)
+  - Scenario 5 "Auto-attach service works on Pro Machine on aws.generic" (`resolute | aws.generic`)
+  - Scenario 6 "Auto-attach no-op when cloud-init has ubuntu_advantage on userdata" (`resolute` rows with `ubuntu_pro` key)
+  - Scenario 7 "Unregistered Pro machine" (`resolute | aws.generic`)
+- **Left unchanged:**
+  - Scenario 1 "Proxy auto-attach on a cloud Ubuntu Pro machine" (legacy xenial/bionic/focal matrix retained)
+- **Reason:** scenarios 2-7 are generic auto-attach/Pro-image behaviors already covered through noble; scenario 1 remains on its existing older matrix.
+- **Test note:** run skipped in-session; cloud-instance coverage required
+
 - ubuntu_pro_fips.feature
 - ubuntu_upgrade.feature
 - ubuntu_upgrade_unattached.feature
