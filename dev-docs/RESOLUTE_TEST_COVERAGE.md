@@ -136,7 +136,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Added:** `resolute | aws.generic`, `resolute | azure.generic`, `resolute | gcp.generic`
 - **No plucky to drop** (questing also absent from this file)
 
-- docker.feature
+#### `docker.feature`
+
+- **Status:** ⏭️ Deferred for rework
+- **Decision:** removed resolute rows from Scenario 1 for now
+- **Reason:** current test matrix couples host release with cross-series container deb builds (xenial/bionic/focal), which introduces infra dependencies (e.g., legacy sbuild chroots) unrelated to resolute validation
+- **Revisit:** rework this feature so resolute coverage does not rely on unavailable legacy chroots or storage-driver-specific docker layer paths; then re-evaluate noble/resolute additions for all three scenarios
+
 - enable_fips_cloud.feature
 - enable_fips_container.feature
 - enable_fips_pro.feature
