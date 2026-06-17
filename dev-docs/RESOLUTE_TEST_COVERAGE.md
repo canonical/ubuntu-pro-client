@@ -211,7 +211,15 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** all 7 scenarios are xenial/bionic only, covering legacy install/uninstall and cloud-init behaviors specific to those older releases
 - **Revisit:** no action expected; this file is legacy coverage only
 
-- landscape.feature
+#### `landscape.feature`
+
+- **Status:** ✅ Updated
+- **Scenarios 1-3** ("Enable Landscape non-interactively", "Enable Landscape interactively", "Re-enable after disable"): dropped `plucky`; added `resolute | lxd-container`
+- **Scenario 2 note:** kept a release guard on the invalid-key stderr assertion for resolute due interactive getpass/prompt output differences on resolute in this test environment
+- **Scenario 4** ("Detach/reattach on unsupported release"): jammy-only; no action
+- **Scenario 5** ("Landscape inapplicable on unsupported release"): xenial/jammy only; resolute is supported so must not appear here
+- **Test note:** run skipped in-session per user confirmation of local passing tests
+
 - legacy.feature
 - livepatch.feature
 - logs.feature
