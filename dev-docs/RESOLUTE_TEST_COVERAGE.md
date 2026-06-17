@@ -157,7 +157,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** both scenarios are tightly coupled to current FIPS package/source expectations on xenial/bionic/focal container paths; resolute applicability is not established yet.
 - **Revisit:** re-evaluate when resolute FIPS availability and package/source expectations for container flows are confirmed.
 
-- enable_fips_pro.feature
+#### `enable_fips_pro.feature`
+
+- **Status:** ⏭️ Evaluated; not yet applicable to resolute
+- **Decision:** no resolute additions
+- **Reason:** scenario assertions are tied to current PRO-cloud FIPS kernel/package expectations on bionic/focal; resolute applicability is not established yet.
+- **Revisit:** re-evaluate when resolute PRO-cloud FIPS availability and expected package/kernel behavior are confirmed.
+
 - enable_fips_vm.feature
 - esm.feature
 - esm_cache.feature
