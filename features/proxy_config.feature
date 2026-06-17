@@ -174,12 +174,13 @@ Feature: Proxy configuration
     And the machine is attached
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario Outline: Attach command when proxy is configured
@@ -377,12 +378,13 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario Outline: Attach command when authenticated proxy is configured
@@ -561,12 +563,13 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario Outline: Attach command when authenticated proxy is configured globally
@@ -637,12 +640,13 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario Outline: Get warning when configuring global or uaclient proxy
@@ -789,12 +793,13 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario Outline: apt_http(s)_proxy still works
@@ -926,12 +931,13 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario: Enable realtime kernel through proxy on a machine with no internet
@@ -1067,8 +1073,9 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | bionic  | lxd-vm       |
-      | focal   | lxd-vm       |
-      | jammy   | lxd-vm       |
-      | noble   | lxd-vm       |
+      | release  | machine_type |
+      | bionic   | lxd-vm       |
+      | focal    | lxd-vm       |
+      | jammy    | lxd-vm       |
+      | noble    | lxd-vm       |
+      | resolute | lxd-vm       |

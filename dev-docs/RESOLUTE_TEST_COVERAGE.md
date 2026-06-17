@@ -265,7 +265,24 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** generic error-handling coverage on LTS releases; livepatch container path mapped cleanly from noble, but resolute `lxd-vm` realtime-kernel runs currently fail in the global behave AppArmor gate before scenario logic executes
 - **Test note:** explicit resolute run attempted; scenarios 1, 2, and livepatch container path passed, while the resolute realtime-kernel VM row hit the same upstream AppArmor blocker seen in `lxd.feature`
 
-- proxy_config.feature
+#### `proxy_config.feature`
+
+- **Status:** ✅ Partially updated
+- **Added resolute to container-backed scenarios:**
+  - Scenario 1 "Attach command when proxy is configured for uaclient"
+  - Scenario 3 "Attach and config show command when authenticated proxy is configured for uaclient"
+  - Scenario 5 "Attach command when proxy is configured globally"
+  - Scenario 6 "Attach command when authenticated proxy is configured globally"
+  - Scenario 7 "Get warning when configuring global or uaclient proxy"
+  - Scenario 8 "apt_http(s)_proxy still works"
+- **Added resolute to VM-backed scenario:**
+  - Scenario 10 "Support HTTPS-in-HTTPS proxies"
+- **Left unchanged:**
+  - Scenario 2 "Attach command when proxy is configured"
+  - Scenario 4 "Attach command when authenticated proxy is configured"
+  - Scenario 9 "Enable realtime kernel through proxy on a machine with no internet"
+- **Test note:** run skipped in-session; tracker updated to match the final feature-file edits
+
 - realtime_kernel.feature
 - reboot_cmds.feature
 - retry_auto_attach.feature
