@@ -14,7 +14,7 @@ Agents like Copilot, Claude, and Gemini should treat this section like a skill. 
 3. Ask the user if Resolute should be added for the scenario. List the distributions that the scenario currently uses.
 4. If present, drop Plucky for the scenario
 5. Run the test scenario for Resolute using the archive release
-6. Mark the scenario as "updated" in the Test Evaluation Summary section. Remove it from the "Tests Pending Evaluation" section.
+6. Mark the update status on the scenario (added resolute, partially updated, skipped) in the "Tests Evaluated" section. Remove it from the "Tests Pending Evaluation" section.
 7. If a test is not updated, mark it as "skipped" and note why.
 
 How to run a test:
@@ -25,9 +25,11 @@ UACLIENT_BEHAVE_INSTALL_FROM=local tox -e behave -- features/airgapped.feature -
 
 Some tests require a token. I will export into the terminal so that you may use it.
 
+IMPORTANT: after each test file, you MUST pause and wait for explicit instructions to continue.
+
 ## Test Evaluation Summary
 
-### ✅ Tests Updated with Resolute
+### ✅ Tests Evaluated
 
 #### `_version.feature`
 
@@ -79,6 +81,25 @@ Some tests require a token. I will export into the terminal so that you may use 
 - **Reason:** Mirror and contracts setup are hardcoded to jammy. APT output assertions check for `jammy-apps-security/main`. Would require significant rework to support new releases.
 - **Action:** Revisit after mirror infrastructure supports resolute.
 
+#### `cc_eal.feature`
+
+- **Status:** ✅ Updated; tested on resolute ✓
+- **Scenario 1 & 2** ("Attached enable CC EAL2", "Enable cc-eal with --access-only") — xenial, bionic only; CC EAL2 is not supported on newer releases; no action taken
+- **Scenario 3** ("CC EAL2 not available") — added `resolute | lxd-container | 26.04 LTS | Resolute Raccoon`; dropped plucky
+- **Kept:** focal, jammy, noble, questing, resolute
+
+#### `cis.feature`
+
+- **Status:** ⏭️ Skipped
+- **Current Releases:** xenial, bionic (Scenario 1); focal (Scenario 2)
+- **Reason:** CIS Audit is only available on xenial, bionic, and focal. From focal onward, `pro enable cis` redirects to `usg`. New releases use `usg.feature` instead. No CIS scripts ship for resolute.
+
+#### `cloud_pro_clone.feature`
+
+- **Status:** ⏭️ Skipped
+- **Current Releases:** bionic, focal (aws.pro, gcp.pro)
+- **Reason:** Tests `fips-updates` golden image cloning on cloud Pro instances. FIPS is not available on resolute.
+
 ---
 
 ### 🔄 Tests Under Evaluation
@@ -89,9 +110,6 @@ Some tests require a token. I will export into the terminal so that you may use 
 
 ### 📋 Tests Pending Evaluation
 
-- cc_eal.feature
-- cis.feature
-- cloud_pro_clone.feature
 - contract_expired.feature
 - daemon.feature
 - detached_auto_attach.feature
