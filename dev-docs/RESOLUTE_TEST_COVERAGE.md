@@ -100,6 +100,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Current Releases:** bionic, focal (aws.pro, gcp.pro)
 - **Reason:** Tests `fips-updates` golden image cloning on cloud Pro instances. FIPS is not available on resolute.
 
+#### `enable_fips_cloud.feature`
+
+- **Status:** ⏭️ Evaluated; not yet applicable to resolute
+- **Decision:** no resolute additions for now
+- **Reason:** FIPS is not available on noble/resolute in current cloud matrix, and this feature is explicitly tied to cloud FIPS service/kernel availability by release.
+- **Revisit:** when noble/resolute cloud FIPS availability is confirmed, re-evaluate all scenarios in this file.
+
 ---
 
 ### 🔄 Tests Under Evaluation
@@ -143,7 +150,6 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** current test matrix couples host release with cross-series container deb builds (xenial/bionic/focal), which introduces infra dependencies (e.g., legacy sbuild chroots) unrelated to resolute validation
 - **Revisit:** rework this feature so resolute coverage does not rely on unavailable legacy chroots or storage-driver-specific docker layer paths; then re-evaluate noble/resolute additions for all three scenarios
 
-- enable_fips_cloud.feature
 - enable_fips_container.feature
 - enable_fips_pro.feature
 - enable_fips_vm.feature
