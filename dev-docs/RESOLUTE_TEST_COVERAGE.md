@@ -352,7 +352,14 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** the feature is a FIPS cloud-image matrix scoped to xenial/bionic/focal (`*.pro-fips` machine types) with release-specific kernel/meta/package expectations; resolute FIPS cloud coverage is not established in this file.
 - **Revisit:** re-evaluate when resolute FIPS cloud image support and expected package/kernel behavior are confirmed.
 
-- ubuntu_upgrade.feature
+#### `ubuntu_upgrade.feature`
+
+- **Status:** ✅ Partially updated
+- **Scenario 1** "Attached upgrade": added `questing | lxd-container | resolute | normal | (no --devel-release) | esm-infra n/a | esm-apps n/a | true`
+- **Scenarios 2-4:** left unchanged (FIPS LTS-only upgrade path, onlySeries legacy chain, and `esm-infra-legacy` xenial->bionic coverage)
+- **Reason:** scenario 1 tracks generic attached upgrade behavior across release hops; other scenarios are tightly scoped to legacy/FIPS-specific upgrade chains.
+- **Test note:** run skipped in-session. Need AppArmor fix upstream.
+
 - ubuntu_upgrade_unattached.feature
 - usg.feature
 - yaml.feature
