@@ -312,7 +312,15 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** this feature is legacy-scoped with a xenial/bionic-only matrix and explicit ROS ESM source URL assertions tied to those releases.
 - **Revisit:** re-evaluate only if ROS entitlement coverage is intentionally expanded to newer releases with updated source expectations.
 
-- subscription_attach_restrictions.feature
+#### `subscription_attach_restrictions.feature`
+
+- **Status:** ✅ Updated
+- **Scenario 1** "Attach fail if subscription is restricted to release": added `resolute | lxd-container | noble | 24.04 LTS | Noble Numbat`
+- **Scenario 2** "Check notice visible when attached with onlySeries present": added `resolute | lxd-container | resolute | 26.04 LTS | Resolute Raccoon`
+- **Scenario 3** "Check attach works with future onlyseries": added `resolute | lxd-container`
+- **Reason:** scenarios validate attach restriction and messaging behavior using response overlays and release-parameterized expectations; no hardcoded package/version coupling blocks resolute coverage
+- **Test note:** run skipped in-session per ongoing workflow
+
 - timer.feature
 - ubuntu_pro.feature
 - ubuntu_pro_fips.feature
