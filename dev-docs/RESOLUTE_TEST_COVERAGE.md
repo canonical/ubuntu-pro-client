@@ -5,6 +5,26 @@
 
 ---
 
+## INSTRUCTIONS FOR AGENTS
+
+Agents like Copilot, Claude, and Gemini should treat this section like a skill. They must follow the steps outlined here:
+
+1. Iterate through the tests scenarios in the file
+2. Summarize the scenario for the user
+3. Ask the user if Resolute should be added for the scenario. List the distributions that the scenario currently uses.
+4. If present, drop Plucky for the scenario
+5. Run the test scenario for Resolute using the archive release
+6. Mark the scenario as "updated" in the Test Evaluation Summary section. Remove it from the "Tests Pending Evaluation" section.
+7. If a test is not updated, mark it as "skipped" and note why.
+
+How to run a test:
+
+```sh
+UACLIENT_BEHAVE_INSTALL_FROM=local tox -e behave -- features/airgapped.feature -D releases=resolute -D machine_types=lxd-container
+```
+
+Some tests require a token. I will export into the terminal so that you may use it.
+
 ## Test Evaluation Summary
 
 ### ✅ Tests Updated with Resolute
@@ -44,9 +64,13 @@
   2. "Cloud and series-specific URLs" — hardcoded cloud URLs for legacy releases; kept as-is
 - **Drop rationale:** plucky dropped throughout as it is superseded by questing/resolute for coverage of new APT output format
 
----
+#### `autocomplete.feature`
 
-### ⏭️ Tests Skipped (Not Updated)
+- **Status:** ✅ Updated
+- **Scenario:** "Verify autocomplete options" — generic tab-completion smoke test, no release-specific logic
+- **Added:** resolute (lxd-container)
+- **Dropped:** plucky
+- **Kept:** bionic, focal, jammy, noble, questing, resolute
 
 #### `airgapped.feature`
 
@@ -65,7 +89,6 @@
 
 ### 📋 Tests Pending Evaluation
 
-- autocomplete.feature
 - cc_eal.feature
 - cis.feature
 - cloud_pro_clone.feature
