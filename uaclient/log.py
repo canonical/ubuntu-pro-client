@@ -91,9 +91,7 @@ def get_all_user_log_files() -> List[str]:
     """Gets all the log files for the users in the system
 
     Returns a list of all user log files in their home directories.
-    Symlinks are explicitly rejected to prevent local file disclosure.
     """
-    logger = logging.getLogger("ubuntupro")
     user_directories = os.listdir("/home")
     log_files = []
     for user_directory in user_directories:
