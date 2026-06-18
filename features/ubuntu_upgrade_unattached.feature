@@ -59,12 +59,11 @@ Feature: Upgrade between releases when uaclient is unattached
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | next_release | prompt | devel_release   | service_status |
-      | xenial   | lxd-container | bionic       | lts    |                 | enabled        |
-      | bionic   | lxd-container | focal        | lts    |                 | enabled        |
-      | focal    | lxd-container | jammy        | lts    |                 | enabled        |
-      | jammy    | lxd-container | noble        | lts    |                 | enabled        |
-      | noble    | lxd-container | resolute     | lts    |                 | enabled        |
-      | noble    | lxd-container | plucky       | normal |                 | n/a            |
-      | plucky   | lxd-container | questing     | normal | --devel-release | n/a            |
-      | questing | lxd-container | resolute     | normal |                 | n/a            |
+      | release  | machine_type  | next_release | prompt | devel_release | service_status |
+      | xenial   | lxd-container | bionic       | lts    |               | enabled        |
+      | bionic   | lxd-container | focal        | lts    |               | enabled        |
+      | focal    | lxd-container | jammy        | lts    |               | enabled        |
+      | jammy    | lxd-container | noble        | lts    |               | enabled        |
+      | noble    | lxd-container | resolute     | lts    |               | enabled        |
+      | noble    | lxd-container | plucky       | normal |               | n/a            |
+      | questing | lxd-container | resolute     | normal |               | n/a            |
