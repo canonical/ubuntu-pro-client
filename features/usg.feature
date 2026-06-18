@@ -46,6 +46,5 @@ Feature: Enable usg on Ubuntu
     And I verify that `usg` is disabled
 
     Examples: cis service
-      | release  | machine_type  |
-      | focal    | lxd-container |
-      | resolute | lxd-container |
+      | release | machine_type  |
+      | focal   | lxd-container |

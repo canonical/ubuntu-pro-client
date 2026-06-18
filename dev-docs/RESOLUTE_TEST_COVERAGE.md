@@ -371,10 +371,10 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 
 #### `usg.feature`
 
-- **Status:** ✅ Updated
-- **Scenario 1** "Attached enable of usg service in a focal machine": added `resolute | lxd-container`
-- **Reason:** scenario validates `usg`/`cis` alias behavior that is explicitly 20.04+; resolute is in-scope for this flow.
-- **Test note:** run skipped in-session per ongoing workflow
+- **Status:** ⏭️ Evaluated; not ready for resolute
+- **Decision:** removed resolute coverage for now
+- **Reason:** USG enablement coverage is not yet ready for resolute in the current test environment/product readiness.
+- **Revisit:** add resolute matrix rows when USG support/readiness is confirmed. Probably add Noble separately, too.
 
 - yaml.feature
 
