@@ -70,14 +70,45 @@ Will be addressed separately.
   3. "APT News" (old output format, full-range) — added resolute
   4. "APT News" (new output format, questing+) — dropped plucky; added resolute
   5. "APT news selectors" (old output format) — kept xenial through noble; moved resolute to scenario 6
-  6. "APT news selectors" (new output format) — replaced plucky with resolute (noble→resolute wrong_release)
+  6. "APT news selectors" (new output format) — resolute now blocked and commented out pending a suitable package
   7. "APT Hook does not error when run as non-root" — dropped plucky; added resolute
   8. "APT Hook do not advertises esm-apps on upgrade for interim releases" — dropped plucky; kept questing
 - **Scenarios Unchanged:**
   1. "APT JSON Hook on xenial" — xenial-only legacy test; kept as-is
   2. "Cloud and series-specific URLs" — hardcoded cloud URLs for legacy releases; kept as-is
 - **Drop rationale:** plucky dropped throughout as it is superseded by questing/resolute for coverage of new APT output format
-- **Test run status:** _____ (resolute)
+- **Blocked note:** the selector package must satisfy all of the following before resolute can be re-enabled here:
+  - be present on resolute and on at least one different Ubuntu release so `wrong_release` can prove codename filtering
+  - have an exact installable version on resolute for the `packages == <installed_version>` selector checks
+  - have a newer candidate available on resolute after that install so `apt upgrade` reports `Not upgrading: 1` for the held package checks
+- **Test run status:** ✓ PASSED (lxd-container except selector case); BLOCKED (selector package search; lxd-vm AppArmor)
+
+##### AppArmor
+
+AppArmor failures are due to VM image having failures prior to the test running:
+
+```text
+2026-06-18 10:33:13,165:WARNING:root:2026-06-18T15:32:57.412574+00:00 pro-resolute-sut-0618-103224234863 kernel: audit: type=1400 audit(1781796777.411:196): apparmor="DENIED" operation="capable" class="cap" profile="ubuntu_pro_esm_cache_systemd_detect_virt" pid=2018 comm="systemd-detect-" capability=38  capname="perfmon"
+```
+
+The first command from the test after cloud-init happens *after* this log:
+
+```text
+2026-06-18 10:32:57,214:INFO:pycloudlib.instance:executing: cloud-init status --wait --long
+2026-06-18 10:32:57,439:INFO:root:--- cloud-init succeeded
+2026-06-18 10:32:57,440:INFO:pycloudlib.instance:executing: sudo systemctl mask apt-news.service
+```
+
+Compare AppArmor failure: `2026-06-18T15:32:57.412574` to cloud-init succeeded: `2026-06-18 10:32:57,439` (timezones are different, but only minutes/seconds matter here).
+
+##### apt news
+
+We need to find a package that is compatible with the test format:
+
+- Present on Resolute in two versions
+- Present on Noble (or other older-than-resolute) release
+
+There's probably some package satisfying these criteria, but I haven't found it yet.
 
 #### `autocomplete.feature`
 

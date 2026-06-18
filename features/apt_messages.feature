@@ -649,21 +649,19 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | lxd-container |
-      | xenial   | lxd-vm        |
-      | bionic   | lxd-container |
-      | bionic   | lxd-vm        |
-      | focal    | lxd-container |
-      | focal    | lxd-vm        |
-      | jammy    | lxd-container |
-      | jammy    | lxd-vm        |
-      | noble    | lxd-container |
-      | noble    | lxd-vm        |
-      | resolute | lxd-container |
-      | resolute | lxd-vm        |
+      | release | machine_type  |
+      | xenial  | lxd-container |
+      | xenial  | lxd-vm        |
+      | bionic  | lxd-container |
+      | bionic  | lxd-vm        |
+      | focal   | lxd-container |
+      | focal   | lxd-vm        |
+      | jammy   | lxd-container |
+      | jammy   | lxd-vm        |
+      | noble   | lxd-container |
+      | noble   | lxd-vm        |
 
-  # This is a subset of the above test, only checking proper outputs for Plucky
+  # This is a subset of the above test, only checking proper outputs for Questing+
   # At some point in time, ideally before next LTS, we need to invert this:
   # Have the new APT output in the full test, using latest releases, and a subset for the
   # old output.
@@ -1561,9 +1559,13 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | wrong_release | package   | installed_version |
-      | resolute | lxd-container | noble         | pyzfs-doc | 2.3.1-1ubuntu1    |
+      | release | machine_type | wrong_release | package | installed_version |
 
+  # BLOCKED: re-enable resolute once we identify a package that:
+  # - exists on resolute and on at least one different Ubuntu release for wrong_release coverage
+  # - has an installable exact version on resolute for the package selector
+  # - also has a newer candidate on resolute so apt upgrade reports it as held in "Not upgrading"
+  # | resolute | lxd-container | noble         | ... | ... |
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `apt upgrade --simulate` as non-root
