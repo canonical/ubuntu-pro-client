@@ -1,4 +1,4 @@
-"""Tests for newline/control-character injection prevention (F01)."""
+"""Tests for newline/control-character injection prevention (CVE-2026-11386)."""
 
 import pytest
 
