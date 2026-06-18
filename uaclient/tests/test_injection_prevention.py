@@ -38,6 +38,9 @@ class TestStrictStringDataValue:
             "\r",
             "\x00",
             "jammy main\ndeb http://attacker/ jammy main",
+            "[trusted=yes] http://evil.example.com/repo",
+            "jammy main",
+            " ",
         ),
     )
     def test_rejects_control_characters(self, val):

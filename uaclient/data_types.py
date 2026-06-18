@@ -109,12 +109,12 @@ class StringDataValue(DataValue):
 class StrictStringDataValue(DataValue):
     """
     A string data value that rejects control characters (newline, carriage
-    return, null byte) which could be used for injection attacks in apt
-    sources files or auth config.
+    return, null byte) and spaces which could be used for injection attacks
+    in apt sources files or auth config.
     """
 
     python_type_name = "str"
-    _UNSAFE_CHARS = re.compile(r"[\n\r\x00]")
+    _UNSAFE_CHARS = re.compile(r"[\n\r\x00 ]")
 
     @staticmethod
     def from_value(val: Any) -> str:
