@@ -369,7 +369,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** extends the existing unattached release-hop chain to cover resolute, matching the attached-upgrade questing->resolute progression.
 - **Test note:** run skipped in-session. Need AppArmor fix upstream.
 
-- usg.feature
+#### `usg.feature`
+
+- **Status:** ✅ Updated
+- **Scenario 1** "Attached enable of usg service in a focal machine": added `resolute | lxd-container`
+- **Reason:** scenario validates `usg`/`cis` alias behavior that is explicitly 20.04+; resolute is in-scope for this flow.
+- **Test note:** run skipped in-session per ongoing workflow
+
 - yaml.feature
 
 ---
