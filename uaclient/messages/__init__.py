@@ -2425,15 +2425,6 @@ E_REPO_NO_SUITES = FormattedNamedMessage(
     ),
 )
 
-E_INVALID_APT_DIRECTIVE_VALUE = FormattedNamedMessage(
-    "invalid-apt-directive-value",
-    t.gettext(
-        "Refusing to write apt source: contract server provided a"
-        " directive value containing invalid characters"
-        " (field='{field_name}', value={value!r})"
-    ),
-)
-
 E_REPO_PIN_FAIL_NO_ORIGIN = FormattedNamedMessage(
     "repo-pin-fail-no-origin",
     t.gettext(

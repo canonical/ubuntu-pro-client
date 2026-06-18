@@ -415,10 +415,6 @@ class RepoNoSuites(UbuntuProError):
     _formatted_msg = messages.E_REPO_NO_SUITES
 
 
-class InvalidAPTDirectiveValueError(UbuntuProError):
-    _formatted_msg = messages.E_INVALID_APT_DIRECTIVE_VALUE
-
-
 class RepoPinFailNoOrigin(UbuntuProError):
     _formatted_msg = messages.E_REPO_PIN_FAIL_NO_ORIGIN
 
