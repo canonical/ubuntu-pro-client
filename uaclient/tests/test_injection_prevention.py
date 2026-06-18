@@ -96,9 +96,12 @@ class TestAssertNoAptInjection:
             "https://example.com\nhttps://evil.com",
             "value\rcarriage-return",
             "null\x00byte",
+            "deb [trusted=yes] http://evil/ jammy main",
+            "Trusted",
+            "TRUSTED",
         ),
     )
-    def test_rejects_control_characters(self, val):
+    def test_rejects_control_characters_and_trusted(self, val):
         with pytest.raises(exceptions.InvalidAPTDirectiveValueError):
             _assert_no_apt_injection(val, "test_field")
 

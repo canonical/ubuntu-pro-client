@@ -524,7 +524,12 @@ def _assert_no_apt_injection(value: str, field_name: str) -> None:
     Defense-in-depth: even though StrictStringDataValue validates at the
     contract parsing layer, we also check here at the point of use.
     """
-    if "\n" in value or "\r" in value or "\x00" in value:
+    if (
+        "\n" in value
+        or "\r" in value
+        or "\x00" in value
+        or "trusted" in value.lower()
+    ):
         raise exceptions.InvalidAPTDirectiveValueError(
             field_name=field_name, value=value
         )
