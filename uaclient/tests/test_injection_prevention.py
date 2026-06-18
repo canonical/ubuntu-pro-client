@@ -1,4 +1,4 @@
-"""Tests for newline/control-character injection prevention (CVE-2026-11386)."""
+"""Tests for newline/control-character injection prevention."""
 
 import pytest
 
@@ -11,7 +11,11 @@ from uaclient.data_types import (
 
 
 class TestStrictStringDataValue:
-    """StrictStringDataValue rejects control characters."""
+    """StrictStringDataValue rejects control characters.
+
+    Regression tests for CVE-2026-11386 (newline injection in apt
+    sources via contract directives).
+    """
 
     @pytest.mark.parametrize(
         "val",
@@ -55,7 +59,11 @@ class TestStrictStringDataValue:
 
 
 class TestStrictStringDataValueInList:
-    """data_list(StrictStringDataValue) rejects injection in list items."""
+    """data_list(StrictStringDataValue) rejects injection in list items.
+
+    Regression tests for CVE-2026-11386 (newline injection in apt
+    sources via contract directives).
+    """
 
     def test_valid_list_passes(self):
         strict_list = data_list(StrictStringDataValue)
