@@ -124,6 +124,7 @@ Feature: One time pro subscription related tests
       | jammy    | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
       | jammy    | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
       | noble    | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+      | noble    | lxd-container | resolute   | 26.04 LTS   | Resolute Raccoon    |
       | resolute | lxd-container | resolute   | 26.04 LTS   | Resolute Raccoon    |
 
   @arm64
