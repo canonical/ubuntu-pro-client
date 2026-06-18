@@ -162,7 +162,7 @@ There's probably some package satisfying these criteria, but I haven't found it 
 - **Status:** ⏭️ Skipped
 - **Current Releases:** jammy (lxd-container)
 - **Reason:** Skipped for now. Revisit to evaluate whether noble and resolute should be added — the test logic (esm-apps, update-motd, expired subscription messages) is generic enough to apply to newer releases.
-- **Test run status:** _____ (resolute)
+- **Test run status:** PENDING (need decision on whether noble + resolute should be added)
 
 #### `daemon.feature`
 
@@ -333,7 +333,7 @@ AppArmor failure is due to the fact the test pulls from archive, which doesn't h
   - Scenario 2 "Attach command when proxy is configured"
   - Scenario 4 "Attach command when authenticated proxy is configured"
   - Scenario 9 "Enable realtime kernel through proxy on a machine with no internet"
-- **Test run status:** _____ (resolute)
+- **Test run status:** ✓ PASSED
 
 #### `realtime_kernel.feature`
 
