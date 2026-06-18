@@ -175,6 +175,12 @@ class TestRemoveAptListFiles:
 
 
 class TestValidAptCredentials:
+    """Tests for assert_valid_apt_credentials.
+
+    Includes regression tests for CVE-2026-9494 (credential leakage
+    via /proc/<pid>/cmdline).
+    """
+
     @mock.patch("uaclient.system.subp")
     @mock.patch("os.path.exists", return_value=False)
     def test_passes_when_missing_apt_helper(self, m_exists, m_subp):
