@@ -360,7 +360,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** scenario 1 tracks generic attached upgrade behavior across release hops; other scenarios are tightly scoped to legacy/FIPS-specific upgrade chains.
 - **Test note:** run skipped in-session. Need AppArmor fix upstream.
 
-- ubuntu_upgrade_unattached.feature
+#### `ubuntu_upgrade_unattached.feature`
+
+- **Status:** ✅ Updated
+- **Scenario 1** "Unattached upgrade": added `questing | lxd-container | resolute | normal | (no --devel-release) | n/a`
+- **Reason:** extends the existing unattached release-hop chain to cover resolute, matching the attached-upgrade questing->resolute progression.
+- **Test note:** run skipped in-session per ongoing workflow
+
 - usg.feature
 - yaml.feature
 
