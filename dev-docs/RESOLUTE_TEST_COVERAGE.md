@@ -363,9 +363,11 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 #### `ubuntu_upgrade_unattached.feature`
 
 - **Status:** ✅ Updated
-- **Scenario 1** "Unattached upgrade": added `questing | lxd-container | resolute | normal | (no --devel-release) | n/a`
+- **Scenario 1** "Unattached upgrade": added both:
+  - `noble | lxd-container | resolute | lts | (no --devel-release) | enabled`
+  - `questing | lxd-container | resolute | normal | (no --devel-release) | n/a`
 - **Reason:** extends the existing unattached release-hop chain to cover resolute, matching the attached-upgrade questing->resolute progression.
-- **Test note:** run skipped in-session per ongoing workflow
+- **Test note:** run skipped in-session. Need AppArmor fix upstream.
 
 - usg.feature
 - yaml.feature
