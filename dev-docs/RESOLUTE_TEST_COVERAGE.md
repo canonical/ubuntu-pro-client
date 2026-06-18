@@ -282,7 +282,8 @@ There's probably some package satisfying these criteria, but I haven't found it 
 - **Scenario 1** "Attached disable of livepatch in a lxd vm": added `resolute | lxd-vm | enabled`
 - **Scenario 5** "Livepatch is not enabled by default and can't be enabled on interim releases": dropped `plucky`, kept `questing` (resolute is LTS, so not part of interim-only behavior)
 - **Scenarios 2-4 and 6-11:** kept unchanged (targeted focal/jammy/xenial/bionic/wsl/fips/snapd-specific behaviors)
-- **Test run status:** ✓ PASSED (lxd-container)
+- **Blocked note:** resolute `lxd-vm` Scenario 1 runs are currently blocked by AppArmor DENIED in the global behave `after_step` gate.
+- **Test run status:** ✓ PASSED (lxd-container) | BLOCKED (resolute `lxd-vm` Scenario 1, AppArmor)
 
 #### `logs.feature`
 
@@ -333,7 +334,10 @@ AppArmor failure is due to the fact the test pulls from archive, which doesn't h
   - Scenario 2 "Attach command when proxy is configured"
   - Scenario 4 "Attach command when authenticated proxy is configured"
   - Scenario 9 "Enable realtime kernel through proxy on a machine with no internet"
-- **Test run status:** ✓ PASSED
+- **Blocked note:** resolute failures are currently blocked by AppArmor DENIED in the global behave `after_step` gate for:
+  - Scenario 3 "Attach and config show command when authenticated proxy is configured for uaclient" (`lxd-container`)
+  - Scenario 10 "Support HTTPS-in-HTTPS proxies" (`lxd-vm`)
+- **Test run status:** ✓ PASSED (other resolute scenarios) | BLOCKED (Scenario 3 `lxd-container`; Scenario 10 `lxd-vm`, AppArmor)
 
 #### `realtime_kernel.feature`
 
