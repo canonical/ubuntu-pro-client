@@ -518,11 +518,25 @@ def get_remote_versions_for_package(
     return valid_versions
 
 
+def _assert_no_apt_injection(value: str, field_name: str) -> None:
+    """Raise if value contains characters that could inject into apt config.
+
+    Defense-in-depth: even though StrictStringDataValue validates at the
+    contract parsing layer, we also check here at the point of use.
+    """
+    if "\n" in value or "\r" in value or "\x00" in value:
+        raise exceptions.InvalidAPTDirectiveValueError(
+            field_name=field_name, value=value
+        )
+
+
 def _get_list_file_content(
     suites: List[str], series: str, updates_enabled: bool, repo_url: str
 ) -> str:
+    _assert_no_apt_injection(repo_url, "aptURL")
     content = ""
     for suite in suites:
+        _assert_no_apt_injection(suite, "suites")
         if series not in suite:
             continue  # Only enable suites matching this current series
         maybe_comment = ""
@@ -552,6 +566,10 @@ def _get_sources_file_content(
     keyring_file: str,
     include_deb_src: bool = False,
 ) -> str:
+    _assert_no_apt_injection(repo_url, "aptURL")
+    for suite in suites:
+        _assert_no_apt_injection(suite, "suites")
+    _assert_no_apt_injection(keyring_file, "keyring_file")
     appliable_suites = [suite for suite in suites if series in suite]
     if not updates_enabled:
         LOG.warning(
@@ -643,6 +661,9 @@ def add_auth_apt_repo(
 
 def add_apt_auth_conf_entry(repo_url, login, password):
     """Add or replace an apt auth line in apt's auth.conf file or conf.d."""
+    _assert_no_apt_injection(repo_url, "aptURL")
+    _assert_no_apt_injection(login, "login")
+    _assert_no_apt_injection(password, "password")
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if "://" in repo_url:
         _protocol, repo_path = repo_url.split("://")

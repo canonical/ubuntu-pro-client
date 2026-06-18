@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import re
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
@@ -101,6 +102,30 @@ class StringDataValue(DataValue):
         if not isinstance(val, str):
             raise IncorrectTypeError(
                 expected_type="str", got_type=type(val).__name__
+            )
+        return val
+
+
+class StrictStringDataValue(DataValue):
+    """
+    A string data value that rejects control characters (newline, carriage
+    return, null byte) which could be used for injection attacks in apt
+    sources files or auth config.
+    """
+
+    python_type_name = "str"
+    _UNSAFE_CHARS = re.compile(r"[\n\r\x00]")
+
+    @staticmethod
+    def from_value(val: Any) -> str:
+        if not isinstance(val, str):
+            raise IncorrectTypeError(
+                expected_type="str", got_type=type(val).__name__
+            )
+        if StrictStringDataValue._UNSAFE_CHARS.search(val):
+            raise IncorrectTypeError(
+                expected_type="str without control characters",
+                got_type="str containing control characters",
             )
         return val
 
