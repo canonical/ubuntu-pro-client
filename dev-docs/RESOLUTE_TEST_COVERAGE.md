@@ -376,7 +376,13 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Reason:** USG enablement coverage is not yet ready for resolute in the current test environment/product readiness.
 - **Revisit:** add resolute matrix rows when USG support/readiness is confirmed. Probably add Noble separately, too.
 
-- yaml.feature
+#### `yaml.feature`
+
+- **Status:** ⏭️ Evaluated; not applicable to resolute right now
+- **Decision:** no resolute additions
+- **Reason:** current scenario is jammy-specific and coupled to a legacy pin (`pip3 install pyyaml==3.10`) plus an explicit Python-path matrix value (`python3.10`), which is not ready for newer release coverage.
+- **Revisit:** update this test to use release-appropriate Python/YAML expectations before adding noble/resolute rows.
+
 
 ---
 
