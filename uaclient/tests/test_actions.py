@@ -393,13 +393,21 @@ class TestCollectLogs:
         m_get_state_files.return_value = []
         m_load_file.return_value = "test"
 
-        # Create a symlink to simulate attack
+        # Create a real log file (should be collected)
+        real_log_path = tmpdir.join("real.log").strpath
+        with open(real_log_path, "w") as f:
+            f.write("real log content")
+
+        # Create a symlink to simulate attack (should be skipped)
         symlink_path = tmpdir.join("symlinked.log").strpath
         os.symlink("/etc/shadow", symlink_path)
-        m_get_all_users.return_value = [symlink_path]
 
+        m_get_all_users.return_value = [real_log_path, symlink_path]
+
+        output_dir = tmpdir.join("output").strpath
+        os.makedirs(output_dir)
         with mock.patch("os.path.isfile", return_value=True):
-            collect_logs(cfg=mock.MagicMock(), output_dir="test")
+            collect_logs(cfg=mock.MagicMock(), output_dir=output_dir)
 
         # The symlinked file should NOT be read
         assert not any(
@@ -409,4 +417,9 @@ class TestCollectLogs:
         assert (
             mock.call("Skipping symlinked user log file: %s", symlink_path)
             in m_log_warning.call_args_list
+        )
+        # The real log file SHOULD be read and written
+        assert mock.call(real_log_path) in m_load_file.call_args_list
+        assert any(
+            "user0.log" in str(call) for call in m_write_file.call_args_list
         )
