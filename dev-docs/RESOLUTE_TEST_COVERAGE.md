@@ -40,14 +40,26 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
   3. "Attached show version" — lxd-container
   4. "Check for newer versions @arm64" — lxd-container
 - **Reason:** Generic version-check test with no release-specific logic. Follows same pattern as questing.
+- **Test run status:** ✓ PASSED (lxd-container); PENDING cloud instances.
 
 #### `anbox.feature`
 
-- **Status:** ✅ Added resolute
+- **Status:** ✅ Partially updated
 - **Scenarios Updated:** 2
-  1. "Enable Anbox cloud service in a container" — all machine types (lxd-container, lxd-vm)
-  2. "Enable Anbox cloud service in a VM" — lxd-container, lxd-vm
-- **Reason:** Anbox Cloud APT archive URL is parameterized; supports new releases seamlessly.
+  1. "Enable Anbox cloud service in a container" — added resolute (lxd-container only; lxd-vm blocked by AppArmor)
+  2. "Enable Anbox cloud service in a VM" — added resolute (lxd-vm blocked by AppArmor)
+- **Reason:** Anbox Cloud APT archive URL is parameterized; supports new releases seamlessly. However, resolute lxd-vm fails during `pro enable` due to AppArmor DENIED on ESM cache profile accessing locale files.
+- **Test run status:** ✓ PASSED (lxd-container, scenario 1) | FAILING (lxd-vm, AppArmor)
+
+There is likely a bug that needs to be fixed regarding AppArmor on Resolute VMs:
+
+```text
+apparmor="DENIED" operation="open" class="file" 
+profile="ubuntu_pro_esm_cache//cloud_id" 
+name="/usr/share/coreutils/locales/uucore/en-US.ftl"
+```
+
+Will be addressed separately.
 
 #### `apt_messages.feature`
 
@@ -65,6 +77,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
   1. "APT JSON Hook on xenial" — xenial-only legacy test; kept as-is
   2. "Cloud and series-specific URLs" — hardcoded cloud URLs for legacy releases; kept as-is
 - **Drop rationale:** plucky dropped throughout as it is superseded by questing/resolute for coverage of new APT output format
+- **Test run status:** _____ (resolute)
 
 #### `autocomplete.feature`
 
@@ -73,6 +86,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Added:** resolute (lxd-container)
 - **Dropped:** plucky
 - **Kept:** bionic, focal, jammy, noble, questing, resolute
+- **Test run status:** ✓ PASSED (resolute)
 
 #### `airgapped.feature`
 
@@ -80,6 +94,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Current Releases:** jammy only
 - **Reason:** Mirror and contracts setup are hardcoded to jammy. APT output assertions check for `jammy-apps-security/main`. Would require significant rework to support new releases.
 - **Action:** Revisit after mirror infrastructure supports resolute.
+- **Test run status:** N/A (not evaluated for resolute)
 
 #### `cc_eal.feature`
 
@@ -87,18 +102,21 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 1 & 2** ("Attached enable CC EAL2", "Enable cc-eal with --access-only") — xenial, bionic only; CC EAL2 is not supported on newer releases; no action taken
 - **Scenario 3** ("CC EAL2 not available") — added `resolute | lxd-container | 26.04 LTS | Resolute Raccoon`; dropped plucky
 - **Kept:** focal, jammy, noble, questing, resolute
+- **Test run status:** ✓ PASSED (resolute)
 
 #### `cis.feature`
 
 - **Status:** ⏭️ Skipped
 - **Current Releases:** xenial, bionic (Scenario 1); focal (Scenario 2)
 - **Reason:** CIS Audit is only available on xenial, bionic, and focal. From focal onward, `pro enable cis` redirects to `usg`. New releases use `usg.feature` instead. No CIS scripts ship for resolute.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `cloud_pro_clone.feature`
 
 - **Status:** ⏭️ Skipped
 - **Current Releases:** bionic, focal (aws.pro, gcp.pro)
 - **Reason:** Tests `fips-updates` golden image cloning on cloud Pro instances. FIPS is not available on resolute.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `enable_fips_cloud.feature`
 
@@ -106,26 +124,19 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions for now
 - **Reason:** FIPS is not available on noble/resolute in current cloud matrix, and this feature is explicitly tied to cloud FIPS service/kernel availability by release.
 - **Revisit:** when noble/resolute cloud FIPS availability is confirmed, re-evaluate all scenarios in this file.
-
----
-
-### 🔄 Tests Under Evaluation
-
-(None currently)
-
----
-
-### 📋 Tests Pending Evaluation
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `contract_expired.feature`
 
 - **Status:** ⏭️ Skipped
 - **Current Releases:** jammy (lxd-container)
 - **Reason:** Skipped for now. Revisit to evaluate whether noble and resolute should be added — the test logic (esm-apps, update-motd, expired subscription messages) is generic enough to apply to newer releases.
+- **Test run status:** _____ (resolute)
 
 #### `daemon.feature`
 
-- **Status:** ✅ Updated; tested on resolute ✓. **NOTE: needs testing on cloud instances**
+- **Status:** ✅ Updated
+- **Test run status:** ✓ PASSED (lxd-container) | PENDING (cloud instances: aws.generic, azure.generic, gcp.generic)
 - **Added resolute to:**
   - S1 "cloud-id-shim not installed" — lxd-container (generic check); dropped plucky
   - S3 "daemon runs on gcp generic LTS" — gcp.generic; added `resolute | gcp.generic | ubuntu-pro-client`; added `Then on resolute, systemd status output says memory usage is less than 17 MB`
@@ -138,10 +149,11 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 
 #### `detached_auto_attach.feature`
 
-- **Status:** ✅ Updated; **NOTE: needs testing on cloud instances** (all scenarios require aws/azure/gcp.generic)
+- **Status:** ✅ Updated
 - **Scenario:** "No detaching on manually attached machine on all clouds" — generic logic; `esm-infra` is available on resolute (LTS)
 - **Added:** `resolute | aws.generic`, `resolute | azure.generic`, `resolute | gcp.generic`
 - **No plucky to drop** (questing also absent from this file)
+- **Test run status:** PENDING (cloud instances: aws.generic, azure.generic, gcp.generic)
 
 #### `docker.feature`
 
@@ -149,6 +161,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** removed resolute rows from Scenario 1 for now
 - **Reason:** current test matrix couples host release with cross-series container deb builds (xenial/bionic/focal), which introduces infra dependencies (e.g., legacy sbuild chroots) unrelated to resolute validation
 - **Revisit:** rework this feature so resolute coverage does not rely on unavailable legacy chroots or storage-driver-specific docker layer paths; then re-evaluate noble/resolute additions for all three scenarios
+- **Test run status:** N/A (deferred pending rework)
 
 #### `enable_fips_container.feature`
 
@@ -156,6 +169,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions for either scenario
 - **Reason:** both scenarios are tightly coupled to current FIPS package/source expectations on xenial/bionic/focal container paths; resolute applicability is not established yet.
 - **Revisit:** re-evaluate when resolute FIPS availability and package/source expectations for container flows are confirmed.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `enable_fips_pro.feature`
 
@@ -163,6 +177,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** scenario assertions are tied to current PRO-cloud FIPS kernel/package expectations on bionic/focal; resolute applicability is not established yet.
 - **Revisit:** re-evaluate when resolute PRO-cloud FIPS availability and expected package/kernel behavior are confirmed.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `enable_fips_vm.feature`
 
@@ -170,6 +185,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions for all scenarios in this file
 - **Reason:** scenario assertions are tightly coupled to current VM FIPS entitlement/kernel/package behavior (xenial/bionic/focal/jammy matrices, service interactions, and explicit output expectations); resolute applicability is not established yet.
 - **Revisit:** re-evaluate once resolute VM FIPS availability and expected behavior/output contracts are confirmed.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `esm.feature`
 
@@ -177,21 +193,21 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 1** "enable esm in a machine with -updates disabled" (`/etc/apt/sources.list` path): no resolute addition; kept xenial/bionic/focal/jammy
 - **Scenario 2** "enable esm in a machine with -updates disabled" (`/etc/apt/sources.list.d/ubuntu.sources` path): added `resolute | lxd-container`
 - **Scenario 3** "esm apt auth includes snapshot urls": added `resolute | lxd-container`
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `esm_cache.feature`
 
 - **Status:** ✅ Updated
 - **Scenario 1** "esm cache failures don't generate errors": added `resolute | lxd-container`
 - **Scenario 2** "esm cache failures don't generate errors on xenial" (`@no_gh`): kept xenial-only unchanged
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `fix.feature`
 
 - **Status:** ✅ Partially updated
 - **Scenario 1** "Useful SSL failure message when there aren't any ca-certs": dropped `plucky`; added `resolute | lxd-container`
 - **Scenarios 2-6:** kept unchanged (release-specific legacy coverage on focal/xenial/bionic with hardcoded package/version and source-list expectations)
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `i18n.feature`
 
@@ -202,7 +218,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 4** "apt-hook translations work": kept focal-only unchanged
 - **Scenario 5** "Pro client's commands run successfully in a different locale": dropped `plucky`; added `resolute | lxd-container`
 - **Scenario 6** "Pro client's commands run successfully in a non-utf8 locale": dropped `plucky`; added `resolute | lxd-container`
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `install_uninstall.feature`
 
@@ -210,6 +226,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** all 7 scenarios are xenial/bionic only, covering legacy install/uninstall and cloud-init behaviors specific to those older releases
 - **Revisit:** no action expected; this file is legacy coverage only
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `landscape.feature`
 
@@ -218,7 +235,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 2 note:** kept a release guard on the invalid-key stderr assertion for resolute due interactive getpass/prompt output differences on resolute in this test environment
 - **Scenario 4** ("Detach/reattach on unsupported release"): jammy-only; no action
 - **Scenario 5** ("Landscape inapplicable on unsupported release"): xenial/jammy only; resolute is supported so must not appear here
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `legacy.feature`
 
@@ -226,6 +243,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** all scenarios are xenial-only and tied to legacy-contract behavior (`contract_token_legacy`, `esm-infra-legacy`, `esm-apps-legacy`)
 - **Revisit:** no action expected; this file is legacy coverage only
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `livepatch.feature`
 
@@ -233,14 +251,14 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 1** "Attached disable of livepatch in a lxd vm": added `resolute | lxd-vm | enabled`
 - **Scenario 5** "Livepatch is not enabled by default and can't be enabled on interim releases": dropped `plucky`, kept `questing` (resolute is LTS, so not part of interim-only behavior)
 - **Scenarios 2-4 and 6-11:** kept unchanged (targeted focal/jammy/xenial/bionic/wsl/fips/snapd-specific behaviors)
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `logs.feature`
 
 - **Status:** ✅ Updated
 - **Scenarios 1-4** ("The log file can be successfully parsed as json array", "Non-root user and root user log files are different", "Non-root user log files included in collect logs", "logrotate configuration works"): all had identical release matrices (xenial-questing); added `resolute | lxd-container` to all 4; dropped `plucky` from scenarios 2-4
 - **Scenario 1 note:** follows noble+ pattern with `user_spec: with sudo` for resolute (matching root-only logging on LTS)
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `lxd.feature`
 
@@ -248,13 +266,16 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** remove resolute coverage for now; revisit once AppArmor fix is upstream
 - **Reason:** resolute `lxd-vm` runs are currently blocked by AppArmor DENIED in the global behave `after_step` gate before scenario logic executes
 - **Revisit note:** when re-enabling resolute coverage, include the scenario-3 host setup fix to install LXD when absent before refresh (`snap list lxd || snap install ...`) because some resolute VM images do not have the `lxd` snap preinstalled
+- **Test run status:** BLOCKED (AppArmor)
+
+AppArmor failure is due to the fact the test pulls from archive, which doesn't have the AppArmor fixes yet.
 
 #### `motd_messages.feature`
 
 - **Status:** ✅ Partially updated
 - **Scenario 1** "Contract update prevents contract expiration messages": added `resolute | lxd-container | esm-apps`
 - **Scenario 2** "Contract Expiration Messages": kept unchanged (xenial/bionic + wsl matrix with `esm-infra` service) to preserve existing release-specific behavior expectations
-- **Test note:** run skipped in-session per user confirmation of local passing tests
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `network_failures.feature`
 
@@ -263,7 +284,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 2** "Network errors for attaching contract token are handled gracefully": added `resolute | lxd-container`
 - **Scenario 3** "Network errors for enabling Realtime kernel and Livepatch are handled gracefully": added `resolute | lxd-container | livepatch`; kept resolute `lxd-vm | realtime-kernel` out for now
 - **Reason:** generic error-handling coverage on LTS releases; livepatch container path mapped cleanly from noble, but resolute `lxd-vm` realtime-kernel runs currently fail in the global behave AppArmor gate before scenario logic executes
-- **Test note:** explicit resolute run attempted; scenarios 1, 2, and livepatch container path passed, while the resolute realtime-kernel VM row hit the same upstream AppArmor blocker seen in `lxd.feature`
+- **Test run status:** ✓ PASSED (lxd-container, livepatch) | BLOCKED (lxd-vm realtime-kernel)
 
 #### `proxy_config.feature`
 
@@ -281,7 +302,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
   - Scenario 2 "Attach command when proxy is configured"
   - Scenario 4 "Attach command when authenticated proxy is configured"
   - Scenario 9 "Enable realtime kernel through proxy on a machine with no internet"
-- **Test note:** run skipped in-session; tracker updated to match the final feature-file edits
+- **Test run status:** _____ (resolute)
 
 #### `realtime_kernel.feature`
 
@@ -289,6 +310,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** do not update this feature's release matrix
 - **Reason:** realtime-kernel is no longer managed through Ubuntu Pro in the current product direction
 - **TODO:** define the best way to make this explicit in test coverage, potentially by introducing a dedicated tombstone/deprecation test that asserts expected non-managed behavior instead of keeping legacy enable-flow expansion
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `reboot_cmds.feature`
 
@@ -296,6 +318,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** this scenario is focal-only and validates FIPS-specific reboot command behavior with hardcoded package/version expectations (`strongswan` and `fips` flow). Resolute applicability is not established in the current FIPS support matrix.
 - **Revisit:** re-evaluate if/when resolute gains the required FIPS reboot-cmd behavior and package expectations for this flow.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `retry_auto_attach.feature`
 
@@ -303,7 +326,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenarios 1-5** (auto-attach retry flow/status updates, manual recovery, gcp auto-detect retry path, and eventual-success cleanup): added `resolute` rows following existing noble cloud matrices
 - **Machine types updated:** `azure.generic`, `gcp.generic`, `aws.generic`, `aws.pro`, `azure.pro`, `gcp.pro`
 - **Reason:** scenario assertions are retry-state/status and message-flow checks, with no release-specific package/version coupling in the matrices
-- **Test note:** run skipped in-session; this feature is cloud-only and requires cloud instance coverage
+- **Test run status:** PENDING (cloud instances)
 
 #### `ros.feature`
 
@@ -311,6 +334,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** this feature is legacy-scoped with a xenial/bionic-only matrix and explicit ROS ESM source URL assertions tied to those releases.
 - **Revisit:** re-evaluate only if ROS entitlement coverage is intentionally expanded to newer releases with updated source expectations.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `subscription_attach_restrictions.feature`
 
@@ -319,7 +343,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 2** "Check notice visible when attached with onlySeries present": added `resolute | lxd-container | resolute | 26.04 LTS | Resolute Raccoon`
 - **Scenario 3** "Check attach works with future onlyseries": added `resolute | lxd-container`
 - **Reason:** scenarios validate attach restriction and messaging behavior using response overlays and release-parameterized expectations; no hardcoded package/version coupling blocks resolute coverage
-- **Test note:** run skipped in-session per ongoing workflow
+- **Test run status:** ✓ PASSED
 
 #### `timer.feature`
 
@@ -328,7 +352,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 2** "Run timer script on an attached machine": dropped `plucky`; added `resolute | lxd-container`
 - **Scenario 3** "Run timer script to validate machine activity endpoint": added `resolute | lxd-container`
 - **Reason:** timer/service behavior and contract activity validation are release-agnostic in these scenarios and follow existing noble/questing LTS progression
-- **Test note:** run skipped in-session per ongoing workflow
+- **Test run status:** ✓ PASSED (lxd-container)
 
 #### `ubuntu_pro.feature`
 
@@ -343,7 +367,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Left unchanged:**
   - Scenario 1 "Proxy auto-attach on a cloud Ubuntu Pro machine" (legacy xenial/bionic/focal matrix retained)
 - **Reason:** scenarios 2-7 are generic auto-attach/Pro-image behaviors already covered through noble; scenario 1 remains on its existing older matrix.
-- **Test note:** run skipped in-session; cloud-instance coverage required
+- **Test run status:** PENDING (cloud instances)
 
 #### `ubuntu_pro_fips.feature`
 
@@ -351,6 +375,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** the feature is a FIPS cloud-image matrix scoped to xenial/bionic/focal (`*.pro-fips` machine types) with release-specific kernel/meta/package expectations; resolute FIPS cloud coverage is not established in this file.
 - **Revisit:** re-evaluate when resolute FIPS cloud image support and expected package/kernel behavior are confirmed.
+- **Test run status:** N/A (not applicable for resolute)
 
 #### `ubuntu_upgrade.feature`
 
@@ -358,7 +383,9 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Scenario 1** "Attached upgrade": added `questing | lxd-container | resolute | normal | (no --devel-release) | esm-infra n/a | esm-apps n/a | true`
 - **Scenarios 2-4:** left unchanged (FIPS LTS-only upgrade path, onlySeries legacy chain, and `esm-infra-legacy` xenial->bionic coverage)
 - **Reason:** scenario 1 tracks generic attached upgrade behavior across release hops; other scenarios are tightly scoped to legacy/FIPS-specific upgrade chains.
-- **Test note:** run skipped in-session. Need AppArmor fix upstream.
+- **Test run status:** BLOCKED (AppArmor)
+
+AppArmor failure is due to the fact the test pulls from archive, which doesn't have the AppArmor fixes yet.
 
 #### `ubuntu_upgrade_unattached.feature`
 
@@ -367,7 +394,9 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
   - `noble | lxd-container | resolute | lts | (no --devel-release) | enabled`
   - `questing | lxd-container | resolute | normal | (no --devel-release) | n/a`
 - **Reason:** extends the existing unattached release-hop chain to cover resolute, matching the attached-upgrade questing->resolute progression.
-- **Test note:** run skipped in-session. Need AppArmor fix upstream.
+- **Test run status:** BLOCKED (AppArmor)
+
+AppArmor failure is due to the fact the test pulls from archive, which doesn't have the AppArmor fixes yet.
 
 #### `usg.feature`
 
@@ -375,6 +404,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** removed resolute coverage for now
 - **Reason:** USG enablement coverage is not yet ready for resolute in the current test environment/product readiness.
 - **Revisit:** add resolute matrix rows when USG support/readiness is confirmed. Probably add Noble separately, too.
+- **Test run status:** N/A (not ready)
 
 #### `yaml.feature`
 
@@ -382,15 +412,7 @@ IMPORTANT: after each test file, you MUST pause and wait for explicit instructio
 - **Decision:** no resolute additions
 - **Reason:** current scenario is jammy-specific and coupled to a legacy pin (`pip3 install pyyaml==3.10`) plus an explicit Python-path matrix value (`python3.10`), which is not ready for newer release coverage.
 - **Revisit:** update this test to use release-appropriate Python/YAML expectations before adding noble/resolute rows.
-
-
----
-
-## Key Observations
-
-1. **Release Pattern**: Tests currently track noble → plucky → questing. Resolute (25.10) comes after questing in the release cycle.
-2. **External Dependencies**: Some tests depend on external services (Anbox Cloud, repositories) being ready for new releases.
-3. **Hardcoded Values**: Tests with hardcoded release-specific data (pool URLs, version strings, upgrade assertions) require careful review.
+- **Test run status:** N/A (not applicable for resolute)
 
 ---
 
