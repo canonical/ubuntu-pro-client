@@ -296,6 +296,12 @@ class TestAutoAttach:
 
 
 class TestCollectLogs:
+    """Tests for collect_logs.
+
+    Includes regression tests for CVE-2026-11386 (symlink-based local
+    file disclosure via user-controlled log paths).
+    """
+
     @mock.patch("uaclient.actions.shutil.copy")
     @mock.patch("uaclient.actions._write_command_output_to_file")
     @mock.patch("uaclient.actions.status")
