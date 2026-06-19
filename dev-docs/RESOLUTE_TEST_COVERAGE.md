@@ -78,10 +78,13 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
     - Focal-only scenario: only runs on focal
     - Xenial-only scenario: only runs on xenial
     - Bionic-only scenario: only runs on bionic
+- features/api/full_auto_attach.feature
+  - Status: added resolute
+  - Update: resolute added for aws.pro, azure.pro, gcp.pro after noble
+  - Test: deferred — cloud instances only, cannot run in local environment
 
 ## Tests Pending Evaluation
 
-- features/api/full_auto_attach.feature
 - features/api/full_token_attach.feature
 - features/api/get_guest_token.feature
 - features/api/magic_attach.feature
