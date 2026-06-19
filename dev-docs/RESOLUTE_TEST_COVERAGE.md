@@ -42,10 +42,12 @@ DO NOT MAKE COMMITS. I will commit things.
   - Status: added resolute
   - Update: add resolute
   - Test: pass for resolute
+- features/api/cves.feature
+  - Status: skipped
+  - Reason: unapplicable; xenial only
 
 ## Tests Pending Evaluation
 
-- features/api/cves.feature
 - features/api/detach.feature
 - features/api/disable.feature
 - features/api/enable.feature
