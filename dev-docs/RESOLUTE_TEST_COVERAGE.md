@@ -52,10 +52,13 @@ DO NOT MAKE COMMITS. I will commit things.
 - features/api/disable.feature
   - Status: skipped
   - Reason: release-specific scenario logic blocks direct noble/resolute expansion (legacy ros/ros-updates flows and hardcoded release-version expectations)
+- features/api/enable.feature
+  - Status: added resolute
+  - Update: landscape scenario only; removed plucky and added resolute after questing
+  - Test: pass for resolute
 
 ## Tests Pending Evaluation
 
-- features/api/enable.feature
 - features/api/fix_execute.feature
 - features/api/fix_plan.feature
 - features/api/full_auto_attach.feature
