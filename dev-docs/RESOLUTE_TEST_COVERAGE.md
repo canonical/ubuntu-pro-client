@@ -6,7 +6,7 @@ Agents like Copilot, Claude, and Gemini should treat this section like a skill. 
 
 1. Iterate through the tests scenarios in the file
 2. Summarize the scenario for the user
-3. Ask the user if Resolute should be added for the scenario. List the distributions that the scenario currently uses.
+3. Ask the user if Resolute should be added for the scenario. List the distributions that the scenario currently uses. Make a recommendation based on the test logic and the current releases tested.
 4. If present, drop Plucky for the scenario
 5. Pause and ask me to un the test scenario for Resolute using the archive release. Mark the correct command to run, including the test file name, the machine types, and any additional config that is required. A test scenario will indicate if additional configuration is required through headers like `@uses.config.contract_token`. See `features/environment.py` for additional configs, if needed.
 6. Mark the update status on the scenario (added resolute, partially updated, skipped) in the "Tests Evaluated" section. Remove it from the "Tests Pending Evaluation" section.
@@ -49,10 +49,12 @@ DO NOT MAKE COMMITS. I will commit things.
   - Status: blocked
   - Update: added noble to release matrix for validation; must have been missed earlier
   - Test: BLOCKED pending AppArmor resolution (failure occurs mid-scenario during second attach on resolute)
+- features/api/disable.feature
+  - Status: skipped
+  - Reason: release-specific scenario logic blocks direct noble/resolute expansion (legacy ros/ros-updates flows and hardcoded release-version expectations)
 
 ## Tests Pending Evaluation
 
-- features/api/disable.feature
 - features/api/enable.feature
 - features/api/fix_execute.feature
 - features/api/fix_plan.feature
