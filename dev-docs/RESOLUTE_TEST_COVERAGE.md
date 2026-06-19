@@ -45,10 +45,13 @@ DO NOT MAKE COMMITS. I will commit things.
 - features/api/cves.feature
   - Status: skipped
   - Reason: unapplicable; xenial only
+- features/api/detach.feature
+  - Status: blocked
+  - Update: added noble to release matrix for validation; must have been missed earlier
+  - Test: BLOCKED pending AppArmor resolution (failure occurs mid-scenario during second attach on resolute)
 
 ## Tests Pending Evaluation
 
-- features/api/detach.feature
 - features/api/disable.feature
 - features/api/enable.feature
 - features/api/fix_execute.feature
