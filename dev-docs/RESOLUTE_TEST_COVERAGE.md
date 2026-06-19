@@ -22,6 +22,9 @@ UACLIENT_BEHAVE_INSTALL_FROM=local tox -e behave -- features/api/api.feature -D 
 
 DO NOT MAKE COMMITS. I will commit things.
 
+A scenario is a good candidate for resolute if it already runs on noble, plucky, or questing.
+If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logic for jammy", or "only runs on Xenial".
+
 ## Decision Categories
 
 | Category | Action | Examples |
@@ -56,10 +59,17 @@ DO NOT MAKE COMMITS. I will commit things.
   - Status: added resolute
   - Update: landscape scenario only; removed plucky and added resolute after questing
   - Test: pass for resolute
+- features/api/fix_execute.feature
+  - Status: partially updated
+  - Updated scenarios:
+    - Fix execute command on invalid CVEs/USNs: resolute added
+  - Skipped scenarios:
+    - Fix execute on a Focal machine: focal-only scenario with focal-specific package/USN/CVE expectations
+    - Fix execute API command on a Xenial machine: xenial-only scenario with xenial ESM/pocket behavior and package-version assumptions
+    - Fix execute API command on a Bionic machine: bionic-only scenario with bionic package/USN/CVE expectations
 
 ## Tests Pending Evaluation
 
-- features/api/fix_execute.feature
 - features/api/fix_plan.feature
 - features/api/full_auto_attach.feature
 - features/api/full_token_attach.feature
