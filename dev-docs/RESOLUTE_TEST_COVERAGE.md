@@ -38,10 +38,13 @@ DO NOT MAKE COMMITS. I will commit things.
   - Status: added resolute
   - Update: remove plucky, add resolute
   - Test: pass for resolute
+- features/api/configure_retry_service.feature
+  - Status: added resolute
+  - Update: add resolute
+  - Test: pass for resolute
 
 ## Tests Pending Evaluation
 
-- features/api/configure_retry_service.feature
 - features/api/cves.feature
 - features/api/detach.feature
 - features/api/disable.feature
