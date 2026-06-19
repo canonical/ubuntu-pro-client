@@ -82,10 +82,13 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Status: added resolute
   - Update: resolute added for aws.pro, azure.pro, gcp.pro after noble
   - Test: deferred — cloud instances only, cannot run in local environment
+- features/api/full_token_attach.feature
+  - Status: added resolute
+  - Update: added noble, questing, resolute to release matrix
+  - Test: blocked on this branch due to known AppArmor denial; passes with AppArmor policy fix deferred to another branch
 
 ## Tests Pending Evaluation
 
-- features/api/full_token_attach.feature
 - features/api/get_guest_token.feature
 - features/api/magic_attach.feature
 - features/api/packages.feature
