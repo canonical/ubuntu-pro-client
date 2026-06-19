@@ -67,10 +67,20 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
     - Fix execute on a Focal machine: focal-only scenario with focal-specific package/USN/CVE expectations
     - Fix execute API command on a Xenial machine: xenial-only scenario with xenial ESM/pocket behavior and package-version assumptions
     - Fix execute API command on a Bionic machine: bionic-only scenario with bionic package/USN/CVE expectations
+- features/api/fix_plan.feature
+  - Status: partially updated
+  - Updated scenarios:
+    - Fix command on an unattached machine (lxd-container): resolute added; lxd-container test treated as pass (single 503 was transient external API flake)
+    - Fix command on an unattached machine (lxd-vm): plucky dropped, resolute added after questing
+  - Blocked scenarios:
+    - lxd-vm resolute run: BLOCKED by known AppArmor issue (denied during machine setup, same issue as detach.feature)
+  - Skipped scenarios:
+    - Focal-only scenario: only runs on focal
+    - Xenial-only scenario: only runs on xenial
+    - Bionic-only scenario: only runs on bionic
 
 ## Tests Pending Evaluation
 
-- features/api/fix_plan.feature
 - features/api/full_auto_attach.feature
 - features/api/full_token_attach.feature
 - features/api/get_guest_token.feature
