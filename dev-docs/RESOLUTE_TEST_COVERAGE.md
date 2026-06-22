@@ -94,10 +94,13 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Status: added resolute
   - Update: added resolute to release matrix after noble
   - Test: pass for resolute
+- features/api/packages.feature
+  - Status: added resolute
+  - Update: added noble and resolute rows using libcurl4t64 with standard-security expectations
+  - Test: pass with working package/version pair for noble and resolute
 
 ## Tests Pending Evaluation
 
-- features/api/packages.feature
 - features/api/reboot_required.feature
 - features/api/security.feature
 - features/api/services_dependencies.feature
