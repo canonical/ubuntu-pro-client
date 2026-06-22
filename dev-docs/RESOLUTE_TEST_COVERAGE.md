@@ -98,10 +98,12 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Status: added resolute
   - Update: added noble and resolute rows using libcurl4t64 with standard-security expectations
   - Test: pass with working package/version pair for noble and resolute
+- features/api/reboot_required.feature
+  - Status: skipped
+  - Reason: xenial-only lxd-vm scenario; no noble/plucky/questing candidate rows, and scenario logic is tied to legacy xenial/livepatch behavior
 
 ## Tests Pending Evaluation
 
-- features/api/reboot_required.feature
 - features/api/security.feature
 - features/api/services_dependencies.feature
 - features/api/unattended_upgrades.feature
