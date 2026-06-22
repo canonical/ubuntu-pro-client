@@ -90,10 +90,13 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Status: added resolute
   - Update: added resolute to Examples table
   - Test: pass — scenario marked with @uses.config.contract_token to handle test environment token requirements
+- features/api/magic_attach.feature
+  - Status: added resolute
+  - Update: added resolute to release matrix after noble
+  - Test: pass for resolute
 
 ## Tests Pending Evaluation
 
-- features/api/magic_attach.feature
 - features/api/packages.feature
 - features/api/reboot_required.feature
 - features/api/security.feature
