@@ -104,8 +104,11 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
 - features/api/security.feature
   - Status: skipped
   - Reason: Scenario 2 uses libgnutls30 as test package (with specific OVAL CVE injection); libgnutls30 package discontinued after jammy, not available on noble/resolute.
+- features/api/services_dependencies.feature
+  - Status: added resolute
+  - Update: added resolute after questing
+  - Test: pass for resolute
 
 ## Tests Pending Evaluation
 
-- features/api/services_dependencies.feature
 - features/api/unattended_upgrades.feature
