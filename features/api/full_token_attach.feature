@@ -135,6 +135,7 @@ Feature: Attach API endpoint
     And I verify that `esm-apps` is enabled
     And I verify that `esm-infra` is enabled
 
+    # TODO: Add resolute once AppArmor ubuntu_pro_esm_cache//ps profile is fixed
     Examples: ubuntu release
       | release  | machine_type  |
       | xenial   | lxd-container |
@@ -143,4 +144,3 @@ Feature: Attach API endpoint
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | resolute | lxd-container |

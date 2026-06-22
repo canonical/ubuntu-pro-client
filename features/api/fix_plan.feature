@@ -3029,7 +3029,7 @@ Feature: Fix plan API endpoints
       }
       """
 
+    # TODO: Add resolute lxd-vm once AppArmor ubuntu_pro_esm_cache//ps profile is fixed
     Examples: ubuntu release details
       | release  | machine_type |
       | questing | lxd-vm       |
-      | resolute | lxd-vm       |
