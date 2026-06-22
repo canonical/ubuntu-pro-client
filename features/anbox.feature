@@ -128,7 +128,10 @@ Feature: Enable anbox on Ubuntu
     And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/anbox-cloud-credentials`
 
     Examples: ubuntu release
-      | release  | machine_type |
-      | jammy    | lxd-vm       |
-      | noble    | lxd-vm       |
-      | resolute | lxd-vm       |
+      | release | machine_type |
+      | jammy   | lxd-vm       |
+      | noble   | lxd-vm       |
+
+# TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+# gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
+# | resolute | lxd-vm       |

@@ -730,8 +730,10 @@ Feature: APT Messages
       | questing | lxd-container |
       | questing | lxd-vm        |
       | resolute | lxd-container |
-      | resolute | lxd-vm        |
 
+  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+  # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
+  # | resolute | lxd-vm        |
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt install `ansible`
