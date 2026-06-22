@@ -101,9 +101,11 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
 - features/api/reboot_required.feature
   - Status: skipped
   - Reason: xenial-only lxd-vm scenario; no noble/plucky/questing candidate rows, and scenario logic is tied to legacy xenial/livepatch behavior
+- features/api/security.feature
+  - Status: skipped
+  - Reason: Scenario 2 uses libgnutls30 as test package (with specific OVAL CVE injection); libgnutls30 package discontinued after jammy, not available on noble/resolute.
 
 ## Tests Pending Evaluation
 
-- features/api/security.feature
 - features/api/services_dependencies.feature
 - features/api/unattended_upgrades.feature
