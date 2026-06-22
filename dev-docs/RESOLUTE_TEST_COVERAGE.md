@@ -108,7 +108,11 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Status: added resolute
   - Update: added resolute after questing
   - Test: pass for resolute
+- features/api/unattended_upgrades.feature
+  - Status: added resolute
+  - Update: added resolute with DevRelease: "auto" (follows focal+ pattern)
+  - Test: pass for resolute
 
 ## Tests Pending Evaluation
 
-- features/api/unattended_upgrades.feature
+(All tests evaluated.)
