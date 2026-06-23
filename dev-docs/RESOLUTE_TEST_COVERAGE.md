@@ -89,9 +89,16 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
   - Reason:
     - Scenarios are hardcoded to release-specific fixture data and metadata endpoints (`com.ubuntu.xenial.pkg.json.xz` and `com.ubuntu.jammy.pkg.json.xz`), so adding resolute safely requires fixture and expectation rework.
 
+- features/cli/detach.feature
+  - Status: partially updated (revalidation pending)
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Added resolute lxd-container rows in both scenario tables.
+    - Dropped plucky from the unattached-detach scenario table.
+    - Left existing WSL rows unchanged.
+
 ## Tests Pending Evaluation
 
-- features/cli/detach.feature
 - features/cli/disable.feature
 - features/cli/enable.feature
 - features/cli/magic_attach.feature
