@@ -83,9 +83,14 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
   - Reason:
     - Scenarios are hardcoded to xenial/focal fixtures and assertions (including explicit Ubuntu 16.04 messaging), so this file is not a safe generic resolute-add candidate without reworking test data and expectations.
 
+- features/cli/cves.feature
+  - Status: skipped
+  - Current releases: xenial, jammy
+  - Reason:
+    - Scenarios are hardcoded to release-specific fixture data and metadata endpoints (`com.ubuntu.xenial.pkg.json.xz` and `com.ubuntu.jammy.pkg.json.xz`), so adding resolute safely requires fixture and expectation rework.
+
 ## Tests Pending Evaluation
 
-- features/cli/cves.feature
 - features/cli/detach.feature
 - features/cli/disable.feature
 - features/cli/enable.feature
