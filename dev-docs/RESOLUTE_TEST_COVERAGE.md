@@ -97,9 +97,18 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Dropped plucky from the unattached-detach scenario table.
     - Left existing WSL rows unchanged.
 
+- features/cli/disable.feature
+  - Status: partially updated (revalidation pending)
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Added resolute to attached and unattached lxd-container scenario tables and dropped plucky from unattached.
+    - Commented out resolute row in the attached unknown-service/wrong-output-format scenario with TODO(UPRO-1225): re-enable once ua-contracts CIS `presentedAs` behavior matches noble.
+    - Removed resolute row from "Disable with purge works and purges repo services not involving a kernel" with TODO: ansible is not present from esm-apps on resolute and scenario likely needs refactor.
+    - Removed resolute row from "Disable with purge unsupported services" with TODO(UPRO-1218): re-enable after AppArmor fix.
+    - Kept slow FIPS kernel-purge scenarios unchanged (xenial/bionic/focal only).
+
 ## Tests Pending Evaluation
 
-- features/cli/disable.feature
 - features/cli/enable.feature
 - features/cli/magic_attach.feature
 - features/cli/refresh.feature
