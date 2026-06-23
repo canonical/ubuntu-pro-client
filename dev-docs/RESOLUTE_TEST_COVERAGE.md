@@ -8,21 +8,18 @@ Agents like Copilot, Claude, and Gemini should treat this section like a skill. 
 2. Summarize the scenario for the user
 3. Ask the user if Resolute should be added for the scenario. List the distributions that the scenario currently uses. Make a recommendation based on the test logic and the current releases tested.
 4. If present, drop Plucky for the scenario
-5. Run tests and see output.
-6. If tests failed, pause and ask me to run the test scenario for Resolute using the archive release. Mark the correct command to run, including the test file name, the machine types, and any additional config that is required.
-7. Mark the update status on the scenario (added resolute, partially updated, skipped) in the "Tests Evaluated" section. Remove it from the "Tests Pending Evaluation" section.
-8. If a test is not updated, mark it as "skipped" and note why.
+5. Give user command to run tests locally
+6. Mark the update status on the scenario (added resolute, partially updated, skipped) in the "Tests Evaluated" section. Remove it from the "Tests Pending Evaluation" section.
+7. If a test is not updated, mark it as "skipped" and note why. We will make follow up tickets for any failures, so we want to be able to aggregate related failures in our tickets. Those tickets will need to update these tests as part of the fix.
 
 IMPORTANT: after each test file, you MUST pause and wait for explicit instructions to continue.
-
-Example command for a test:
+IMPORTANT: after each confirmed test pass/fail, you must update this test tracker.
+IMPORTANT: you must structure your example test commands exactly like so, replacing only the tests under investigation:
 
 ```sh
 export UACLIENT_BEHAVE_CONTRACT_TOKEN=C13o39iWs2AogUCgFnDGvX4a2rAZ8Y
-UACLIENT_BEHAVE_INSTALL_FROM=local tox -e behave -- features/cli/help.feature -D releases=resolute -D machine_types=lxd-container &> tmpresults.txt
+UACLIENT_BEHAVE_INSTALL_FROM=local tox -e behave -- features/cli/help.feature -D releases=resolute -D machine_types=lxd-container,lxd-vm &> docs/tmpresults_help.txt
 ```
-
-When running a test, ALWAYS push the output into a temp file so that you can inspect failures. The tempfile may be in the repo or in `/tmp`.
 
 Only test lxd containers and VMs. Do not test clouds or WSL.
 
@@ -30,6 +27,8 @@ DO NOT MAKE COMMITS. I will commit things.
 
 A scenario is a good candidate for resolute if it already runs on noble, plucky, or questing.
 If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logic for jammy", or "only runs on Xenial".
+
+IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lists. It also comes after Noble 24.04 LTS.
 
 ## Decision Categories
 
@@ -71,9 +70,15 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
     - Replaced plucky with resolute in the unattached-machine scenario table.
     - Added resolute to the attached-machine scenario table.
 
+- features/cli/config.feature
+  - Status: updated
+  - Current releases: xenial, jammy, noble, questing, resolute
+  - Update applied:
+    - Replaced plucky with resolute in the scenario table.
+    - Updated release-specific stderr assertion branch from plucky to resolute.
+
 ## Tests Pending Evaluation
 
-- features/cli/config.feature
 - features/cli/cve.feature
 - features/cli/cves.feature
 - features/cli/detach.feature
