@@ -77,9 +77,14 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Replaced plucky with resolute in the scenario table.
     - Updated release-specific stderr assertion branch from plucky to resolute.
 
+- features/cli/cve.feature
+  - Status: skipped
+  - Current releases: xenial, focal
+  - Reason:
+    - Scenarios are hardcoded to xenial/focal fixtures and assertions (including explicit Ubuntu 16.04 messaging), so this file is not a safe generic resolute-add candidate without reworking test data and expectations.
+
 ## Tests Pending Evaluation
 
-- features/cli/cve.feature
 - features/cli/cves.feature
 - features/cli/detach.feature
 - features/cli/disable.feature
