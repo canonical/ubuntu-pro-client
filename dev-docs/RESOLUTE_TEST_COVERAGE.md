@@ -64,9 +64,15 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
     - Replaced plucky with resolute in both scenario example tables.
     - Kept questing coverage unchanged.
 
+- features/cli/collect_logs.feature
+  - Status: updated
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Replaced plucky with resolute in the unattached-machine scenario table.
+    - Added resolute to the attached-machine scenario table.
+
 ## Tests Pending Evaluation
 
-- features/cli/collect_logs.feature
 - features/cli/config.feature
 - features/cli/cve.feature
 - features/cli/cves.feature
