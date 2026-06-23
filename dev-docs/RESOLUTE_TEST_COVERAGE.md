@@ -24,6 +24,8 @@ UACLIENT_BEHAVE_INSTALL_FROM=local tox -e behave -- features/cli/help.feature -D
 
 When running a test, ALWAYS push the output into a temp file so that you can inspect failures. The tempfile may be in the repo or in `/tmp`.
 
+Only test lxd containers and VMs. Do not test clouds or WSL.
+
 DO NOT MAKE COMMITS. I will commit things.
 
 A scenario is a good candidate for resolute if it already runs on noble, plucky, or questing.
@@ -46,9 +48,17 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
   - Update: dropped plucky and added resolute in all three release example tables
 
+- features/cli/attach.feature
+  - Status: partially updated (revalidation pending)
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Retained LTS+resolute coverage for all container/vm scenarios (attached command, attach config, json output, contract change, invalid/expired token, lxd-vm)
+    - Switched non-LTS spot check from plucky to questing in "Attached command in a non-lts ubuntu machine" scenario
+    - Removed untested resolute cloud rows from "Attach command in generic cloud images" per policy
+  - Skipped LXD VM: https://warthogs.atlassian.net/browse/UPRO-1218
+
 ## Tests Pending Evaluation
 
-- features/cli/attach.feature
 - features/cli/auto_attach.feature
 - features/cli/collect_logs.feature
 - features/cli/config.feature

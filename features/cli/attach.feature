@@ -34,8 +34,8 @@ Feature: CLI attach command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | landscape | status_string                                                           |
-      | plucky  | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
+      | release  | machine_type  | landscape | status_string                                                           |
+      | questing | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -196,12 +196,13 @@ Feature: CLI attach command
     And I verify that `esm-apps` is enabled
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Attach and Check for contract change in status checking
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -300,11 +301,12 @@ Feature: CLI attach command
     And the machine is unattached
 
     Examples: ubuntu release livepatch status
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: Attach command failure on invalid token
@@ -348,7 +350,7 @@ Feature: CLI attach command
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
+      | resolute | lxd-container |
       | questing | lxd-container |
 
   @uses.config.contract_token_staging_expired
@@ -395,7 +397,7 @@ Feature: CLI attach command
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
+      | resolute | lxd-container |
       | questing | lxd-container |
 
   Scenario Outline: Attach operation on a lxd vm
@@ -412,3 +414,7 @@ Feature: CLI attach command
       | focal   | lxd-vm       | enabled          |
       | jammy   | lxd-vm       | enabled          |
       | noble   | lxd-vm       | enabled          |
+
+# TODO: Re-enable resolute once cloud_id AppArmor profile
+# allows coreutils locale reads in ubuntu_pro_esm_cache//cloud_id.
+# | resolute | lxd-vm      | enabled          |
