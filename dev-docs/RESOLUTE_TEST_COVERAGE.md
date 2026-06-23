@@ -49,7 +49,7 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
   - Update: dropped plucky and added resolute in all three release example tables
 
 - features/cli/attach.feature
-  - Status: partially updated (revalidation pending)
+  - Status: partially updated
   - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
   - Update applied:
     - Retained LTS+resolute coverage for all container/vm scenarios (attached command, attach config, json output, contract change, invalid/expired token, lxd-vm)
@@ -57,9 +57,15 @@ If not updating a scenario in a test, explicitly note why, e.g., "hardcoded logi
     - Removed untested resolute cloud rows from "Attach command in generic cloud images" per policy
   - Skipped LXD VM: https://warthogs.atlassian.net/browse/UPRO-1218
 
+- features/cli/auto_attach.feature
+  - Status: updated
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Replaced plucky with resolute in both scenario example tables.
+    - Kept questing coverage unchanged.
+
 ## Tests Pending Evaluation
 
-- features/cli/auto_attach.feature
 - features/cli/collect_logs.feature
 - features/cli/config.feature
 - features/cli/cve.feature
