@@ -125,8 +125,15 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
   - Update applied:
     - Added resolute to the single release example table for the magic attach flow scenario.
 
+- features/cli/refresh.feature
+  - Status: updated
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Added resolute lxd-container rows in both scenario tables.
+    - Dropped plucky from both scenario tables.
+    - Left existing WSL rows unchanged.
+
 ## Tests Pending Evaluation
 
-- features/cli/refresh.feature
 - features/cli/security_status.feature
 - features/cli/status.feature
