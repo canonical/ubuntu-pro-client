@@ -119,9 +119,14 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Left legacy narrow-scope tables unchanged where release coverage is intentionally constrained.
     - https://warthogs.atlassian.net/browse/UPRO-1225
 
+- features/cli/magic_attach.feature
+  - Status: updated
+  - Current releases: xenial, bionic, focal, jammy, noble, resolute
+  - Update applied:
+    - Added resolute to the single release example table for the magic attach flow scenario.
+
 ## Tests Pending Evaluation
 
-- features/cli/magic_attach.feature
 - features/cli/refresh.feature
 - features/cli/security_status.feature
 - features/cli/status.feature
