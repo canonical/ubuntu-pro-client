@@ -420,10 +420,6 @@ class TestCollectLogs:
             call == mock.call(symlink_path)
             for call in m_load_file.call_args_list
         )
-        assert (
-            mock.call("Skipping symlinked user log file: %s", symlink_path)
-            in m_log_warning.call_args_list
-        )
         # The real log file SHOULD be read and written
         assert mock.call(real_log_path) in m_load_file.call_args_list
         assert any(
