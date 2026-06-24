@@ -75,8 +75,8 @@ Feature: CLI status command
       | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Non-root status can see in-progress operations
@@ -609,9 +609,7 @@ Feature: CLI status command
       anbox-cloud     +yes      +disabled +.*
       esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips-updates    +yes      +disabled +FIPS compliant crypto packages with stable security updates
       landscape       +yes      +disabled +Management and administration tool for Ubuntu
-      usg             +yes      +disabled +Security compliance and audit tools
 
       For a list of all Ubuntu Pro services, run 'pro status --all'
       Enable services with: pro enable <service>
@@ -623,27 +621,67 @@ Feature: CLI status command
       SERVICE          +ENTITLED +STATUS   +DESCRIPTION
       anbox-cloud      +yes      +disabled +.*
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +n/a      +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
       fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates     +yes      +disabled +FIPS compliant crypto packages with stable security updates
+      fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
       landscape        +yes      +disabled +Management and administration tool for Ubuntu
       livepatch        +yes      +n/a      +Canonical Livepatch service
       realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ├ generic        +yes      +n/a      +Generic version of the RT kernel \(default\)
-      ├ intel-iotg     +yes      +n/a      +RT kernel optimized for Intel IOTG platform
-      └ raspi          +yes      +n/a      +24.04 Real-time kernel optimised for Raspberry Pi
       ros              +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
-      usg              +yes      +disabled +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | resolute | lxd-container |
+
+  @uses.config.contract_token @arm64
+  Scenario Outline: Attached status in the latest LTS ubuntu machine - resolute
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud     +yes      +disabled +.*
+      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      landscape       +yes      +disabled +Management and administration tool for Ubuntu
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+      Enable services with: pro enable <service>
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE          +ENTITLED +STATUS   +DESCRIPTION
+      anbox-cloud      +yes      +disabled +.*
+      cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+      cis              +yes      +n/a      +Security compliance and audit tools
+      esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
+      esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
+      fips             +yes      +n/a      +NIST-certified FIPS crypto packages
+      fips-preview     +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
+      fips-updates     +yes      +n/a      +FIPS compliant crypto packages with stable security updates
+      landscape        +yes      +disabled +Management and administration tool for Ubuntu
+      livepatch        +yes      +n/a      +Canonical Livepatch service
+      realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +yes      +n/a      +Security Updates for the Robot Operating System
+      ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+
+      Enable services with: pro enable <service>
+      """
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: Unattached status in a ubuntu machine - formatted
@@ -698,8 +736,8 @@ Feature: CLI status command
       | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: Unattached status in a ubuntu machine
@@ -1099,6 +1137,77 @@ Feature: CLI status command
     Examples: ubuntu release
       | release | machine_type  |
       | noble   | lxd-container |
+
+  Scenario Outline: Unattached status in a ubuntu machine - resolute
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      esm-apps        +yes       +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      landscape       +yes       +Management and administration tool for Ubuntu
+      livepatch       +yes       +Canonical Livepatch service
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+    When I verify root and non-root `pro status --all` calls have the same output
+    And I run `pro status --all` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE          +AVAILABLE +DESCRIPTION
+      anbox-cloud      +yes       +.*
+      cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
+      cis              +no        +Security compliance and audit tools
+      esm-apps         +yes       +Expanded Security Maintenance for Applications
+      esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
+      esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
+      esm-infra-legacy +no        +Expanded Security Maintenance for Infrastructure on Legacy Instances
+      fips             +no        +NIST-certified FIPS crypto packages
+      fips-preview     +no        +.*
+      fips-updates     +no        +FIPS compliant crypto packages with stable security updates
+      landscape        +yes       +Management and administration tool for Ubuntu
+      livepatch        +yes       +Canonical Livepatch service
+      realtime-kernel  +no        +Ubuntu kernel with PREEMPT_RT patches integrated
+      ros              +no        +Security Updates for the Robot Operating System
+      ros-updates      +no        +All Updates for the Robot Operating System
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+    When I append the following on uaclient config:
+      """
+      features:
+          allow_beta: true
+      """
+    When I verify root and non-root `pro status` calls have the same output
+    And I run `pro status` as non-root
+    Then stdout matches regexp:
+      """
+      SERVICE         +AVAILABLE +DESCRIPTION
+      anbox-cloud     +yes       +.*
+      esm-apps        +yes       +Expanded Security Maintenance for Applications
+      esm-infra       +yes       +Expanded Security Maintenance for Infrastructure
+      landscape       +yes       +Management and administration tool for Ubuntu
+      livepatch       +yes       +Canonical Livepatch service
+
+      FEATURES
+      allow_beta: True
+
+      For a list of all Ubuntu Pro services, run 'pro status --all'
+
+      This machine is not attached to an Ubuntu Pro subscription.
+      See https://ubuntu.com/pro
+      """
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | resolute | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Simulate status in a ubuntu machine
@@ -1569,8 +1678,8 @@ Feature: CLI status command
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Warn users not to redirect/pipe human readable output
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1664,5 +1773,5 @@ Feature: CLI status command
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |

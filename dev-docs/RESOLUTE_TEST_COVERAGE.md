@@ -141,6 +141,16 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
   - Reason:
     - Most scenarios are release-specific (xenial/bionic/focal/plucky behavior and package/version-pinned assertions), so broad resolute addition is not a safe generic update without substantial fixture/expectation rework.
 
+- features/cli/status.feature
+  - Status: updated
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Updated generic multi-release tables by dropping plucky and adding resolute.
+    - Updated "Attached status in the latest LTS ubuntu machine" scenario to use resolute with correct output: short view shows anbox-cloud, esm-apps, esm-infra, landscape; --all view includes cis, fips/fips-preview/fips-updates/realtime-kernel/ros/ros-updates all as n/a (no usg, no realtime-kernel subtrees).
+    - Added "Attached status in the latest LTS ubuntu machine - resolute" as an explicit resolute-specific scenario documenting the early service baseline.
+    - Added "Unattached status in a ubuntu machine - resolute" scenario with correct available/unavailable service list for resolute (cis/fips-updates/realtime-kernel/ros/ros-updates all present but unavailable).
+  - Note: Resolute's short status omits services that are n/a (fips-updates, usg/cis, realtime-kernel, ros). The --all view shows the full list. As ua-contracts adds CIS/FIPS/ROS support for resolute, these scenarios should be updated.
+
 ## Tests Pending Evaluation
 
-- features/cli/status.feature
+- None
