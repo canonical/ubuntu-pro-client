@@ -107,9 +107,17 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Removed resolute row from "Disable with purge unsupported services" with TODO(UPRO-1218): re-enable after AppArmor fix.
     - Kept slow FIPS kernel-purge scenarios unchanged (xenial/bionic/focal only).
 
+- features/cli/enable.feature
+  - Status: partially updated (revalidation pending)
+  - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
+  - Update applied:
+    - Added resolute to generic LXD release tables that previously ended at noble: reboot-required, empty-series-affordance, attached JSON enable, not-entitled, corrupt-lock, and both `pro enable --auto` scenario outlines.
+    - Updated unattached table by dropping plucky and adding resolute after questing.
+    - Left cloud override scenario unchanged (aws-specific focal test).
+    - Left legacy narrow-scope tables unchanged where release coverage is intentionally constrained.
+
 ## Tests Pending Evaluation
 
-- features/cli/enable.feature
 - features/cli/magic_attach.feature
 - features/cli/refresh.feature
 - features/cli/security_status.feature
