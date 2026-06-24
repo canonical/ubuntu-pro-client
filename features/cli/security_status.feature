@@ -887,8 +887,8 @@ Feature: CLI security-status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | plucky  | lxd-container |
+      | release  | machine_type  |
+      | questing | lxd-container |
 
   Scenario Outline: Pass custom APT configuration to the Client for updates information
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

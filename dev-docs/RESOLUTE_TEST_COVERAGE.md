@@ -133,7 +133,14 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Dropped plucky from both scenario tables.
     - Left existing WSL rows unchanged.
 
+- features/cli/security_status.feature
+  - Status: skipped
+  - Current releases: xenial, bionic, focal, noble, questing
+  - Update applied:
+    - Swapped plucky -> questing in the dedicated latest non-LTS scenario table.
+  - Reason:
+    - Most scenarios are release-specific (xenial/bionic/focal/plucky behavior and package/version-pinned assertions), so broad resolute addition is not a safe generic update without substantial fixture/expectation rework.
+
 ## Tests Pending Evaluation
 
-- features/cli/security_status.feature
 - features/cli/status.feature
