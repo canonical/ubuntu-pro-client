@@ -90,7 +90,7 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Scenarios are hardcoded to release-specific fixture data and metadata endpoints (`com.ubuntu.xenial.pkg.json.xz` and `com.ubuntu.jammy.pkg.json.xz`), so adding resolute safely requires fixture and expectation rework.
 
 - features/cli/detach.feature
-  - Status: partially updated (revalidation pending)
+  - Status: updated
   - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
   - Update applied:
     - Added resolute lxd-container rows in both scenario tables.
@@ -98,23 +98,26 @@ IMPORTANT: Resolute is 26.04 LTS. It comes after Questing, 25.10, in ordered lis
     - Left existing WSL rows unchanged.
 
 - features/cli/disable.feature
-  - Status: partially updated (revalidation pending)
+  - Status: updated
   - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
   - Update applied:
     - Added resolute to attached and unattached lxd-container scenario tables and dropped plucky from unattached.
     - Commented out resolute row in the attached unknown-service/wrong-output-format scenario with TODO(UPRO-1225): re-enable once ua-contracts CIS `presentedAs` behavior matches noble.
+    - https://warthogs.atlassian.net/browse/UPRO-1225
     - Removed resolute row from "Disable with purge works and purges repo services not involving a kernel" with TODO: ansible is not present from esm-apps on resolute and scenario likely needs refactor.
     - Removed resolute row from "Disable with purge unsupported services" with TODO(UPRO-1218): re-enable after AppArmor fix.
     - Kept slow FIPS kernel-purge scenarios unchanged (xenial/bionic/focal only).
+    - https://warthogs.atlassian.net/browse/UPRO-1218
 
 - features/cli/enable.feature
-  - Status: partially updated (revalidation pending)
+  - Status: updated
   - Current releases: xenial, bionic, focal, jammy, noble, questing, resolute
   - Update applied:
     - Added resolute to generic LXD release tables that previously ended at noble: reboot-required, empty-series-affordance, attached JSON enable, not-entitled, corrupt-lock, and both `pro enable --auto` scenario outlines.
     - Updated unattached table by dropping plucky and adding resolute after questing.
     - Left cloud override scenario unchanged (aws-specific focal test).
     - Left legacy narrow-scope tables unchanged where release coverage is intentionally constrained.
+    - https://warthogs.atlassian.net/browse/UPRO-1225
 
 ## Tests Pending Evaluation
 
