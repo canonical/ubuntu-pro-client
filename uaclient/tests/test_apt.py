@@ -16,13 +16,14 @@ from uaclient.apt import (
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
+    assert_valid_apt_credentials,
+    assert_valid_apt_directives,
     clean_apt_sources,
     find_apt_list_files,
     get_installed_packages,
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
-    assert_valid_apt_credentials,
 )
 from uaclient import apt, exceptions, util
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
@@ -102,6 +103,70 @@ class TestRemoveAptListFiles:
 
         assert None is remove_apt_list_files(repo_url, "xenial")
         assert [nomatch_file] == glob.glob("{}/*".format(tmpdir.strpath))
+
+
+class TestValidAptDirectives:
+    """Tests for assert_valid_apt_directives.
+
+    Regression tests for CVE-2026-11386 (newline injection in apt
+    sources via contract directives).
+    """
+
+    @pytest.mark.parametrize(
+        "repo_url,suites",
+        (
+            (
+                "https://esm.ubuntu.com/infra/ubuntu",
+                ["trusty", "trusty-updates"],
+            ),
+            ("http://fakerepo", ["trusty"]),
+            (
+                "https://esm.ubuntu.com/apps/ubuntu",
+                ["xenial", "xenial-updates"],
+            ),
+        ),
+    )
+    def test_accepts_valid_directives(self, repo_url, suites):
+        """Well-formed directive values pass validation."""
+        assert None is assert_valid_apt_directives(repo_url, suites)
+
+    @pytest.mark.parametrize(
+        "repo_url",
+        (
+            "https://esm.ubuntu.com\nhttps://evil.example.com",
+            "https://esm.ubuntu.com\revil",
+            "https://esm.ubuntu.com\x00/evil",
+            "https://esm.ubuntu.com /evil",
+        ),
+    )
+    def test_rejects_invalid_repo_url(self, repo_url):
+        """Reject repo URLs containing control characters or spaces."""
+        with pytest.raises(exceptions.UserFacingError) as exc_info:
+            assert_valid_apt_directives(repo_url, ["trusty"])
+        assert "URL directive contains invalid characters" in str(
+            exc_info.value
+        )
+
+    @pytest.mark.parametrize(
+        "suite",
+        (
+            "trusty\ndeb [trusted=yes] http://attacker.example.com/repo"
+            " trusty main",
+            "trusty\revil",
+            "trusty\x00evil",
+            "trusty main",
+            " ",
+        ),
+    )
+    def test_rejects_invalid_suite(self, suite):
+        """Reject suite values containing control characters or spaces."""
+        with pytest.raises(exceptions.UserFacingError) as exc_info:
+            assert_valid_apt_directives(
+                "https://esm.ubuntu.com/infra/ubuntu", [suite]
+            )
+        assert "suite directive contains invalid characters" in str(
+            exc_info.value
+        )
 
 
 class TestValidAptCredentials:

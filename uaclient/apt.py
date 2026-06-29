@@ -32,7 +32,7 @@ CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 # Hope for an optimal first try.
 APT_RETRIES = [1.0, 5.0, 10.0]
 
-_UNSAFE_APT_CHARS = re.compile(r"[\n\r\x00]")
+_UNSAFE_APT_CHARS = re.compile(r"[\n\r\x00 ]")
 
 
 def assert_valid_apt_directives(repo_url, suites):
