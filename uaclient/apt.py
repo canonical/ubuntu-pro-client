@@ -32,6 +32,28 @@ CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 # Hope for an optimal first try.
 APT_RETRIES = [1.0, 5.0, 10.0]
 
+_UNSAFE_APT_CHARS = re.compile(r"[\n\r\x00]")
+
+
+def assert_valid_apt_directives(repo_url, suites):
+    """Validate that apt directive values contain no injected content.
+
+    @param repo_url: The apt repository URL from contract directives.
+    @param suites: List of suite strings from contract directives.
+
+    @raises: UserFacingError if any value contains newline, carriage return,
+        or null byte characters which could inject additional apt sources.
+    """
+    if _UNSAFE_APT_CHARS.search(repo_url):
+        raise exceptions.UserFacingError(
+            "APT repository URL directive contains invalid characters"
+        )
+    for suite in suites:
+        if _UNSAFE_APT_CHARS.search(suite):
+            raise exceptions.UserFacingError(
+                "APT suite directive contains invalid characters"
+            )
+
 
 def assert_valid_apt_credentials(repo_url, username, password):
     """Validate apt credentials for a PPA.
@@ -134,6 +156,7 @@ def add_auth_apt_repo(
     series = util.get_platform_info()["series"]
     if repo_url.endswith("/"):
         repo_url = repo_url[:-1]
+    assert_valid_apt_directives(repo_url, suites)
     assert_valid_apt_credentials(repo_url, username, password)
 
     # Does this system have updates suite enabled?
