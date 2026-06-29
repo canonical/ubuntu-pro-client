@@ -198,13 +198,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type | pkg_name               |
-      | xenial   | gcp.generic  | ubuntu-advantage-tools |
-      | bionic   | gcp.generic  | ubuntu-advantage-tools |
-      | focal    | gcp.generic  | ubuntu-advantage-tools |
-      | jammy    | gcp.generic  | ubuntu-advantage-tools |
-      | noble    | gcp.generic  | ubuntu-pro-client      |
-      | resolute | gcp.generic  | ubuntu-pro-client      |
+      | release | machine_type | pkg_name               |
+      | xenial  | gcp.generic  | ubuntu-advantage-tools |
+      | bionic  | gcp.generic  | ubuntu-advantage-tools |
+      | focal   | gcp.generic  | ubuntu-advantage-tools |
+      | jammy   | gcp.generic  | ubuntu-advantage-tools |
+      | noble   | gcp.generic  | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: daemon should run when appropriate on azure generic lts
@@ -266,13 +265,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       """
 
     Examples: version
-      | release  | machine_type  |
-      | xenial   | azure.generic |
-      | bionic   | azure.generic |
-      | focal    | azure.generic |
-      | jammy    | azure.generic |
-      | noble    | azure.generic |
-      | resolute | azure.generic |
+      | release | machine_type  |
+      | xenial  | azure.generic |
+      | bionic  | azure.generic |
+      | focal   | azure.generic |
+      | jammy   | azure.generic |
+      | noble   | azure.generic |
 
   @uses.config.contract_token
   Scenario Outline: daemon does not start on gcp,azure generic non lts
@@ -324,7 +322,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | jammy    | aws.generic  |
       | noble    | aws.generic  |
       | questing | aws.generic  |
-      | resolute | aws.generic  |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

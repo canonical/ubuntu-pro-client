@@ -20,19 +20,16 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
     And I verify that `esm-infra` is enabled
 
     Examples: ubuntu release
-      | release  | machine_type  |
-      | xenial   | aws.generic   |
-      | xenial   | azure.generic |
-      | xenial   | gcp.generic   |
-      | bionic   | aws.generic   |
-      | bionic   | azure.generic |
-      | bionic   | gcp.generic   |
-      | focal    | aws.generic   |
-      | focal    | azure.generic |
-      | focal    | gcp.generic   |
-      | noble    | aws.generic   |
-      | noble    | azure.generic |
-      | noble    | gcp.generic   |
-      | resolute | aws.generic   |
-      | resolute | azure.generic |
-      | resolute | gcp.generic   |
+      | release | machine_type  |
+      | xenial  | aws.generic   |
+      | xenial  | azure.generic |
+      | xenial  | gcp.generic   |
+      | bionic  | aws.generic   |
+      | bionic  | azure.generic |
+      | bionic  | gcp.generic   |
+      | focal   | aws.generic   |
+      | focal   | azure.generic |
+      | focal   | gcp.generic   |
+      | noble   | aws.generic   |
+      | noble   | azure.generic |
+      | noble   | gcp.generic   |

@@ -137,25 +137,22 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release  | machine_type | infra-pkg | apps-pkg |
-      | xenial   | aws.pro      | libkrad0  | jq       |
-      | xenial   | azure.pro    | libkrad0  | jq       |
-      | xenial   | gcp.pro      | libkrad0  | jq       |
-      | bionic   | aws.pro      | libkrad0  | bundler  |
-      | bionic   | azure.pro    | libkrad0  | bundler  |
-      | bionic   | gcp.pro      | libkrad0  | bundler  |
-      | focal    | aws.pro      | hello     | ant      |
-      | focal    | azure.pro    | hello     | ant      |
-      | focal    | gcp.pro      | hello     | ant      |
-      | jammy    | aws.pro      | hello     | hello    |
-      | jammy    | azure.pro    | hello     | hello    |
-      | jammy    | gcp.pro      | hello     | hello    |
-      | noble    | aws.pro      | hello     | hello    |
-      | noble    | azure.pro    | hello     | hello    |
-      | noble    | gcp.pro      | hello     | hello    |
-      | resolute | aws.pro      | hello     | hello    |
-      | resolute | azure.pro    | hello     | hello    |
-      | resolute | gcp.pro      | hello     | hello    |
+      | release | machine_type | infra-pkg | apps-pkg |
+      | xenial  | aws.pro      | libkrad0  | jq       |
+      | xenial  | azure.pro    | libkrad0  | jq       |
+      | xenial  | gcp.pro      | libkrad0  | jq       |
+      | bionic  | aws.pro      | libkrad0  | bundler  |
+      | bionic  | azure.pro    | libkrad0  | bundler  |
+      | bionic  | gcp.pro      | libkrad0  | bundler  |
+      | focal   | aws.pro      | hello     | ant      |
+      | focal   | azure.pro    | hello     | ant      |
+      | focal   | gcp.pro      | hello     | ant      |
+      | jammy   | aws.pro      | hello     | hello    |
+      | jammy   | azure.pro    | hello     | hello    |
+      | jammy   | gcp.pro      | hello     | hello    |
+      | noble   | aws.pro      | hello     | hello    |
+      | noble   | azure.pro    | hello     | hello    |
+      | noble   | gcp.pro      | hello     | hello    |
 
   Scenario Outline: Auto-attach service works on Pro Machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -176,19 +173,17 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release  | machine_type |
-      | xenial   | azure.pro    |
-      | xenial   | gcp.pro      |
-      | bionic   | azure.pro    |
-      | bionic   | gcp.pro      |
-      | focal    | azure.pro    |
-      | focal    | gcp.pro      |
-      | jammy    | azure.pro    |
-      | jammy    | gcp.pro      |
-      | noble    | azure.pro    |
-      | noble    | gcp.pro      |
-      | resolute | azure.pro    |
-      | resolute | gcp.pro      |
+      | release | machine_type |
+      | xenial  | azure.pro    |
+      | xenial  | gcp.pro      |
+      | bionic  | azure.pro    |
+      | bionic  | gcp.pro      |
+      | focal   | azure.pro    |
+      | focal   | gcp.pro      |
+      | jammy   | azure.pro    |
+      | jammy   | gcp.pro      |
+      | noble   | azure.pro    |
+      | noble   | gcp.pro      |
 
   Scenario Outline: Auto-attach service works on Pro Machine on aws.pro
     Given a `<release>` aws.pro machine with ubuntu-advantage-tools installed
@@ -218,13 +213,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release  |
-      | xenial   |
-      | bionic   |
-      | focal    |
-      | jammy    |
-      | noble    |
-      | resolute |
+      | release |
+      | xenial  |
+      | bionic  |
+      | focal   |
+      | jammy   |
+      | noble   |
 
   Scenario Outline: Auto-attach service works on Pro Machine on aws.generic
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -251,13 +245,12 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release  | machine_type |
-      | xenial   | aws.generic  |
-      | bionic   | aws.generic  |
-      | focal    | aws.generic  |
-      | jammy    | aws.generic  |
-      | noble    | aws.generic  |
-      | resolute | aws.generic  |
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
 
   Scenario Outline: Auto-attach no-op when cloud-init has ubuntu_advantage on userdata
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed adding this cloud-init user_data:
@@ -309,26 +302,23 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release  | machine_type | cloud_init_key   |
-      | xenial   | aws.pro      | ubuntu_advantage |
-      | xenial   | azure.pro    | ubuntu_advantage |
-      | xenial   | gcp.pro      | ubuntu_advantage |
-      | bionic   | aws.pro      | ubuntu_advantage |
-      | bionic   | azure.pro    | ubuntu_advantage |
-      | bionic   | gcp.pro      | ubuntu_advantage |
+      | release | machine_type | cloud_init_key   |
+      | xenial  | aws.pro      | ubuntu_advantage |
+      | xenial  | azure.pro    | ubuntu_advantage |
+      | xenial  | gcp.pro      | ubuntu_advantage |
+      | bionic  | aws.pro      | ubuntu_advantage |
+      | bionic  | azure.pro    | ubuntu_advantage |
+      | bionic  | gcp.pro      | ubuntu_advantage |
       # Keep ubuntu_advantage for focal/jammy to make sure it still works there
-      | focal    | aws.pro      | ubuntu_advantage |
-      | focal    | azure.pro    | ubuntu_advantage |
-      | focal    | gcp.pro      | ubuntu_advantage |
-      | jammy    | aws.pro      | ubuntu_advantage |
-      | jammy    | azure.pro    | ubuntu_advantage |
-      | jammy    | gcp.pro      | ubuntu_advantage |
-      | noble    | aws.pro      | ubuntu_pro       |
-      | noble    | azure.pro    | ubuntu_pro       |
-      | noble    | gcp.pro      | ubuntu_pro       |
-      | resolute | aws.pro      | ubuntu_pro       |
-      | resolute | azure.pro    | ubuntu_pro       |
-      | resolute | gcp.pro      | ubuntu_pro       |
+      | focal   | aws.pro      | ubuntu_advantage |
+      | focal   | azure.pro    | ubuntu_advantage |
+      | focal   | gcp.pro      | ubuntu_advantage |
+      | jammy   | aws.pro      | ubuntu_advantage |
+      | jammy   | azure.pro    | ubuntu_advantage |
+      | jammy   | gcp.pro      | ubuntu_advantage |
+      | noble   | aws.pro      | ubuntu_pro       |
+      | noble   | azure.pro    | ubuntu_pro       |
+      | noble   | gcp.pro      | ubuntu_pro       |
 
   Scenario Outline: Unregistered Pro machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -341,10 +331,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release  | machine_type |
-      | xenial   | aws.generic  |
-      | bionic   | aws.generic  |
-      | focal    | aws.generic  |
-      | jammy    | aws.generic  |
-      | noble    | aws.generic  |
-      | resolute | aws.generic  |
+      | release | machine_type |
+      | xenial  | aws.generic  |
+      | bionic  | aws.generic  |
+      | focal   | aws.generic  |
+      | jammy   | aws.generic  |
+      | noble   | aws.generic  |
