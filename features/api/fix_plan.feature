@@ -173,12 +173,13 @@ Feature: Fix plan API endpoints
       """
 
     Examples: ubuntu release details
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -3028,7 +3029,7 @@ Feature: Fix plan API endpoints
       }
       """
 
+    # TODO: Add resolute lxd-vm once AppArmor ubuntu_pro_esm_cache//ps profile is fixed
     Examples: ubuntu release details
       | release  | machine_type |
-      | plucky   | lxd-vm       |
       | questing | lxd-vm       |
