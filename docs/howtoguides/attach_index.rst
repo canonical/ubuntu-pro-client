@@ -18,6 +18,10 @@ configuration file:
 
 * :ref:`Attach using a config file <attach-with-config>`
 
+If you need to move, clone, rebuild, or delete an attached machine, see:
+
+* :ref:`Move or clone an attached machine <how-to-migrate-attached-machines>`
+
 .. TOC
 
 .. toctree::
@@ -27,3 +31,4 @@ configuration file:
    How to attach <how_to_attach>
    Simulate attaching <how_to_simulate_attach>
    Attach with a configuration file <how_to_attach_with_config_file>
+   Move or clone attached machines <how_to_migrate_attached_machines>
