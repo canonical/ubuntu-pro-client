@@ -46,9 +46,9 @@ Feature: Ensure network errors are handled gracefully across various services
     Then the machine is unattached
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Network errors for attaching contract token are handled gracefully
     # This test simulates network failure by disabling internet connection
@@ -63,9 +63,9 @@ Feature: Ensure network errors are handled gracefully across various services
     Then the machine is unattached
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Network errors for enabling Realtime kernel and Livepatch are handled gracefully
     # This test simulates network failure by disabling internet connection
@@ -83,9 +83,11 @@ Feature: Ensure network errors are handled gracefully across various services
     Then I verify that `<service>` is disabled
 
     # Realtime kernel is not supported on LXD containers so we must use a VM
+    # Beginning in Resolute, realtime-kernel is in the archives and is no
+    # longer managed by Pro.
     Examples: ubuntu release
-      | release | machine_type  | service         |
-      | xenial  | lxd-vm        | realtime-kernel |
-      | noble   | lxd-vm        | realtime-kernel |
-      | xenial  | lxd-container | livepatch       |
-      | noble   | lxd-container | livepatch       |
+      | release  | machine_type  | service         |
+      | xenial   | lxd-vm        | realtime-kernel |
+      | noble    | lxd-vm        | realtime-kernel |
+      | xenial   | lxd-container | livepatch       |
+      | resolute | lxd-container | livepatch       |

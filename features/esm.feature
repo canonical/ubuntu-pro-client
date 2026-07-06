@@ -60,8 +60,9 @@ Feature: ESM Resource Specificities
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: esm apt auth includes snapshot urls
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -94,9 +95,10 @@ Feature: ESM Resource Specificities
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |

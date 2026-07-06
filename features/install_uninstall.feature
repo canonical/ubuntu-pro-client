@@ -12,8 +12,8 @@ Feature: Pro Install and Uninstall related tests
       | focal    | lxd-container | ubuntu-advantage-tools |
       | jammy    | lxd-container | ubuntu-advantage-tools |
       | noble    | lxd-container | ubuntu-pro-client      |
-      | plucky   | lxd-container | ubuntu-pro-client      |
       | questing | lxd-container | ubuntu-pro-client      |
+      | resolute | lxd-container | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: Purge package after attaching it to a machine
@@ -44,6 +44,33 @@ Feature: Pro Install and Uninstall related tests
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+
+  @uses.config.contract_token
+  Scenario Outline: Purge package after attaching it to a machine on deb822 releases
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I run `touch /etc/apt/preferences.d/ubuntu-esm-infra` with sudo
+    Then I verify that files exist matching `/var/log/ubuntu-advantage.log`
+    And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `0`
+    And I verify that files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
+    And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.sources`
+    And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
+    When I run `apt purge ubuntu-advantage-tools ubuntu-pro-client -y` with sudo, retrying exit [100]
+    Then stdout matches regexp:
+      """
+      Purging configuration files for ubuntu-pro-client
+      """
+    And I verify that no files exist matching `/var/log/ubuntu-advantage.log`
+    And I verify that no files exist matching `/var/lib/ubuntu-advantage`
+    And I verify that no files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
+    And I verify that no files exist matching `/etc/apt/sources.list.d/ubuntu-*`
+    And I verify that no files exist matching `/etc/apt/trusted.gpg.d/ubuntu-pro-*`
+    And I verify that no files exist matching `/etc/apt/preferences.d/ubuntu-*`
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @slow
   Scenario Outline: Do not fail during postinst with nonstandard python setup
@@ -77,12 +104,13 @@ Feature: Pro Install and Uninstall related tests
     Then I verify that running `dpkg-reconfigure <pkg_name>` `with sudo` exits `0`
 
     Examples: ubuntu release
-      | release | machine_type  | pkg_name               |
-      | xenial  | lxd-container | ubuntu-advantage-tools |
-      | bionic  | lxd-container | ubuntu-advantage-tools |
-      | focal   | lxd-container | ubuntu-advantage-tools |
-      | jammy   | lxd-container | ubuntu-advantage-tools |
-      | noble   | lxd-container | ubuntu-pro-client      |
+      | release  | machine_type  | pkg_name               |
+      | xenial   | lxd-container | ubuntu-advantage-tools |
+      | bionic   | lxd-container | ubuntu-advantage-tools |
+      | focal    | lxd-container | ubuntu-advantage-tools |
+      | jammy    | lxd-container | ubuntu-advantage-tools |
+      | noble    | lxd-container | ubuntu-pro-client      |
+      | resolute | lxd-container | ubuntu-pro-client      |
 
   @skip_local_environment @skip_prebuilt_environment
   Scenario Outline: Package ubuntu-advantage-tools now install
@@ -129,8 +157,8 @@ Feature: Pro Install and Uninstall related tests
       | focal    | lxd-container | ubuntu_advantage |
       | jammy    | lxd-container | ubuntu_advantage |
       | noble    | lxd-container | ubuntu_pro       |
-      | plucky   | lxd-container | ubuntu_pro       |
       | questing | lxd-container | ubuntu_pro       |
+      | resolute | lxd-container | ubuntu_pro       |
 
   @uses.config.contract_token
   Scenario Outline: Create public machine token on postinst
@@ -142,6 +170,12 @@ Feature: Pro Install and Uninstall related tests
     Then I verify that files exist matching `/var/lib/ubuntu-advantage/machine-token.json`
     Then the machine is attached
 
+    # This scenario is only for jammy and older. It exercises the public machine-token
+    # recreation in ubuntu-advantage-tools.postinst, which only ships with the
+    # legacy ubuntu-advantage-tools package (xenial->jammy). On noble+ the main
+    # package is ubuntu-pro-client, whose postinst delegates to
+    # postinst-migrations.sh and has no public-token recreation step, so this
+    # upgrade-migration behavior does not apply.
     Examples: ubuntu release
       | release | machine_type  |
       | xenial  | lxd-container |

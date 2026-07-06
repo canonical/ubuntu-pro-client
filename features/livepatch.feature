@@ -41,6 +41,9 @@ Feature: Livepatch
       | bionic  | lxd-vm       | enabled          |
       | noble   | lxd-vm       | enabled          |
 
+  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+  # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
+  # | resolute | lxd-vm       | enabled          |
   Scenario Outline: Unattached livepatch status shows warning when on unsupported kernel
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I change config key `livepatch_url` to use value `<livepatch_url>`
@@ -192,7 +195,6 @@ Feature: Livepatch
 
     Examples: ubuntu release
       | release  | machine_type | pretty_name             |
-      | plucky   | lxd-vm       | 25.04 (Plucky Puffin)   |
       | questing | lxd-vm       | 25.10 (Questing Quokka) |
 
   Scenario Outline: Livepatch is supported on interim HWE kernel

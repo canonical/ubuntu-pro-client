@@ -130,10 +130,10 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | ad_message                                                                                   |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04         |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                    |
+      | release | machine_type  | ad_message                                                                                |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -195,6 +195,9 @@ Feature: APT Messages
       | jammy   | lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
       | jammy   | wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
 
+  # TODO add resolute when packages are ready
+  # | resolute| lxd-container | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
+  # | resolute| wsl           | hello   | another security update | Learn more about Ubuntu Pro at https://ubuntu.com/pro |
   @uses.config.contract_token
   Scenario Outline: APT News
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -658,7 +661,7 @@ Feature: APT Messages
       | noble   | lxd-container |
       | noble   | lxd-vm        |
 
-  # This is a subset of the above test, only checking proper outputs for Plucky
+  # This is a subset of the above test, only checking proper outputs for Questing+
   # At some point in time, ideally before next LTS, we need to invert this:
   # Have the new APT output in the full test, using latest releases, and a subset for the
   # old output.
@@ -724,11 +727,13 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | plucky   | lxd-container |
-      | plucky   | lxd-vm        |
       | questing | lxd-container |
       | questing | lxd-vm        |
+      | resolute | lxd-container |
 
+  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+  # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
+  # | resolute | lxd-vm        |
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt install `ansible`
@@ -1556,9 +1561,13 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | wrong_release | package   | installed_version |
-      | plucky  | lxd-container | jammy         | pyzfs-doc | 2.3.1-1ubuntu1    |
+      | release | machine_type | wrong_release | package | installed_version |
 
+  # BLOCKED: re-enable resolute once we identify a package that:
+  # - exists on resolute and on at least one different Ubuntu release for wrong_release coverage
+  # - has an installable exact version on resolute for the package selector
+  # - also has a newer candidate on resolute so apt upgrade reports it as held in "Not upgrading"
+  # | resolute | lxd-container | noble         | ... | ... |
   Scenario Outline: APT Hook does not error when run as non-root
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `apt upgrade --simulate` as non-root
@@ -1574,8 +1583,8 @@ Feature: APT Messages
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1624,5 +1633,4 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | plucky   | lxd-container |
       | questing | lxd-container |
