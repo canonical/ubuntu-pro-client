@@ -2,9 +2,9 @@
 
 ## Project overview
 
-`ubuntu-pro-client` (the `pro` command, package `ubuntu-advantage-tools`) is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports very old Ubuntu releases (back to 16.04 Xenial), so avoid modern-only syntax and dependencies. Xenial runs on Python 3.5.
+`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports very old Ubuntu releases (back to 16.04 Xenial), so avoid modern-only syntax and dependencies. Xenial runs on Python 3.5.
 
-- Target Python is the version shipped with supported Ubuntu releases; do not assume the latest Python features are available.
+- The target Python is the version shipped with supported Ubuntu releases (3.5); do not assume the latest Python features are available.
 - Only use dependencies already declared in `requirements*.txt` / `setup.py`. Do not add new runtime dependencies without strong justification.
 
 ## Repository layout
