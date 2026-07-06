@@ -298,7 +298,7 @@ class TestAutoAttach:
 class TestCollectLogs:
     """Tests for collect_logs.
 
-    Includes regression tests for CVE-2026-11386 (symlink-based local
+    Includes regression tests for CVE-2026-12391 (symlink-based local
     file disclosure via user-controlled log paths).
     """
 
@@ -327,6 +327,7 @@ class TestCollectLogs:
         m_log_warning,
         m_status,
         _m_write_cmd,
+        _m_shutil_copy,
         tmpdir,
     ):
         m_env_vars.return_value = {"test": "test"}
