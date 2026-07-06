@@ -23,13 +23,9 @@ The Python environment and dependencies should already be installed by `workshop
 
 ## Common commands
 
-Run all lint + unit checks (matches CI defaults):
+Testing/linting is managed by `tox`.
 
-```bash
-tox
-```
-
-Individual environments (see `tox.ini` for the full list):
+Common environments:
 
 - `tox -e test` -- unit tests (pytest).
 - `tox -e test -- uaclient/tests/test_actions.py` -- a single test file.
@@ -39,6 +35,8 @@ Individual environments (see `tox.ini` for the full list):
 - `tox -e shellcheck` -- shell script linter.
 - `tox -e reformat-gherkin` -- `.feature` file formatting.
 - `tox -e behave` -- integration tests (slow; see below).
+
+See `tox.ini` for the full list.
 
 ## Code style
 
