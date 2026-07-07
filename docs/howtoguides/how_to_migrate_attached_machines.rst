@@ -1,6 +1,6 @@
 .. _how-to-migrate-attached-machines:
 
-How to migrate an Ubuntu Pro attached machine
+How to manage Ubuntu Pro attachment when moving machines
 *********************************************
 
 This guide explains what happens to your Ubuntu Pro attachment when you move,
@@ -46,6 +46,13 @@ If you intend to **replace** the original with the clone (for example, for
 testing or migration), stop or delete the original. It will eventually be
 removed from the active count automatically.
 
+.. note::
+
+   If you are creating a **reusable template or golden image** from an attached
+   VM, you should not leave the image in an attached state. See
+   :ref:`create_pro_golden_image` for the recommended approach to creating
+   Ubuntu Pro golden images.
+
 #. Clone the VM using your platform's standard tooling.
 #. Verify the attachment on the new clone:
 
@@ -56,17 +63,10 @@ removed from the active count automatically.
 #. If you no longer need the original, stop or delete it. No detach is needed
    before deletion.
 
-.. note::
-
-   If you are creating a **reusable template or golden image** from an attached
-   VM, you should not leave the image in an attached state. See
-   :ref:`create_pro_golden_image` for the recommended approach to creating
-   Ubuntu Pro golden images.
-
 Rebuilding a machine with a fresh Ubuntu installation
 ------------------------------------------------------
 
-A fresh Ubuntu installation does not carry over any previous Pro attachment.
+If you reinstall a fresh Ubuntu image, the new installation does not carry over the previous Pro attachment.
 You will need to attach the rebuilt machine to your subscription:
 
 .. code-block:: bash
@@ -85,19 +85,11 @@ You do not need to detach a machine before decommissioning or deleting it. Once
 the machine is gone and no longer communicates with the Ubuntu Pro service, it
 will eventually be removed from the active count automatically.
 
-You can detach before deleting:
+You can detach before deleting, but this is optional:
 
 .. code-block:: bash
 
    sudo pro detach
-
-However, this step is entirely optional.
-
-What if the old machine is already gone?
-----------------------------------------
-
-If a machine was deleted without being detached first, no action is required.
-The machine will eventually be removed from the active count automatically.
 
 Verifying the result
 --------------------
