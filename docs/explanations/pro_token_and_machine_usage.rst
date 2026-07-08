@@ -19,6 +19,9 @@ About Ubuntu Pro tokens
 - **Detaching Pro tokens**:
   You can use the ``sudo pro detach`` command to remove a machine from the subscription. If you are attached on a VM you intend to delete, the token does not need to be detached before the VM is destroyed.
 
+For guidance on moving, cloning, rebuilding, or deleting an attached machine,
+see :ref:`how-to-migrate-attached-machines`.
+
 For more detailed information regarding Pro commands, refer to our :ref:`Getting started with Ubuntu Pro client <tutorial-commands>` tutorial.
 
 Monitoring active machines
