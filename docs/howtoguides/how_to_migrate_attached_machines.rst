@@ -1,7 +1,7 @@
 .. _how-to-migrate-attached-machines:
 
 How to manage Ubuntu Pro attachment when moving machines
-*********************************************
+********************************************************
 
 This guide explains what happens to your Ubuntu Pro attachment when you move,
 clone, rebuild, or delete a machine, and what actions (if any) you need to
