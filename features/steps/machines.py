@@ -98,6 +98,23 @@ def given_a_machine(
     )
 
     if series == "xenial":
+        # On recent host kernels, the host AppArmor policy denies xenial's
+        # ISC dhclient from creating the raw AF_PACKET (LPF) socket it needs
+        # ("Open a socket for LPF: Permission denied"), so the container never
+        # gets an IPv4 DHCP lease and has no outbound network/DNS. Disable the
+        # in-container dhclient AppArmor profile and re-acquire the lease so
+        # the machine can reach the archive and contracts endpoints.
+        when_i_run_command(
+            context,
+            "bash -c '"
+            "ln -sf /etc/apparmor.d/sbin.dhclient /etc/apparmor.d/disable/ 2>/dev/null; "  # noqa: E501
+            "apparmor_parser -R /etc/apparmor.d/sbin.dhclient 2>/dev/null; "
+            "dhclient -v eth0'",
+            "with sudo",
+            verify_return=False,
+            machine_name=machine_name,
+        )
+
         # Upgrading open-iscsi to esm version on xenial restarts this service
         # This sometimes causes resource errors on github action runners
         when_i_run_command(
