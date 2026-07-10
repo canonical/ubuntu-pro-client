@@ -33,13 +33,16 @@ stderr:
 """
 
 
-# TODO(srunde3): remove once https://github.com/canonical/ubuntu-pro-client/pull/3540
+# TODO(srunde3): remove once
+# https://github.com/canonical/ubuntu-pro-client/pull/3540
 # lands upstream.
-# AppArmor checks are brittle against failures upstream; they detect a false positive
+# AppArmor checks are brittle against failures upstream; they detect a false
+# positive
 # if there is a denial before the package-under-test has even installed.
 IGNORED_APPARMOR_DENIAL_PATTERNS = [
     re.compile(
-        r'profile="ubuntu_pro_esm_cache_systemd_detect_virt".*capname="perfmon"'
+        r'profile="ubuntu_pro_esm_cache_systemd_detect_virt"'
+        r'.*capname="perfmon"'
     ),
 ]
 
