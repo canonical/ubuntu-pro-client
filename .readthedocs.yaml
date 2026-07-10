@@ -10,6 +10,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  jobs:
+    post_checkout:
+      # Unshallow the clone so git-based extensions (e.g. last-updated dates)
+      # and PDF/edit links can read the full history.
+      - git fetch --unshallow || true
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -18,9 +23,10 @@ sphinx:
   fail_on_warning: true
 
 
-# If using Sphinx, optionally build your docs in additional formats such as PDF
-#formats:
-#   - pdf
+# Build the documentation in additional formats. PDF output is provided by
+# canonical_sphinx (xelatex + CairoSVG converter).
+formats:
+  - pdf
 
 # Optionally declare the Python requirements required to build your docs
 python:

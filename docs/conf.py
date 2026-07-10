@@ -30,16 +30,17 @@ slug = ""
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+#
+# The canonical_sphinx extension provides the shared Canonical theme and
+# automatically loads a set of common extensions when they are installed,
+# including: myst_parser, sphinx_design, sphinx_tabs, sphinx_copybutton,
+# sphinxext.opengraph, sphinxcontrib.jquery and notfound.extension.
+# Only Ubuntu Pro Client-specific extensions are listed explicitly here.
 
 extensions = [
-    "myst_parser",
-    "notfound.extension",
-    "sphinx_copybutton",
-    "sphinx_design",
+    "canonical_sphinx",
     "sphinxcontrib.mermaid",
     "sphinx.ext.autosectionlabel",
-    "sphinxcontrib.jquery",
-    "sphinxext.opengraph",
     "sphinxext.rediraffe",
 ]
 autosectionlabel_prefix_document = True
@@ -78,29 +79,36 @@ html_theme = "furo"
 html_context = {
     "product_page": "ubuntu.com/pro",
     "product_tag": "_static/circle_of_friends.png",
-    "github_version": "docs",
-    "github_folder": "/docs/",
-    "github_issues": "enabled"
+    # Documentation GitHub repository; used for the edit-page and
+    # "Give feedback" links added by canonical_sphinx.
+    "github_url": "https://github.com/canonical/ubuntu-pro-client",
+    "repo_default_branch": "docs",
+    "repo_folder": "/docs/",
+    "github_issues": "enabled",
+}
+
+# Enable the top-of-page "Edit this page" button.
+html_theme_options = {
+    "source_edit_link": "https://github.com/canonical/ubuntu-pro-client",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
+# The Canonical theme's own static files (custom.css, furo_colors.css,
+# header.css, github_issue_links.css/js, header-nav.js, favicon, ...) are
+# provided by canonical_sphinx and must not be duplicated here. Only the
+# Ubuntu Pro Client-specific assets are listed below.
 html_static_path = ["_static"]
 
 html_css_files = [
     "css/logo.css",
-    "css/github_issue_links.css",
-    "css/custom.css",
     "css/mermaid.css",
     "css/header.css",
-    "css/furo_colors.css",
     "css/highlight.css",
     "css/cookie-banner.css",
 ]
 html_js_files = [
-    "js/github_issue_links.js",
-    "js/header-nav.js",
     "js/synced_tab_links.js",
     "js/bundle.js",
 ]
@@ -117,11 +125,9 @@ ogp_site_url = 'https://documentation.ubuntu.com/pro-client/en/latest/'
 ogp_site_name = project
 ogp_image = 'https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg'
 
-# The default for notfound_urls_prefix usually works, but not for
-# documentation on documentation.ubuntu.com
-if slug:
-    notfound_urls_prefix = '/' + slug + '/en/latest/'
-
+# The notfound_urls_prefix is computed automatically by canonical_sphinx
+# from the project slug and the Read the Docs environment, so it is not set
+# here. Only the custom 404 page content is kept.
 notfound_context = {
     'title': 'Page not found',
     'body': '<h1>Page not found</h1>\n\n<p>Sorry, but the documentation page that you are looking for was not found.</p>\n<p>Documentation changes over time, and pages are moved around. We try to redirect you to the updated content where possible, but unfortunately, that didn\'t work this time (maybe because the content you were looking for does not exist in this version of the documentation).</p>\n<p>You can try to use the navigation to locate the content you\'re looking for, or search for a similar page.</p>\n',
