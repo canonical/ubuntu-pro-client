@@ -33,6 +33,17 @@ stderr:
 """
 
 
+# TODO(srunde3): remove once https://github.com/canonical/ubuntu-pro-client/pull/3540
+# lands upstream.
+# AppArmor checks are brittle against failures upstream; they detect a false positive
+# if there is a denial before the package-under-test has even installed.
+IGNORED_APPARMOR_DENIAL_PATTERNS = [
+    re.compile(
+        r'profile="ubuntu_pro_esm_cache_systemd_detect_virt".*capname="perfmon"'
+    ),
+]
+
+
 class UAClientBehaveConfig:
     """Store config options for Pro client behave test runs.
 
@@ -543,11 +554,26 @@ def _get_relevant_apparmor_logs(context):
 
             with open(syslog_dest, "r") as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
-            apparmor_denied = [
-                msg.strip()
-                for msg in syslog_messages
-                if ("DENIED" in msg and "ubuntu_pro_" in msg)
-            ]
+            apparmor_denied = []
+            ignored_apparmor_denied = []
+            for msg in syslog_messages:
+                if "DENIED" not in msg or "ubuntu_pro_" not in msg:
+                    continue
+
+                if any(
+                    pattern.search(msg)
+                    for pattern in IGNORED_APPARMOR_DENIAL_PATTERNS
+                ):
+                    ignored_apparmor_denied.append(msg.strip())
+                    continue
+
+                apparmor_denied.append(msg.strip())
+
+            if ignored_apparmor_denied:
+                logging.warning("Ignored some known failures for AppArmor:")
+                logging.warning("--- BEGIN IGNORED APPARMOR FAILURES --- ")
+                logging.warning("\n".join(ignored_apparmor_denied))
+                logging.warning("--- END IGNORED APPARMOR FAILURES --- ")
             return apparmor_denied
     return None
 
