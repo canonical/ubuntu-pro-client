@@ -342,6 +342,9 @@ def get_pkg_candidate_version(
         if not candidate:
             return None
 
+        if not dep_cache.phasing_applied(package):
+            return None
+
         candidate_version = candidate.ver_str
 
     if not check_esm_cache:
