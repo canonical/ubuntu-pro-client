@@ -704,10 +704,6 @@ class _LXD(Cloud):
         )
 
         if self.name == "lxd-virtual-machine" and series == "xenial":
-            # Livepatch won't apply patches on Xenial with secure boot enabled.
-            # "boot.mode" is the config key used by LXD 6.x (the version we
-            # develop against on Noble); it replaces the older
-            # "security.secureboot" key.
             config_dict = {"boot.mode": "uefi-nosecureboot"}
         else:
             config_dict = {}
