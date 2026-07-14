@@ -7,16 +7,20 @@ Feature: Performing attach using pro-airgapped
     Given a `jammy` `<machine_type>` machine named `mirror`
     When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
     And I apt update on the `mirror` machine
-    And I apt install `apt-mirror get-resource-tokens pro-airgapped` on the `mirror` machine
+    And I apt install `get-resource-tokens pro-airgapped` on the `mirror` machine
     And I download the service credentials on the `mirror` machine
     And I extract the `esm-infra` credentials from the `mirror` machine
     And I extract the `esm-apps` credentials from the `mirror` machine
-    And I set the apt-mirror file for `<release>` with the `esm-infra,esm-apps` credentials on the `mirror` machine
-    And I run `apt-mirror` `with sudo` on the `mirror` machine
+    And I extract the `cis` credentials from the `mirror` machine
+    And I download the ditto binary from `https://github.com/canonical/ditto-repo/releases/download/v0.3.0/ditto` on the `mirror` machine
+    And I run ditto for `esm-infra` on `jammy` on the `mirror` machine
+    And I run ditto for `esm-apps` on `jammy` on the `mirror` machine
+    And I run ditto for `cis` on `jammy` on the `mirror` machine
     And I serve the `esm-infra` mirror using port `8000` on the `mirror` machine
     And I serve the `esm-apps` mirror using port `9000` on the `mirror` machine
+    And I serve the `cis` mirror using port `9010` on the `mirror` machine
     # set up the pro-airgapped configuration
-    And I create the contract config overrides file for `esm-infra,esm-apps` on the `mirror` machine
+    And I create the contract config overrides file for `esm-infra,esm-apps,cis` on the `mirror` machine
     And I generate the contracts-airgapped configuration on the `mirror` machine
     # set up the contracts-airgapped configuration
     Given a `jammy` `<machine_type>` machine named `contracts`
@@ -31,8 +35,10 @@ Feature: Performing attach using pro-airgapped
     And I disable any internet connection on the machine
     And I change config key `contract_url` to use value `http://$behave_var{machine-ip contracts}:8484`
     And I attach `contract_token` with sudo
+    And I run `pro enable cis` with sudo
     Then I verify that `esm-infra` is enabled
     And I verify that `esm-apps` is enabled
+    And I verify that `usg` is enabled
     When I run `apt-cache policy hello` with sudo
     Then stdout matches regexp:
       """
@@ -55,12 +61,13 @@ Feature: Performing attach using pro-airgapped
     Given a `jammy` `<machine_type>` machine named `mirror`
     When I run `add-apt-repository ppa:yellow/ua-airgapped -y` `with sudo` on the `mirror` machine
     And I run `apt-get update` `with sudo` on the `mirror` machine
-    And I run `apt-get install apt-mirror get-resource-tokens pro-airgapped -yq` `with sudo` on the `mirror` machine
+    And I run `apt-get install get-resource-tokens pro-airgapped -yq` `with sudo` on the `mirror` machine
     And I download the service credentials on the `mirror` machine
     And I extract the `esm-infra` credentials from the `mirror` machine
     And I extract the `esm-apps` credentials from the `mirror` machine
-    And I set the apt-mirror file for `<release>` with the `esm-infra,esm-apps` credentials on the `mirror` machine
-    And I run `apt-mirror` `with sudo` on the `mirror` machine
+    And I download the ditto binary from `https://github.com/canonical/ditto-repo/releases/download/v0.3.0/ditto` on the `mirror` machine
+    And I run ditto for `esm-infra` on `jammy` on the `mirror` machine
+    And I run ditto for `esm-apps` on `jammy` on the `mirror` machine
     And I consolidate `esm-infra,esm-apps` on a single mirror on the `mirror` machine
     And I serve the `all-mirrors` mirror using port `8000` on the `mirror` machine
     # set up the pro-airgapped configuration
