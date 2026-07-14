@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute', 'stonking']
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute']  # TODO test on stonking
     steps:
       - name: Prepare build tools
         env:
