@@ -15,6 +15,7 @@ defaults:
     shell: sh -ex {0}
 
 env:
+  # TODO: stonking current untested: https://warthogs.atlassian.net/browse/UPRO-1274
   DEVELOPMENT_RELEASE: 'stonking'
 
 jobs:
@@ -30,7 +31,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute']  # TODO test on stonking
+        # TODO test on stonking: https://warthogs.atlassian.net/browse/UPRO-1274
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute']
     steps:
       - name: Prepare build tools
         env:
