@@ -704,42 +704,21 @@ class _LXD(Cloud):
         )
 
         if self.name == "lxd-virtual-machine" and series == "xenial":
-            # Livepatch won't apply patches on Xenial with secure boot enabled
-            config_dict = {"security.secureboot": False}
+            # Livepatch won't apply patches on Xenial with secure boot enabled.
+            # "boot.mode" is the config key used by LXD 6.x (the version we
+            # develop against on Noble); it replaces the older
+            # "security.secureboot" key.
+            config_dict = {"boot.mode": "uefi-nosecureboot"}
         else:
             config_dict = {}
 
-        try:
-            inst = self.api.launch(
-                name=instance_name,
-                image_id=image_name,
-                user_data=user_data,
-                ephemeral=ephemeral,
-                config_dict=config_dict,
-            )
-        except RuntimeError as e:
-            # Some LXD versions no longer support the "security.secureboot"
-            # config key for virtual-machines and reject it at instance
-            # creation time. It is only set to allow Livepatch on Xenial, so
-            # fall back to launching without it when it is not supported.
-            if "security.secureboot" in config_dict and (
-                "security.secureboot" in str(e)
-            ):
-                logging.warning(
-                    "LXD rejected 'security.secureboot'; retrying launch "
-                    "without it: %s",
-                    e,
-                )
-                config_dict.pop("security.secureboot")
-                inst = self.api.launch(
-                    name=instance_name,
-                    image_id=image_name,
-                    user_data=user_data,
-                    ephemeral=ephemeral,
-                    config_dict=config_dict,
-                )
-            else:
-                raise
+        inst = self.api.launch(
+            name=instance_name,
+            image_id=image_name,
+            user_data=user_data,
+            ephemeral=ephemeral,
+            config_dict=config_dict,
+        )
         return inst
 
     def get_instance_id(
