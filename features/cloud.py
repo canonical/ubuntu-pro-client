@@ -704,8 +704,7 @@ class _LXD(Cloud):
         )
 
         if self.name == "lxd-virtual-machine" and series == "xenial":
-            # Livepatch won't apply patches on Xenial with secure boot enabled
-            config_dict = {"security.secureboot": False}
+            config_dict = {"boot.mode": "uefi-nosecureboot"}
         else:
             config_dict = {}
 
