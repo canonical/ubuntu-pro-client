@@ -709,13 +709,37 @@ class _LXD(Cloud):
         else:
             config_dict = {}
 
-        inst = self.api.launch(
-            name=instance_name,
-            image_id=image_name,
-            user_data=user_data,
-            ephemeral=ephemeral,
-            config_dict=config_dict,
-        )
+        try:
+            inst = self.api.launch(
+                name=instance_name,
+                image_id=image_name,
+                user_data=user_data,
+                ephemeral=ephemeral,
+                config_dict=config_dict,
+            )
+        except RuntimeError as e:
+            # Some LXD versions no longer support the "security.secureboot"
+            # config key for virtual-machines and reject it at instance
+            # creation time. It is only set to allow Livepatch on Xenial, so
+            # fall back to launching without it when it is not supported.
+            if "security.secureboot" in config_dict and (
+                "security.secureboot" in str(e)
+            ):
+                logging.warning(
+                    "LXD rejected 'security.secureboot'; retrying launch "
+                    "without it: %s",
+                    e,
+                )
+                config_dict.pop("security.secureboot")
+                inst = self.api.launch(
+                    name=instance_name,
+                    image_id=image_name,
+                    user_data=user_data,
+                    ephemeral=ephemeral,
+                    config_dict=config_dict,
+                )
+            else:
+                raise
         return inst
 
     def get_instance_id(
