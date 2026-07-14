@@ -93,6 +93,13 @@ Install `lxd`:
 sudo snap install lxd
 ```
 
+> **Note**
+> We develop and test against LXD 6.x (the version available on recent Ubuntu
+> LTS releases such as Noble). Some behaviour the test suite relies on -- for
+> example the `boot.mode` instance option used for Xenial VMs -- requires a
+> recent LXD, so older LXD versions are not supported for running the
+> integration tests.
+
 Add yourself to the `lxd` group and use `newgrp` to apply the change without
 logging out and back in:
 
@@ -121,6 +128,12 @@ We need the boot parameters `systemd.unified_cgroup_hierarchy=0` and
 > Unfortunately, this means your host will miss out on the benefits and safety
 > features of cgroup v2, but it is necessary for developing and supporting
 > Ubuntu Pro Client for Xenial.
+
+We also test Xenial support using Xenial LXD virtual machines. Xenial VMs must
+be launched with secure boot disabled, so the test suite sets the
+`boot.mode: uefi-nosecureboot` instance option when creating them. This option
+is provided by LXD 6.x; it replaces the older `security.secureboot` key that
+newer LXD versions no longer accept for virtual machines.
 
 Use [this how-to guide](https://wiki.ubuntu.com/Kernel/KernelBootParameters) to
 edit your Linux kernel boot parameter. First make the change temporarily, and
