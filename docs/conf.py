@@ -120,8 +120,18 @@ html_favicon = "_static/favicon.ico"
 
 linkcheck_ignore = [
     "https://manpages.ubuntu.com/landscape-config",
-    "https://manpages.ubuntu.com/apt.conf"
+    "https://manpages.ubuntu.com/apt.conf",
+    # Requires authentication, so linkcheck always sees an "unauthorized" page.
+    "https://support-portal.canonical.com/*",
 ]
+
+# A regex list of URLs where anchors are ignored by 'make linkcheck'.
+# wiki.debian.org serves an anti-bot challenge page to linkcheck, so the real
+# anchors can't be detected and are reported as missing.
+linkcheck_anchors_ignore_for_url = [r"https://wiki\.debian\.org/.*"]
+
+# Give linkcheck multiple tries on failure (e.g. transient manpages timeouts).
+linkcheck_retries = 3
 
 
 ogp_site_url = 'https://documentation.ubuntu.com/pro-client/en/latest/'

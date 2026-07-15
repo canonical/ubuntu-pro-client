@@ -4,7 +4,10 @@ name: CI (docs)
 
 on:
   push:
+    branches: [ docs ]
   pull_request:
+    paths:
+      - 'docs/**'   # Only run on changes to the docs directory
 
 defaults:
   run:
