@@ -52,9 +52,11 @@ Feature: Upgrade between releases when uaclient is attached
       | bionic  | lxd-container | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
       | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
       | jammy   | lxd-container | noble        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
-      | noble   | lxd-container | plucky       | normal |                 | esm-infra | n/a             | esm-apps | n/a             | true           |
-      | plucky  | lxd-container | questing     | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
+      | noble   | lxd-container | resolute     | normal | --devel-release | esm-infra | n/a             | esm-apps | n/a             | true           |
 
+  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+  # gains capability perfmon in the resolute archive (archive package installed post-upgrade)
+  # | questing | lxd-container | resolute     | normal |               | esm-infra | n/a             | esm-apps | n/a             | true           |
   @slow @upgrade
   Scenario Outline: Attached FIPS upgrade across LTS releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

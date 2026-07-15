@@ -1,5 +1,6 @@
 Feature: u.pro.attach.guest.get_guest_token.v1
 
+  @uses.config.contract_token
   Scenario Outline: u.pro.attach.guest.get_guest_token.v1
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro api u.pro.attach.guest.get_guest_token.v1` `as non-root` exits `1`
@@ -42,9 +43,10 @@ Feature: u.pro.attach.guest.get_guest_token.v1
       """
 
     Examples:
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |

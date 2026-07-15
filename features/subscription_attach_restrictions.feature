@@ -40,12 +40,13 @@ Feature: One time pro subscription related tests
     And the machine is unattached
 
     Examples: ubuntu release
-      | release | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
-      | xenial  | lxd-container | trusty     | 14.04 LTS   | Trusty Tahr         |
-      | bionic  | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
-      | focal   | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
-      | jammy   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
-      | noble   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
+      | release  | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
+      | xenial   | lxd-container | trusty     | 14.04 LTS   | Trusty Tahr         |
+      | bionic   | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
+      | focal    | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
+      | jammy    | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
+      | noble    | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
+      | resolute | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
 
   @arm64
   Scenario Outline: Check notice visible when attached with onlySeries present
@@ -112,17 +113,19 @@ Feature: One time pro subscription related tests
       """
 
     Examples: ubuntu release
-      | release | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
-      | xenial  | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
-      | xenial  | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
-      | xenial  | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
-      | bionic  | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
-      | bionic  | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
-      | focal   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
-      | focal   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
-      | jammy   | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
-      | jammy   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
-      | noble   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+      | release  | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
+      | xenial   | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
+      | xenial   | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
+      | xenial   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+      | bionic   | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
+      | bionic   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
+      | focal    | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
+      | focal    | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
+      | jammy    | lxd-container | jammy      | 22.04 LTS   | Jammy Jellyfish     |
+      | jammy    | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+      | noble    | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
+      | noble    | lxd-container | resolute   | 26.04 LTS   | Resolute Raccoon    |
+      | resolute | lxd-container | resolute   | 26.04 LTS   | Resolute Raccoon    |
 
   @arm64
   Scenario Outline: Check attach works with future onlyseries
@@ -184,9 +187,10 @@ Feature: One time pro subscription related tests
     Then the machine is attached
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |

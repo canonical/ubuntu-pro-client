@@ -181,12 +181,13 @@ Feature: Fix execute API endpoints
       """
 
     Examples: ubuntu release details
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Fix execute on a Focal machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

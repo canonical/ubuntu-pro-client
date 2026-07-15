@@ -481,19 +481,22 @@ Feature: auto-attach retries periodically on failures
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
-      | bionic  | aws.pro      |
-      | bionic  | azure.pro    |
-      | bionic  | gcp.pro      |
-      | focal   | aws.pro      |
-      | focal   | azure.pro    |
-      | focal   | gcp.pro      |
-      | jammy   | aws.pro      |
-      | jammy   | azure.pro    |
-      | jammy   | gcp.pro      |
-      | noble   | aws.pro      |
-      | noble   | azure.pro    |
-      | noble   | gcp.pro      |
+      | release  | machine_type |
+      | xenial   | aws.pro      |
+      | xenial   | azure.pro    |
+      | xenial   | gcp.pro      |
+      | bionic   | aws.pro      |
+      | bionic   | azure.pro    |
+      | bionic   | gcp.pro      |
+      | focal    | aws.pro      |
+      | focal    | azure.pro    |
+      | focal    | gcp.pro      |
+      | jammy    | aws.pro      |
+      | jammy    | azure.pro    |
+      | jammy    | gcp.pro      |
+      | noble    | aws.pro      |
+      | noble    | azure.pro    |
+      | noble    | gcp.pro      |
+      | resolute | aws.pro      |
+      | resolute | azure.pro    |
+      | resolute | gcp.pro      |

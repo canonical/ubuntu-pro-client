@@ -19,12 +19,13 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: Empty series affordance means no series, null means all series
@@ -72,12 +73,13 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Attached enable of different services using json format
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -300,6 +302,166 @@ Feature: CLI enable command
       | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
       | noble   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
 
+  # Subset of the above scenario scoped to services available on day 0 for a release
+  # (esm-infra, esm-apps, landscape, livepatch). Avoids asserting the full
+  # valid_services list, which differs from older releases because some
+  # services (e.g. usg/fips/ros) are not yet available in the backend for
+  # this release. Remove once all services are available and re-enable the
+  # full scenario above.
+  Scenario Outline: Attached enable using json format - day 0 services
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    Then I verify that running `pro enable foobar --format json` `as non-root` exits `1`
+    And stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "message": "json formatted response requires --assume-yes flag.",
+            "message_code": "json-format-require-assume-yes",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    Then I verify that running `pro enable foobar --format json` `with sudo` exits `1`
+    And stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "message": "json formatted response requires --assume-yes flag.",
+            "message_code": "json-format-require-assume-yes",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    Then I verify that running `pro enable foobar --format json --assume-yes` `as non-root` exits `1`
+    And stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "message": "This command must be run as root (try using sudo).",
+            "message_code": "nonroot-user",
+            "service": null,
+            "type": "system"
+          }
+        ],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    And I verify that running `pro enable esm-infra --format json --assume-yes` `with sudo` exits `1`
+    And stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "message": "Ubuntu Pro: ESM Infra is already enabled - nothing to do.\nSee: sudo pro status",
+            "message_code": "service-already-enabled",
+            "service": "esm-infra",
+            "type": "service"
+          }
+        ],
+        "failed_services": [
+          "esm-infra"
+        ],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    When I run `pro disable esm-infra` with sudo
+    And I run `pro enable esm-infra --format json --assume-yes` with sudo
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [
+          "esm-infra"
+        ],
+        "result": "success",
+        "warnings": []
+      }
+      """
+    When I run `pro disable esm-infra esm-apps` with sudo
+    And I run `pro enable esm-infra esm-apps --beta --format json --assume-yes` with sudo
+    Then stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [],
+        "failed_services": [],
+        "needs_reboot": false,
+        "processed_services": [
+          "esm-apps",
+          "esm-infra"
+        ],
+        "result": "success",
+        "warnings": []
+      }
+      """
+    And I verify that running `pro enable livepatch --format json --assume-yes` `with sudo` exits `1`
+    And stdout is a json matching the `ua_operation` schema
+    And API full output matches regexp:
+      """
+      {
+        "_schema_version": "0.1",
+        "errors": [
+          {
+            "additional_info": null,
+            "message": "Cannot install Livepatch on a container.",
+            "message_code": "service-error-install-on-container",
+            "service": "livepatch",
+            "type": "service"
+          }
+        ],
+        "failed_services": [
+          "livepatch"
+        ],
+        "needs_reboot": false,
+        "processed_services": [],
+        "result": "failure",
+        "warnings": []
+      }
+      """
+    And I verify that `landscape` is disabled
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | resolute | lxd-container |
+
   Scenario Outline: Attached enable of ESM services in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -408,12 +570,13 @@ Feature: CLI enable command
       """
 
     Examples: not entitled services
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   # Overall test for overrides; in the future, when many services
   # have overrides, we can consider removing this
@@ -493,12 +656,13 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Unattached enable fails in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -629,8 +793,8 @@ Feature: CLI enable command
       | jammy    | lxd-container |
       | jammy    | wsl           |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Running pro enable --auto
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -652,12 +816,13 @@ Feature: CLI enable command
     Then I verify that `esm-apps` is enabled
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Running pro enable --auto with no services to enable
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -672,9 +837,10 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |

@@ -35,8 +35,8 @@ Feature: Client behaviour for the API endpoints
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: API invalid endpoint or args
@@ -86,8 +86,8 @@ Feature: Client behaviour for the API endpoints
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @arm64
   Scenario Outline: Basic endpoints
@@ -180,8 +180,8 @@ Feature: Client behaviour for the API endpoints
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: u.pro.status.is_attached.v1
@@ -293,5 +293,5 @@ Feature: Client behaviour for the API endpoints
       | focal    | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |

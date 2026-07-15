@@ -36,17 +36,18 @@ Feature: Performing attach using pro-airgapped
     When I run `apt-cache policy hello` with sudo
     Then stdout matches regexp:
       """
-      510 .*:9000/ubuntu jammy-apps-security/main
+      510 .*:9000/ubuntu <release>-apps-security/main
       """
     And stdout matches regexp:
       """
-      510 .*:8000/ubuntu jammy-infra-security/main
+      510 .*:8000/ubuntu <release>-infra-security/main
       """
     Then I verify that running `pro refresh` `with sudo` exits `0`
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | jammy   | lxd-container |
+      | release  | machine_type  |
+      | jammy    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: airgapped environment with same apt url for different services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -86,14 +87,15 @@ Feature: Performing attach using pro-airgapped
     When I run `apt-cache policy hello` with sudo
     Then stdout matches regexp:
       """
-      510 .*:8000/ubuntu jammy-apps-security/main
+      510 .*:8000/ubuntu <release>-apps-security/main
       """
     And stdout matches regexp:
       """
-      510 .*:8000/ubuntu jammy-infra-security/main
+      510 .*:8000/ubuntu <release>-infra-security/main
       """
     Then I verify that running `pro refresh` `with sudo` exits `0`
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | jammy   | lxd-container |
+      | release  | machine_type  |
+      | jammy    | lxd-container |
+      | resolute | lxd-container |

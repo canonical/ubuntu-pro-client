@@ -64,5 +64,9 @@ Feature: Upgrade between releases when uaclient is unattached
       | bionic  | lxd-container | focal        | lts    |                 | enabled        |
       | focal   | lxd-container | jammy        | lts    |                 | enabled        |
       | jammy   | lxd-container | noble        | lts    |                 | enabled        |
-      | noble   | lxd-container | plucky       | normal |                 | n/a            |
-      | plucky  | lxd-container | questing     | normal | --devel-release | n/a            |
+      # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+      # gains capability perfmon in the resolute archive (archive package installed post-upgrade)
+      # | noble    | lxd-container | resolute     | lts    |               | enabled        |
+      | noble   | lxd-container | resolute     | normal | --devel-release | n/a            |
+
+# | questing | lxd-container | resolute     | normal |               | n/a            |

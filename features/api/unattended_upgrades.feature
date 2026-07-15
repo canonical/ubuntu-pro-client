@@ -253,5 +253,5 @@ Feature: api.u.unattended_upgrades.status.v1
       | focal    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | jammy    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | noble    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
-      | plucky   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | questing | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | resolute | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |

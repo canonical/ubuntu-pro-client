@@ -14,6 +14,9 @@ defaults:
   run:
     shell: sh -ex {0}
 
+env:
+  DEVELOPMENT_RELEASE: 'stonking'
+
 jobs:
   check-secrets:
     name: Check secrets
@@ -27,7 +30,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble']
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute', 'stonking']
     steps:
       - name: Prepare build tools
         env:
@@ -47,7 +50,7 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
-          if [ \"${{ matrix.release }}\" = \"noble\" ]; then  # TODO update this for the new devel after noble is released
+          if [ "${{ matrix.release }}" = "${{ env.DEVELOPMENT_RELEASE }}" ]; then
             SKIP_PROPOSED=""
           else
             SKIP_PROPOSED="--skip-proposed"
@@ -70,7 +73,7 @@ jobs:
       # as much information as possible from them.
       fail-fast: false
       matrix:
-        release: ['bionic', 'focal', 'jammy', 'noble']
+        release: ['bionic', 'focal', 'jammy', 'noble', 'resolute', 'stonking']
         platform: ['lxd-container']
         host_os: ['ubuntu-22.04']
         include:
