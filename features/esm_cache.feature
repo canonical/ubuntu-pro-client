@@ -27,11 +27,12 @@ Feature: ESM cache behavior
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   # Duplicating just for xenial so we disable it on GH
   # See GH: #3013

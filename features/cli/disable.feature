@@ -194,6 +194,9 @@ Feature: CLI disable command
       | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
       | noble   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
 
+  # TODO: Re-enable resolute once ua-contracts resource definitions are
+  # updated to present CIS as usg like noble.
+  # | resolute| lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
   Scenario Outline: Disable with purge does not work with assume-yes
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -204,12 +207,13 @@ Feature: CLI disable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Disable with purge works and purges repo services not involving a kernel
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -238,6 +242,10 @@ Feature: CLI disable command
       | focal   | lxd-container | focal            |
       | jammy   | lxd-container | jammy            |
 
+  # TODO: Ansible does not appear to come from esm-apps on resolute.
+  # This scenario likely needs refactor to assert a package that is
+  # actually reinstalled from archive on resolute.
+  # | resolute| lxd-container | resolute         |
   Scenario Outline: Disable with purge unsupported services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -255,6 +263,9 @@ Feature: CLI disable command
       | jammy   | lxd-vm       |
       | noble   | lxd-vm       |
 
+  # TODO: Re-enable resolute once cloud_id AppArmor profile
+  # allows coreutils locale reads in ubuntu_pro_esm_cache//cloud_id.
+  # | resolute| lxd-vm       |
   @slow
   Scenario Outline: Disable and purge fips
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -479,5 +490,5 @@ Feature: CLI disable command
       | jammy    | lxd-container |
       | jammy    | wsl           |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |

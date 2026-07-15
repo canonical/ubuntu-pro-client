@@ -104,9 +104,11 @@ Feature: Detach API endpoint
       }
       """
 
+    # TODO: Add resolute once AppArmor ubuntu_pro_esm_cache//ps profile is fixed
     Examples: ubuntu release
       | release | machine_type  |
       | xenial  | lxd-container |
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
+      | noble   | lxd-container |

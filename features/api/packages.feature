@@ -46,13 +46,15 @@ Feature: Package related API endpoints
       """
 
     Examples: ubuntu release
-      | release | machine_type  | package         | outdated_version | provided_by       |
-      | xenial  | lxd-container | libcurl3-gnutls | 7.47.0-1ubuntu2  | esm-infra         |
-      | bionic  | lxd-container | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
-      | bionic  | wsl           | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
-      | focal   | lxd-container | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
-      | focal   | wsl           | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
-      | jammy   | lxd-container | libcurl4        | 7.81.0-1         | standard-security |
-      | jammy   | wsl           | libcurl4        | 7.81.0-1         | standard-security |
-
-# TODO: add noble/oracular?
+      | release  | machine_type  | package         | outdated_version | provided_by       |
+      | xenial   | lxd-container | libcurl3-gnutls | 7.47.0-1ubuntu2  | esm-infra         |
+      | bionic   | lxd-container | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
+      | bionic   | wsl           | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
+      | focal    | lxd-container | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
+      | focal    | wsl           | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
+      | jammy    | lxd-container | libcurl4        | 7.81.0-1         | standard-security |
+      | jammy    | wsl           | libcurl4        | 7.81.0-1         | standard-security |
+      | noble    | lxd-container | libcurl4t64     | 8.5.0-2ubuntu10  | standard-security |
+      | noble    | wsl           | libcurl4t64     | 8.5.0-2ubuntu10  | standard-security |
+      | resolute | lxd-container | libcurl4t64     | 8.18.0-1ubuntu2  | standard-security |
+      | resolute | wsl           | libcurl4t64     | 8.18.0-1ubuntu2  | standard-security |

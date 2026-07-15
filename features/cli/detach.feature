@@ -135,15 +135,16 @@ Feature: CLI detach command
     And the machine is unattached
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | bionic  | wsl           |
-      | focal   | lxd-container |
-      | focal   | wsl           |
-      | jammy   | lxd-container |
-      | jammy   | wsl           |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | bionic   | wsl           |
+      | focal    | lxd-container |
+      | focal    | wsl           |
+      | jammy    | lxd-container |
+      | jammy    | wsl           |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Unattached detach command
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -169,5 +170,5 @@ Feature: CLI detach command
       | jammy    | lxd-container |
       | jammy    | wsl           |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |

@@ -85,7 +85,7 @@ Feature: Pro Client help text
       Use pro <command> --help for more information about a command.
       """
     When I run `pro collect-logs --help` as non-root
-    Then if `<release>` not in `plucky` I will see the following on stdout:
+    Then if `<release>` not in `resolute` I will see the following on stdout:
       """
       usage: pro collect-logs [-h] [-o OUTPUT]
 
@@ -98,7 +98,7 @@ Feature: Pro Client help text
                               tarball where the logs will be stored. (Defaults to
                               ./pro_logs.tar.gz).
       """
-    And if `<release>` in `plucky` I will see the following on stdout:
+    And if `<release>` in `resolute` I will see the following on stdout:
       """
       usage: pro collect-logs [-h] [-o OUTPUT]
 
@@ -274,12 +274,12 @@ Feature: Pro Client help text
         --format {cli,json}  output in the specified format (default: cli)
       """
     When I run `pro security-status --help` as non-root
-    Then if `<release>` in `plucky` and stdout contains substring:
+    Then if `<release>` in `resolute` and stdout contains substring:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}] [--thirdparty |
                                  --unavailable | --esm-infra | --esm-apps]
       """
-    And if `<release>` not in `plucky` and stdout contains substring:
+    And if `<release>` not in `resolute` and stdout contains substring:
       """
       usage: pro security-status [-h] [--format {json,yaml,text}]
                                  [--thirdparty | --unavailable | --esm-infra | --esm-apps]
@@ -548,8 +548,8 @@ Feature: Pro Client help text
       | focal    | lxd-container | optional arguments |
       | jammy    | lxd-container | options            |
       | noble    | lxd-container | options            |
-      | plucky   | lxd-container | options            |
       | questing | lxd-container | options            |
+      | resolute | lxd-container | options            |
 
   Scenario Outline: Help command on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -597,8 +597,8 @@ Feature: Pro Client help text
       | focal    | lxd-container | enabled      |
       | jammy    | lxd-container | enabled      |
       | noble    | lxd-container | enabled      |
-      | plucky   | lxd-container | n/a          |
       | questing | lxd-container | n/a          |
+      | resolute | lxd-container | enabled      |
 
   @arm64
   Scenario Outline: Help command on an unattached machine
@@ -647,5 +647,5 @@ Feature: Pro Client help text
       | jammy    | lxd-container | yes             |
       | jammy    | wsl           | yes             |
       | noble    | lxd-container | yes             |
-      | plucky   | lxd-container | no              |
       | questing | lxd-container | no              |
+      | resolute | lxd-container | yes             |
