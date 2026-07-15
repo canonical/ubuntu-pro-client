@@ -59,14 +59,16 @@ def set_apt_mirror_file_with_credentials(
         service_type = service.split("-")[1]
 
         apt_mirror_cfg = """
-        deb https://bearer:{}@esm.ubuntu.com/{}/ubuntu/ jammy-{}-updates main
-        deb https://bearer:{}@esm.ubuntu.com/{}/ubuntu/ jammy-{}-security main
+        deb https://bearer:{}@esm.ubuntu.com/{}/ubuntu/ {}-{}-updates main
+        deb https://bearer:{}@esm.ubuntu.com/{}/ubuntu/ {}-{}-security main
         """.format(
             token,
             service_type,
+            release,
             service_type,
             token,
             service_type,
+            release,
             service_type,
         )
 

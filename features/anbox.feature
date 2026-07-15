@@ -36,9 +36,10 @@ Feature: Enable anbox on Ubuntu
     Then I verify that `anbox-cloud` is disabled
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
   Scenario Outline: Enable Anbox cloud service in an unsupported release
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -130,3 +131,7 @@ Feature: Enable anbox on Ubuntu
       | release | machine_type |
       | jammy   | lxd-vm       |
       | noble   | lxd-vm       |
+
+# TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
+# gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
+# | resolute | lxd-vm       |

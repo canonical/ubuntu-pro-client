@@ -109,6 +109,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     /dev/tty r,
 
     @{PROC}/ r,
+    @{PROC}/@{pid}/ r,
     @{PROC}/@{pid}/** r,
     @{PROC}/uptime r,
     @{PROC}/sys/kernel/** r,

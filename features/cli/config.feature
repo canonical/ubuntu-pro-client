@@ -59,7 +59,7 @@ Feature: CLI config command
       usage: pro config [-h] {show,set,unset} ...
       pro config: error: argument command: invalid choice: 'invalid' (choose from 'show', 'set', 'unset')
       """
-    Then if `<release>` in `plucky` and stderr contains substring:
+    Then if `<release>` in `resolute` and stderr contains substring:
       """
       usage: pro config [-h] {show,set,unset} ...
       pro config: error: argument command: invalid choice: 'invalid' (choose from show, set, unset)
@@ -70,5 +70,5 @@ Feature: CLI config command
       | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
-      | plucky   | lxd-container |
       | questing | lxd-container |
+      | resolute | lxd-container |

@@ -69,3 +69,5 @@ Feature: API security/security status tests
       | bionic  | lxd-container | 3.5.18-1ubuntu1 | 55501000000 |
       | focal   | lxd-container | 3.6.13-2ubuntu1 | 55501000000 |
       | jammy   | lxd-container | 3.7.3-4ubuntu1  | 55501000000 |
+
+# TODO(srunde3): refactor test to work with Noble+. libgnutls30 is not available there.
