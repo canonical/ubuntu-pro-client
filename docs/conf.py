@@ -96,9 +96,11 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # The Canonical theme's own static files (custom.css, furo_colors.css,
-# header.css, github_issue_links.css/js, header-nav.js, favicon, ...) are
-# provided by canonical_sphinx and must not be duplicated here. Only the
-# Ubuntu Pro Client-specific assets are listed below.
+# github_issue_links.css/js, favicon, ...) are provided by canonical_sphinx and
+# must not be duplicated here. Only the Ubuntu Pro Client-specific assets are
+# listed below. Note that the theme's header-nav.js only toggles the default
+# ".more-links-dropdown", so the Pro-specific "Pro services" dropdown in the
+# custom header requires its own "js/pro-header-nav.js".
 html_static_path = ["_static"]
 
 html_css_files = [
@@ -111,6 +113,7 @@ html_css_files = [
 html_js_files = [
     "js/synced_tab_links.js",
     "js/bundle.js",
+    "js/pro-header-nav.js",
 ]
 html_favicon = "_static/favicon.ico"
 

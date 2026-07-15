@@ -16,8 +16,5 @@ sphinx-autobuild
 sphinxcontrib-mermaid
 sphinxext-rediraffe
 
-# PDF output (SVG-to-PDF conversion for the LaTeX/PDF builder).
-sphinxcontrib-svg2pdfconverter[CairoSVG]
-
 # Spell checking.
 pyspelling

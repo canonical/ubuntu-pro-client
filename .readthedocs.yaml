@@ -23,10 +23,9 @@ sphinx:
   fail_on_warning: true
 
 
-# Build the documentation in additional formats. PDF output is provided by
-# canonical_sphinx (xelatex + CairoSVG converter).
-formats:
-  - pdf
+# If using Sphinx, optionally build your docs in additional formats such as PDF
+#formats:
+#   - pdf
 
 # Optionally declare the Python requirements required to build your docs
 python:
