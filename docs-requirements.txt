@@ -1,20 +1,23 @@
 # Canonical Sphinx theme and extension.
-# Provides the Furo-based Canonical theme and auto-loads the common
-# documentation extensions listed below when they are installed.
+# Provides the Furo-based Canonical theme and configures the common
+# documentation extensions (including myst-parser and sphinx-copybutton).
 canonical-sphinx~=0.6
 
-# Extensions loaded by canonical-sphinx (installed explicitly).
+# Standard Canonical Sphinx Stack extensions (enabled explicitly in conf.py).
 myst-parser~=4.0
-sphinx-copybutton
-sphinx-design
-sphinx-notfound-page
-sphinxcontrib-jquery
-sphinxext-opengraph
+sphinx-design==0.6.1
+sphinx-notfound-page~=1.1
+sphinx-tabs~=3.5
+sphinxcontrib-jquery~=4.1
+sphinxext-opengraph~=0.13
+sphinx-sitemap~=2.9
+sphinx-last-updated-by-git~=0.3
+sphinx-llm~=0.4
+sphinx-rerediraffe>=0.0.3,<1.0.0
 sphinx-autobuild
 
 # Ubuntu Pro Client-specific extensions.
 sphinxcontrib-mermaid
-sphinxext-rediraffe
 
 # Spell checking.
 pyspelling

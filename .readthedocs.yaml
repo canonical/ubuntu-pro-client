@@ -12,8 +12,9 @@ build:
     python: "3.11"
   jobs:
     post_checkout:
-      # Unshallow the clone so git-based extensions (e.g. last-updated dates)
-      # and PDF/edit links can read the full history.
+      # Unshallow the clone so git-based extensions (last-updated dates via
+      # sphinx-last-updated-by-git, and rediraffe's redirect diff) and the
+      # "Edit this page" links can read the full history.
       - git fetch --unshallow || true
 
 # Build documentation in the docs/ directory with Sphinx
