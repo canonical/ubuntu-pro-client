@@ -6,6 +6,7 @@ from uaclient.data_types import (
     DatetimeDataValue,
     Field,
     IntDataValue,
+    StrictStringDataValue,
     StringDataValue,
     data_list,
 )
@@ -153,9 +154,9 @@ class Obligations(DataObject):
 
 class Directives(DataObject):
     fields = [
-        Field("additionalPackages", data_list(StringDataValue), False),
-        Field("aptURL", StringDataValue, False),
-        Field("suites", data_list(StringDataValue), False),
+        Field("additionalPackages", data_list(StrictStringDataValue), False),
+        Field("aptURL", StrictStringDataValue, False),
+        Field("suites", data_list(StrictStringDataValue), False),
         Field("server", StringDataValue, False),
         Field("remoteServer", StringDataValue, False),
         Field("caCerts", StringDataValue, False),
