@@ -2,6 +2,7 @@ import abc
 import datetime
 import enum
 import json
+import logging
 import os
 from collections import defaultdict
 from functools import lru_cache
@@ -31,6 +32,8 @@ from uaclient.defaults import (
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient.files.data_types import DataObjectFile
 from uaclient.files.files import UAFile
+
+LOG = logging.getLogger(util.replace_top_level_logger_name(__name__))
 
 
 class VulnerabilityCacheETag(DataObject):
@@ -423,6 +426,23 @@ class VulnerabilityParser(metaclass=abc.ABCMeta):
                 self.get_package_vulnerabilities(affected_pkg).items(),
                 key=lambda x: x[0],
             ):
+                if vuln_name not in vulns_info:
+                    # The package-level data (ubuntu_security_notices/cves)
+                    # references this vulnerability, but there is no
+                    # corresponding entry in the global security_issues
+                    # metadata dict. This is a data inconsistency in the
+                    # vulnerability feed: we can still track which packages
+                    # are affected, but title/description/related_cves will
+                    # come back empty for this vulnerability.
+                    LOG.debug(
+                        "%s '%s' referenced by package '%s' has no entry "
+                        "in security_issues.%s; its metadata (title, "
+                        "description, related CVEs) will be empty.",
+                        self.vulnerability_type,
+                        vuln_name,
+                        bin_pkg_name,
+                        self.vulnerability_type,
+                    )
                 vuln_info = vulns_info.get(vuln_name, "")
                 vuln_source_fixed_version = vuln.get("source_fixed_version")
                 vuln_pkg_status = vuln.get("status")
