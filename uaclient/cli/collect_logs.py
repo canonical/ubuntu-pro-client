@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import tarfile
 import tempfile
@@ -18,8 +19,12 @@ def action_collect_logs(args, *, cfg, **kwargs):
     with tempfile.TemporaryDirectory() as output_dir:
         collect_logs(cfg, output_dir)
         try:
-            with tarfile.open(output_file, "x:gz") as results:
-                results.add(output_dir, arcname="logs/")
+            old_umask = os.umask(0o177)
+            try:
+                with tarfile.open(output_file, "x:gz") as results:
+                    results.add(output_dir, arcname="logs/")
+            finally:
+                os.umask(old_umask)
         except PermissionError as e:
             LOG.error(e)
             return 1

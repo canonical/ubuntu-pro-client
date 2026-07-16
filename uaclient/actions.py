@@ -412,6 +412,10 @@ def collect_logs(cfg: config.UAConfig, output_dir: str):
     )
     # save log file in compressed file
     for log_file_idx, log_file in enumerate(user_log_files):
+        # Defense-in-depth: reject symlinks to prevent file disclosure
+        if os.path.islink(log_file):
+            LOG.warning("Skipping symlinked user log file: %s", log_file)
+            continue
         try:
             content = util.redact_sensitive_logs(system.load_file(log_file))
             system.write_file(

@@ -1,4 +1,5 @@
 import json
+import os
 
 import mock
 import pytest
@@ -295,6 +296,12 @@ class TestAutoAttach:
 
 
 class TestCollectLogs:
+    """Tests for collect_logs.
+
+    Includes regression tests for CVE-2026-12391 (symlink-based local
+    file disclosure via user-controlled log paths).
+    """
+
     @mock.patch("uaclient.actions.shutil.copy")
     @mock.patch("uaclient.actions._write_command_output_to_file")
     @mock.patch("uaclient.actions.status")
@@ -320,6 +327,7 @@ class TestCollectLogs:
         m_log_warning,
         m_status,
         _m_write_cmd,
+        _m_shutil_copy,
         tmpdir,
     ):
         m_env_vars.return_value = {"test": "test"}
@@ -358,3 +366,63 @@ class TestCollectLogs:
         assert [
             mock.call("Failed to load file: %s\n%s", "a", "test")
         ] in m_log_warning.call_args_list
+
+    @mock.patch("uaclient.actions.shutil.copy")
+    @mock.patch("uaclient.actions._write_command_output_to_file")
+    @mock.patch("uaclient.actions.status")
+    @mock.patch("uaclient.actions.LOG.warning")
+    @mock.patch("uaclient.util.get_pro_environment")
+    @mock.patch("uaclient.util.we_are_currently_root", return_value=True)
+    @mock.patch("uaclient.system.write_file")
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.actions._get_state_files")
+    @mock.patch("glob.glob", return_value=[])
+    @mock.patch("uaclient.log.get_all_user_log_files")
+    @mock.patch("uaclient.system.subp", return_value=("", ""))
+    def test_collect_logs_skips_symlinked_user_log(
+        self,
+        m_system_subp,
+        m_get_all_users,
+        m_glob,
+        m_get_state_files,
+        m_load_file,
+        m_write_file,
+        m_we_are_currently_root,
+        m_env_vars,
+        m_log_warning,
+        m_status,
+        _m_write_cmd,
+        _m_shutil_copy,
+        tmpdir,
+    ):
+        m_env_vars.return_value = {"test": "test"}
+        m_status.return_value = ({"test": "test"}, 0)
+        m_get_state_files.return_value = []
+        m_load_file.return_value = "test"
+
+        # Create a real log file (should be collected)
+        real_log_path = tmpdir.join("real.log").strpath
+        with open(real_log_path, "w") as f:
+            f.write("real log content")
+
+        # Create a symlink to simulate attack (should be skipped)
+        symlink_path = tmpdir.join("symlinked.log").strpath
+        os.symlink("/etc/shadow", symlink_path)
+
+        m_get_all_users.return_value = [real_log_path, symlink_path]
+
+        output_dir = tmpdir.join("output").strpath
+        os.makedirs(output_dir)
+        with mock.patch("os.path.isfile", return_value=True):
+            collect_logs(cfg=mock.MagicMock(), output_dir=output_dir)
+
+        # The symlinked file should NOT be read
+        assert not any(
+            call == mock.call(symlink_path)
+            for call in m_load_file.call_args_list
+        )
+        # The real log file SHOULD be read and written
+        assert mock.call(real_log_path) in m_load_file.call_args_list
+        assert any(
+            "user0.log" in str(call) for call in m_write_file.call_args_list
+        )

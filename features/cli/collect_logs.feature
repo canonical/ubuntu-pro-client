@@ -67,9 +67,9 @@ Feature: CLI collect-logs command
     When I run `touch /var/log/ubuntu-advantage.log.2.gz` with sudo
     When I run `pro collect-logs` <user_spec>
     Then I verify that files exist matching `pro_logs.tar.gz`
-    When I run `tar zxf pro_logs.tar.gz` as non-root
+    When I run `tar zxf pro_logs.tar.gz` with sudo
     Then I verify that files exist matching `logs/`
-    When I run `sh -c "ls -1 logs/ | sort -d"` as non-root
+    When I run `sh -c "ls -1 logs/ | sort -d"` with sudo
     # On Xenial, the return value for inexistent services is the same as for dead ones (3).
     # So the -error suffix does not appear there.
     Then stdout matches regexp:
