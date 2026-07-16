@@ -1,6 +1,7 @@
 ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
 
   * Open next development version
+  * u.pro.security.usns.v1: List the USNs that affect the system
 
  -- Renan Rodrigo <rr@ubuntu.com>  Thu, 27 Nov 2025 11:18:48 -0300
 
