@@ -17,6 +17,7 @@
 [![Released Jammy Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/jammy?label=Jammy&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/jammy/+source/ubuntu-advantage-tools)
 [![Released Noble Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/noble?label=Noble&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/noble/+source/ubuntu-advantage-tools)
 [![Released Plucky Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/plucky?label=Plucky&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/plucky/+source/ubuntu-advantage-tools)
+[![Released Resolute Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/resolute?label=Resolute&logo=ubuntu&logoColor=white)](https://launchpad.net/ubuntu/resolute/+source/ubuntu-advantage-tools)
 
 The Ubuntu Pro Client (`pro`) is the official tool to enable Canonical offerings on your
 system.
