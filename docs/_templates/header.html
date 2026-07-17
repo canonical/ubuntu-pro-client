@@ -2,40 +2,42 @@
 
   <!-- Google Tag Manager -->
   <script>
-	(function(w, d, s, l, i) {
-  	w[l] = w[l] || [];
-  	w[l].push({
-    	'gtm.start': new Date().getTime(),
-    	event: 'gtm.js'
-  	});
-  	var f = d.getElementsByTagName(s)[0],
-    	j = d.createElement(s),
-    	dl = l != 'dataLayer' ? '&l=' + l : '';
-  	j.async = true;
-  	j.src =
-    	'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-  	f.parentNode.insertBefore(j, f);
-	})(window, document, 'script', 'dataLayer', 'GTM-KNX3CJC');
+    (function(w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({
+        'gtm.start': new Date().getTime(),
+        event: 'gtm.js'
+      });
+      var f = d.getElementsByTagName(s)[0];
+      var j = d.createElement(s);
+      var dl = '';
+      if (l != 'dataLayer') {
+          dl = '&l=' + l;
+      }
+      j.async = true;
+      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-KNX3CJC');
   </script>
-  
+
   <div class="p-navigation__nav" role="menubar">
 
     <ul class="p-navigation__links" role="menu">
 
       <li>
-        <a class="p-logo" href="https://{{ product_page }}" aria-current="page">
+        <a class="p-logo" href="{{ product_page }}" aria-current="page">
           <img src="{{ pathto(product_tag,1) }}" alt="Logo" class="p-logo-image">
-          <div class="p-logo-text p-heading--4">Ubuntu Pro
+          <div class="p-logo-text p-heading--4">{{ project }}
           </div>
         </a>
       </li>
 
       <li class="nav-ubuntu-com">
-        <a href="https://documentation.ubuntu.com/pro" class="p-navigation__link">Pro overview</a>
+        <a href="{{ pro_overview }}" class="p-navigation__link">Pro overview</a>
       </li>
 
       <li class="nav-ubuntu-com nav-highlighted">
-        <a href="https://canonical-ubuntu-pro-client.readthedocs-hosted.com" class="p-navigation__link">Pro Client</a>
+        <a href="{{ client_docs }}" class="p-navigation__link">Pro Client</a>
       </li>
 
       <li>
@@ -43,35 +45,35 @@
         <ul class="pro-services-dropdown">
 
           <li>
-            <a href="https://ubuntu.com/security/esm" class="p-navigation__sub-link p-dropdown__link">Expanded Security Maintenance (ESM)</a>
+            <a href="{{ pro_service_esm }}" class="p-navigation__sub-link p-dropdown__link">Expanded Security Maintenance (ESM)</a>
           </li>
 
           <li>
-            <a href="https://ubuntu.com/security/livepatch" class="p-navigation__sub-link p-dropdown__link">Livepatch</a>
+            <a href="{{ pro_service_livepatch }}" class="p-navigation__sub-link p-dropdown__link">Livepatch</a>
           </li>
 
           <li>
-            <a href="https://ubuntu.com/security/fips" class="p-navigation__sub-link p-dropdown__link">FIPS 140-2</a>
+            <a href="{{ pro_service_fips }}" class="p-navigation__sub-link p-dropdown__link">FIPS 140-2</a>
           </li>
 
           <li>
-            <a href="https://ubuntu.com/security/certifications/docs/usg" class="p-navigation__sub-link p-dropdown__link">Ubuntu Security Guide (USG)</a>
+            <a href="{{ pro_service_usg }}" class="p-navigation__sub-link p-dropdown__link">Ubuntu Security Guide (USG)</a>
           </li>
 
           <li>
-            <a href="https://ubuntu.com/security/cc" class="p-navigation__sub-link p-dropdown__link">Common Criteria EAL2</a>
+            <a href="{{ pro_service_cc }}" class="p-navigation__sub-link p-dropdown__link">Common Criteria EAL2</a>
           </li>
 
           <li>
-            <a href="https://anbox-cloud.io/" class="p-navigation__sub-link p-dropdown__link">Anbox Cloud</a>
+            <a href="{{ pro_service_anbox }}" class="p-navigation__sub-link p-dropdown__link">Anbox Cloud</a>
           </li>
 
           <li>
-            <a href="https://ubuntu.com/robotics/ros-esm" class="p-navigation__sub-link p-dropdown__link">ROS ESM</a>
+            <a href="{{ pro_service_ros }}" class="p-navigation__sub-link p-dropdown__link">ROS ESM</a>
           </li>
 
           <li>
-            <a href="https://ubuntu.com/realtime-kernel" class="p-navigation__sub-link p-dropdown__link">Real-time kernel</a>
+            <a href="{{ pro_service_realtime }}" class="p-navigation__sub-link p-dropdown__link">Real-time kernel</a>
           </li>
 
         </ul>
