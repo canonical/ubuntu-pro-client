@@ -23,6 +23,24 @@ Feature: Pro Client help text
         fix              check for and mitigate the impact of a CVE/USN on this system
         usn              show information about a USN
         usns             list the USNs that affect the system
+
+      Troubleshooting-related commands:
+
+        collect-logs     collect Pro logs and debug information
+
+      Other commands:
+
+        api              Calls the Client API endpoints.
+        auto-attach      automatically attach on supported platforms
+        config           manage Ubuntu Pro configuration on this machine
+        detach           remove this machine from an Ubuntu Pro subscription
+        disable          disable a specific Ubuntu Pro service on this machine
+        refresh          refresh Ubuntu Pro services
+
+      Flags:
+
+        -h, --help       Displays help on pro and command line options
+        --debug          show all debug log messages to console
         --version        show version of pro
 
       Use pro <command> --help for more information about a command.
@@ -48,6 +66,24 @@ Feature: Pro Client help text
         fix              check for and mitigate the impact of a CVE/USN on this system
         usn              show information about a USN
         usns             list the USNs that affect the system
+
+      Troubleshooting-related commands:
+
+        collect-logs     collect Pro logs and debug information
+
+      Other commands:
+
+        api              Calls the Client API endpoints.
+        auto-attach      automatically attach on supported platforms
+        config           manage Ubuntu Pro configuration on this machine
+        detach           remove this machine from an Ubuntu Pro subscription
+        disable          disable a specific Ubuntu Pro service on this machine
+        refresh          refresh Ubuntu Pro services
+
+      Flags:
+
+        -h, --help       Displays help on pro and command line options
+        --debug          show all debug log messages to console
         --version        show version of pro
 
       Use pro <command> --help for more information about a command.
