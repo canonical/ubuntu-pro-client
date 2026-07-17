@@ -16,13 +16,14 @@ from uaclient.apt import (
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
+    assert_valid_apt_credentials,
+    assert_valid_apt_directives,
     clean_apt_sources,
     find_apt_list_files,
     get_installed_packages,
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
-    assert_valid_apt_credentials,
 )
 from uaclient import apt, exceptions, util
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
@@ -104,7 +105,77 @@ class TestRemoveAptListFiles:
         assert [nomatch_file] == glob.glob("{}/*".format(tmpdir.strpath))
 
 
+class TestValidAptDirectives:
+    """Tests for assert_valid_apt_directives.
+
+    Regression tests for CVE-2026-11386 (newline injection in apt
+    sources via contract directives).
+    """
+
+    @pytest.mark.parametrize(
+        "repo_url,suites",
+        (
+            (
+                "https://esm.ubuntu.com/infra/ubuntu",
+                ["trusty", "trusty-updates"],
+            ),
+            ("http://fakerepo", ["trusty"]),
+            (
+                "https://esm.ubuntu.com/apps/ubuntu",
+                ["xenial", "xenial-updates"],
+            ),
+        ),
+    )
+    def test_accepts_valid_directives(self, repo_url, suites):
+        """Well-formed directive values pass validation."""
+        assert None is assert_valid_apt_directives(repo_url, suites)
+
+    @pytest.mark.parametrize(
+        "repo_url",
+        (
+            "https://esm.ubuntu.com\nhttps://evil.example.com",
+            "https://esm.ubuntu.com\revil",
+            "https://esm.ubuntu.com\x00/evil",
+            "https://esm.ubuntu.com /evil",
+        ),
+    )
+    def test_rejects_invalid_repo_url(self, repo_url):
+        """Reject repo URLs containing control characters or spaces."""
+        with pytest.raises(exceptions.UserFacingError) as exc_info:
+            assert_valid_apt_directives(repo_url, ["trusty"])
+        assert "URL directive contains invalid characters" in str(
+            exc_info.value
+        )
+
+    @pytest.mark.parametrize(
+        "suite",
+        (
+            "trusty\ndeb [trusted=yes] http://attacker.example.com/repo"
+            " trusty main",
+            "trusty\revil",
+            "trusty\x00evil",
+            "trusty main",
+            " ",
+        ),
+    )
+    def test_rejects_invalid_suite(self, suite):
+        """Reject suite values containing control characters or spaces."""
+        with pytest.raises(exceptions.UserFacingError) as exc_info:
+            assert_valid_apt_directives(
+                "https://esm.ubuntu.com/infra/ubuntu", [suite]
+            )
+        assert "suite directive contains invalid characters" in str(
+            exc_info.value
+        )
+
+
 class TestValidAptCredentials:
+    """Tests for assert_valid_apt_credentials.
+
+    Includes regression tests for CVE-2026-9494 (credential leakage
+    via /proc/<pid>/cmdline).
+    """
+
     @mock.patch("uaclient.util.subp")
     @mock.patch("os.path.exists", return_value=False)
     def test_passes_when_missing_apt_helper(self, m_exists, m_subp):
@@ -118,9 +189,21 @@ class TestValidAptCredentials:
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.util.write_file")
+    @mock.patch(
+        "uaclient.apt.get_apt_auth_file_from_apt_config",
+        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
+    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_passes_on_valid_creds(
-        self, m_exists, m_subp, m_temporary_directory
+        self,
+        m_exists,
+        m_get_apt_auth,
+        m_write_file,
+        m_del_file,
+        m_subp,
+        m_temporary_directory,
     ):
         """Succeed when apt-helper succeeds in authenticating to repo."""
         m_temporary_directory.return_value.__enter__.return_value = (
@@ -142,12 +225,20 @@ class TestValidAptCredentials:
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
-                "http://user:pwd@fakerepo/ubuntu/pool/",
+                "http://fakerepo/ubuntu/pool/",
                 expected_path,
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
+        # Verify credentials are written to auth file, not in argv
+        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
+        m_write_file.assert_called_once_with(
+            auth_path,
+            "machine fakerepo/ login user password pwd\n",
+            mode=0o600,
+        )
+        m_del_file.assert_called_once_with(auth_path)
 
     @pytest.mark.parametrize(
         "exit_code,stderr,error_msg",
@@ -176,10 +267,19 @@ class TestValidAptCredentials:
     )
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.util.write_file")
+    @mock.patch(
+        "uaclient.apt.get_apt_auth_file_from_apt_config",
+        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
+    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_process_execution_errors(
         self,
         m_exists,
+        m_get_apt_auth,
+        m_write_file,
+        m_del_file,
         m_subp,
         m_temporary_directory,
         exit_code,
@@ -213,18 +313,33 @@ class TestValidAptCredentials:
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
-                "http://user:pwd@fakerepo/ubuntu/pool/",
+                "http://fakerepo/ubuntu/pool/",
                 expected_path,
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
+        # Verify auth file is always cleaned up even on error
+        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
+        m_del_file.assert_called_once_with(auth_path)
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.util.write_file")
+    @mock.patch(
+        "uaclient.apt.get_apt_auth_file_from_apt_config",
+        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
+    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_apt_helper_process_timeout(
-        self, m_exists, m_subp, m_temporary_directory
+        self,
+        m_exists,
+        m_get_apt_auth,
+        m_write_file,
+        m_del_file,
+        m_subp,
+        m_temporary_directory,
     ):
         """Raise the appropriate user facing error from apt-helper timeout."""
         m_temporary_directory.return_value.__enter__.return_value = (
@@ -255,12 +370,75 @@ class TestValidAptCredentials:
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
-                "http://user:pwd@fakerepo/ubuntu/pool/",
+                "http://fakerepo/ubuntu/pool/",
                 expected_path,
             ],
             timeout=apt.APT_HELPER_TIMEOUT,
         )
         assert [apt_helper_call] == m_subp.call_args_list
+        # Verify auth file is always cleaned up even on timeout
+        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
+        m_del_file.assert_called_once_with(auth_path)
+
+    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
+    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.util.write_file")
+    @mock.patch(
+        "uaclient.apt.get_apt_auth_file_from_apt_config",
+        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
+    )
+    @mock.patch("uaclient.apt.os.path.exists", return_value=True)
+    def test_credentials_not_in_subprocess_argv(
+        self,
+        m_exists,
+        m_get_apt_auth,
+        m_write_file,
+        m_del_file,
+        m_subp,
+        m_temporary_directory,
+    ):
+        """Credentials must not appear in apt-helper argv (CVE fix).
+
+        Verify that the bearer token / password is never passed as part
+        of the subprocess command line, preventing leakage via
+        /proc/<pid>/cmdline.
+        """
+        m_temporary_directory.return_value.__enter__.return_value = (
+            "/does/not/exist"
+        )
+        m_subp.return_value = (
+            "Get:1 https://esm.ubuntu.com\nFetched 285 B",
+            "",
+        )
+        secret_token = "super-secret-bearer-token-value"
+
+        assert_valid_apt_credentials(
+            repo_url="https://esm.ubuntu.com/infra/ubuntu",
+            username="bearer",
+            password=secret_token,
+        )
+
+        # Assert the secret never appears in any argument to subp
+        subp_call_args = m_subp.call_args[0][0]  # first positional: argv list
+        for arg in subp_call_args:
+            assert secret_token not in arg, (
+                "Credential leaked into subprocess argv: %s" % arg
+            )
+            assert "bearer" not in arg or arg == "/usr/lib/apt/apt-helper", (
+                "Username leaked into subprocess argv: %s" % arg
+            )
+
+        # Assert credentials are instead written to the auth file
+        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
+        m_write_file.assert_called_once_with(
+            auth_path,
+            "machine esm.ubuntu.com/infra/ubuntu/ login bearer"
+            " password super-secret-bearer-token-value\n",
+            mode=0o600,
+        )
+        # Assert auth file is cleaned up
+        m_del_file.assert_called_once_with(auth_path)
 
 
 class TestAddAuthAptRepo:
