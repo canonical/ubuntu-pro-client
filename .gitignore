@@ -47,5 +47,4 @@ apt-hook/json-hook-test
 node_modules
 
 # docs
-docs/build/
-.sphinx
+# Documentation build outputs and tooling caches are ignored via docs/.gitignore

@@ -79,23 +79,8 @@ constructive feedback.
    :maxdepth: 2
 
    Tutorials <tutorials.rst>
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   
    How-to guides <howtoguides.rst>
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
    Reference <references.rst>
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
    Explanation <explanations.rst>
 
 .. LINKS

@@ -1,0 +1,78 @@
+/* Ubuntu Pro-specific header customisations.
+ * These rules style the "Pro services" dropdown and highlighted navigation
+ * items, which are specific to the Ubuntu Pro documentation header
+ * (docs/_templates/header.html) and are not provided by the canonical-sphinx
+ * theme (which styles the default "More resources" dropdown instead).
+ */
+
+/* The canonical-sphinx theme's header.css defines an equal-specificity rule
+ * (ul.p-navigation__links .p-navigation__sub-link) that sets the sub-link
+ * background to the mode-dependent var(--color-background-primary) and loads
+ * after this file, so it would otherwise win. Scoping these rules to
+ * .pro-services-dropdown raises their specificity so the Pro dropdown stays
+ * dark with white text in both light and dark mode. */
+ul.p-navigation__links .pro-services-dropdown .p-dropdown__link:hover {
+  background-color: #2b2b2b;
+}
+
+ul.p-navigation__links .pro-services-dropdown .p-navigation__sub-link {
+  background: #333333;
+  padding: .5rem 0 .5rem .5rem;
+  font-weight: 300;
+}
+
+ul.p-navigation__links .pro-services-dropdown li a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+ul.pro-services-dropdown {
+  display: none;
+  overflow-x: visible;
+  height: 0;
+  z-index: 55;
+  padding: 0;
+  position: relative;
+  list-style: none;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.nav-pro-services::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23111' d='M8.187 11.748l6.187-6.187-1.06-1.061-5.127 5.127L3.061 4.5 2 5.561z'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+  display: block;
+  filter: invert(100%);
+  height: 1rem;
+  pointer-events: none;
+  position: absolute;
+  right: 1rem;
+  text-indent: calc(100% + 10rem);
+  top: calc(1rem + 0.25rem);
+  width: 1rem;
+}
+
+.nav-ubuntu-com {
+  display: none;
+}
+
+.nav-highlighted {
+  border-bottom: 5px solid #DD4814;
+}
+
+@media only screen and (min-width: 480px) {
+  .nav-ubuntu-com {
+    display: inherit;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .nav-pro-services {
+    margin-left: auto !important;
+    padding-right: 2rem !important;
+    width: 8rem !important;
+  }
+}
