@@ -27,7 +27,7 @@ project = "Ubuntu Pro Client"
 author = "Canonical Group Ltd"
 
 # The year in the copyright statement
-copyright = "%s, %s" % (datetime.date.today().year, author)
+copyright = f"{datetime.date.today().year}"
 
 # Sidebar documentation title
 # To disable the title, set it to an empty string.
@@ -122,7 +122,7 @@ sitemap_excludes = [
 templates_path = ["_templates"]
 
 # Custom static assets (Pro tag image, Pro header CSS/JS and code-block styling).
-html_static_path = ["_dev/_static"]
+html_static_path = ["_static"]
 
 # Google Search Console site-verification file, served verbatim at the docs root.
 html_extra_path = ["googleaf254801a5285c31.html"]
