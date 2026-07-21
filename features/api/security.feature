@@ -37,37 +37,37 @@ Feature: API security/security status tests
     And I run shell command `oscap oval eval --report report.html oci.com.ubuntu.<release>.usn.oval.xml` as non-root
     Then stdout matches regexp:
       """
-      oval:com.ubuntu.<release>:def:<CVE_ID>:\s+false
+      oval:com.ubuntu.<release>:def:<oval_def_id>:\s+false
       """
     # Trigger CVE https://ubuntu.com/security/CVE-2018-10846 with ID 39991000000 in OVAL data (<release> == Xenial $ Bionic)
     # Trigger CVE https://ubuntu.com/security/CVE-2022-2509 with ID 55501000000 in OVAL data (<release> > Xenial)
-    When I run shell command `sed -i -E 's/libgnutls30:amd64\s+.*/libgnutls30:amd64 <base_version>/' manifest` as non-root
+    When I run shell command `sed -i -E 's/<manifest_pattern>\s+.*/<manifest_pattern> <forced_vulnerable_version>/' manifest` as non-root
     And I run shell command `oscap oval eval --report report.html oci.com.ubuntu.<release>.usn.oval.xml` as non-root
     Then stdout matches regexp:
       """
-      oval:com.ubuntu.<release>:def:<CVE_ID>:\s+true
+      oval:com.ubuntu.<release>:def:<oval_def_id>:\s+true
       """
     # Update the manifest
     When I run shell command `pro api u.security.package_manifest.v1 | jq -r '.data.attributes.manifest_data' > manifest` as non-root
     And I run shell command `oscap oval eval --report report.html oci.com.ubuntu.<release>.usn.oval.xml` as non-root
     Then stdout matches regexp:
       """
-      oval:com.ubuntu.<release>:def:<CVE_ID>:\s+false
+      oval:com.ubuntu.<release>:def:<oval_def_id>:\s+false
       """
     # Downgrade the package
-    When I apt install `libgnutls30=<base_version>`
+    When I apt install `<package_name>=<forced_vulnerable_version>`
     And I run shell command `pro api u.security.package_manifest.v1 | jq -r '.data.attributes.manifest_data' > manifest` as non-root
     And I run shell command `oscap oval eval --report report.html oci.com.ubuntu.<release>.usn.oval.xml` as non-root
     Then stdout matches regexp:
       """
-      oval:com.ubuntu.<release>:def:<CVE_ID>:\s+true
+      oval:com.ubuntu.<release>:def:<oval_def_id>:\s+true
       """
 
     Examples: ubuntu release
-      | release | machine_type  | base_version    | CVE_ID      |
-      | xenial  | lxd-container | 3.4.10-4ubuntu1 | 39991000000 |
-      | bionic  | lxd-container | 3.5.18-1ubuntu1 | 55501000000 |
-      | focal   | lxd-container | 3.6.13-2ubuntu1 | 55501000000 |
-      | jammy   | lxd-container | 3.7.3-4ubuntu1  | 55501000000 |
+      | release | machine_type  | package_name | manifest_pattern  | forced_vulnerable_version | oval_def_id  |
+      | xenial  | lxd-container | libgnutls30  | libgnutls30:amd64 | 3.4.10-4ubuntu1           | 39991000000  |
+      | bionic  | lxd-container | libgnutls30  | libgnutls30:amd64 | 3.5.18-1ubuntu1           | 555010000000 |
+      | focal   | lxd-container | libgnutls30  | libgnutls30:amd64 | 3.6.13-2ubuntu1           | 555010000000 |
+      | jammy   | lxd-container | libgnutls30  | libgnutls30:amd64 | 3.7.3-4ubuntu1            | 555010000000 |
 
 # TODO(srunde3): refactor test to work with Noble+. libgnutls30 is not available there.
