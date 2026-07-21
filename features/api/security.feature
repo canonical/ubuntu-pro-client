@@ -21,16 +21,7 @@ Feature: API security/security status tests
     Then I verify that `esm-infra` is enabled
     When I apt upgrade
     And I apt install `jq bzip2`
-    # Install the oscap version 1.3.7 which solved the epoch error message issue
-    And I apt install `cmake libdbus-1-dev libdbus-glib-1-dev libcurl4-openssl-dev libgcrypt20-dev libselinux1-dev libxslt1-dev libgconf2-dev libacl1-dev libblkid-dev libcap-dev libxml2-dev libldap2-dev libpcre3-dev swig libxml-parser-perl libxml-xpath-perl libperl-dev libbz2-dev g++ libapt-pkg-dev libyaml-dev libxmlsec1-dev libxmlsec1-openssl`
-    And I run `wget https://github.com/OpenSCAP/openscap/releases/download/1.3.7/openscap-1.3.7.tar.gz` as non-root
-    And I run `tar xzf openscap-1.3.7.tar.gz` as non-root
-    And I run shell command `mkdir -p openscap-1.3.7/build` as non-root
-    And I run shell command `cd openscap-1.3.7/build/ && cmake ..` with sudo
-    And I run shell command `cd openscap-1.3.7/build/ && make` with sudo
-    And I run shell command `cd openscap-1.3.7/build/ && make install` with sudo
-    # Installs its shared libs in /usr/local/lib/
-    And I run `ldconfig` with sudo
+    And I install the oscap tool
     And I run shell command `pro api u.security.package_manifest.v1 | jq -r '.data.attributes.manifest_data' > manifest` as non-root
     And I run shell command `wget https://security-metadata.canonical.com/oval/oci.com.ubuntu.<release>.usn.oval.xml.bz2` as non-root
     And I run `bunzip2 oci.com.ubuntu.<release>.usn.oval.xml.bz2` as non-root
