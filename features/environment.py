@@ -374,6 +374,8 @@ def before_feature(context: Context, feature: Feature):
 
 def before_scenario(context: Context, scenario: Scenario):
     context.stored_vars = {}
+    context.scenario_release = None
+    context.scenario_machine_type = None
 
     reason = _should_skip_config_tags(context, scenario.effective_tags)
     if reason:
@@ -402,6 +404,9 @@ def before_scenario(context: Context, scenario: Scenario):
         step_machine_type = given_a_series_machine_type_match.group(2)
         if step_machine_type != "<machine_type>":
             scenario_machine_type = step_machine_type
+
+    context.scenario_release = scenario_release
+    context.scenario_machine_type = scenario_machine_type
 
     releases = context.pro_config.releases
     if releases and scenario_release not in releases:
