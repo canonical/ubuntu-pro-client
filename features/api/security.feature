@@ -62,5 +62,3 @@ Feature: API security/security status tests
       | jammy    | lxd-container | libgnutls30    | libgnutls30:amd64    | 3.7.3-4ubuntu1            | 555010000000 |
       | noble    | lxd-container | libgnutls30t64 | libgnutls30t64:amd64 | 3.8.3-1.1ubuntu3          | 673320000000 |
       | resolute | lxd-container | libgnutls30t64 | libgnutls30t64:amd64 | 3.8.12-2ubuntu1           | 828410000000 |
-
-# TODO(srunde3): refactor test to work with Noble+. libgnutls30 is not available there.
