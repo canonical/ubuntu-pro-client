@@ -1208,11 +1208,13 @@ Feature: Ua fix command behaviour
 
   Scenario Outline: Fix command on a machine without security/updates source lists
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `sed -i "/resolute-updates/d" /etc/apt/sources.list` with sudo
-    And I run `sed -i "/resolute-security/d" /etc/apt/sources.list` with sudo
+    When I run `sed -i 's/ resolute-updates//' /etc/apt/sources.list.d/ubuntu.sources` with sudo
+    And I run `sed -i '1,/^Signed-By:/!d' /etc/apt/sources.list.d/ubuntu.sources` with sudo
     And I apt update
-    And I apt install `curl=8.18.0-1ubuntu2 libcurl4t64=8.18.0-1ubuntu2`
-    And I verify that running `pro fix CVE-2026-8924` `with sudo` exits `1`
+    And I run `wget -L -O /tmp/curl.deb 'https://launchpad.net/ubuntu/+source/curl/8.18.0-1ubuntu2/+build/32361160/+files/curl_8.18.0-1ubuntu2_amd64.deb'` as non-root
+    And I run `wget -L -O /tmp/libcurl4t64.deb 'https://launchpad.net/ubuntu/+source/curl/8.18.0-1ubuntu2/+build/32361160/+files/libcurl4t64_8.18.0-1ubuntu2_amd64.deb'` as non-root
+    And I run `dpkg -i /tmp/libcurl4t64.deb /tmp/curl.deb` with sudo
+    And I verify that running `pro fix CVE-2026-8924` `as non-root` exits `1`
     Then stdout matches regexp:
       """
       CVE-2026-8924: curl vulnerabilities
@@ -1231,10 +1233,3 @@ Feature: Ua fix command behaviour
     Examples: ubuntu release details
       | release  | machine_type  |
       | resolute | lxd-container |
-
-# TODO: This scenario differs from the bionic equivalent in two ways:
-# 1. Uses `with sudo` instead of `as non-root` (bionic uses `as non-root` + shows "Cannot install package VERSION")
-# 2. Uses `apt install` for the old version instead of wget+dpkg from Launchpad
-# The `with sudo` vs `as non-root` difference may cause the test to see a different error path.
-# Investigate whether running `as non-root` shows the same "Cannot install package curl version .*"
-# output on resolute, or whether it shows the "run this command as root" message instead.
