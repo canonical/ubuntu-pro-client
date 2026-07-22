@@ -256,16 +256,14 @@ Feature: CLI disable command
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | lxd-vm       |
-      | bionic  | lxd-vm       |
-      | focal   | lxd-vm       |
-      | jammy   | lxd-vm       |
-      | noble   | lxd-vm       |
+      | release  | machine_type |
+      | xenial   | lxd-vm       |
+      | bionic   | lxd-vm       |
+      | focal    | lxd-vm       |
+      | jammy    | lxd-vm       |
+      | noble    | lxd-vm       |
+      | resolute | lxd-vm       |
 
-  # TODO: Re-enable resolute once cloud_id AppArmor profile
-  # allows coreutils locale reads in ubuntu_pro_esm_cache//cloud_id.
-  # | resolute| lxd-vm       |
   @slow
   Scenario Outline: Disable and purge fips
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
