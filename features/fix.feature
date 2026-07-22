@@ -976,3 +976,265 @@ Feature: Ua fix command behaviour
     Examples: ubuntu release details
       | release | machine_type |
       | bionic  | wsl          |
+
+  Scenario Outline: Fix command on an unattached machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      Error: CVE-1800-123456 not found.
+      """
+    When I verify that running `pro fix USN-12345-12` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      Error: USN-12345-12 not found.
+      """
+    When I verify that running `pro fix CVE-12345678-12` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      Error: issue "CVE-12345678-12" is not recognized.
+      Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
+      """
+    When I verify that running `pro fix USN-12345678-12` `as non-root` exits `1`
+    Then I will see the following on stderr:
+      """
+      Error: issue "USN-12345678-12" is not recognized.
+      Usage: "pro fix CVE-yyyy-nnnn" or "pro fix USN-nnnn"
+      """
+    When I apt install `libawl-php`
+    And I run `pro fix USN-4539-1 --dry-run` as non-root
+    Then stdout matches regexp:
+      """
+      .*WARNING: The option --dry-run is being used.
+      No packages will be installed when running this command..*
+      USN-4539-1: AWL vulnerability
+      Associated CVEs:
+       - https://ubuntu.com/security/CVE-2020-11728
+
+      Fixing requested USN-4539-1
+      No affected source packages are installed.
+
+      .*✔.* USN-4539-1 does not affect your system.
+      """
+    When I run `pro fix USN-4539-1` as non-root
+    Then stdout matches regexp:
+      """
+      USN-4539-1: AWL vulnerability
+      Associated CVEs:
+       - https://ubuntu.com/security/CVE-2020-11728
+
+      Fixing requested USN-4539-1
+      No affected source packages are installed.
+
+      .*✔.* USN-4539-1 does not affect your system.
+      """
+    When I run `pro fix CVE-2025-26465` as non-root
+    Then stdout matches regexp:
+      """
+      CVE-2025-26465: .*OpenSSH.*
+       - https://ubuntu.com/security/CVE-2025-26465
+
+      1 affected source package is installed: openssh
+      \(1/1\) openssh:
+      A fix is available in Ubuntu standard updates.
+      The update is already installed.
+
+      .*✔.* CVE-2025-26465 is resolved.
+      """
+    When I apt install `curl=8.18.0-1ubuntu2 libcurl4t64=8.18.0-1ubuntu2`
+    And I verify that running `pro fix CVE-2026-8924` `as non-root` exits `1`
+    Then stdout matches regexp:
+      """
+      CVE-2026-8924: curl vulnerabilities
+       - https://ubuntu.com/security/CVE-2026-8924
+
+      1 affected source package is installed: curl
+      \(1/1\) curl:
+      A fix is available in Ubuntu standard updates.
+      Package fixes cannot be installed.
+      To install them, run this command as root \(try using sudo\)
+
+      1 package is still affected: curl
+      .*✘.* CVE-2026-8924 is not resolved.
+      """
+    When I run `pro fix CVE-2026-8924 --dry-run` with sudo
+    Then stdout matches regexp:
+      """
+      .*WARNING: The option --dry-run is being used.
+      No packages will be installed when running this command..*
+      CVE-2026-8924: curl vulnerabilities
+       - https://ubuntu.com/security/CVE-2026-8924
+
+      1 affected source package is installed: curl
+      \(1/1\) curl:
+      A fix is available in Ubuntu standard updates.
+      .*\{ apt update && apt install --only-upgrade -y curl libcurl4t64 \}.*
+
+      .*✔.* CVE-2026-8924 is resolved.
+      """
+    When I run `pro fix CVE-2026-8924` with sudo
+    Then stdout matches regexp:
+      """
+      CVE-2026-8924: curl vulnerabilities
+       - https://ubuntu.com/security/CVE-2026-8924
+
+      1 affected source package is installed: curl
+      \(1/1\) curl:
+      A fix is available in Ubuntu standard updates.
+      .*\{ apt update && apt install --only-upgrade -y curl libcurl4t64 \}.*
+
+      .*✔.* CVE-2026-8924 is resolved.
+      """
+    When I run `pro fix CVE-2026-8924` with sudo
+    Then stdout matches regexp:
+      """
+      CVE-2026-8924: curl vulnerabilities
+       - https://ubuntu.com/security/CVE-2026-8924
+
+      1 affected source package is installed: curl
+      \(1/1\) curl:
+      A fix is available in Ubuntu standard updates.
+      The update is already installed.
+
+      .*✔.* CVE-2026-8924 is resolved.
+      """
+    When I apt install `wget=1.25.0-2ubuntu4`
+    And I run `pro fix USN-8572-1` with sudo
+    Then stdout matches regexp:
+      """
+      USN-8572-1: Wget vulnerability
+      Associated CVEs:
+       - https://ubuntu.com/security/CVE-2026-15146
+
+      Fixing requested USN-8572-1
+      1 affected source package is installed: wget
+      \(1/1\) wget:
+      A fix is available in Ubuntu standard updates.
+      .*\{ apt update && apt install --only-upgrade -y wget \}.*
+
+      .*✔.* USN-8572-1 is resolved.
+      """
+    When I run `pro fix USN-8566-1` as non-root
+    Then stdout matches regexp:
+      """
+      Fixing requested USN-8566-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8566-1 does not affect your system.
+
+      Found related USNs:
+      - USN-8489-1
+      - USN-8491-1
+      - USN-8567-1
+      - USN-8568-1
+      - USN-8569-1
+      - USN-8570-1
+      - USN-8574-1
+      - USN-8575-1
+      - USN-8576-1
+
+      Fixing related USNs:
+      - USN-8489-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8489-1 does not affect your system.
+
+      - USN-8491-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8491-1 does not affect your system.
+
+      - USN-8567-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8567-1 does not affect your system.
+
+      - USN-8568-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8568-1 does not affect your system.
+
+      - USN-8569-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8569-1 does not affect your system.
+
+      - USN-8570-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8570-1 does not affect your system.
+
+      - USN-8574-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8574-1 does not affect your system.
+
+      - USN-8575-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8575-1 does not affect your system.
+
+      - USN-8576-1
+      No affected source packages are installed.
+
+      .*✔.* USN-8576-1 does not affect your system.
+
+      Summary:
+      .*✔.* USN-8566-1 \[requested\] does not affect your system.
+      .*✔.* USN-8489-1 \[related\] does not affect your system.
+      .*✔.* USN-8491-1 \[related\] does not affect your system.
+      .*✔.* USN-8567-1 \[related\] does not affect your system.
+      .*✔.* USN-8568-1 \[related\] does not affect your system.
+      .*✔.* USN-8569-1 \[related\] does not affect your system.
+      .*✔.* USN-8570-1 \[related\] does not affect your system.
+      .*✔.* USN-8574-1 \[related\] does not affect your system.
+      .*✔.* USN-8575-1 \[related\] does not affect your system.
+      .*✔.* USN-8576-1 \[related\] does not affect your system.
+      """
+    When I run `pro fix CVE-2026-46108` with sudo
+    Then stdout matches regexp:
+      """
+      CVE-2026-46108: .*
+       - https://ubuntu.com/security/CVE-2026-46108
+
+      No affected source packages are installed.
+
+      .*✔.* CVE-2026-46108 does not affect your system.
+      """
+
+    Examples: ubuntu release details
+      | release  | machine_type  |
+      | resolute | lxd-container |
+
+  Scenario Outline: Fix command on a machine without security/updates source lists
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I run `sed -i "/resolute-updates/d" /etc/apt/sources.list` with sudo
+    And I run `sed -i "/resolute-security/d" /etc/apt/sources.list` with sudo
+    And I apt update
+    And I apt install `curl=8.18.0-1ubuntu2 libcurl4t64=8.18.0-1ubuntu2`
+    And I verify that running `pro fix CVE-2026-8924` `with sudo` exits `1`
+    Then stdout matches regexp:
+      """
+      CVE-2026-8924: curl vulnerabilities
+       - https://ubuntu.com/security/CVE-2026-8924
+
+      1 affected source package is installed: curl
+      \(1/1\) curl:
+      A fix is available in Ubuntu standard updates.
+      - Cannot install package curl version .*
+      - Cannot install package libcurl4t64 version .*
+
+      1 package is still affected: curl
+      .*✘.* CVE-2026-8924 is not resolved.
+      """
+
+    Examples: ubuntu release details
+      | release  | machine_type  |
+      | resolute | lxd-container |
+
+# TODO: This scenario differs from the bionic equivalent in two ways:
+# 1. Uses `with sudo` instead of `as non-root` (bionic uses `as non-root` + shows "Cannot install package VERSION")
+# 2. Uses `apt install` for the old version instead of wget+dpkg from Launchpad
+# The `with sudo` vs `as non-root` difference may cause the test to see a different error path.
+# Investigate whether running `as non-root` shows the same "Cannot install package curl version .*"
+# output on resolute, or whether it shows the "run this command as root" message instead.
