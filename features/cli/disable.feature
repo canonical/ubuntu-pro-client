@@ -219,33 +219,32 @@ Feature: CLI disable command
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I apt update
-    And I apt install `ansible`
+    And I apt install `<package>`
     And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
     Then stdout matches regexp:
       """
       \(The --purge flag is still experimental - use with caution\)
 
       The following package\(s\) will be reinstalled from the archive:
-      .*ansible.*
+      .*<package>.*
 
       Do you want to proceed\? \(y/N\)
       """
     And I verify that `esm-apps` is disabled
-    And I verify that `ansible` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/universe`
+    And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
 
     Examples: ubuntu release
-      | release | machine_type  | pocket           |
+      | release | machine_type  | pocket           | package | archive_component |
       # This ends up in GH #943 but maybe can be improved?
-      | xenial  | lxd-container | xenial-backports |
-      | bionic  | lxd-container | bionic-updates   |
-      | bionic  | wsl           | bionic-updates   |
-      | focal   | lxd-container | focal            |
-      | jammy   | lxd-container | jammy            |
+      | xenial  | lxd-container | xenial-backports | ansible | universe          |
+      | bionic  | lxd-container | bionic-updates   | ansible | universe          |
+      | bionic  | wsl           | bionic-updates   | ansible | universe          |
+      | focal   | lxd-container | focal            | ansible | universe          |
+      | jammy   | lxd-container | jammy            | ansible | universe          |
 
-  # TODO: Ansible does not appear to come from esm-apps on resolute.
-  # This scenario likely needs refactor to assert a package that is
-  # actually reinstalled from archive on resolute.
-  # | resolute| lxd-container | resolute         |
+  # TODO: Identify a package that is pulled from esm-apps on resolute and
+  # can be reinstalled from the archive, then add a resolute row here.
+  # | resolute| lxd-container | resolute         | <package> | <component>    |
   Scenario Outline: Disable with purge unsupported services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
