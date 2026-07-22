@@ -41,7 +41,7 @@ def when_i_install_oscap_tool(context):
     Install the OpenSCAP scanner tool.
 
     On older releases, this is built from source to avoid problems that were fixed in
-    v1.3.7. This is not packaged until Noble.
+    v1.3.7. This version is not available in `apt` until Noble.
 
     On Noble+, install directly using `apt`.
 
