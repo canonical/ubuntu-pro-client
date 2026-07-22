@@ -234,17 +234,15 @@ Feature: CLI disable command
     And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
 
     Examples: ubuntu release
-      | release | machine_type  | pocket           | package | archive_component |
+      | release  | machine_type  | pocket           | package | archive_component |
       # This ends up in GH #943 but maybe can be improved?
-      | xenial  | lxd-container | xenial-backports | ansible | universe          |
-      | bionic  | lxd-container | bionic-updates   | ansible | universe          |
-      | bionic  | wsl           | bionic-updates   | ansible | universe          |
-      | focal   | lxd-container | focal            | ansible | universe          |
-      | jammy   | lxd-container | jammy            | ansible | universe          |
+      | xenial   | lxd-container | xenial-backports | ansible | universe          |
+      | bionic   | lxd-container | bionic-updates   | ansible | universe          |
+      | bionic   | wsl           | bionic-updates   | ansible | universe          |
+      | focal    | lxd-container | focal            | ansible | universe          |
+      | jammy    | lxd-container | jammy            | ansible | universe          |
+      | resolute | lxd-container | resolute         | ansible | universe          |
 
-  # TODO: Identify a package that is pulled from esm-apps on resolute and
-  # can be reinstalled from the archive, then add a resolute row here.
-  # | resolute| lxd-container | resolute         | <package> | <component>    |
   Scenario Outline: Disable with purge unsupported services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
