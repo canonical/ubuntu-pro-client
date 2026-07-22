@@ -1029,6 +1029,7 @@ Feature: Ua fix command behaviour
       .*✔.* USN-4539-1 does not affect your system.
       """
     When I run `pro fix CVE-2025-26465` as non-root
+    And I remove colors from output
     Then stdout matches regexp:
       """
       CVE-2025-26465: .*OpenSSH.*
@@ -1043,6 +1044,7 @@ Feature: Ua fix command behaviour
       """
     When I apt install `curl=8.18.0-1ubuntu2 libcurl4t64=8.18.0-1ubuntu2`
     And I verify that running `pro fix CVE-2026-8924` `as non-root` exits `1`
+    And I remove colors from output
     Then stdout matches regexp:
       """
       CVE-2026-8924: curl vulnerabilities
@@ -1058,6 +1060,7 @@ Feature: Ua fix command behaviour
       .*✘.* CVE-2026-8924 is not resolved.
       """
     When I run `pro fix CVE-2026-8924 --dry-run` with sudo
+    And I remove colors from output
     Then stdout matches regexp:
       """
       .*WARNING: The option --dry-run is being used.
@@ -1073,6 +1076,7 @@ Feature: Ua fix command behaviour
       .*✔.* CVE-2026-8924 is resolved.
       """
     When I run `pro fix CVE-2026-8924` with sudo
+    And I remove colors from output
     Then stdout matches regexp:
       """
       CVE-2026-8924: curl vulnerabilities
@@ -1086,6 +1090,7 @@ Feature: Ua fix command behaviour
       .*✔.* CVE-2026-8924 is resolved.
       """
     When I run `pro fix CVE-2026-8924` with sudo
+    And I remove colors from output
     Then stdout matches regexp:
       """
       CVE-2026-8924: curl vulnerabilities
@@ -1100,6 +1105,7 @@ Feature: Ua fix command behaviour
       """
     When I apt install `wget=1.25.0-2ubuntu4`
     And I run `pro fix USN-8572-1` with sudo
+    And I remove colors from output
     Then stdout matches regexp:
       """
       USN-8572-1: Wget vulnerability
@@ -1115,6 +1121,7 @@ Feature: Ua fix command behaviour
       .*✔.* USN-8572-1 is resolved.
       """
     When I run `pro fix USN-8566-1` as non-root
+    And I remove colors from output
     Then stdout matches regexp:
       """
       Fixing requested USN-8566-1
@@ -1192,6 +1199,7 @@ Feature: Ua fix command behaviour
       .*✔.* USN-8576-1 \[related\] does not affect your system.
       """
     When I run `pro fix CVE-2026-46108` with sudo
+    And I remove colors from output
     Then stdout matches regexp:
       """
       CVE-2026-46108: .*
