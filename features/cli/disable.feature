@@ -234,14 +234,34 @@ Feature: CLI disable command
     And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
 
     Examples: ubuntu release
-      | release  | machine_type  | pocket           | package | archive_component |
+      | release | machine_type  | pocket           | package | archive_component |
       # This ends up in GH #943 but maybe can be improved?
-      | xenial   | lxd-container | xenial-backports | ansible | universe          |
-      | bionic   | lxd-container | bionic-updates   | ansible | universe          |
-      | bionic   | wsl           | bionic-updates   | ansible | universe          |
-      | focal    | lxd-container | focal            | ansible | universe          |
-      | jammy    | lxd-container | jammy            | ansible | universe          |
-      | resolute | lxd-container | resolute         | ansible | universe          |
+      | xenial  | lxd-container | xenial-backports | ansible | universe          |
+      | bionic  | lxd-container | bionic-updates   | ansible | universe          |
+      | bionic  | wsl           | bionic-updates   | ansible | universe          |
+      | focal   | lxd-container | focal            | ansible | universe          |
+      | jammy   | lxd-container | jammy            | ansible | universe          |
+
+  Scenario Outline: Disable with purge works and purges repo services on resolute
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I apt update
+    And I apt install `<package>`
+    And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
+    Then stdout matches regexp:
+      """
+      \(The --purge flag is still experimental - use with caution\)
+
+      Removing APT access to Ubuntu Pro: ESM Apps
+      Updating package lists
+      Uninstalling all packages installed from Ubuntu Pro: ESM Apps
+      """
+    And I verify that `esm-apps` is disabled
+    And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
+
+    Examples: ubuntu release
+      | release  | machine_type  | pocket   | package | archive_component |
+      | resolute | lxd-container | resolute | ansible | universe          |
 
   Scenario Outline: Disable with purge unsupported services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
