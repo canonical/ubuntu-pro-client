@@ -242,6 +242,7 @@ Feature: CLI disable command
       | focal   | lxd-container | focal            | ansible | universe          |
       | jammy   | lxd-container | jammy            | ansible | universe          |
 
+  @uses.config.contract_token
   Scenario Outline: Disable with purge works and purges repo services on resolute
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
