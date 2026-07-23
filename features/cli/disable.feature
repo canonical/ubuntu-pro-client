@@ -197,6 +197,7 @@ Feature: CLI disable command
   # TODO: Re-enable resolute once ua-contracts resource definitions are
   # updated to present CIS as usg like noble.
   # | resolute| lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+  @uses.config.contract_token
   Scenario Outline: Disable with purge does not work with assume-yes
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -215,6 +216,7 @@ Feature: CLI disable command
       | noble    | lxd-container |
       | resolute | lxd-container |
 
+  @uses.config.contract_token
   Scenario Outline: Disable with purge works and purges repo services not involving a kernel
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -264,6 +266,7 @@ Feature: CLI disable command
       | release  | machine_type  | pocket   | package | archive_component |
       | resolute | lxd-container | resolute | ansible | universe          |
 
+  @uses.config.contract_token
   Scenario Outline: Disable with purge unsupported services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -284,7 +287,7 @@ Feature: CLI disable command
   # TODO: Re-enable resolute once cloud_id AppArmor profile
   # allows coreutils locale reads in ubuntu_pro_esm_cache//cloud_id.
   # | resolute| lxd-vm       |
-  @slow
+  @slow @uses.config.contract_token
   Scenario Outline: Disable and purge fips
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -352,7 +355,7 @@ Feature: CLI disable command
       | focal   | gcp.generic   | fips         | FIPS         | linux-gcp-fips   | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main  |
       | focal   | gcp.generic   | fips-updates | FIPS Updates | linux-gcp-fips   | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main  |
 
-  @slow
+  @slow @uses.config.contract_token
   Scenario Outline: Disable does not purge if no other kernel found
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
