@@ -82,6 +82,9 @@ Feature: Pro is expected version
       | questing | gcp.generic    |
       | resolute | lxd-container  |
       | resolute | lxd-vm         |
+      | resolute | aws.generic    |
+      | resolute | azure.generic  |
+      | resolute | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
