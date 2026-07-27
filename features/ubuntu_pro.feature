@@ -332,9 +332,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | aws.generic  |
-      | bionic  | aws.generic  |
-      | focal   | aws.generic  |
-      | jammy   | aws.generic  |
-      | noble   | aws.generic  |
+      | release  | machine_type |
+      | xenial   | aws.generic  |
+      | bionic   | aws.generic  |
+      | focal    | aws.generic  |
+      | jammy    | aws.generic  |
+      | noble    | aws.generic  |
+      | resolute | aws.generic  |
