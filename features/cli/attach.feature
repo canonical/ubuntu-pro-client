@@ -408,13 +408,10 @@ Feature: CLI attach command
     And I verify that `livepatch` status is `<livepatch_status>`
 
     Examples: ubuntu release
-      | release | machine_type | livepatch_status |
-      | xenial  | lxd-vm       | warning          |
-      | bionic  | lxd-vm       | enabled          |
-      | focal   | lxd-vm       | enabled          |
-      | jammy   | lxd-vm       | enabled          |
-      | noble   | lxd-vm       | enabled          |
-
-# TODO: Re-enable resolute once cloud_id AppArmor profile
-# allows coreutils locale reads in ubuntu_pro_esm_cache//cloud_id.
-# | resolute | lxd-vm      | enabled          |
+      | release  | machine_type | livepatch_status |
+      | xenial   | lxd-vm       | warning          |
+      | bionic   | lxd-vm       | enabled          |
+      | focal    | lxd-vm       | enabled          |
+      | jammy    | lxd-vm       | enabled          |
+      | noble    | lxd-vm       | enabled          |
+      | resolute | lxd-vm       | enabled          |
