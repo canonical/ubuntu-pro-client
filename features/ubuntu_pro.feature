@@ -173,17 +173,19 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
-      | bionic  | azure.pro    |
-      | bionic  | gcp.pro      |
-      | focal   | azure.pro    |
-      | focal   | gcp.pro      |
-      | jammy   | azure.pro    |
-      | jammy   | gcp.pro      |
-      | noble   | azure.pro    |
-      | noble   | gcp.pro      |
+      | release  | machine_type |
+      | xenial   | azure.pro    |
+      | xenial   | gcp.pro      |
+      | bionic   | azure.pro    |
+      | bionic   | gcp.pro      |
+      | focal    | azure.pro    |
+      | focal    | gcp.pro      |
+      | jammy    | azure.pro    |
+      | jammy    | gcp.pro      |
+      | noble    | azure.pro    |
+      | noble    | gcp.pro      |
+      | resolute | azure.pro    |
+      | resolute | gcp.pro      |
 
   Scenario Outline: Auto-attach service works on Pro Machine on aws.pro
     Given a `<release>` aws.pro machine with ubuntu-advantage-tools installed
@@ -303,23 +305,26 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type | cloud_init_key   |
-      | xenial  | aws.pro      | ubuntu_advantage |
-      | xenial  | azure.pro    | ubuntu_advantage |
-      | xenial  | gcp.pro      | ubuntu_advantage |
-      | bionic  | aws.pro      | ubuntu_advantage |
-      | bionic  | azure.pro    | ubuntu_advantage |
-      | bionic  | gcp.pro      | ubuntu_advantage |
+      | release  | machine_type | cloud_init_key   |
+      | xenial   | aws.pro      | ubuntu_advantage |
+      | xenial   | azure.pro    | ubuntu_advantage |
+      | xenial   | gcp.pro      | ubuntu_advantage |
+      | bionic   | aws.pro      | ubuntu_advantage |
+      | bionic   | azure.pro    | ubuntu_advantage |
+      | bionic   | gcp.pro      | ubuntu_advantage |
       # Keep ubuntu_advantage for focal/jammy to make sure it still works there
-      | focal   | aws.pro      | ubuntu_advantage |
-      | focal   | azure.pro    | ubuntu_advantage |
-      | focal   | gcp.pro      | ubuntu_advantage |
-      | jammy   | aws.pro      | ubuntu_advantage |
-      | jammy   | azure.pro    | ubuntu_advantage |
-      | jammy   | gcp.pro      | ubuntu_advantage |
-      | noble   | aws.pro      | ubuntu_pro       |
-      | noble   | azure.pro    | ubuntu_pro       |
-      | noble   | gcp.pro      | ubuntu_pro       |
+      | focal    | aws.pro      | ubuntu_advantage |
+      | focal    | azure.pro    | ubuntu_advantage |
+      | focal    | gcp.pro      | ubuntu_advantage |
+      | jammy    | aws.pro      | ubuntu_advantage |
+      | jammy    | azure.pro    | ubuntu_advantage |
+      | jammy    | gcp.pro      | ubuntu_advantage |
+      | noble    | aws.pro      | ubuntu_pro       |
+      | noble    | azure.pro    | ubuntu_pro       |
+      | noble    | gcp.pro      | ubuntu_pro       |
+      | resolute | aws.pro      | ubuntu_pro       |
+      | resolute | azure.pro    | ubuntu_pro       |
+      | resolute | gcp.pro      | ubuntu_pro       |
 
   Scenario Outline: Unregistered Pro machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
