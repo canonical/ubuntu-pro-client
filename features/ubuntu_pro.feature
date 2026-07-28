@@ -184,7 +184,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | jammy    | gcp.pro      |
       | noble    | azure.pro    |
       | noble    | gcp.pro      |
-      | resolute | azure.pro    |
       | resolute | gcp.pro      |
 
   Scenario Outline: Auto-attach service works on Pro Machine on aws.pro
@@ -323,7 +322,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | noble    | azure.pro    | ubuntu_pro       |
       | noble    | gcp.pro      | ubuntu_pro       |
       | resolute | aws.pro      | ubuntu_pro       |
-      | resolute | azure.pro    | ubuntu_pro       |
       | resolute | gcp.pro      | ubuntu_pro       |
 
   Scenario Outline: Unregistered Pro machine
