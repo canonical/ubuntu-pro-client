@@ -29,6 +29,8 @@ jobs:
       matrix:
         release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute', 'stonking']
     steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
       - name: Prepare build tools
         env:
           DEBFULLNAME: GitHub CI Auto Builder
@@ -39,22 +41,6 @@ jobs:
           sbuild_version="$(dpkg-query -W -f='${Version}' sbuild)"
           dpkg --compare-versions "$sbuild_version" ge '0.88.3ubuntu2~bpo24.04.1'
           sudo sbuild-adduser $USER
-          mkdir -p ~/.config/sbuild
-          cat << 'EOF' > ~/.config/sbuild/config.pl
-          $chroot_mode = 'unshare';
-          $unshare_tmpdir_template = '/var/tmp/tmp.sbuild.XXXXXXXXXX';
-          $unshare_mmdebstrap_extra_args = [
-              '*' => ['--components=main,universe'],
-              'stonking' => [
-                  '--include=ca-certificates',
-                  '--setup-hook=echo "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://snapshot.ubuntu.com/ubuntu stonking-proposed main universe" > "$1"/etc/apt/sources.list.d/proposed.list',
-                  '--aptopt=APT::Default-Release "stonking";',
-              ],
-          ];
-          1;
-          EOF
-      - name: Git checkout
-        uses: actions/checkout@v3
       - name: Build package
         env:
           DEBFULLNAME: GitHub CI Auto Builder
@@ -66,7 +52,7 @@ jobs:
             sg sbuild -c "mk-sbuild --skip-proposed xenial"
             sg sbuild -c "sbuild --chroot-mode=schroot --dist=xenial --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
           else
-            sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'
+            SBUILD_CONFIG="$PWD/tools/sbuild-config.pl" sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'
           fi
       - name: Archive debs as artifacts
         uses: actions/upload-artifact@v4
