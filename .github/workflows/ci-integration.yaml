@@ -35,7 +35,9 @@ jobs:
           DEBEMAIL: nobody@nowhere.invalid
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports 'sbuild (>= 0.88.3ubuntu2~bpo24.04.1)' mmdebstrap uidmap git-buildpackage
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild mmdebstrap uidmap git-buildpackage
+          sbuild_version="$(dpkg-query -W -f='${Version}' sbuild)"
+          dpkg --compare-versions "$sbuild_version" ge '0.88.3ubuntu2~bpo24.04.1'
           mkdir -p ~/.config/sbuild
           cat << 'EOF' > ~/.config/sbuild/config.pl
           $chroot_mode = 'unshare';
