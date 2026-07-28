@@ -85,6 +85,7 @@ Feature: Pro is expected version
       | resolute | aws.generic    |
       | resolute | aws.pro        |
       | resolute | azure.generic  |
+      | resolute | azure.pro      |
       | resolute | gcp.generic    |
       | resolute | gcp.pro        |
 
