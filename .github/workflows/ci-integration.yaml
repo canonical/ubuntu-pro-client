@@ -35,16 +35,16 @@ jobs:
           DEBEMAIL: nobody@nowhere.invalid
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild mmdebstrap uidmap git-buildpackage
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild schroot ubuntu-dev-tools debootstrap mmdebstrap uidmap git-buildpackage
           sbuild_version="$(dpkg-query -W -f='${Version}' sbuild)"
           dpkg --compare-versions "$sbuild_version" ge '0.88.3ubuntu2~bpo24.04.1'
+          sudo sbuild-adduser $USER
           mkdir -p ~/.config/sbuild
           cat << 'EOF' > ~/.config/sbuild/config.pl
           $chroot_mode = 'unshare';
           $unshare_tmpdir_template = '/var/tmp/tmp.sbuild.XXXXXXXXXX';
           $unshare_mmdebstrap_extra_args = [
               '*' => ['--components=main,universe'],
-              'xenial' => ['--variant=apt'],
               'stonking' => [
                   '--include=ca-certificates',
                   '--setup-hook=echo "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://snapshot.ubuntu.com/ubuntu stonking-proposed main universe" > "$1"/etc/apt/sources.list.d/proposed.list',
@@ -62,7 +62,12 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
-          sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'
+          if [ "${{ matrix.release }}" = "xenial" ]; then
+            sg sbuild -c "mk-sbuild --skip-proposed xenial"
+            sg sbuild -c "sbuild --chroot-mode=schroot --dist=xenial --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
+          else
+            sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'
+          fi
           mv ../*.deb '${{ runner.temp }}'  # Workaround for Debbug: #990734, drop in Jammy
       - name: Archive debs as artifacts
         uses: actions/upload-artifact@v4
