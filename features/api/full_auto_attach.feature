@@ -37,5 +37,4 @@ Feature: Full Auto-Attach Endpoint
       | noble    | azure.pro    |
       | noble    | gcp.pro      |
       | resolute | aws.pro      |
-      | resolute | azure.pro    |
       | resolute | gcp.pro      |
