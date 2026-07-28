@@ -48,6 +48,8 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
+          # Xenial's systemd post-installation fails during mmdebstrap bootstrap.
+          # Build with a schroot instead.
           if [ "${{ matrix.release }}" = "xenial" ]; then
             sg sbuild -c "mk-sbuild --skip-proposed xenial"
             sg sbuild -c "sbuild --chroot-mode=schroot --dist=xenial --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
