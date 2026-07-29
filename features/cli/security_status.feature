@@ -1212,6 +1212,7 @@ Feature: CLI security-status command
     Examples: ubuntu release
       | release  | machine_type  |
       | questing | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Pass custom APT configuration to the Client for updates information
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

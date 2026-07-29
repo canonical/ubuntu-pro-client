@@ -29,6 +29,7 @@ Feature: Ua fix command behaviour
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine

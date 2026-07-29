@@ -510,4 +510,5 @@ Feature: CLI disable command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

@@ -170,6 +170,7 @@ Feature: u.pro.services.enable
       | release  | machine_type  |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: u.pro.services.enable.v1 vm services

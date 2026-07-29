@@ -35,6 +35,7 @@ Feature: CLI auto-attach command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @arm64
@@ -68,4 +69,5 @@ Feature: CLI auto-attach command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

@@ -196,6 +196,7 @@ Feature: Livepatch
     Examples: ubuntu release
       | release  | machine_type | pretty_name             |
       | questing | lxd-vm       | 25.10 (Questing Quokka) |
+      | stonking | lxd-vm       | 25.10 (Questing Quokka) |
 
   Scenario Outline: Livepatch is supported on interim HWE kernel
     # This test is intended to ensure that an interim HWE kernel has the correct support status

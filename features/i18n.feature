@@ -65,6 +65,7 @@ Feature: Pro supports multiple languages
     Examples: ubuntu release
       | release  | machine_type  |
       | questing | lxd-container |
+      | stonking | lxd-container |
 
   # Note: Translations do work on xenial, but our test environment triggers a bug in python that
   # causes it to think we're in an ascii-only environment
@@ -229,6 +230,7 @@ Feature: Pro supports multiple languages
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @uses.config.contract_token
@@ -288,4 +290,5 @@ Feature: Pro supports multiple languages
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

@@ -3033,3 +3033,4 @@ Feature: Fix plan API endpoints
       | release  | machine_type |
       | questing | lxd-vm       |
       | resolute | lxd-vm       |
+      | stonking | lxd-vm       |

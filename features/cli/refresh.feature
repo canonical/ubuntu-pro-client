@@ -46,6 +46,7 @@ Feature: CLI refresh command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
@@ -73,4 +74,5 @@ Feature: CLI refresh command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

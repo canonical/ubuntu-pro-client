@@ -76,6 +76,7 @@ Feature: CLI status command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @uses.config.contract_token @arm64
@@ -694,6 +695,7 @@ Feature: CLI status command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @arm64
@@ -1636,6 +1638,7 @@ Feature: CLI status command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Warn users not to redirect/pipe human readable output
@@ -1731,4 +1734,5 @@ Feature: CLI status command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

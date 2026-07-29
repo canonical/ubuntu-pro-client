@@ -18,6 +18,7 @@ Feature: Timer for regular background jobs while attached
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Run timer script on an attached machine
@@ -96,6 +97,7 @@ Feature: Timer for regular background jobs while attached
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Run timer script to validate machine activity endpoint

@@ -76,10 +76,15 @@ Feature: Pro is expected version
       | noble    | gcp.generic    |
       | noble    | gcp.pro        |
       | questing | lxd-container  |
+      | stonking | lxd-container  |
       | questing | lxd-vm         |
+      | stonking | lxd-vm         |
       | questing | aws.generic    |
+      | stonking | aws.generic    |
       | questing | azure.generic  |
+      | stonking | azure.generic  |
       | questing | gcp.generic    |
+      | stonking | gcp.generic    |
       | resolute | lxd-container  |
       | resolute | lxd-vm         |
       | resolute | aws.generic    |
@@ -119,6 +124,7 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @uses.config.contract_token
@@ -142,6 +148,7 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @arm64
@@ -226,4 +233,5 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

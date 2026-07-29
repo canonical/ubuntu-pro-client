@@ -16,6 +16,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @uses.config.contract_token @arm64
@@ -295,7 +296,9 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     Examples: version
       | release  | machine_type  |
       | questing | azure.generic |
+      | stonking | azure.generic |
       | questing | gcp.generic   |
+      | stonking | gcp.generic   |
 
   @uses.config.contract_token
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
@@ -325,6 +328,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | noble    | aws.generic  |
       | questing | aws.generic  |
       | resolute | aws.generic  |
+      | stonking | aws.generic  |
 
   Scenario Outline: daemon does not start when not on gcpgeneric or azuregeneric
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

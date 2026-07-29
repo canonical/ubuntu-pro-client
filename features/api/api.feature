@@ -36,6 +36,7 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @arm64
@@ -87,6 +88,7 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @arm64
@@ -181,6 +183,7 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @uses.config.contract_token @arm64
@@ -294,4 +297,5 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

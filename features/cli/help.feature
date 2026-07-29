@@ -549,6 +549,7 @@ Feature: Pro Client help text
       | jammy    | lxd-container | options            |
       | noble    | lxd-container | options            |
       | questing | lxd-container | options            |
+      | stonking | lxd-container | options            |
       | resolute | lxd-container | options            |
 
   Scenario Outline: Help command on an attached machine
@@ -598,6 +599,7 @@ Feature: Pro Client help text
       | jammy    | lxd-container | enabled      |
       | noble    | lxd-container | enabled      |
       | questing | lxd-container | n/a          |
+      | stonking | lxd-container | n/a          |
       | resolute | lxd-container | enabled      |
 
   @arm64
@@ -648,4 +650,5 @@ Feature: Pro Client help text
       | jammy    | wsl           | yes             |
       | noble    | lxd-container | yes             |
       | questing | lxd-container | no              |
+      | stonking | lxd-container | no              |
       | resolute | lxd-container | yes             |

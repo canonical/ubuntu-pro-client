@@ -36,6 +36,7 @@ Feature: CLI attach command
     Examples: ubuntu release
       | release  | machine_type  | landscape | status_string                                                           |
       | questing | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
+      | stonking | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -352,6 +353,7 @@ Feature: CLI attach command
       | noble    | lxd-container |
       | resolute | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token_staging_expired
   Scenario Outline: Attach command failure on expired token
@@ -399,6 +401,7 @@ Feature: CLI attach command
       | noble    | lxd-container |
       | resolute | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Attach operation on a lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

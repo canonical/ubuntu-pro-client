@@ -131,9 +131,9 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\\/\\/ubuntu\\.com\\/pro                             |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -728,7 +728,9 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | questing | lxd-vm        |
+      | stonking | lxd-vm        |
       | resolute | lxd-container |
 
   # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
@@ -1584,6 +1586,7 @@ Feature: APT Messages
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   @uses.config.contract_token
@@ -1634,3 +1637,4 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  |
       | questing | lxd-container |
+      | stonking | lxd-container |

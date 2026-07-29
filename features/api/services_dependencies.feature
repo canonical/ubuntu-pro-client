@@ -388,4 +388,5 @@ Feature: u.pro.services.dependencies
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |

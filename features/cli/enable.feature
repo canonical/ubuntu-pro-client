@@ -794,6 +794,7 @@ Feature: CLI enable command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Running pro enable --auto

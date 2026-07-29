@@ -70,4 +70,5 @@ Feature: Enable cc-eal on Ubuntu
       | jammy    | lxd-container | 22.04 LTS | Jammy Jellyfish  |
       | noble    | lxd-container | 24.04 LTS | Noble Numbat     |
       | questing | lxd-container | 25.10     | Questing Quokka  |
+      | stonking | lxd-container | 25.10     | Questing Quokka  |
       | resolute | lxd-container | 26.04 LTS | Resolute Raccoon |

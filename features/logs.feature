@@ -27,6 +27,7 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container | as non-root |
       | noble    | lxd-container | with sudo   |
       | questing | lxd-container | with sudo   |
+      | stonking | lxd-container | with sudo   |
       | resolute | lxd-container | with sudo   |
 
   Scenario Outline: Non-root user and root user log files are different
@@ -61,6 +62,7 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Non-root user log files included in collect logs
@@ -89,6 +91,7 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: logrotate configuration works
@@ -139,4 +142,5 @@ Feature: Logs in Json Array Formatter
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
       | resolute | lxd-container |
