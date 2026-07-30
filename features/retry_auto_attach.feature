@@ -502,4 +502,5 @@ Feature: auto-attach retries periodically on failures
       | noble    | azure.pro    |
       | noble    | gcp.pro      |
       | resolute | aws.pro      |
+      | resolute | azure.pro    |
       | resolute | gcp.pro      |

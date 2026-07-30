@@ -322,6 +322,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       | noble    | azure.pro    | ubuntu_pro       |
       | noble    | gcp.pro      | ubuntu_pro       |
       | resolute | aws.pro      | ubuntu_pro       |
+      | resolute | azure.pro    | ubuntu_pro       |
       | resolute | gcp.pro      | ubuntu_pro       |
 
   Scenario Outline: Unregistered Pro machine
