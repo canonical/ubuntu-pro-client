@@ -160,6 +160,8 @@ jobs:
           mkdir -p "$UACLIENT_BEHAVE_ARTIFACT_DIR"
 
           python3 ./tools/run-behave-with-retries.py \
+            --max-reruns 3 \
+            --max-failing-examples 10 \
             --runner-group lxd \
             --rerun-file "$UACLIENT_BEHAVE_ARTIFACT_DIR/behave.rerun" \
             -- \
