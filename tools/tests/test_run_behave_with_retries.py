@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 
+import pytest
+
 REPO_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..")
 )
@@ -23,6 +25,15 @@ MALFORMED_FEATURE = os.path.join(
     "fake_behave_malformed",
     "malformed.feature",
 )
+
+
+pytestmark = [
+    pytest.mark.rerun_tool,
+    pytest.mark.skipif(
+        os.environ.get("RUN_TOOL_TESTS") != "1",
+        reason="set RUN_TOOL_TESTS=1 to run rerunner tool tests",
+    ),
+]
 
 
 def _run_helper(
