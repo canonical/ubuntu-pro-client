@@ -144,4 +144,3 @@ Feature: Attach API endpoint
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
-      | stonking | lxd-container |
