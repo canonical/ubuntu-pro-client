@@ -1,8 +1,8 @@
 Feature: API security/security status tests
 
   @uses.config.contract_token
-  Scenario Outline: Call Livepatched CVEs endpoint
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  Scenario: Call Livepatched CVEs endpoint
+    Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I run `pro api u.pro.security.status.livepatch_cves.v1` as non-root
     Then stdout matches regexp:
@@ -13,10 +13,6 @@ Feature: API security/security status tests
       """
       "type": "LivepatchCVEs"
       """
-
-    Examples:
-      | release | machine_type |
-      | xenial  | lxd-vm       |
 
   @uses.config.contract_token
   Scenario Outline: Call package manifest endpoint for machine

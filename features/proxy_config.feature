@@ -942,8 +942,8 @@ Feature: Proxy configuration
       | resolute | lxd-container |
 
   @slow
-  Scenario Outline: Enable realtime kernel through proxy on a machine with no internet
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  Scenario: Enable realtime kernel through proxy on a machine with no internet
+    Given a `jammy` `lxd-vm` machine with ubuntu-advantage-tools installed
     When I disable any internet connection on the machine
     Given a `focal` `lxd-container` machine named `proxy`
     When I apt install `squid` on the `proxy` machine
@@ -967,10 +967,6 @@ Feature: Proxy configuration
       Real-time kernel enabled
       A reboot is required to complete install.
       """
-
-    Examples:
-      | release | machine_type |
-      | jammy   | lxd-vm       |
 
   Scenario Outline: Support HTTPS-in-HTTPS proxies
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

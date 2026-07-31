@@ -252,8 +252,8 @@ Feature: Livepatch
       | xenial  | lxd-vm       |
 
   @slow
-  Scenario Outline: Attached enable livepatch on a machine with fips active
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+  Scenario: Attached enable livepatch on a machine with fips active
+    Given a `bionic` `lxd-vm` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     Then stdout matches regexp:
       """
@@ -309,10 +309,6 @@ Feature: Livepatch
         "warnings": []
       }
       """
-
-    Examples:
-      | release | machine_type |
-      | bionic  | lxd-vm       |
 
   Scenario Outline: Attach works when snapd cannot be installed
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
