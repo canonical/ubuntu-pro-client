@@ -122,12 +122,15 @@ class TestParseFeature:
             ("xenial", "lxd-vm"),
         }
 
-    def test_literal_scenario_coverage(self, tmp_path):
+    def test_plain_scenario_has_no_coverage(self, tmp_path):
+        # Plain scenarios have no Examples matrix, so they contribute no
+        # coverage. (The suite converts single-machine tests to one-row
+        # Scenario Outlines instead of hardcoding the machine.)
         path = _write(tmp_path, "literal.feature", LITERAL_FEATURE)
         summary = parse_feature(path)[0]
         assert summary.is_outline is False
-        assert summary.literal_cells == [("xenial", "lxd-vm")]
-        assert summary.coverage() == {("xenial", "lxd-vm")}
+        assert summary.examples == []
+        assert summary.coverage() == set()
 
     def test_non_matrix_columns_yield_no_coverage(self, tmp_path):
         path = _write(tmp_path, "nonmatrix.feature", NON_MATRIX_FEATURE)

@@ -582,8 +582,8 @@ Feature: CLI enable command
   # have overrides, we can consider removing this
   # esm-infra is a good choice because it doesn't already have
   # other overrides that would interfere with the test
-  Scenario: Cloud overrides for a generic aws Focal instance
-    Given a `focal` `aws.generic` machine with ubuntu-advantage-tools installed
+  Scenario Outline: Cloud overrides for a generic aws Focal instance
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I set the machine token overlay to the following yaml
       """
       machineTokenInfo:
@@ -608,6 +608,10 @@ Feature: CLI enable command
       """
       E: Unable to locate package some-package-aws
       """
+
+    Examples:
+      | release | machine_type |
+      | focal   | aws.generic  |
 
   Scenario Outline: APT auth file is edited correctly on enable
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

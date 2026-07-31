@@ -22,18 +22,12 @@ Usage (from the repo root)::
 import argparse
 import json
 import os
-import re
 import sys
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from behave.model import ScenarioOutline
 from behave.parser import parse_file
-
-#: Matches ``a `xenial` `lxd-vm` machine`` in a literal (non-outline) step.
-LITERAL_MACHINE_RE = re.compile(
-    r"`(?P<release>[^`]+)`\s+`(?P<machine_type>[^`]+)`\s+machine"
-)
 
 
 @dataclass
@@ -57,7 +51,6 @@ class ScenarioSummary:
     is_outline: bool
     tags: List[str] = field(default_factory=list)
     examples: List[ExampleTable] = field(default_factory=list)
-    literal_cells: List[Tuple[str, str]] = field(default_factory=list)
 
     def ordered_coverage(self) -> List[Tuple[str, str]]:
         """(release, machine_type) pairs in file (appearance) order."""
@@ -71,10 +64,6 @@ class ScenarioSummary:
                 if all(pair) and pair not in seen:
                     seen.add(pair)
                     ordered.append(pair)  # type: ignore[arg-type]
-        for pair in self.literal_cells:
-            if pair not in seen:
-                seen.add(pair)
-                ordered.append(pair)
         return ordered
 
     def coverage(self) -> Set[Tuple[str, str]]:
@@ -103,9 +92,6 @@ def parse_feature(path: str) -> List[ScenarioSummary]:
                 is_outline=is_outline,
                 tags=feature_tags + [str(tag) for tag in scenario.tags],
                 examples=_extract_examples(scenario),
-                literal_cells=(
-                    [] if is_outline else _extract_literals(scenario)
-                ),
             )
         )
     return summaries
@@ -131,19 +117,6 @@ def _extract_examples(scenario) -> List[ExampleTable]:
             )
         )
     return tables
-
-
-def _extract_literals(scenario) -> List[Tuple[str, str]]:
-    literals: List[Tuple[str, str]] = []
-    for step in getattr(scenario, "steps", None) or []:
-        match = LITERAL_MACHINE_RE.search(step.name)
-        if not match:
-            continue
-        release = match.group("release")
-        machine_type = match.group("machine_type")
-        if "<" not in release and "<" not in machine_type:
-            literals.append((release, machine_type))
-    return literals
 
 
 def discover_feature_files(paths: Sequence[str]) -> List[str]:

@@ -91,8 +91,8 @@ Feature: CLI security-status command
       | bionic  | lxd-container | ansible | esm-apps  |
 
   @uses.config.contract_token
-  Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
-    Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
+  Scenario Outline: Check for livepatch CVEs in security-status on an Ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I run `pro security-status --format json` as non-root
     Then stdout is a json matching the `ua_security_status` schema
@@ -108,9 +108,13 @@ Feature: CLI security-status command
       \s*  patched: true
       """
 
+    Examples:
+      | release | machine_type |
+      | xenial  | lxd-vm       |
+
   @uses.config.contract_token @arm64
-  Scenario: Run security status in an Ubuntu machine
-    Given a `xenial` `lxd-container` machine with ubuntu-advantage-tools installed
+  Scenario Outline: Run security status in an Ubuntu machine
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I install third-party / unknown packages in the machine
     # Ansible is in esm-apps
     And I apt install `ansible`
@@ -450,6 +454,10 @@ Feature: CLI security-status command
 
       Enable esm-apps with: pro enable esm-apps
       """
+
+    Examples:
+      | release | machine_type  |
+      | xenial  | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Run security status in an Ubuntu machine
@@ -1204,7 +1212,7 @@ Feature: CLI security-status command
           sudo apt update
       to get the latest package information from apt\.
 
-      Main/Restricted packages receive updates until 1/2026\.
+        Main/Restricted packages receive updates until 1/2026\.
 
       Ubuntu Pro is not available for non-LTS releases\.
       """
