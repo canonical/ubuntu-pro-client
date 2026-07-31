@@ -36,7 +36,6 @@ Feature: CLI attach command
     Examples: ubuntu release
       | release  | machine_type  | landscape | status_string                                                           |
       | questing | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
-      | stonking | lxd-container | disabled  | landscape +yes +disabled +Management and administration tool for Ubuntu |
 
   Scenario Outline: Attach command with attach config
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
