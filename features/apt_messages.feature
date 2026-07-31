@@ -131,9 +131,9 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\\/\\/ubuntu\\.com\\/pro                             |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
