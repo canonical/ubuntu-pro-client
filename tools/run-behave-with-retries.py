@@ -22,6 +22,7 @@ Examples::
 from __future__ import print_function
 
 import argparse
+import errno
 import os
 import shlex
 import subprocess
@@ -101,6 +102,17 @@ def run_command(command, runner_group=None, caller=None):
     return caller(command)
 
 
+def ensure_parent_dir(path):
+    parent_dir = os.path.dirname(path)
+    if not parent_dir:
+        return
+    try:
+        os.makedirs(parent_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+
+
 def load_rerun_entries(rerun_file, cwd):
     """Behave emits relative paths for re-runs. If the file isn't emitted to
     repo root, Behave fails to discover steps. Re-write failures as absolute
@@ -134,10 +146,46 @@ def normalize_rerun_file(rerun_file, cwd):
             stream.write("{}\n".format(entry))
 
 
+def write_rerun_snapshot(rerun_file, rerun_count):
+    snapshot_file = "{}.attempt-{}".format(rerun_file, rerun_count)
+    with open(rerun_file) as source:
+        contents = source.read()
+    with open(snapshot_file, "w") as target:
+        target.write(contents)
+    return snapshot_file
+
+
+def emit_attempt_start(
+    printer, rerun_count, max_reruns, behave_target, command
+):
+    if rerun_count == 0:
+        label = "initial"
+    else:
+        label = "rerun {}/{}".format(rerun_count, max_reruns)
+    printer("Starting Behave {} with target {}".format(label, behave_target))
+    printer("Behave command: {}".format(" ".join(command)))
+
+
+def emit_rerun_summary(printer, rerun_file, entries, rerun_count):
+    snapshot_file = write_rerun_snapshot(rerun_file, rerun_count)
+    printer(
+        "Saved rerun snapshot for attempt {} to {}".format(
+            rerun_count, snapshot_file
+        )
+    )
+    printer("Failing rerun targets:")
+    for entry in entries[:20]:
+        printer("  {}".format(entry))
+    if len(entries) > 20:
+        printer("  ... {} more targets omitted".format(len(entries) - 20))
+
+
 def run_with_retries(args, caller=None, printer=None):
     printer = printer or print
     rerun_count = 0
     cwd = os.getcwd()
+
+    ensure_parent_dir(args.rerun_file)
 
     if os.path.exists(args.rerun_file):
         os.unlink(args.rerun_file)
@@ -150,6 +198,9 @@ def run_with_retries(args, caller=None, printer=None):
 
         command = build_behave_command(
             behave_target, args.behave_args, args.rerun_file
+        )
+        emit_attempt_start(
+            printer, rerun_count, args.max_reruns, behave_target, command
         )
         if run_command(command, args.runner_group, caller=caller) == 0:
             return 0
@@ -165,7 +216,11 @@ def run_with_retries(args, caller=None, printer=None):
             return 1
 
         normalize_rerun_file(args.rerun_file, cwd)
-        failing_examples = count_failing_examples(args.rerun_file)
+        rerun_entries = load_rerun_entries(args.rerun_file, cwd)
+        failing_examples = len(rerun_entries)
+        emit_rerun_summary(
+            printer, args.rerun_file, rerun_entries, rerun_count
+        )
         if failing_examples >= args.max_failing_examples:
             printer(
                 "Behave reported {} failing examples; not retrying".format(

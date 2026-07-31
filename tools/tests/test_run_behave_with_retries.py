@@ -87,7 +87,9 @@ class TestRunBehaveWithRetries:
 
         assert process.returncode == 0, process.stdout + process.stderr
         assert os.path.exists(os.path.join(state_dir, "single"))
+        assert "Starting Behave initial with target" in process.stdout
         assert "Retrying Behave for " in process.stdout
+        assert "Failing rerun targets:" in process.stdout
         assert "(rerun 1/3)" in process.stdout
 
     def test_retries_until_max_reruns_then_fails(self, tmpdir):
