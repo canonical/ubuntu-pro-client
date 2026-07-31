@@ -2,3 +2,7 @@
 mock
 pytest
 pytest-cov
+
+# Feature-test maintenance tooling (.github/agents/tools) parses the
+# behave feature files via behave's Gherkin parser.
+behave
