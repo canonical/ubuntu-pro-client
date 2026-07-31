@@ -157,7 +157,18 @@ jobs:
           sh -c 'printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/cloudinit_id_rsa'
           sh -c 'printf "%s\n" "$SSH_PUBLIC_KEY" > ~/.ssh/cloudinit_id_rsa.pub'
 
-          sg lxd -c "tox -e behave -- -D machine_types=${{ matrix.platform }} -D releases=${{ matrix.release }} --tags=-slow --tags=-upgrade --tags=-no_gh --tags=-vpn"
+          mkdir -p "$UACLIENT_BEHAVE_ARTIFACT_DIR"
+
+          python3 ./tools/run-behave-with-retries.py \
+            --runner-group lxd \
+            --rerun-file "$UACLIENT_BEHAVE_ARTIFACT_DIR/behave.rerun" \
+            -- \
+            -D machine_types=${{ matrix.platform }} \
+            -D releases=${{ matrix.release }} \
+            --tags=-slow \
+            --tags=-upgrade \
+            --tags=-no_gh \
+            --tags=-vpn
       - name: Archive test artifacts
         if: always()
         uses: actions/upload-artifact@v4
