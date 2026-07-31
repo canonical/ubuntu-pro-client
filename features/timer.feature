@@ -18,8 +18,8 @@ Feature: Timer for regular background jobs while attached
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Run timer script on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -97,8 +97,8 @@ Feature: Timer for regular background jobs while attached
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Run timer script to validate machine activity endpoint
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

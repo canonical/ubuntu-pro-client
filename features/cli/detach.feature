@@ -171,5 +171,5 @@ Feature: CLI detach command
       | jammy    | wsl           |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

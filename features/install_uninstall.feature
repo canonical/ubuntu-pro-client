@@ -13,8 +13,8 @@ Feature: Pro Install and Uninstall related tests
       | jammy    | lxd-container | ubuntu-advantage-tools |
       | noble    | lxd-container | ubuntu-pro-client      |
       | questing | lxd-container | ubuntu-pro-client      |
-      | stonking | lxd-container | ubuntu-pro-client      |
       | resolute | lxd-container | ubuntu-pro-client      |
+      | stonking | lxd-container | ubuntu-pro-client      |
 
   @uses.config.contract_token
   Scenario Outline: Purge package after attaching it to a machine
@@ -159,8 +159,8 @@ Feature: Pro Install and Uninstall related tests
       | jammy    | lxd-container | ubuntu_advantage |
       | noble    | lxd-container | ubuntu_pro       |
       | questing | lxd-container | ubuntu_pro       |
-      | stonking | lxd-container | ubuntu_pro       |
       | resolute | lxd-container | ubuntu_pro       |
+      | stonking | lxd-container | ubuntu_pro       |
 
   @uses.config.contract_token
   Scenario Outline: Create public machine token on postinst

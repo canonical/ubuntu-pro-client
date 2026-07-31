@@ -35,8 +35,8 @@ Feature: CLI auto-attach command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @arm64
   Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
@@ -69,5 +69,5 @@ Feature: CLI auto-attach command
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

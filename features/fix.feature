@@ -29,8 +29,8 @@ Feature: Ua fix command behaviour
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

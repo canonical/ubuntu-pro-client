@@ -16,8 +16,8 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: cloud-id-shim should run in postinst and on boot

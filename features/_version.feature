@@ -76,15 +76,10 @@ Feature: Pro is expected version
       | noble    | gcp.generic    |
       | noble    | gcp.pro        |
       | questing | lxd-container  |
-      | stonking | lxd-container  |
       | questing | lxd-vm         |
-      | stonking | lxd-vm         |
       | questing | aws.generic    |
-      | stonking | aws.generic    |
       | questing | azure.generic  |
-      | stonking | azure.generic  |
       | questing | gcp.generic    |
-      | stonking | gcp.generic    |
       | resolute | lxd-container  |
       | resolute | lxd-vm         |
       | resolute | aws.generic    |
@@ -93,6 +88,11 @@ Feature: Pro is expected version
       | resolute | azure.pro      |
       | resolute | gcp.generic    |
       | resolute | gcp.pro        |
+      | stonking | lxd-container  |
+      | stonking | lxd-vm         |
+      | stonking | aws.generic    |
+      | stonking | azure.generic  |
+      | stonking | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
@@ -124,8 +124,8 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: Attached show version in a ubuntu machine
@@ -148,8 +148,8 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @arm64
   Scenario Outline: Check for newer versions of the client in an ubuntu machine
@@ -233,5 +233,5 @@ Feature: Pro is expected version
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

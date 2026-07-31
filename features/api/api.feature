@@ -36,8 +36,8 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @arm64
   Scenario Outline: API invalid endpoint or args
@@ -88,8 +88,8 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @arm64
   Scenario Outline: Basic endpoints
@@ -183,8 +183,8 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: u.pro.status.is_attached.v1
@@ -297,5 +297,5 @@ Feature: Client behaviour for the API endpoints
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
-      | stonking | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
