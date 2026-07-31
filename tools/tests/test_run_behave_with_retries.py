@@ -1,0 +1,156 @@
+import os
+import subprocess
+import sys
+
+REPO_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+FAKE_BEHAVE_DIR = os.path.join(
+    REPO_ROOT,
+    "tools",
+    "tests",
+    "fake_behave",
+)
+SCRIPT_PATH = os.path.join(
+    REPO_ROOT,
+    "tools",
+    "run-behave-with-retries.py",
+)
+MALFORMED_FEATURE = os.path.join(
+    REPO_ROOT,
+    "tools",
+    "tests",
+    "fake_behave_malformed",
+    "malformed.feature",
+)
+
+
+def _run_helper(
+    tmpdir,
+    selector,
+    behave_args=None,
+    max_reruns=None,
+    max_failing_examples=None,
+    use_feature_target=False,
+):
+    env = os.environ.copy()
+    state_dir = tmpdir.mkdir("state")
+    rerun_file = str(tmpdir.join("behave.rerun"))
+    env["UACLIENT_BEHAVE_RETRY_STATE_DIR"] = str(state_dir)
+
+    if use_feature_target:
+        initial_target = os.path.relpath(
+            os.path.join(FAKE_BEHAVE_DIR, selector), REPO_ROOT
+        )
+    else:
+        initial_target = os.path.relpath(FAKE_BEHAVE_DIR, REPO_ROOT)
+
+    command = [
+        sys.executable,
+        SCRIPT_PATH,
+        "--initial-target",
+        initial_target,
+        "--rerun-file",
+        rerun_file,
+    ]
+    if max_reruns is not None:
+        command.extend(["--max-reruns", str(max_reruns)])
+    if max_failing_examples is not None:
+        command.extend(["--max-failing-examples", str(max_failing_examples)])
+
+    command.append("--")
+    if not use_feature_target:
+        command.append("--tags=@{}".format(selector))
+    command.extend(behave_args or ["--no-summary"])
+
+    process = subprocess.run(
+        command,
+        cwd=REPO_ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    return process, str(state_dir), rerun_file
+
+
+class TestRunBehaveWithRetries:
+    def test_passes_without_rerun_when_behave_is_clean(self, tmpdir):
+        process, _state_dir, rerun_file = _run_helper(tmpdir, "suite_pass")
+
+        assert process.returncode == 0, process.stdout + process.stderr
+        assert "Retrying Behave for " not in process.stdout
+        assert not os.path.exists(rerun_file)
+
+    def test_retries_a_flaky_feature_once(self, tmpdir):
+        process, state_dir, _rerun_file = _run_helper(tmpdir, "suite_flaky")
+
+        assert process.returncode == 0, process.stdout + process.stderr
+        assert os.path.exists(os.path.join(state_dir, "single"))
+        assert "Retrying Behave for " in process.stdout
+        assert "(rerun 1/3)" in process.stdout
+
+    def test_retries_until_max_reruns_then_fails(self, tmpdir):
+        process, _state_dir, _rerun_file = _run_helper(
+            tmpdir, "suite_always_fail"
+        )
+
+        assert process.returncode == 1
+        assert "(rerun 1/3)" in process.stdout
+        assert "(rerun 2/3)" in process.stdout
+        assert "(rerun 3/3)" in process.stdout
+        assert "Behave still failing after 3 reruns" in process.stderr
+
+    def test_does_not_retry_when_failures_hit_threshold(self, tmpdir):
+        process, _state_dir, _rerun_file = _run_helper(
+            tmpdir, "suite_threshold"
+        )
+
+        assert process.returncode == 1
+        assert "Retrying Behave for " not in process.stdout
+        assert "Behave reported 10 failing examples" in process.stderr
+
+    def test_does_not_retry_when_failures_exceed_threshold(self, tmpdir):
+        process, _state_dir, _rerun_file = _run_helper(
+            tmpdir, "suite_above_threshold"
+        )
+
+        assert process.returncode == 1
+        assert "Retrying Behave for " not in process.stdout
+        assert "Behave reported 11 failing examples" in process.stderr
+
+    def test_fails_fast_without_rerun_targets(self, tmpdir):
+        process, _state_dir, _rerun_file = _run_helper(
+            tmpdir,
+            os.path.relpath(MALFORMED_FEATURE, FAKE_BEHAVE_DIR),
+            use_feature_target=True,
+        )
+
+        assert process.returncode == 1
+        assert "Retrying Behave for " not in process.stdout
+        assert (
+            "Behave failed without rerun targets; not retrying"
+            in process.stderr
+        )
+
+    def test_retries_multiple_failing_examples_and_then_passes(self, tmpdir):
+        process, state_dir, _rerun_file = _run_helper(
+            tmpdir, "suite_multi_flaky"
+        )
+
+        assert process.returncode == 0, process.stdout + process.stderr
+        for key in ("one", "two", "three"):
+            assert os.path.exists(os.path.join(state_dir, key))
+        assert "Retrying Behave for " in process.stdout
+        assert "(rerun 1/3)" in process.stdout
+
+    def test_passes_behave_args_through_to_reruns(self, tmpdir):
+        process, state_dir, _rerun_file = _run_helper(
+            tmpdir,
+            "suite_tagged",
+            behave_args=["--no-summary", "--tags=@selected"],
+        )
+
+        assert process.returncode == 0, process.stdout + process.stderr
+        assert os.path.exists(os.path.join(state_dir, "tagged"))
+        assert "Retrying Behave for " in process.stdout
