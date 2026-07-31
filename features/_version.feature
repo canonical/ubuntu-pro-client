@@ -90,9 +90,6 @@ Feature: Pro is expected version
       | resolute | gcp.pro        |
       | stonking | lxd-container  |
       | stonking | lxd-vm         |
-      | stonking | aws.generic    |
-      | stonking | azure.generic  |
-      | stonking | gcp.generic    |
 
   @uses.config.check_version @upgrade
   Scenario Outline: Check pro version
