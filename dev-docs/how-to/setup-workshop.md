@@ -6,7 +6,7 @@ sandboxed Ubuntu container with all required tooling pre-installed.
 
 ## Prerequisites
 
-Workshop uses [LXD](https://documentation.ubuntu.com/lxd/default/tutorial/first_steps/) to manage containers. Install it before proceeding:
+Workshop uses [LXD](https://canonical.com/lxd/docs/default/tutorial/first_steps/) to manage containers. Install it before proceeding:
 
 ```bash
 sudo snap install --channel 6/stable lxd

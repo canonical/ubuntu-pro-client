@@ -156,7 +156,7 @@ lxc delete --force test-xenial
 > **Note**
 > Docker can interfere with LXD container networking. If you need Docker
 > installed alongside LXD, follow the guidance in
-> [the LXD documentation](https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker)
+> [the LXD documentation](https://canonical.com/lxd/docs/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker)
 > to ensure that Docker doesn't break LXD networking.
 
 ## Building Ubuntu Pro Client for testing
