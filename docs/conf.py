@@ -241,7 +241,6 @@ html_css_files = [
 html_js_files = [
     "https://assets.ubuntu.com/v1/287a5e8f-bundle.js",
     "pro-header-nav.js",
-    "overwrite_links.js",
 ]
 
 # Custom content for the 404 (page not found) page.
