@@ -3,6 +3,8 @@ from behave import when
 from features.steps.packages import when_i_apt_install
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 
+OSCAP_RELEASE_URL = "https://github.com/OpenSCAP/openscap/releases/download/"
+OSCAP_137_RELEASE_TARBALL = "1.3.7/openscap-1.3.7.tar.gz"
 LEGACY_OSCAP_SOURCE_BUILDS = {"xenial", "bionic", "focal", "jammy"}
 
 OSCAP_137_BUILD_DEPS = " ".join(
@@ -40,8 +42,8 @@ def when_i_install_oscap_tool(context):
     """
     Install the OpenSCAP scanner tool.
 
-    On older releases, this is built from source to avoid problems that were fixed in
-    v1.3.7. This version is not available in `apt` until Noble.
+    On older releases, this is built from source to avoid problems that were
+    fixed in v1.3.7. This version is not available in `apt` until Noble.
 
     On Noble+, install directly using `apt`.
 
@@ -61,7 +63,7 @@ def _install_oscap_from_source(context):
     when_i_apt_install(context, OSCAP_137_BUILD_DEPS)
     when_i_run_command(
         context,
-        "wget https://github.com/OpenSCAP/openscap/releases/download/1.3.7/openscap-1.3.7.tar.gz",
+        f"wget {OSCAP_RELEASE_URL}{OSCAP_137_RELEASE_TARBALL}",
         "as non-root",
     )
     when_i_run_command(
