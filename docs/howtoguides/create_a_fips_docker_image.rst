@@ -71,23 +71,6 @@ First, let's create a directory for this tutorial and navigate there.
     mkdir pro_fips_tutorial
     cd pro_fips_tutorial
 
-Now we need to create our config file called ``pro-attach-config.yaml``:
-
-.. code-block:: bash
-
-    touch pro-attach-config.yaml
-
-Edit the file, add the following contents, and save it:
-
-.. code-block:: yaml
-
-    token: YOUR_TOKEN
-    enable_services:
-    - fips
-
-Replace ``YOUR_TOKEN`` with the Ubuntu Pro token we got from the Ubuntu Pro
-`dashboard <Pro_>`_ earlier.
-
 Create a Dockerfile
 ===================
 
@@ -103,24 +86,101 @@ and install the FIPS version of ``openssl``.
 
 Edit the file and add the following contents:
 
-.. code-block:: dockerfile
+.. tab-set::
 
-    FROM ubuntu:focal
+    .. tab-item:: Focal (20.04)
+        
+        .. code-block:: dockerfile
 
-    RUN --mount=type=secret,id=pro-attach-config \
-        apt-get update \
-        && apt-get install --no-install-recommends -y ubuntu-pro-client ca-certificates \
-        && pro attach --attach-config /run/secrets/pro-attach-config \
-        && apt-get upgrade -y \
-        && apt-get install -y openssl libssl1.1 libssl1.1-hmac libgcrypt20 libgcrypt20-hmac strongswan strongswan-hmac openssh-client openssh-server \
-        && pro detach --assume-yes \
-        && apt-get purge --auto-remove -y ubuntu-pro-client ca-certificates \
-        && rm -rf /var/lib/apt/lists/*
+            FROM ubuntu:focal
 
-.. hint::
+            ENV DEBIAN_FRONTEND=noninteractive
+            ENV OPENSSL_FORCE_FIPS_MODE=0
 
-    For more details on how this works, see our how-to guide on enabling
-    :ref:`Ubuntu Pro Services in a Dockerfile <enable_in_dockerfile>`.
+            # Mount the token file and attach explicitly
+            RUN --mount=type=secret,id=pro-token \
+                apt-get update -y && \
+                apt-get install -y ubuntu-pro-client ca-certificates && \
+                pro attach $(cat /run/secrets/pro-token) --no-auto-enable && \
+                pro enable fips-updates --assume-yes && \
+                apt-get update -y && \
+                apt-get install -y openssl libssl1.1 libssl1.1-hmac libgcrypt20 libgcrypt20-hmac strongswan strongswan-hmac openssh-client openssh-server && \
+                pro detach --assume-yes || true && \
+                apt-get purge -y ubuntu-pro-client && \
+                apt-get autoremove -y && \
+                rm -rf /var/lib/apt/lists/*
+
+            ENV OPENSSL_FORCE_FIPS_MODE=1
+
+            CMD ["/bin/bash"]
+
+    .. tab-item:: Jammy (22.04)
+
+        .. code-block:: dockerfile
+
+            FROM ubuntu:jammy
+
+            ENV DEBIAN_FRONTEND=noninteractive
+            ENV OPENSSL_FORCE_FIPS_MODE=0
+
+            # Mount the token file and attach explicitly
+            RUN --mount=type=secret,id=pro-token \
+                apt-get update -y && \
+                apt-get install -y ubuntu-pro-client ca-certificates && \
+                pro attach $(cat /run/secrets/pro-token) --no-auto-enable && \
+                pro enable fips-updates --assume-yes && \
+                apt-get update -y && \
+                apt-get install -y openssl openssl-fips-module-3 libgcrypt20 strongswan openssh-client libgnutls30 && \
+                pro detach --assume-yes || true && \
+                apt-get purge -y ubuntu-pro-client && \
+                apt-get autoremove -y && \
+                rm -rf /var/lib/apt/lists/*
+
+            ENV OPENSSL_FORCE_FIPS_MODE=1
+
+            CMD ["/bin/bash"]
+
+    .. tab-item:: Noble (24.04)
+
+        .. code-block:: dockerfile
+
+            FROM ubuntu:noble
+
+            ENV DEBIAN_FRONTEND=noninteractive
+            ENV OPENSSL_FORCE_FIPS_MODE=0
+
+            # Mount the token file and attach explicitly
+            RUN --mount=type=secret,id=pro-token \
+                apt-get update -y && \
+                apt-get install -y ubuntu-pro-client ca-certificates && \
+                pro attach $(cat /run/secrets/pro-token) --no-auto-enable && \
+                pro enable fips-updates --assume-yes && \
+                apt-get update -y && \
+                apt-get install -y openssl openssl-fips-module-3 libgcrypt20 strongswan openssh-client libgnutls30t64 && \
+                pro detach --assume-yes || true && \
+                apt-get purge -y ubuntu-pro-client && \
+                apt-get autoremove -y && \
+                rm -rf /var/lib/apt/lists/*
+
+            ENV OPENSSL_FORCE_FIPS_MODE=1
+
+            CMD ["/bin/bash"]
+
+
+Create a short-lived token and store it in a file:
+======================================================
+.. code-block:: bash
+
+    sudo pro api u.pro.attach.guest.get_guest_token.v1 | jq -r '.data.attributes.guest_token' > pro-token.txt
+
+.. note::
+
+    The token is short-lived and will expire after a few minutes. If you are
+    unable to build the Docker image in that time, you will need to create a
+    new token.
+
+Alternatively, we can use the permanent Ubuntu Pro token in the 
+``pro-token.txt`` file if the host is not attached to Pro. This is however not recommended.
 
 Build the Docker image
 ======================
@@ -129,11 +189,17 @@ Now let's build the docker image by running the following command:
 
 .. code-block:: bash
 
-    DOCKER_BUILDKIT=1 docker build . --secret id=pro-attach-config,src=pro-attach-config.yaml -t ubuntu-focal-fips
+    DOCKER_BUILDKIT=1 docker build . --secret id=pro-token,src=pro-token.txt -t <image-name>
 
-This will pass the ``pro-attach-config.yaml`` file we created earlier as a
+This will pass the ``pro-token.txt`` file we created earlier as a
 `BuildKit Secret`_ so that the finished Docker image will not contain your
 Ubuntu Pro token.
+
+Optionally, delete the ``pro-token.txt`` file after the build is complete:
+
+.. code-block:: bash
+
+    rm pro-token.txt
 
 Test the Docker image
 =====================
@@ -148,7 +214,8 @@ container. First, let us run:
 
 .. code-block:: bash
 
-    docker run -it ubuntu-focal-fips dpkg-query --show openssl
+    docker image list
+    docker run -it --rm <image-name> dpkg-query --show openssl
 
 This should show something like: ``openssl	1.1.1f-1ubuntu2.fips.2.8`` (notice
 "fips" in the version name).
@@ -158,7 +225,7 @@ to ``https://ubuntu.com``:
 
 .. code-block:: bash
 
-    docker run -it ubuntu-focal-fips sh -c "echo | openssl s_client -connect ubuntu.com:443"
+    docker run -it --rm <image-name> sh -c "echo | openssl s_client -connect ubuntu.com:443"
 
 This should print information about the certificates of ubuntu.com and the
 algorithms used during the TLS handshake.
