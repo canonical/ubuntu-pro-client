@@ -71,23 +71,6 @@ First, let's create a directory for this tutorial and navigate there.
     mkdir pro_fips_tutorial
     cd pro_fips_tutorial
 
-.. Now we need to create our config file called ``pro-attach-config.yaml``:
-
-.. .. code-block:: bash
-
-..     touch pro-attach-config.yaml
-
-.. Edit the file, add the following contents, and save it:
-
-.. .. code-block:: yaml
-
-..     token: YOUR_TOKEN
-..     enable_services:
-..     - fips
-
-.. Replace ``YOUR_TOKEN`` with the Ubuntu Pro token we got from the Ubuntu Pro
-.. `dashboard <Pro_>`_ earlier.
-
 Create a Dockerfile
 ===================
 
