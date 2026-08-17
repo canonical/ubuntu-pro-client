@@ -187,16 +187,14 @@ Feature: CLI disable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | msg                                                                                                                                                                                |
-      | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
-      | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
-      | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
-      | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
-      | noble   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | release  | machine_type  | msg                                                                                                                                                                                |
+      | xenial   | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | bionic   | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | focal    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | jammy    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | noble    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | resolute | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
 
-  # TODO: Re-enable resolute once ua-contracts resource definitions are
-  # updated to present CIS as usg like noble.
-  # | resolute| lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
   @uses.config.contract_token
   Scenario Outline: Disable with purge does not work with assume-yes
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

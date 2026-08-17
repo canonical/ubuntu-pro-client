@@ -622,7 +622,6 @@ Feature: CLI status command
       SERVICE          +ENTITLED +STATUS   +DESCRIPTION
       anbox-cloud      +yes      +disabled +.*
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      cis              +yes      +n/a      +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
@@ -633,6 +632,7 @@ Feature: CLI status command
       realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
       ros              +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+      usg              +yes      +n/a      +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
