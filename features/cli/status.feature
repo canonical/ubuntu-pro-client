@@ -1097,7 +1097,7 @@ Feature: CLI status command
       | release | machine_type  |
       | noble   | lxd-container |
 
-  Scenario Outline: Unattached status in a ubuntu machine - resolute
+  Scenario Outline: Unattached status in a Resolute ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify root and non-root `pro status` calls have the same output
     And I run `pro status` as non-root
@@ -1122,7 +1122,6 @@ Feature: CLI status command
       SERVICE          +AVAILABLE +DESCRIPTION
       anbox-cloud      +yes       +.*
       cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
-      cis              +no        +Security compliance and audit tools
       esm-apps         +yes       +Expanded Security Maintenance for Applications
       esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
@@ -1135,6 +1134,7 @@ Feature: CLI status command
       realtime-kernel  +no        +Ubuntu kernel with PREEMPT_RT patches integrated
       ros              +no        +Security Updates for the Robot Operating System
       ros-updates      +no        +All Updates for the Robot Operating System
+      usg              +no        +Security compliance and audit tools
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
