@@ -52,7 +52,7 @@ def _run_helper(
     tmpdir,
     selector,
     behave_args=None,
-    max_reruns=None,
+    max_attempts=None,
     max_failing_examples=None,
     use_feature_target=False,
 ):
@@ -76,8 +76,8 @@ def _run_helper(
         "--rerun-file",
         rerun_file,
     ]
-    if max_reruns is not None:
-        command.extend(["--max-reruns", str(max_reruns)])
+    if max_attempts is not None:
+        command.extend(["--max-attempts", str(max_attempts)])
     if max_failing_examples is not None:
         command.extend(["--max-failing-examples", str(max_failing_examples)])
 
@@ -112,21 +112,21 @@ class TestRunBehaveWithRetries:
 
         assert process.returncode == 0, process.stdout + process.stderr
         assert os.path.exists(os.path.join(state_dir, "single"))
-        assert "Starting Behave initial with target" in process.stdout
+        assert "attempt 1/4 (initial)" in process.stdout
         assert "Retrying Behave for " in process.stdout
         assert "Failing rerun targets:" in process.stdout
-        assert "(rerun 1/3)" in process.stdout
+        assert "(attempt 2/4)" in process.stdout
 
-    def test_retries_until_max_reruns_then_fails(self, tmpdir):
+    def test_retries_until_max_attempts_then_fails(self, tmpdir):
         process, _state_dir, _rerun_file = _run_helper(
             tmpdir, "suite_always_fail"
         )
 
         assert process.returncode == 1
-        assert "(rerun 1/3)" in process.stdout
-        assert "(rerun 2/3)" in process.stdout
-        assert "(rerun 3/3)" in process.stdout
-        assert "Behave still failing after 3 reruns" in process.stderr
+        assert "(attempt 2/4)" in process.stdout
+        assert "(attempt 3/4)" in process.stdout
+        assert "(attempt 4/4)" in process.stdout
+        assert "Behave still failing after 4 attempts" in process.stderr
 
     def test_does_not_retry_when_failures_hit_threshold(self, tmpdir):
         process, _state_dir, _rerun_file = _run_helper(
@@ -169,7 +169,7 @@ class TestRunBehaveWithRetries:
         for key in ("one", "two", "three"):
             assert os.path.exists(os.path.join(state_dir, key))
         assert "Retrying Behave for " in process.stdout
-        assert "(rerun 1/3)" in process.stdout
+        assert "(attempt 2/4)" in process.stdout
 
     def test_passes_behave_args_through_to_reruns(self, tmpdir):
         process, state_dir, _rerun_file = _run_helper(
@@ -254,3 +254,8 @@ class TestBuildBehaveCommand:
         args = rerunner.parse_args(["--", "-D", "x=1"])
 
         assert args.console_format == "pretty"
+
+    def test_max_attempts_defaults_to_four_in_parse_args(self):
+        args = rerunner.parse_args(["--", "-D", "x=1"])
+
+        assert args.max_attempts == 4

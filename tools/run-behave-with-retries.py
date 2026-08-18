@@ -5,7 +5,7 @@ This helper runs ``tox -e behave`` once against an initial target and, on
 failure, uses Behave's ``rerun`` formatter output to retry only the failed
 scenario/example locations. Retries stop when the suite passes, when the rerun
 file is empty, when the number of failing locations reaches the configured
-limit, or when the rerun limit is exhausted.
+limit, or when the maximum number of attempts is reached.
 
 Examples::
 
@@ -42,10 +42,13 @@ def parse_args(argv=None):
         help="path to Behave rerun file",
     )
     parser.add_argument(
-        "--max-reruns",
+        "--max-attempts",
         type=int,
-        default=int(os.environ.get("MAX_RERUNS", 3)),
-        help="maximum number of reruns after the initial failure",
+        default=int(os.environ.get("MAX_ATTEMPTS", 4)),
+        help=(
+            "maximum number of behave runs, counting the initial run "
+            "(e.g. 4 means the initial run plus up to 3 reruns)"
+        ),
     )
     parser.add_argument(
         "--max-failing-examples",
@@ -160,8 +163,8 @@ def normalize_rerun_file(rerun_file, cwd):
             stream.write("{}\n".format(entry))
 
 
-def write_rerun_snapshot(rerun_file, rerun_count):
-    snapshot_file = "{}.attempt-{}".format(rerun_file, rerun_count)
+def write_rerun_snapshot(rerun_file, attempt):
+    snapshot_file = "{}.attempt-{}".format(rerun_file, attempt)
     with open(rerun_file) as source:
         contents = source.read()
     with open(snapshot_file, "w") as target:
@@ -169,22 +172,24 @@ def write_rerun_snapshot(rerun_file, rerun_count):
     return snapshot_file
 
 
-def emit_attempt_start(
-    printer, rerun_count, max_reruns, behave_target, command
-):
-    if rerun_count == 0:
+def emit_attempt_start(printer, attempt, max_attempts, behave_target, command):
+    if attempt == 1:
         label = "initial"
     else:
-        label = "rerun {}/{}".format(rerun_count, max_reruns)
-    printer("Starting Behave {} with target {}".format(label, behave_target))
+        label = "rerun {}".format(attempt - 1)
+    printer(
+        "Starting Behave attempt {}/{} ({}) with target {}".format(
+            attempt, max_attempts, label, behave_target
+        )
+    )
     printer("Behave command: {}".format(" ".join(command)))
 
 
-def emit_rerun_summary(printer, rerun_file, entries, rerun_count):
-    snapshot_file = write_rerun_snapshot(rerun_file, rerun_count)
+def emit_rerun_summary(printer, rerun_file, entries, attempt):
+    snapshot_file = write_rerun_snapshot(rerun_file, attempt)
     printer(
         "Saved rerun snapshot for attempt {} to {}".format(
-            rerun_count, snapshot_file
+            attempt, snapshot_file
         )
     )
     printer("Failing rerun targets:")
@@ -196,7 +201,7 @@ def emit_rerun_summary(printer, rerun_file, entries, rerun_count):
 
 def run_with_retries(args, caller=None, printer=None):
     printer = printer or print
-    rerun_count = 0
+    attempt = 1
     cwd = os.getcwd()
 
     ensure_parent_dir(args.rerun_file)
@@ -205,7 +210,7 @@ def run_with_retries(args, caller=None, printer=None):
         os.unlink(args.rerun_file)
 
     while True:
-        if rerun_count == 0:
+        if attempt == 1:
             behave_target = args.initial_target
         else:
             behave_target = "@{}".format(args.rerun_file)
@@ -217,7 +222,7 @@ def run_with_retries(args, caller=None, printer=None):
             args.console_format,
         )
         emit_attempt_start(
-            printer, rerun_count, args.max_reruns, behave_target, command
+            printer, attempt, args.max_attempts, behave_target, command
         )
         if run_command(command, args.runner_group, caller=caller) == 0:
             return 0
@@ -235,9 +240,7 @@ def run_with_retries(args, caller=None, printer=None):
         normalize_rerun_file(args.rerun_file, cwd)
         rerun_entries = load_rerun_entries(args.rerun_file, cwd)
         failing_examples = len(rerun_entries)
-        emit_rerun_summary(
-            printer, args.rerun_file, rerun_entries, rerun_count
-        )
+        emit_rerun_summary(printer, args.rerun_file, rerun_entries, attempt)
         if failing_examples >= args.max_failing_examples:
             printer(
                 "Behave reported {} failing examples; not retrying".format(
@@ -247,17 +250,17 @@ def run_with_retries(args, caller=None, printer=None):
             )
             return 1
 
-        if rerun_count >= args.max_reruns:
+        if attempt >= args.max_attempts:
             printer(
-                "Behave still failing after {} reruns".format(rerun_count),
+                "Behave still failing after {} attempts".format(attempt),
                 file=sys.stderr,
             )
             return 1
 
-        rerun_count += 1
+        attempt += 1
         printer(
-            "Retrying Behave for {} failing examples (rerun {}/{})".format(
-                failing_examples, rerun_count, args.max_reruns
+            "Retrying Behave for {} failing examples (attempt {}/{})".format(
+                failing_examples, attempt, args.max_attempts
             )
         )
 
