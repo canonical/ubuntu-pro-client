@@ -1120,83 +1120,18 @@ Feature: Ua fix command behaviour
 
       .*✔.* USN-8572-1 is resolved.
       """
-    When I run `pro fix USN-8566-1` as non-root
+    When I run `pro fix USN-8612-1` as non-root
     And I remove colors from output
     Then stdout matches regexp:
       """
-      Fixing requested USN-8566-1
+      USN-8612-1: Roc Toolkit vulnerability
+      Associated CVEs:
+       - https://ubuntu.com/security/CVE-2026-29022
+
+      Fixing requested USN-8612-1
       No affected source packages are installed.
 
-      .*✔.* USN-8566-1 does not affect your system.
-
-      Found related USNs:
-      - USN-8489-1
-      - USN-8491-1
-      - USN-8567-1
-      - USN-8568-1
-      - USN-8569-1
-      - USN-8570-1
-      - USN-8574-1
-      - USN-8575-1
-      - USN-8576-1
-
-      Fixing related USNs:
-      - USN-8489-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8489-1 does not affect your system.
-
-      - USN-8491-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8491-1 does not affect your system.
-
-      - USN-8567-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8567-1 does not affect your system.
-
-      - USN-8568-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8568-1 does not affect your system.
-
-      - USN-8569-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8569-1 does not affect your system.
-
-      - USN-8570-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8570-1 does not affect your system.
-
-      - USN-8574-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8574-1 does not affect your system.
-
-      - USN-8575-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8575-1 does not affect your system.
-
-      - USN-8576-1
-      No affected source packages are installed.
-
-      .*✔.* USN-8576-1 does not affect your system.
-
-      Summary:
-      .*✔.* USN-8566-1 \[requested\] does not affect your system.
-      .*✔.* USN-8489-1 \[related\] does not affect your system.
-      .*✔.* USN-8491-1 \[related\] does not affect your system.
-      .*✔.* USN-8567-1 \[related\] does not affect your system.
-      .*✔.* USN-8568-1 \[related\] does not affect your system.
-      .*✔.* USN-8569-1 \[related\] does not affect your system.
-      .*✔.* USN-8570-1 \[related\] does not affect your system.
-      .*✔.* USN-8574-1 \[related\] does not affect your system.
-      .*✔.* USN-8575-1 \[related\] does not affect your system.
-      .*✔.* USN-8576-1 \[related\] does not affect your system.
+      .*✔.* USN-8612-1 does not affect your system.
       """
     When I run `pro fix CVE-2026-46108` with sudo
     And I remove colors from output
