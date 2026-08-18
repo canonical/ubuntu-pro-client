@@ -64,6 +64,14 @@ def parse_args(argv=None):
         help="optional Unix group name to use via sg -c",
     )
     parser.add_argument(
+        "--console-format",
+        default=os.environ.get("CONSOLE_FORMAT", "pretty"),
+        help=(
+            "behave formatter for console output, mapped to stdout "
+            "(default: pretty); use 'none' to disable"
+        ),
+    )
+    parser.add_argument(
         "behave_args",
         nargs=argparse.REMAINDER,
         help="arguments passed to `tox -e behave --`",
@@ -75,23 +83,29 @@ def parse_args(argv=None):
     return args
 
 
-def build_behave_command(target, behave_args, rerun_file):
-    return (
-        [
-            "tox",
-            "-e",
-            "behave",
-            "--",
-            target,
-        ]
-        + list(behave_args)
-        + [
-            "--format",
-            "rerun",
-            "--outfile",
-            rerun_file,
-        ]
-    )
+def build_behave_command(
+    target, behave_args, rerun_file, console_format="pretty"
+):
+    # Behave maps formatters to outfiles by position, so keep "rerun" first to
+    # guarantee it owns --outfile. Any extra formatters (the console format
+    # below, or ones in behave_args) then default to stdout. This also stops
+    # behave from dropping console output, which it does whenever a --format is
+    # given but no console formatter is paired with stdout.
+    command = [
+        "tox",
+        "-e",
+        "behave",
+        "--",
+        target,
+        "--format",
+        "rerun",
+        "--outfile",
+        rerun_file,
+    ]
+    command += list(behave_args)
+    if console_format and console_format.lower() != "none":
+        command += ["--format", console_format]
+    return command
 
 
 def run_command(command, runner_group=None, caller=None):
@@ -197,7 +211,10 @@ def run_with_retries(args, caller=None, printer=None):
             behave_target = "@{}".format(args.rerun_file)
 
         command = build_behave_command(
-            behave_target, args.behave_args, args.rerun_file
+            behave_target,
+            args.behave_args,
+            args.rerun_file,
+            args.console_format,
         )
         emit_attempt_start(
             printer, rerun_count, args.max_reruns, behave_target, command

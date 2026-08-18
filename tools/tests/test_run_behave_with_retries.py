@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import subprocess
 import sys
@@ -27,13 +28,24 @@ MALFORMED_FEATURE = os.path.join(
 )
 
 
-pytestmark = [
-    pytest.mark.rerun_tool,
-    pytest.mark.skipif(
-        os.environ.get("RUN_TOOL_TESTS") != "1",
-        reason="set RUN_TOOL_TESTS=1 to run rerunner tool tests",
-    ),
-]
+def _load_rerunner():
+    spec = importlib.util.spec_from_file_location(
+        "run_behave_with_retries", SCRIPT_PATH
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+rerunner = _load_rerunner()
+
+# The subprocess-based tests below drive a real `tox -e behave` run, so gate
+# them behind RUN_TOOL_TESTS. The build_behave_command unit tests are pure and
+# always run.
+requires_tool_tests = pytest.mark.skipif(
+    os.environ.get("RUN_TOOL_TESTS") != "1",
+    reason="set RUN_TOOL_TESTS=1 to run rerunner tool tests",
+)
 
 
 def _run_helper(
@@ -85,6 +97,8 @@ def _run_helper(
     return process, str(state_dir), rerun_file
 
 
+@pytest.mark.rerun_tool
+@requires_tool_tests
 class TestRunBehaveWithRetries:
     def test_passes_without_rerun_when_behave_is_clean(self, tmpdir):
         process, _state_dir, rerun_file = _run_helper(tmpdir, "suite_pass")
@@ -167,3 +181,76 @@ class TestRunBehaveWithRetries:
         assert process.returncode == 0, process.stdout + process.stderr
         assert os.path.exists(os.path.join(state_dir, "tagged"))
         assert "Retrying Behave for " in process.stdout
+
+
+def _formats_and_outfiles(command):
+    """Split a behave command into ordered --format and --outfile values.
+
+    Behave pairs the two lists positionally, so preserving order lets tests
+    assert which formatter receives the rerun outfile.
+    """
+    formats = []
+    outfiles = []
+    index = 0
+    while index < len(command):
+        if command[index] == "--format":
+            formats.append(command[index + 1])
+            index += 2
+        elif command[index] == "--outfile":
+            outfiles.append(command[index + 1])
+            index += 2
+        else:
+            index += 1
+    return formats, outfiles
+
+
+class TestBuildBehaveCommand:
+    def test_rerun_formatter_is_first_and_owns_the_outfile(self):
+        command = rerunner.build_behave_command(
+            "features", ["-D", "x=1"], "/tmp/rf"
+        )
+        formats, outfiles = _formats_and_outfiles(command)
+
+        assert formats[0] == "rerun"
+        assert outfiles == ["/tmp/rf"]
+
+    def test_default_console_format_is_pretty_on_stdout(self):
+        command = rerunner.build_behave_command("features", [], "/tmp/rf")
+        formats, outfiles = _formats_and_outfiles(command)
+
+        # Only one outfile, so pretty (index 1) falls back to stdout.
+        assert formats == ["rerun", "pretty"]
+        assert outfiles == ["/tmp/rf"]
+
+    def test_console_format_none_disables_console_formatter(self):
+        command = rerunner.build_behave_command(
+            "features", [], "/tmp/rf", "none"
+        )
+        formats, outfiles = _formats_and_outfiles(command)
+
+        assert formats == ["rerun"]
+        assert outfiles == ["/tmp/rf"]
+
+    def test_custom_console_format_passes_through(self):
+        command = rerunner.build_behave_command(
+            "features", [], "/tmp/rf", "plain"
+        )
+        formats, _outfiles = _formats_and_outfiles(command)
+
+        assert formats == ["rerun", "plain"]
+
+    def test_extra_format_in_behave_args_does_not_take_outfile(self):
+        command = rerunner.build_behave_command(
+            "features", ["--format", "json"], "/tmp/rf"
+        )
+        formats, outfiles = _formats_and_outfiles(command)
+
+        # rerun stays first so it keeps the only outfile; extras hit stdout.
+        assert formats[0] == "rerun"
+        assert outfiles == ["/tmp/rf"]
+        assert "json" in formats
+
+    def test_console_format_defaults_to_pretty_in_parse_args(self):
+        args = rerunner.parse_args(["--", "-D", "x=1"])
+
+        assert args.console_format == "pretty"
