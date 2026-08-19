@@ -16,7 +16,7 @@ ubuntu-advantage-tools (38ubuntu0) stonking; urgency=medium
     - clouds:
       + add support for GCE Marketplace Pro licenses (GH: #3573)
       + add resolute GCP license IDs (GH: #3532)
-      + map aws-gov to aws for correct FIPS flavor (GH: #3533)
+      + map aws-gov to aws for correct FIPS flavor (LP: #2144693)
 
  -- Spencer Runde <spencer.runde@canonical.com>  Fri, 31 Jul 2026 15:37:34 -0500
 
