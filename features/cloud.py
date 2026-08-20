@@ -4,7 +4,7 @@ import os
 import shlex
 import time
 from contextlib import suppress
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import pycloudlib  # type: ignore
 import toml
@@ -700,7 +700,7 @@ class _LXD(Cloud):
             )
         )
 
-        config_dict = {}
+        config_dict: Dict[str, Any] = {}
 
         inst = self.api.launch(
             name=instance_name,
