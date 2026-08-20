@@ -38,10 +38,7 @@ html_title = project + " documentation"
 # Set the URL where the documentation will be hosted so that it is used for the
 # Open Graph link preview and the sitemap. On Read the Docs the canonical URL is
 # provided automatically.
-ogp_site_url = os.environ.get(
-    "READTHEDOCS_CANONICAL_URL",
-    "https://documentation.ubuntu.com/pro-client/en/latest/",
-)
+ogp_site_url = f"https://ubuntu.com/pro-client/docs/{os.environ.get('READTHEDOCS_VERSION', 'local')}/"
 
 # Preview name of the documentation website
 ogp_site_name = project
@@ -88,21 +85,21 @@ html_theme_options = {
 }
 
 # Project slug
-# This documentation is hosted on https://documentation.ubuntu.com/pro-client/.
-slug = "pro-client"
+# This documentation is hosted on https://ubuntu.com/pro-client/docs/.
+slug = "pro-client/docs"
 
 #######################
 # Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
 #######################
 
 # Use RTD canonical URL to ensure duplicate pages have a specific canonical URL
-html_baseurl = os.environ.get(
-    "READTHEDOCS_CANONICAL_URL",
-    "https://documentation.ubuntu.com/pro-client/en/latest/",
-)
+html_baseurl = f"https://ubuntu.com/pro-client/docs/{os.environ.get('READTHEDOCS_VERSION', 'local')}/"
 
 # sphinx-sitemap uses html_baseurl to generate the full URL for each page:
 sitemap_url_scheme = "{link}"
+
+# Filename for the generated sitemap:
+sitemap_filename = "doc-sitemap.xml"
 
 # Include `lastmod` dates in the sitemap:
 sitemap_show_lastmod = True
@@ -152,9 +149,11 @@ llms_txt_description = textwrap.dedent(
     """
 )
 
-# The base URL for references built by sphinx-markdown-builder.
+# The base URL for references built by sphinx-markdown-builder (llms.txt).
+# The trailing slash is stripped because the builder joins this value with a
+# leading-slash path, which would otherwise produce a doubled slash.
 if os.environ.get("READTHEDOCS"):
-    markdown_http_base = html_baseurl
+    markdown_http_base = html_baseurl.rstrip("/")
 
 ###########################
 # Link checker exceptions #
