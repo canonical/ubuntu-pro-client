@@ -41,22 +41,6 @@ Feature: Enable anbox on Ubuntu
       | noble    | lxd-container |
       | resolute | lxd-container |
 
-  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
-  Scenario Outline: Enable Anbox cloud service in an unsupported release
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo and options `--no-auto-enable`
-    And I verify that running `pro enable anbox-cloud` `with sudo` exits `1`
-    Then I will see the following on stdout:
-      """
-      One moment, checking your subscription first
-      Anbox Cloud is not available for Ubuntu 16.04 LTS (Xenial Xerus).
-      Could not enable Anbox Cloud.
-      """
-
-    Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | lxd-vm       |
-
   Scenario Outline: Enable Anbox cloud service in a VM
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo and options `--no-auto-enable`

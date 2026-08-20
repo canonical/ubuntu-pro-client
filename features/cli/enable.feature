@@ -605,36 +605,6 @@ Feature: CLI enable command
       E: Unable to locate package some-package-aws
       """
 
-  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
-  Scenario Outline: APT auth file is edited correctly on enable
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    Then I will see the following on stdout:
-      """
-      6 /etc/apt/auth.conf.d/90ubuntu-advantage
-      """
-    # simulate a scenario where the line should get replaced
-    When I run `cp /etc/apt/auth.conf.d/90ubuntu-advantage /etc/apt/auth.conf.d/90ubuntu-advantage.backup` with sudo
-    When I run `pro disable esm-infra` with sudo
-    When I run `cp /etc/apt/auth.conf.d/90ubuntu-advantage.backup /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    When I run `pro enable esm-infra` with sudo
-    When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    Then I will see the following on stdout:
-      """
-      6 /etc/apt/auth.conf.d/90ubuntu-advantage
-      """
-    When I run `pro enable cis` with sudo
-    When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    Then I will see the following on stdout:
-      """
-      7 /etc/apt/auth.conf.d/90ubuntu-advantage
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-
   Scenario Outline: Attached enable with corrupt lock
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo

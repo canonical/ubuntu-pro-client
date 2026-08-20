@@ -1,21 +1,6 @@
 @uses.config.contract_token
 Feature: FIPS enablement in cloud based machines
 
-  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
-  Scenario Outline: Attached enable of FIPS services in an ubuntu gcp vm
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    Then I verify that running `pro enable <fips_service> --assume-yes` `with sudo` exits `1`
-    And stdout matches regexp:
-      """
-      Ubuntu <release_title> does not provide a GCP optimized FIPS kernel
-      """
-
-    Examples: fips
-      | release | machine_type | release_title | fips_service |
-      | xenial  | gcp.generic  | Xenial        | fips         |
-      | xenial  | gcp.generic  | Xenial        | fips-updates |
-
   Scenario Outline: FIPS unholds packages
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
