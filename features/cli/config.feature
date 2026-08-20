@@ -72,3 +72,4 @@ Feature: CLI config command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
