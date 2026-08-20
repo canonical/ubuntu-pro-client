@@ -23,7 +23,6 @@ Feature: Ua fix command behaviour
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -228,6 +227,7 @@ Feature: Ua fix command behaviour
       | focal   | wsl           |
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify that running `pro fix CVE-1800-123456` `as non-root` exits `1`

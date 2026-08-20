@@ -1,6 +1,7 @@
 Feature: CLI cves command
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Cves command on an attached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -134,6 +135,7 @@ Feature: CLI cves command
       | jammy   | lxd-container |
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Cves command when vulnerability data doesn't exist
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `sed -i 's/^\(VERSION_CODENAME=\).*/\1invalid/' /etc/os-release` with sudo

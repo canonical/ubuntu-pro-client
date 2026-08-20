@@ -1,6 +1,7 @@
 Feature: APT Messages
 
   @uses.config.contract_token @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: APT JSON Hook prints package counts correctly on xenial
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -131,9 +132,8 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\\/\\/ubuntu\\.com\\/pro                             |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -650,8 +650,6 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
-      | xenial  | lxd-vm        |
       | bionic  | lxd-container |
       | bionic  | lxd-vm        |
       | focal   | lxd-container |
@@ -750,9 +748,6 @@ Feature: APT Messages
 
     Examples: release-per-machine-type
       | release | machine_type  | msg                                                                              |
-      | xenial  | aws.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
-      | xenial  | azure.generic | Learn more about Ubuntu Pro for 16.04 on Azure at https://ubuntu.com/16-04/azure |
-      | xenial  | gcp.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
       | bionic  | aws.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
       | bionic  | azure.generic | Learn more about Ubuntu Pro for 18.04 on Azure at https://ubuntu.com/18-04/azure |
       | bionic  | gcp.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
@@ -1157,12 +1152,11 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | wrong_release | package         | installed_version |
-      | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
-      | bionic  | lxd-container | focal         | xz-utils        | 5.2.2-1.3         |
-      | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
-      | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
-      | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
+      | release | machine_type  | wrong_release | package     | installed_version |
+      | bionic  | lxd-container | focal         | xz-utils    | 5.2.2-1.3         |
+      | focal   | lxd-container | bionic        | libcurl4    | 7.68.0-1ubuntu2   |
+      | jammy   | lxd-container | focal         | libcurl4    | 7.81.0-1          |
+      | noble   | lxd-container | jammy         | libcurl4t64 | 8.5.0-2ubuntu10   |
 
   @uses.config.contract_token
   Scenario Outline: APT news selectors
@@ -1580,7 +1574,6 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

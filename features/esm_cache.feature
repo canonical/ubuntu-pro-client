@@ -37,6 +37,7 @@ Feature: ESM cache behavior
   # Duplicating just for xenial so we disable it on GH
   # See GH: #3013
   @no_gh
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: esm cache failures don't generate errors on xenial
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I disable access to esm.ubuntu.com

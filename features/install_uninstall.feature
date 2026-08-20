@@ -7,7 +7,6 @@ Feature: Pro Install and Uninstall related tests
 
     Examples: ubuntu release
       | release  | machine_type  | pkg_name               |
-      | xenial   | lxd-container | ubuntu-advantage-tools |
       | bionic   | lxd-container | ubuntu-advantage-tools |
       | focal    | lxd-container | ubuntu-advantage-tools |
       | jammy    | lxd-container | ubuntu-advantage-tools |
@@ -41,7 +40,6 @@ Feature: Pro Install and Uninstall related tests
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |
@@ -106,7 +104,6 @@ Feature: Pro Install and Uninstall related tests
 
     Examples: ubuntu release
       | release  | machine_type  | pkg_name               |
-      | xenial   | lxd-container | ubuntu-advantage-tools |
       | bionic   | lxd-container | ubuntu-advantage-tools |
       | focal    | lxd-container | ubuntu-advantage-tools |
       | jammy    | lxd-container | ubuntu-advantage-tools |
@@ -121,7 +118,6 @@ Feature: Pro Install and Uninstall related tests
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
       | focal   | lxd-container |
 
@@ -133,7 +129,6 @@ Feature: Pro Install and Uninstall related tests
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | aws.pro      |
       | bionic  | aws.pro      |
       | focal   | aws.pro      |
       | jammy   | aws.pro      |
@@ -153,7 +148,6 @@ Feature: Pro Install and Uninstall related tests
 
     Examples: ubuntu release
       | release  | machine_type  | user_data_field  |
-      | xenial   | lxd-container | ubuntu-advantage |
       | bionic   | lxd-container | ubuntu_advantage |
       | focal    | lxd-container | ubuntu_advantage |
       | jammy    | lxd-container | ubuntu_advantage |
@@ -180,7 +174,6 @@ Feature: Pro Install and Uninstall related tests
     # upgrade-migration behavior does not apply.
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
       | focal   | lxd-container |
       | jammy   | lxd-container |

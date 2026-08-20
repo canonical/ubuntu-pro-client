@@ -47,7 +47,6 @@ Feature: Ensure network errors are handled gracefully across various services
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Network errors for attaching contract token are handled gracefully
@@ -64,7 +63,6 @@ Feature: Ensure network errors are handled gracefully across various services
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: Network errors for enabling Realtime kernel and Livepatch are handled gracefully
@@ -87,7 +85,5 @@ Feature: Ensure network errors are handled gracefully across various services
     # longer managed by Pro.
     Examples: ubuntu release
       | release  | machine_type  | service         |
-      | xenial   | lxd-vm        | realtime-kernel |
       | noble    | lxd-vm        | realtime-kernel |
-      | xenial   | lxd-container | livepatch       |
       | resolute | lxd-container | livepatch       |

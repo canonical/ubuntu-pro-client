@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: ESM legacy service tests
 
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached enable of ESM Legacy services in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token_legacy` with sudo
@@ -59,6 +60,7 @@ Feature: ESM legacy service tests
       | xenial  | lxd-container | hello     |
 
   @uses.config.contract_token @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached status with legacy contract in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token_legacy` with sudo
@@ -110,6 +112,7 @@ Feature: ESM legacy service tests
       | xenial  | lxd-container |
 
   @uses.config.contract_token_legacy
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Simulate status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I do a preflight check for `contract_token_legacy` without the all flag

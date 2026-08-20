@@ -119,7 +119,6 @@ Feature: CLI attach command
 
     Examples: ubuntu
       | release | machine_type  | cis_or_usg |
-      | xenial  | lxd-container | cis        |
       | bionic  | lxd-container | cis        |
       | focal   | lxd-container | usg        |
 
@@ -138,9 +137,6 @@ Feature: CLI attach command
 
     Examples: ubuntu release livepatch status
       | release | machine_type  |
-      | xenial  | aws.generic   |
-      | xenial  | azure.generic |
-      | xenial  | gcp.generic   |
       | bionic  | aws.generic   |
       | bionic  | azure.generic |
       | bionic  | gcp.generic   |
@@ -197,7 +193,6 @@ Feature: CLI attach command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -302,7 +297,6 @@ Feature: CLI attach command
 
     Examples: ubuntu release livepatch status
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -345,7 +339,6 @@ Feature: CLI attach command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -393,7 +386,6 @@ Feature: CLI attach command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -411,7 +403,6 @@ Feature: CLI attach command
 
     Examples: ubuntu release
       | release  | machine_type | livepatch_status |
-      | xenial   | lxd-vm       | warning          |
       | bionic   | lxd-vm       | enabled          |
       | focal    | lxd-vm       | enabled          |
       | jammy    | lxd-vm       | enabled          |

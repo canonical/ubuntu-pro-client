@@ -86,11 +86,11 @@ Feature: CLI security-status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | package | service   |
-      | xenial  | lxd-container | apport  | esm-infra |
-      | bionic  | lxd-container | ansible | esm-apps  |
+      | release | machine_type  | package | service  |
+      | bionic  | lxd-container | ansible | esm-apps |
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario: Check for livepatch CVEs in security-status on an Ubuntu machine
     Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -109,6 +109,7 @@ Feature: CLI security-status command
       """
 
   @uses.config.contract_token @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario: Run security status in an Ubuntu machine
     Given a `xenial` `lxd-container` machine with ubuntu-advantage-tools installed
     When I install third-party / unknown packages in the machine
@@ -1314,6 +1315,5 @@ Feature: CLI security-status command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | pkg_in_updates        | pkg_in_security      |
-      | xenial  | lxd-container | base-files=9.4ubuntu4 | wget=1.17.1-1ubuntu1 |
-      | noble   | lxd-container | zip=3.0-13build1      | less=590-2ubuntu2    |
+      | release | machine_type  | pkg_in_updates   | pkg_in_security   |
+      | noble   | lxd-container | zip=3.0-13build1 | less=590-2ubuntu2 |

@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: FIPS enablement in cloud based machines
 
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached enable of FIPS services in an ubuntu gcp vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -35,8 +36,6 @@ Feature: FIPS enablement in cloud based machines
 
     Examples: ubuntu release
       | release | machine_type  | fips-packages                                                                                    |
-      | xenial  | aws.generic   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
-      | xenial  | azure.generic | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | aws.generic   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | azure.generic | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | gcp.generic   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
@@ -84,9 +83,6 @@ Feature: FIPS enablement in cloud based machines
 
     Examples: ubuntu release
       | release | machine_type  | fips-name    | fips-service | fips-package      | fips-kernel | fips-apt-source                                                |
-      | xenial  | azure.generic | FIPS         | fips         | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main                 |
-      | xenial  | azure.generic | FIPS Updates | fips-updates | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
-      | xenial  | aws.generic   | FIPS         | fips         | ubuntu-fips       | fips        | https://esm.ubuntu.com/fips/ubuntu xenial/main                 |
       | bionic  | azure.generic | FIPS         | fips         | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips/ubuntu bionic/main                 |
       | bionic  | azure.generic | FIPS Updates | fips-updates | ubuntu-azure-fips | azure-fips  | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
       | bionic  | aws.generic   | FIPS         | fips         | ubuntu-aws-fips   | aws-fips    | https://esm.ubuntu.com/fips/ubuntu bionic/main                 |
@@ -155,10 +151,9 @@ Feature: FIPS enablement in cloud based machines
       """
 
     Examples: ubuntu release
-      | release | machine_type | cloud-id-exit | cloud-id-msg                                        |
-      | xenial  | aws.generic  | 1             | File not found '/run/cloud-init/instance-data.json' |
-      | bionic  | aws.generic  | 2             | disabled                                            |
-      | focal   | aws.generic  | 2             | disabled                                            |
+      | release | machine_type | cloud-id-exit | cloud-id-msg |
+      | bionic  | aws.generic  | 2             | disabled     |
+      | focal   | aws.generic  | 2             | disabled     |
 
   Scenario Outline: Attached enable of FIPS in an ubuntu GCP vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

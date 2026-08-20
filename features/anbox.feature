@@ -41,6 +41,7 @@ Feature: Enable anbox on Ubuntu
       | noble    | lxd-container |
       | resolute | lxd-container |
 
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Enable Anbox cloud service in an unsupported release
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo and options `--no-auto-enable`

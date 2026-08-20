@@ -72,7 +72,6 @@ Feature: CLI status command
       | release  | machine_type  |
       | bionic   | lxd-container |
       | focal    | lxd-container |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
@@ -80,6 +79,7 @@ Feature: CLI status command
       | stonking | lxd-container |
 
   @uses.config.contract_token @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Non-root status can see in-progress operations
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -115,6 +115,7 @@ Feature: CLI status command
       | release | machine_type  |
       | xenial  | lxd-container |
 
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached status in a Xenial GCP Pro machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -193,8 +194,6 @@ Feature: CLI status command
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
       | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |
@@ -376,6 +375,7 @@ Feature: CLI status command
       | jammy   | aws.pro      |
 
   @uses.config.contract_token @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -691,7 +691,6 @@ Feature: CLI status command
       | release  | machine_type  |
       | bionic   | lxd-container |
       | focal    | lxd-container |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
@@ -699,6 +698,7 @@ Feature: CLI status command
       | stonking | lxd-container |
 
   @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Unattached status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify root and non-root `pro status` calls have the same output
@@ -1169,6 +1169,7 @@ Feature: CLI status command
       | resolute | lxd-container |
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Simulate status in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I do a preflight check for `contract_token` without the all flag
@@ -1380,6 +1381,7 @@ Feature: CLI status command
       | noble   | lxd-container |
 
   @uses.config.contract_token_staging_expired
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Simulate status with expired token in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
@@ -1610,7 +1612,6 @@ Feature: CLI status command
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
       | focal   | lxd-container |
 
@@ -1632,7 +1633,6 @@ Feature: CLI status command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -1728,7 +1728,6 @@ Feature: CLI status command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

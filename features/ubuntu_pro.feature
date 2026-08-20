@@ -46,16 +46,13 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
       """
 
     Examples: ubuntu release
-      | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                                    | cis_or_usg |
-      | xenial  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
-      | xenial  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
-      | xenial  | gcp.pro      | n/a      | disabled | disabled | warning     | Current kernel is not covered by livepatch | cis        |
-      | bionic  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
-      | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
-      | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service                | cis        |
-      | focal   | aws.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service                | usg        |
-      | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service                | usg        |
-      | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service                | usg        |
+      | release | machine_type | fips-s   | cc-eal-s | cis-s    | livepatch-s | lp-desc                     | cis_or_usg |
+      | bionic  | aws.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service | cis        |
+      | bionic  | azure.pro    | disabled | disabled | disabled | enabled     | Canonical Livepatch service | cis        |
+      | bionic  | gcp.pro      | disabled | disabled | disabled | enabled     | Canonical Livepatch service | cis        |
+      | focal   | aws.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service | usg        |
+      | focal   | azure.pro    | disabled | n/a      | disabled | enabled     | Canonical Livepatch service | usg        |
+      | focal   | gcp.pro      | disabled | n/a      | disabled | enabled     | Canonical Livepatch service | usg        |
 
   Scenario Outline: Attached refresh in an Ubuntu pro cloud machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -138,9 +135,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release | machine_type | infra-pkg | apps-pkg |
-      | xenial  | aws.pro      | libkrad0  | jq       |
-      | xenial  | azure.pro    | libkrad0  | jq       |
-      | xenial  | gcp.pro      | libkrad0  | jq       |
       | bionic  | aws.pro      | libkrad0  | bundler  |
       | bionic  | azure.pro    | libkrad0  | bundler  |
       | bionic  | gcp.pro      | libkrad0  | bundler  |
@@ -174,8 +168,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | azure.pro    |
-      | xenial   | gcp.pro      |
       | bionic   | azure.pro    |
       | bionic   | gcp.pro      |
       | focal    | azure.pro    |
@@ -215,7 +207,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release |
-      | xenial  |
       | bionic  |
       | focal   |
       | jammy   |
@@ -247,7 +238,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | aws.generic  |
       | bionic   | aws.generic  |
       | focal    | aws.generic  |
       | jammy    | aws.generic  |
@@ -305,9 +295,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release  | machine_type | cloud_init_key   |
-      | xenial   | aws.pro      | ubuntu_advantage |
-      | xenial   | azure.pro    | ubuntu_advantage |
-      | xenial   | gcp.pro      | ubuntu_advantage |
       | bionic   | aws.pro      | ubuntu_advantage |
       | bionic   | azure.pro    | ubuntu_advantage |
       | bionic   | gcp.pro      | ubuntu_advantage |
@@ -337,7 +324,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | aws.generic  |
       | bionic   | aws.generic  |
       | focal    | aws.generic  |
       | jammy    | aws.generic  |

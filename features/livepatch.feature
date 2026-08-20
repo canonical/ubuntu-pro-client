@@ -37,7 +37,6 @@ Feature: Livepatch
 
     Examples: ubuntu release
       | release | machine_type | livepatch_status |
-      | xenial  | lxd-vm       | warning          |
       | bionic  | lxd-vm       | enabled          |
       | noble   | lxd-vm       | enabled          |
 
@@ -215,6 +214,7 @@ Feature: Livepatch
       | release | machine_type | release_num |
       | jammy   | lxd-vm       | 22.04       |
 
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: snapd installed as a snap if necessary
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I run `snap list` with sudo
@@ -340,7 +340,6 @@ Feature: Livepatch
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
 
   Scenario Outline: Livepatch doesn't enable on wsl from a systemd service

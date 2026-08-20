@@ -188,7 +188,6 @@ Feature: CLI disable command
 
     Examples: ubuntu release
       | release  | machine_type  | msg                                                                                                                                                                                |
-      | xenial   | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
       | bionic   | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
       | focal    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
       | jammy    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
@@ -207,7 +206,6 @@ Feature: CLI disable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -234,13 +232,12 @@ Feature: CLI disable command
     And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
 
     Examples: ubuntu release
-      | release | machine_type  | pocket           | package | archive_component |
+      | release | machine_type  | pocket         | package | archive_component |
       # This ends up in GH #943 but maybe can be improved?
-      | xenial  | lxd-container | xenial-backports | ansible | universe          |
-      | bionic  | lxd-container | bionic-updates   | ansible | universe          |
-      | bionic  | wsl           | bionic-updates   | ansible | universe          |
-      | focal   | lxd-container | focal            | ansible | universe          |
-      | jammy   | lxd-container | jammy            | ansible | universe          |
+      | bionic  | lxd-container | bionic-updates | ansible | universe          |
+      | bionic  | wsl           | bionic-updates | ansible | universe          |
+      | focal   | lxd-container | focal          | ansible | universe          |
+      | jammy   | lxd-container | jammy          | ansible | universe          |
 
   @uses.config.contract_token
   Scenario Outline: Disable with purge works and purges repo services on resolute
@@ -276,7 +273,6 @@ Feature: CLI disable command
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | lxd-vm       |
       | bionic   | lxd-vm       |
       | focal    | lxd-vm       |
       | jammy    | lxd-vm       |
@@ -332,8 +328,6 @@ Feature: CLI disable command
 
     Examples: ubuntu release
       | release | machine_type  | fips-service | fips-name    | kernel-package   | fips-source                                                    | archive-source                                                    |
-      | xenial  | lxd-vm        | fips         | FIPS         | linux-fips       | https://esm.ubuntu.com/fips/ubuntu xenial/main                 | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main    |
-      | xenial  | lxd-vm        | fips-updates | FIPS Updates | linux-fips       | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main | https://esm.ubuntu.com/infra/ubuntu xenial-infra-security/main    |
       | bionic  | lxd-vm        | fips         | FIPS         | linux-fips       | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
       | bionic  | lxd-vm        | fips-updates | FIPS Updates | linux-fips       | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
       | bionic  | aws.generic   | fips         | FIPS         | linux-aws-fips   | https://esm.ubuntu.com/fips/ubuntu bionic/main                 | https://esm.ubuntu.com/infra/ubuntu bionic-infra-security/main    |
@@ -374,7 +368,6 @@ Feature: CLI disable command
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
       | focal   | lxd-vm       |
 
@@ -499,7 +492,6 @@ Feature: CLI disable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | bionic   | wsl           |
       | focal    | lxd-container |

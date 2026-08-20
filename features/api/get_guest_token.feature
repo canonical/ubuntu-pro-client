@@ -44,7 +44,6 @@ Feature: u.pro.attach.guest.get_guest_token.v1
 
     Examples:
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

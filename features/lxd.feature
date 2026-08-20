@@ -95,7 +95,6 @@ Feature: LXD Pro features
 
     Examples:
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | resolute | lxd-container |
 
   Scenario Outline: LXD guest auto-attach behaves reasonably when lxd doesn't support it

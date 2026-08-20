@@ -21,9 +21,6 @@ Feature: Full Auto-Attach Endpoint
 
     Examples:
       | release  | machine_type |
-      | xenial   | aws.pro      |
-      | xenial   | azure.pro    |
-      | xenial   | gcp.pro      |
       | bionic   | aws.pro      |
       | bionic   | azure.pro    |
       | bionic   | gcp.pro      |

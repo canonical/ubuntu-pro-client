@@ -117,8 +117,6 @@ Feature: auto-attach retries periodically on failures
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | azure.generic |
-      | xenial   | gcp.generic   |
       | bionic   | azure.generic |
       | bionic   | gcp.generic   |
       | focal    | azure.generic |
@@ -243,7 +241,6 @@ Feature: auto-attach retries periodically on failures
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | aws.generic  |
       | bionic   | aws.generic  |
       | focal    | aws.generic  |
       | jammy    | aws.generic  |
@@ -326,9 +323,6 @@ Feature: auto-attach retries periodically on failures
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
       | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |
@@ -401,7 +395,6 @@ Feature: auto-attach retries periodically on failures
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | gcp.pro      |
       | bionic   | gcp.pro      |
       | focal    | gcp.pro      |
       | jammy    | gcp.pro      |
@@ -486,9 +479,6 @@ Feature: auto-attach retries periodically on failures
 
     Examples: ubuntu release
       | release  | machine_type |
-      | xenial   | aws.pro      |
-      | xenial   | azure.pro    |
-      | xenial   | gcp.pro      |
       | bionic   | aws.pro      |
       | bionic   | azure.pro    |
       | bionic   | gcp.pro      |

@@ -47,7 +47,6 @@ Feature: Upgrade between releases when uaclient is attached
 
     Examples: ubuntu release
       | release | machine_type  | next_release | prompt | devel_release   | service1  | service1_status | service2 | service2_status | before_cmd     |
-      | xenial  | lxd-container | bionic       | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
       | bionic  | lxd-container | focal        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
       | bionic  | lxd-container | focal        | lts    |                 | usg       | enabled         | usg      | enabled         | pro enable cis |
       | focal   | lxd-container | jammy        | lts    |                 | esm-infra | enabled         | esm-apps | enabled         | true           |
@@ -59,6 +58,7 @@ Feature: Upgrade between releases when uaclient is attached
   # | questing | lxd-container | resolute     | normal |               | esm-infra | n/a             | esm-apps | n/a             | true           |
   # | stonking | lxd-container | resolute     | normal |               | esm-infra | n/a             | esm-apps | n/a             | true           |
   @slow @upgrade
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached FIPS upgrade across LTS releases
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -206,11 +206,11 @@ Feature: Upgrade between releases when uaclient is attached
 
     Examples: ubuntu release
       | release | machine_type  | next_release | onlyseries |
-      | xenial  | lxd-container | bionic       | xenial     |
       | bionic  | lxd-container | focal        | bionic     |
       | focal   | lxd-container | jammy        | focal      |
 
   @slow @upgrade
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Attached and esm-infra-legacy enabled upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token_legacy` with sudo

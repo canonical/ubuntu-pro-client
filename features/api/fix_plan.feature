@@ -174,7 +174,6 @@ Feature: Fix plan API endpoints
 
     Examples: ubuntu release details
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -765,6 +764,7 @@ Feature: Fix plan API endpoints
       | release | machine_type  |
       | focal   | lxd-container |
 
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt update

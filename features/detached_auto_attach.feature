@@ -21,9 +21,6 @@ Feature: Attached cloud does not detach when auto-attaching after manually attac
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | aws.generic   |
-      | xenial   | azure.generic |
-      | xenial   | gcp.generic   |
       | bionic   | aws.generic   |
       | bionic   | azure.generic |
       | bionic   | gcp.generic   |

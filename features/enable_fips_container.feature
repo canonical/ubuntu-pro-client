@@ -77,13 +77,11 @@ Feature: FIPS enablement in lxd containers
     And I verify that packages `<additional-fips-packages>` installed versions match regexp `fips`
 
     Examples: ubuntu release
-      | release | machine_type  | fips-name    | updates  | libssl      | additional-fips-packages                                             |
-      | xenial  | lxd-container | FIPS         |          | libssl1.0.0 | openssh-server-hmac openssh-client-hmac                              |
-      | xenial  | lxd-container | FIPS Updates | -updates | libssl1.0.0 | openssh-server-hmac openssh-client-hmac                              |
-      | bionic  | lxd-container | FIPS         |          | libssl1.1   | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
-      | bionic  | lxd-container | FIPS Updates | -updates | libssl1.1   | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
-      | focal   | lxd-container | FIPS         |          | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
-      | focal   | lxd-container | FIPS Updates | -updates | libssl1.1   | libgcrypt20 libgcrypt20-hmac                                         |
+      | release | machine_type  | fips-name    | updates  | libssl    | additional-fips-packages                                             |
+      | bionic  | lxd-container | FIPS         |          | libssl1.1 | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
+      | bionic  | lxd-container | FIPS Updates | -updates | libssl1.1 | openssh-server-hmac openssh-client-hmac libgcrypt20 libgcrypt20-hmac |
+      | focal   | lxd-container | FIPS         |          | libssl1.1 | libgcrypt20 libgcrypt20-hmac                                         |
+      | focal   | lxd-container | FIPS Updates | -updates | libssl1.1 | libgcrypt20 libgcrypt20-hmac                                         |
 
   Scenario Outline: Try to enable FIPS after FIPS Updates in a lxd container
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -111,6 +109,5 @@ Feature: FIPS enablement in lxd containers
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
       | focal   | lxd-container |

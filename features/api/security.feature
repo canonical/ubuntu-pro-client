@@ -1,6 +1,7 @@
 Feature: API security/security status tests
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario: Call Livepatched CVEs endpoint
     Given a `xenial` `lxd-vm` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -56,7 +57,6 @@ Feature: API security/security status tests
 
     Examples: ubuntu release
       | release  | machine_type  | package_name   | manifest_pattern     | forced_vulnerable_version | oval_def_id  |
-      | xenial   | lxd-container | libgnutls30    | libgnutls30:amd64    | 3.4.10-4ubuntu1           | 39991000000  |
       | bionic   | lxd-container | libgnutls30    | libgnutls30:amd64    | 3.5.18-1ubuntu1           | 555010000000 |
       | focal    | lxd-container | libgnutls30    | libgnutls30:amd64    | 3.6.13-2ubuntu1           | 555010000000 |
       | jammy    | lxd-container | libgnutls30    | libgnutls30:amd64    | 3.7.3-4ubuntu1            | 555010000000 |

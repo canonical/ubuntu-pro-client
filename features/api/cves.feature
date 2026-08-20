@@ -1,6 +1,7 @@
 Feature: Client behaviour for CVE vulnerabilities API
 
   @uses.config.contract_token
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: CVE vulnerabilities for xenial machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo

@@ -20,6 +20,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | stonking | lxd-container |
 
   @uses.config.contract_token @arm64
+  # TODO: This scenario only applies to xenial. Delete it once xenial support is dropped.
   Scenario Outline: cloud-id-shim should run in postinst and on boot
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # verify installing pro created the cloud-id file
@@ -200,7 +201,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type | pkg_name               |
-      | xenial   | gcp.generic  | ubuntu-advantage-tools |
       | bionic   | gcp.generic  | ubuntu-advantage-tools |
       | focal    | gcp.generic  | ubuntu-advantage-tools |
       | jammy    | gcp.generic  | ubuntu-advantage-tools |
@@ -268,7 +268,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type  |
-      | xenial   | azure.generic |
       | bionic   | azure.generic |
       | focal    | azure.generic |
       | jammy    | azure.generic |
@@ -319,7 +318,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type |
-      | xenial   | aws.generic  |
       | bionic   | aws.generic  |
       | focal    | aws.generic  |
       | jammy    | aws.generic  |
@@ -366,9 +364,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
       | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |
