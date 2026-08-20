@@ -397,10 +397,7 @@ class EC2(Cloud):
             An AWS cloud provider instance
         """
         if not image_name:
-            if (
-                series in ("xenial", "bionic", "focal")
-                and "pro" not in machine_type
-            ):
+            if series in ("bionic", "focal") and "pro" not in machine_type:
                 logging.debug(
                     "defaulting to non-daily image for awsgeneric-[16|18].04"
                 )
@@ -409,7 +406,7 @@ class EC2(Cloud):
                 daily = True
 
             include_deprecated = False
-            if series in ("xenial", "bionic", "focal"):
+            if series in ("bionic", "focal"):
                 logging.debug(
                     "including deprecated images for EOSS series on aws"
                 )
@@ -703,10 +700,7 @@ class _LXD(Cloud):
             )
         )
 
-        if self.name == "lxd-virtual-machine" and series == "xenial":
-            config_dict = {"boot.mode": "uefi-nosecureboot"}
-        else:
-            config_dict = {}
+        config_dict = {}
 
         inst = self.api.launch(
             name=instance_name,

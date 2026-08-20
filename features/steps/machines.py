@@ -97,16 +97,6 @@ def given_a_machine(
         cloud=cloud,
     )
 
-    if series == "xenial":
-        # Upgrading open-iscsi to esm version on xenial restarts this service
-        # This sometimes causes resource errors on github action runners
-        when_i_run_command(
-            context,
-            "systemctl mask iscsid.service",
-            "with sudo",
-            machine_name=machine_name,
-        )
-
     when_i_run_command(
         context,
         "systemctl mask apt-news.service",
@@ -179,11 +169,9 @@ def when_i_take_a_snapshot(context, machine_name=SUT, cleanup=True):
 
 
 def _update_distro_info_data(context, machine_name=SUT):
-    # There is a problem on Xenial where distro-info-data was incorrectly
-    # saying that Xenial was only supported until 2024. The fix was
-    # SRUed to Xenial, but now we need to guarantee that we run our tests
-    # on the latest version of that package. Additionally, we don't see
-    # a problem of always upgrading that package for every release.
+    # Guarantee that we run our tests on the latest version of
+    # distro-info-data. We don't see a problem of always upgrading that
+    # package for every release.
     when_i_run_command(
         context,
         "apt install distro-info-data -y",
