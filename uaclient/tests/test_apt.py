@@ -217,8 +217,8 @@ class TestValidAptCredentials:
         exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
         expected_path = os.path.join(tmpd, "apt-helper-output")
-        auth_file = os.path.join(tmpd, "auth.conf")
-        netrcparts = os.path.join(tmpd, "auth.conf.d")
+        auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
+        netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
@@ -309,8 +309,8 @@ class TestValidAptCredentials:
         exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
         expected_path = os.path.join(tmpd, "apt-helper-output")
-        auth_file = os.path.join(tmpd, "auth.conf")
-        netrcparts = os.path.join(tmpd, "auth.conf.d")
+        auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
+        netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
@@ -364,8 +364,8 @@ class TestValidAptCredentials:
         exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
         expected_path = os.path.join(tmpd, "apt-helper-output")
-        auth_file = os.path.join(tmpd, "auth.conf")
-        netrcparts = os.path.join(tmpd, "auth.conf.d")
+        auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
+        netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",

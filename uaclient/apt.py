@@ -156,8 +156,8 @@ def assert_valid_apt_credentials(repo_url, username, password):
             # Use a fully self-contained apt auth configuration for this
             # validation so that apt-helper reads exactly the credentials we
             # provide, regardless of how the system's apt auth is configured.
-            auth_file = os.path.join(tmpd, "auth.conf")
-            empty_netrcparts = os.path.join(tmpd, "auth.conf.d")
+            auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
+            empty_netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
             os.makedirs(empty_netrcparts, mode=0o700)
             system.write_file(auth_file, auth_line, mode=0o600)
             system.subp(
