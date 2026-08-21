@@ -189,19 +189,14 @@ class TestValidAptCredentials:
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.apt.os.makedirs")
     @mock.patch("uaclient.util.write_file")
-    @mock.patch(
-        "uaclient.apt.get_apt_auth_file_from_apt_config",
-        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
-    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_passes_on_valid_creds(
         self,
         m_exists,
-        m_get_apt_auth,
         m_write_file,
-        m_del_file,
+        m_makedirs,
         m_subp,
         m_temporary_directory,
     ):
@@ -221,24 +216,28 @@ class TestValidAptCredentials:
             m_temporary_directory.return_value.__enter__.return_value,
             "apt-helper-output",
         )
+        auth_file = "/does/not/exist/ubuntu-advantage-auth-temp.conf"
+        auth_parts_dir = "/does/not/exist/empty-auth.conf.d"
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://fakerepo/ubuntu/pool/",
                 expected_path,
+                "-o",
+                "Dir::Etc::netrc={}".format(auth_file),
+                "-o",
+                "Dir::Etc::netrcparts={}".format(auth_parts_dir),
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        # Verify credentials are written to auth file, not in argv
-        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
         m_write_file.assert_called_once_with(
-            auth_path,
+            auth_file,
             "machine fakerepo/ login user password pwd\n",
             mode=0o600,
         )
-        m_del_file.assert_called_once_with(auth_path)
+        m_makedirs.assert_called_once_with(auth_parts_dir, mode=0o700)
 
     @pytest.mark.parametrize(
         "exit_code,stderr,error_msg",
@@ -267,19 +266,14 @@ class TestValidAptCredentials:
     )
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.apt.os.makedirs")
     @mock.patch("uaclient.util.write_file")
-    @mock.patch(
-        "uaclient.apt.get_apt_auth_file_from_apt_config",
-        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
-    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_process_execution_errors(
         self,
         m_exists,
-        m_get_apt_auth,
         m_write_file,
-        m_del_file,
+        m_makedirs,
         m_subp,
         m_temporary_directory,
         exit_code,
@@ -309,35 +303,39 @@ class TestValidAptCredentials:
             m_temporary_directory.return_value.__enter__.return_value,
             "apt-helper-output",
         )
+        auth_file = "/does/not/exist/ubuntu-advantage-auth-temp.conf"
+        auth_parts_dir = "/does/not/exist/empty-auth.conf.d"
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://fakerepo/ubuntu/pool/",
                 expected_path,
+                "-o",
+                "Dir::Etc::netrc={}".format(auth_file),
+                "-o",
+                "Dir::Etc::netrcparts={}".format(auth_parts_dir),
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        # Verify auth file is always cleaned up even on error
-        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
-        m_del_file.assert_called_once_with(auth_path)
+        m_write_file.assert_called_once_with(
+            auth_file,
+            "machine fakerepo/ login user password pwd\n",
+            mode=0o600,
+        )
+        m_makedirs.assert_called_once_with(auth_parts_dir, mode=0o700)
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.apt.os.makedirs")
     @mock.patch("uaclient.util.write_file")
-    @mock.patch(
-        "uaclient.apt.get_apt_auth_file_from_apt_config",
-        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
-    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_apt_helper_process_timeout(
         self,
         m_exists,
-        m_get_apt_auth,
         m_write_file,
-        m_del_file,
+        m_makedirs,
         m_subp,
         m_temporary_directory,
     ):
@@ -366,35 +364,39 @@ class TestValidAptCredentials:
             m_temporary_directory.return_value.__enter__.return_value,
             "apt-helper-output",
         )
+        auth_file = "/does/not/exist/ubuntu-advantage-auth-temp.conf"
+        auth_parts_dir = "/does/not/exist/empty-auth.conf.d"
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://fakerepo/ubuntu/pool/",
                 expected_path,
+                "-o",
+                "Dir::Etc::netrc={}".format(auth_file),
+                "-o",
+                "Dir::Etc::netrcparts={}".format(auth_parts_dir),
             ],
             timeout=apt.APT_HELPER_TIMEOUT,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        # Verify auth file is always cleaned up even on timeout
-        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
-        m_del_file.assert_called_once_with(auth_path)
+        m_write_file.assert_called_once_with(
+            auth_file,
+            "machine fakerepo/ login user password pwd\n",
+            mode=0o600,
+        )
+        m_makedirs.assert_called_once_with(auth_parts_dir, mode=0o700)
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.del_file")
+    @mock.patch("uaclient.apt.os.makedirs")
     @mock.patch("uaclient.util.write_file")
-    @mock.patch(
-        "uaclient.apt.get_apt_auth_file_from_apt_config",
-        return_value="/etc/apt/auth.conf.d/90ubuntu-advantage",
-    )
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_credentials_not_in_subprocess_argv(
         self,
         m_exists,
-        m_get_apt_auth,
         m_write_file,
-        m_del_file,
+        m_makedirs,
         m_subp,
         m_temporary_directory,
     ):
@@ -430,15 +432,15 @@ class TestValidAptCredentials:
             )
 
         # Assert credentials are instead written to the auth file
-        auth_path = "/etc/apt/auth.conf.d/90ubuntu-advantage-validation"
+        auth_file = "/does/not/exist/ubuntu-advantage-auth-temp.conf"
+        auth_parts_dir = "/does/not/exist/empty-auth.conf.d"
         m_write_file.assert_called_once_with(
-            auth_path,
+            auth_file,
             "machine esm.ubuntu.com/infra/ubuntu/ login bearer"
             " password super-secret-bearer-token-value\n",
             mode=0o600,
         )
-        # Assert auth file is cleaned up
-        m_del_file.assert_called_once_with(auth_path)
+        m_makedirs.assert_called_once_with(auth_parts_dir, mode=0o700)
 
 
 class TestAddAuthAptRepo:
