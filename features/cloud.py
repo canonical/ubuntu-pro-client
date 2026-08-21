@@ -399,7 +399,8 @@ class EC2(Cloud):
         if not image_name:
             if series in ("bionic", "focal") and "pro" not in machine_type:
                 logging.debug(
-                    "defaulting to non-daily image for awsgeneric-[16|18].04"
+                    "defaulting to non-daily image for awsgeneric series=%s",
+                    series,
                 )
                 daily = False
             else:
