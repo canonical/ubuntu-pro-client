@@ -248,7 +248,6 @@ Feature: api.u.unattended_upgrades.status.v1
 
     Examples: ubuntu release
       | release  | machine_type  | extra_field                                  |
-      | xenial   | lxd-container |                                              |
       | bionic   | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "false" |
       | focal    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | jammy    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |

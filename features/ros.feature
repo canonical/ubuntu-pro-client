@@ -115,5 +115,4 @@ Feature: Enable ROS on ubuntu
 
     Examples: ubuntu release
       | release | machine_type  | ros-security-source                                    | ros-updates-source                                            |
-      | xenial  | lxd-container | https://esm.ubuntu.com/ros/ubuntu xenial-security/main | https://esm.ubuntu.com/ros-updates/ubuntu xenial-updates/main |
       | bionic  | lxd-container | https://esm.ubuntu.com/ros/ubuntu bionic-security/main | https://esm.ubuntu.com/ros-updates/ubuntu bionic-updates/main |

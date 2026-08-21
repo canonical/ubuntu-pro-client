@@ -136,7 +136,6 @@ Feature: CLI detach command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | bionic   | wsl           |
       | focal    | lxd-container |
@@ -166,7 +165,6 @@ Feature: CLI detach command
       | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | jammy    | wsl           |
       | noble    | lxd-container |

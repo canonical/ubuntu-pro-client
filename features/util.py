@@ -54,7 +54,7 @@ class ProDebPaths:
     ubuntu_advantage_pro: str
 
     def non_cloud_pro_image_debs(self, series: str) -> List[Tuple[str, str]]:
-        if series in ("xenial", "bionic", "focal", "jammy"):
+        if series in ("bionic", "focal", "jammy"):
             return [
                 ("ubuntu-pro-client", self.ubuntu_pro_client),
                 ("ubuntu-advantage-tools", self.ubuntu_advantage_tools),

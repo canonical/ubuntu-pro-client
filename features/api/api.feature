@@ -30,7 +30,6 @@ Feature: Client behaviour for the API endpoints
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -82,7 +81,6 @@ Feature: Client behaviour for the API endpoints
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -177,7 +175,6 @@ Feature: Client behaviour for the API endpoints
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -291,7 +288,6 @@ Feature: Client behaviour for the API endpoints
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

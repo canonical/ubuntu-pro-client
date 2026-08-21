@@ -21,7 +21,6 @@ Feature: Logs in Json Array Formatter
 
     Examples: ubuntu release
       | release  | machine_type  | user_spec   |
-      | xenial   | lxd-container | as non-root |
       | bionic   | lxd-container | as non-root |
       | focal    | lxd-container | as non-root |
       | jammy    | lxd-container | as non-root |
@@ -56,7 +55,6 @@ Feature: Logs in Json Array Formatter
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -85,7 +83,6 @@ Feature: Logs in Json Array Formatter
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -136,7 +133,6 @@ Feature: Logs in Json Array Formatter
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

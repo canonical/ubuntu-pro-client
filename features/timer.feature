@@ -14,7 +14,6 @@ Feature: Timer for regular background jobs while attached
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
@@ -90,7 +89,6 @@ Feature: Timer for regular background jobs while attached
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | focal    | wsl           |
@@ -165,7 +163,6 @@ Feature: Timer for regular background jobs while attached
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

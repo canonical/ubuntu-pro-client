@@ -5,7 +5,7 @@ from features.steps.shell import when_i_run_command, when_i_run_shell_command
 
 OSCAP_RELEASE_URL = "https://github.com/OpenSCAP/openscap/releases/download/"
 OSCAP_137_RELEASE_TARBALL = "1.3.7/openscap-1.3.7.tar.gz"
-LEGACY_OSCAP_SOURCE_BUILDS = {"xenial", "bionic", "focal", "jammy"}
+LEGACY_OSCAP_SOURCE_BUILDS = {"bionic", "focal", "jammy"}
 
 OSCAP_137_BUILD_DEPS = " ".join(
     [

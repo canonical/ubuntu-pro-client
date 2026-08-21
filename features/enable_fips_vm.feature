@@ -126,7 +126,6 @@ Feature: FIPS enablement in lxd VMs
 
     Examples: ubuntu release
       | release | machine_type | fips-apt-source                                | fips-packages                                                                                    |
-      | xenial  | lxd-vm       | https://esm.ubuntu.com/fips/ubuntu xenial/main | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | lxd-vm       | https://esm.ubuntu.com/fips/ubuntu bionic/main | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | focal   | lxd-vm       | https://esm.ubuntu.com/fips/ubuntu focal/main  | openssh-server openssh-client strongswan strongswan-hmac                                         |
 
@@ -223,7 +222,6 @@ Feature: FIPS enablement in lxd VMs
 
     Examples: ubuntu release
       | release | machine_type | fips-packages                                                                                    | fips-regex |
-      | xenial  | lxd-vm       | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac | fips       |
       | bionic  | lxd-vm       | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac | fips       |
       | focal   | lxd-vm       | openssh-server openssh-client strongswan strongswan-hmac                                         | fips       |
       | jammy   | lxd-vm       | openssh-server openssh-client strongswan strongswan-hmac                                         | Fips       |
@@ -288,7 +286,6 @@ Feature: FIPS enablement in lxd VMs
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
       | focal   | lxd-vm       |
 
@@ -306,7 +303,6 @@ Feature: FIPS enablement in lxd VMs
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
       | focal   | lxd-vm       |
 
@@ -349,7 +345,6 @@ Feature: FIPS enablement in lxd VMs
     Examples: ubuntu release
       | release | machine_type |
       | bionic  | lxd-vm       |
-      | xenial  | lxd-vm       |
 
   @slow
   Scenario Outline: Attached enable fips-preview

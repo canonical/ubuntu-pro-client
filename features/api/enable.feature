@@ -147,7 +147,6 @@ Feature: u.pro.services.enable
 
     Examples:
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
 
   Scenario Outline: u.pro.services.enable.v1 landscape
@@ -260,7 +259,6 @@ Feature: u.pro.services.enable
 
     Examples:
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
 
   Scenario Outline: u.pro.services.enable.v1 vm services with progress

@@ -331,5 +331,4 @@ Feature: Enable landscape on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | jammy   | lxd-container |

@@ -543,7 +543,6 @@ Feature: Pro Client help text
 
     Examples: ubuntu release
       | release  | machine_type  | options_string     |
-      | xenial   | lxd-container | optional arguments |
       | bionic   | lxd-container | optional arguments |
       | focal    | lxd-container | optional arguments |
       | jammy    | lxd-container | options            |
@@ -594,7 +593,6 @@ Feature: Pro Client help text
     Examples: ubuntu release
       | release  | machine_type  | infra-status |
       | bionic   | lxd-container | enabled      |
-      | xenial   | lxd-container | enabled      |
       | focal    | lxd-container | enabled      |
       | jammy    | lxd-container | enabled      |
       | noble    | lxd-container | enabled      |
@@ -641,7 +639,6 @@ Feature: Pro Client help text
 
     Examples: ubuntu release
       | release  | machine_type  | infra-available |
-      | xenial   | lxd-container | yes             |
       | bionic   | lxd-container | yes             |
       | bionic   | wsl           | yes             |
       | focal    | lxd-container | yes             |

@@ -67,25 +67,6 @@ Feature: Pro supports multiple languages
       | questing | lxd-container |
       | stonking | lxd-container |
 
-  # Note: Translations do work on xenial, but our test environment triggers a bug in python that
-  # causes it to think we're in an ascii-only environment
-  Scenario Outline: Translation doesn't error when python thinks it's ascii only
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run shell command `env LC_CTYPE=pt_BR.UTF-8 LANGUAGE=pt_BR.UTF-8 python3 -c \"import sys; print(sys.stdout.encoding)\"` as non-root
-    Then I will see the following on stdout:
-      """
-      ANSI_X3.4-1968
-      """
-    When I run shell command `env LC_CTYPE=pt_BR.UTF-8 LANGUAGE=pt_BR.UTF-8 pro security-status` as non-root
-    Then stdout contains substring:
-      """
-      This machine is NOT attached to an Ubuntu Pro subscription.
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-
   Scenario Outline: apt-hook translations work
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -226,7 +207,6 @@ Feature: Pro supports multiple languages
       | release  | machine_type  |
       | bionic   | lxd-container |
       | focal    | lxd-container |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
@@ -286,7 +266,6 @@ Feature: Pro supports multiple languages
       | release  | machine_type  |
       | bionic   | lxd-container |
       | focal    | lxd-container |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
