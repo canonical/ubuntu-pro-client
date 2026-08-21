@@ -426,7 +426,7 @@ class TestValidAptCredentials:
             )
 
         # Assert credentials are instead written to the isolated auth file
-        auth_file = os.path.join(tmpd, "auth.conf")
+        auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
         m_write_file.assert_called_once_with(
             auth_file,
             "machine esm.ubuntu.com/infra/ubuntu/ login bearer"
