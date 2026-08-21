@@ -28,6 +28,7 @@ Feature: Logs in Json Array Formatter
       | noble    | lxd-container | with sudo   |
       | questing | lxd-container | with sudo   |
       | resolute | lxd-container | with sudo   |
+      | stonking | lxd-container | with sudo   |
 
   Scenario Outline: Non-root user and root user log files are different
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -62,6 +63,7 @@ Feature: Logs in Json Array Formatter
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Non-root user log files included in collect logs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -90,6 +92,7 @@ Feature: Logs in Json Array Formatter
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: logrotate configuration works
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -140,3 +143,4 @@ Feature: Logs in Json Array Formatter
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
