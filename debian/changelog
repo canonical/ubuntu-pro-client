@@ -5,17 +5,17 @@ ubuntu-advantage-tools (38ubuntu0) stonking; urgency=medium
     (LP: #2143251)
   * d/apparmor: fix denied audit messages when devicetree exists
     (LP: #2131292)
-  * d/apparmor: include PID directory in ubuntu_pro_esm_cache profile (GH: #3555)
+  * d/apparmor: include PID directory in ubuntu_pro_esm_cache profile
   * d/apparmor: allow /usr/share/coreutils/locales/** in ubuntu_pro_esm_cache
-    profile (GH: #3570)
+    profile
   * New upstream release 38:
     - security:
       + fix CVE-2026-12391
       + fix CVE-2026-11386
       + fix CVE-2026-9494
     - clouds:
-      + add support for GCE Marketplace Pro licenses (GH: #3573)
-      + add resolute GCP license IDs (GH: #3532)
+      + add support for GCE Marketplace Pro licenses
+      + add resolute GCP license IDs
       + map aws-gov to aws for correct FIPS flavor (LP: #2144693)
 
  -- Spencer Runde <spencer.runde@canonical.com>  Fri, 31 Jul 2026 15:37:34 -0500
