@@ -838,9 +838,6 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         raise NotImplementedError
 
     def released_image(self, release: str, **kwargs):
-        # Microsoft delisted the per-release Ubuntu WSL apps from the
-        # msstore source; these IDs are now only in the default winget
-        # community repo source (verified via `winget search "Ubuntu XX.04"`).
         wsl_releases = {
             "jammy": {
                 "name": "Ubuntu-22.04",
