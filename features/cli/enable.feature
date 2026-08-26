@@ -539,10 +539,11 @@ Feature: CLI enable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | infra-pkg | apps-pkg | msg                                                                                                                                                                                |
-      | xenial  | lxd-container | libkrad0  | jq       | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
-      | bionic  | lxd-container | libkrad0  | bundler  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
-      | focal   | lxd-container | hello     | ant      | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | release  | machine_type  | infra-pkg | apps-pkg | msg                                                                                                                                                                                |
+      | xenial   | lxd-container | libkrad0  | jq       | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | bionic   | lxd-container | libkrad0  | bundler  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | focal    | lxd-container | hello     | ant      | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | resolute | lxd-container | hello     | acmetool | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
 
   Scenario Outline: Attached enable not entitled service in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
