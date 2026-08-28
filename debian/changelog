@@ -17,7 +17,7 @@ ubuntu-advantage-tools (38ubuntu0) stonking; urgency=medium
         bionic, focal, jammy, noble, and resolute
       + map aws-gov to aws for correct FIPS flavor (LP: #2144693)
 
- -- Spencer Runde <spencer.runde@canonical.com>  Fri, 31 Jul 2026 15:37:34 -0500
+ -- Spencer Runde <spencer.runde@canonical.com>  Fri, 28 Aug 2026 16:09:28 -0500
 
 ubuntu-advantage-tools (37.1ubuntu0) resolute; urgency=medium
 
