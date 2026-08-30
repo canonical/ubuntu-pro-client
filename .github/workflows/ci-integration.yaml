@@ -14,10 +14,6 @@ defaults:
   run:
     shell: sh -ex {0}
 
-env:
-  # TODO: stonking current untested: https://warthogs.atlassian.net/browse/UPRO-1274
-  DEVELOPMENT_RELEASE: 'stonking'
-
 jobs:
   check-secrets:
     name: Check secrets
@@ -28,23 +24,23 @@ jobs:
     name: Packaging
     needs: check-secrets
     if: ${{ needs.check-secrets.outputs.has-secrets == 'true' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        # TODO test on stonking: https://warthogs.atlassian.net/browse/UPRO-1274
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute']
+        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute', 'stonking']
     steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
       - name: Prepare build tools
         env:
           DEBFULLNAME: GitHub CI Auto Builder
           DEBEMAIL: nobody@nowhere.invalid
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install --no-install-recommends sbuild schroot ubuntu-dev-tools debootstrap git-buildpackage
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild schroot ubuntu-dev-tools debootstrap mmdebstrap uidmap git-buildpackage
+          sbuild_version="$(dpkg-query -W -f='${Version}' sbuild)"
+          dpkg --compare-versions "$sbuild_version" ge '0.88.3ubuntu2~bpo24.04.1'
           sudo sbuild-adduser $USER
-          cp /usr/share/doc/sbuild/examples/example.sbuildrc /home/$USER/.sbuildrc
-      - name: Git checkout
-        uses: actions/checkout@v3
       - name: Build package
         env:
           DEBFULLNAME: GitHub CI Auto Builder
@@ -52,14 +48,14 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
-          if [ "${{ matrix.release }}" = "${{ env.DEVELOPMENT_RELEASE }}" ]; then
-            SKIP_PROPOSED=""
+          # Xenial's systemd post-installation fails during mmdebstrap bootstrap.
+          # Build with a schroot instead.
+          if [ "${{ matrix.release }}" = "xenial" ]; then
+            sg sbuild -c "mk-sbuild --skip-proposed xenial"
+            sg sbuild -c "sbuild --chroot-mode=schroot --dist=xenial --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
           else
-            SKIP_PROPOSED="--skip-proposed"
+            SBUILD_CONFIG="$PWD/tools/sbuild-config.pl" sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'
           fi
-          sg sbuild -c "mk-sbuild $SKIP_PROPOSED ${{ matrix.release }}"
-          sg sbuild -c "sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
-          mv ../*.deb '${{ runner.temp }}'  # Workaround for Debbug: #990734, drop in Jammy
       - name: Archive debs as artifacts
         uses: actions/upload-artifact@v4
         with:
