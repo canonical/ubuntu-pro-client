@@ -1,8 +1,23 @@
-ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (38ubuntu0) stonking; urgency=medium
 
-  * Open next development version
+  * d/apparmor/ubuntu_pro_esm_cache.jinja2:
+    - fix denied audit messages when devicetree exists (LP: #2131292)
+    - add cap perfmon to cloud_id AppArmor profile (LP: #2153472)
+    - add perfmon systemctl unix socket in AppArmor profiles (LP: #2143251)
+    - include PID directory in ubuntu_pro_esm_cache profile
+    - allow /usr/share/coreutils/locales/** in ubuntu_pro_esm_cache profile
+  * New upstream release 38:
+    - security:
+      + fix CVE-2026-12391
+      + fix CVE-2026-11386
+      + fix CVE-2026-9494
+    - clouds:
+      + add GCP license IDs for Base and Minimal images for resolute
+      + add GCP Base Marketplace and Minimal Marketplace license IDs for
+        bionic, focal, jammy, noble, and resolute
+      + map aws-gov to aws for correct FIPS flavor (LP: #2144693)
 
- -- Renan Rodrigo <rr@ubuntu.com>  Thu, 27 Nov 2025 11:18:48 -0300
+ -- Spencer Runde <spencer.runde@canonical.com>  Fri, 28 Aug 2026 16:09:28 -0500
 
 ubuntu-advantage-tools (37.1ubuntu0) resolute; urgency=medium
 
