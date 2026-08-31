@@ -730,6 +730,8 @@ Feature: APT Messages
       | questing | lxd-container |
       | questing | lxd-vm        |
       | resolute | lxd-container |
+      | stonking | lxd-container |
+      | stonking | lxd-vm        |
 
   # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
   # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
@@ -1585,6 +1587,7 @@ Feature: APT Messages
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1634,3 +1637,4 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  |
       | questing | lxd-container |
+      | stonking | lxd-container |

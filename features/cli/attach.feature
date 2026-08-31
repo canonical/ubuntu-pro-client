@@ -352,6 +352,7 @@ Feature: CLI attach command
       | noble    | lxd-container |
       | resolute | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token_staging_expired
   Scenario Outline: Attach command failure on expired token
@@ -399,6 +400,7 @@ Feature: CLI attach command
       | noble    | lxd-container |
       | resolute | lxd-container |
       | questing | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Attach operation on a lxd vm
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
