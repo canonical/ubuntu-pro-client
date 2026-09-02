@@ -25,7 +25,6 @@ Feature: Enable cc-eal on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
 
   @arm64
@@ -45,7 +44,6 @@ Feature: Enable cc-eal on Ubuntu
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |
 
   Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container

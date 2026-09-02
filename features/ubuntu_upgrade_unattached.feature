@@ -60,7 +60,6 @@ Feature: Upgrade between releases when uaclient is unattached
 
     Examples: ubuntu release
       | release | machine_type  | next_release | prompt | devel_release   | service_status |
-      | xenial  | lxd-container | bionic       | lts    |                 | enabled        |
       | bionic  | lxd-container | focal        | lts    |                 | enabled        |
       | focal   | lxd-container | jammy        | lts    |                 | enabled        |
       | jammy   | lxd-container | noble        | lts    |                 | enabled        |

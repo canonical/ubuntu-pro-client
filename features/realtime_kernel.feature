@@ -39,7 +39,6 @@ Feature: Enable command behaviour when attached to an Ubuntu Pro subscription
 
     Examples: ubuntu release
       | release | machine_type | version   | full_name     |
-      | xenial  | lxd-vm       | 16.04 LTS | Xenial Xerus  |
       | bionic  | lxd-vm       | 18.04 LTS | Bionic Beaver |
       | focal   | lxd-vm       | 20.04 LTS | Focal Fossa   |
 

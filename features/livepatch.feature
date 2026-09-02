@@ -37,7 +37,6 @@ Feature: Livepatch
 
     Examples: ubuntu release
       | release | machine_type | livepatch_status |
-      | xenial  | lxd-vm       | warning          |
       | bionic  | lxd-vm       | enabled          |
       | noble   | lxd-vm       | enabled          |
 
@@ -215,43 +214,6 @@ Feature: Livepatch
       | release | machine_type | release_num |
       | jammy   | lxd-vm       | 22.04       |
 
-  Scenario Outline: snapd installed as a snap if necessary
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I run `snap list` with sudo
-    Then stdout does not contain substring:
-      """
-      snapd
-      """
-    When I set the machine token overlay to the following yaml
-      """
-      machineTokenInfo:
-        contractInfo:
-          resourceEntitlements:
-            - type: livepatch
-              directives:
-                requiredSnaps:
-                  - name: core22
-      """
-    When I attach `contract_token` with sudo and options `--no-auto-enable`
-    And I run `pro enable livepatch` with sudo
-    Then stdout contains substring:
-      """
-      Installing snapd snap
-      """
-    When I run `snap list` with sudo
-    Then stdout contains substring:
-      """
-      snapd
-      """
-    And stdout contains substring:
-      """
-      core22
-      """
-
-    Examples: ubuntu release
-      | release | machine_type |
-      | xenial  | lxd-vm       |
-
   @slow
   Scenario: Attached enable livepatch on a machine with fips active
     Given a `bionic` `lxd-vm` machine with ubuntu-advantage-tools installed
@@ -340,7 +302,6 @@ Feature: Livepatch
 
     Examples: ubuntu release
       | release | machine_type |
-      | xenial  | lxd-vm       |
       | bionic  | lxd-vm       |
 
   Scenario Outline: Livepatch doesn't enable on wsl from a systemd service

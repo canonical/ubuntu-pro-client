@@ -1,81 +1,5 @@
 Feature: APT Messages
 
-  @uses.config.contract_token @arm64
-  Scenario Outline: APT JSON Hook prints package counts correctly on xenial
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    When I apt upgrade
-    When I apt install `<standard-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      1 standard LTS security update
-      """
-    When I apt install `<infra-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      2 esm-infra security updates
-      """
-    When I apt install `<apps-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      1 esm-apps security update
-      """
-    When I apt install `<standard-pkg> <infra-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      1 standard LTS security update and 2 esm-infra security updates
-      """
-    When I apt install `<standard-pkg> <apps-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      1 standard LTS security update and 1 esm-apps security update
-      """
-    When I apt install `<infra-pkg> <apps-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      3 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      2 esm-infra security updates and 1 esm-apps security update
-      """
-    When I apt install `<standard-pkg> <infra-pkg> <apps-pkg>`
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      4 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      1 standard LTS security update, 2 esm-infra security updates and 1 esm-apps security update
-      """
-    When I apt upgrade
-    Then stdout matches regexp:
-      """
-      0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-      """
-    Then stdout does not match regexp:
-      """
-      standard LTS security update
-      """
-    Then stdout does not match regexp:
-      """
-      esm-infra
-      """
-    Then stdout does not match regexp:
-      """
-      esm-apps
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  | standard-pkg              | infra-pkg                                            | apps-pkg     |
-      | xenial  | lxd-container | apparmor=2.10.95-0ubuntu2 | curl=7.47.0-1ubuntu2 libcurl3-gnutls=7.47.0-1ubuntu2 | hello=2.10-1 |
-
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-infra on upgrade
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -131,9 +55,8 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\\/\\/ubuntu\\.com\\/pro                             |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -650,8 +573,6 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  |
-      | xenial  | lxd-container |
-      | xenial  | lxd-vm        |
       | bionic  | lxd-container |
       | bionic  | lxd-vm        |
       | focal   | lxd-container |
@@ -750,9 +671,6 @@ Feature: APT Messages
 
     Examples: release-per-machine-type
       | release | machine_type  | msg                                                                              |
-      | xenial  | aws.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
-      | xenial  | azure.generic | Learn more about Ubuntu Pro for 16.04 on Azure at https://ubuntu.com/16-04/azure |
-      | xenial  | gcp.generic   | Learn more about Ubuntu Pro for 16.04 at https://ubuntu.com/16-04                |
       | bionic  | aws.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
       | bionic  | azure.generic | Learn more about Ubuntu Pro for 18.04 on Azure at https://ubuntu.com/18-04/azure |
       | bionic  | gcp.generic   | Learn more about Ubuntu Pro for 18.04 at https://ubuntu.com/18-04                |
@@ -1157,12 +1075,11 @@ Feature: APT Messages
       """
 
     Examples: ubuntu release
-      | release | machine_type  | wrong_release | package         | installed_version |
-      | xenial  | lxd-container | bionic        | libcurl3-gnutls | 7.47.0-1ubuntu2   |
-      | bionic  | lxd-container | focal         | xz-utils        | 5.2.2-1.3         |
-      | focal   | lxd-container | bionic        | libcurl4        | 7.68.0-1ubuntu2   |
-      | jammy   | lxd-container | focal         | libcurl4        | 7.81.0-1          |
-      | noble   | lxd-container | jammy         | libcurl4t64     | 8.5.0-2ubuntu10   |
+      | release | machine_type  | wrong_release | package     | installed_version |
+      | bionic  | lxd-container | focal         | xz-utils    | 5.2.2-1.3         |
+      | focal   | lxd-container | bionic        | libcurl4    | 7.68.0-1ubuntu2   |
+      | jammy   | lxd-container | focal         | libcurl4    | 7.81.0-1          |
+      | noble   | lxd-container | jammy         | libcurl4t64 | 8.5.0-2ubuntu10   |
 
   @uses.config.contract_token
   Scenario Outline: APT news selectors
@@ -1580,7 +1497,6 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

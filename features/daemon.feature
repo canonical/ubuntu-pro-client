@@ -19,42 +19,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
       | resolute | lxd-container |
       | stonking | lxd-container |
 
-  @uses.config.contract_token @arm64
-  Scenario Outline: cloud-id-shim should run in postinst and on boot
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    # verify installing pro created the cloud-id file
-    When I run `cat /run/cloud-init/cloud-id` with sudo
-    Then I will see the following on stdout:
-      """
-      lxd
-      """
-    When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
-    Then I will see the following on stdout:
-      """
-      lxd
-      """
-    # verify the shim service runs on boot and creates the cloud-id file
-    When I reboot the machine
-    Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `3`
-    Then stdout matches regexp:
-      """
-      (code=exited, status=0/SUCCESS)
-      """
-    When I run `cat /run/cloud-init/cloud-id` with sudo
-    Then I will see the following on stdout:
-      """
-      lxd
-      """
-    When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
-    Then I will see the following on stdout:
-      """
-      lxd
-      """
-
-    Examples: version
-      | release | machine_type  |
-      | xenial  | lxd-container |
-
   @uses.config.contract_token
   Scenario Outline: daemon should run when appropriate on gcp generic lts
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -200,7 +164,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type | pkg_name               |
-      | xenial   | gcp.generic  | ubuntu-advantage-tools |
       | bionic   | gcp.generic  | ubuntu-advantage-tools |
       | focal    | gcp.generic  | ubuntu-advantage-tools |
       | jammy    | gcp.generic  | ubuntu-advantage-tools |
@@ -268,7 +231,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type  |
-      | xenial   | azure.generic |
       | bionic   | azure.generic |
       | focal    | azure.generic |
       | jammy    | azure.generic |
@@ -319,7 +281,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release  | machine_type |
-      | xenial   | aws.generic  |
       | bionic   | aws.generic  |
       | focal    | aws.generic  |
       | jammy    | aws.generic  |
@@ -366,9 +327,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
 
     Examples: version
       | release | machine_type |
-      | xenial  | aws.pro      |
-      | xenial  | azure.pro    |
-      | xenial  | gcp.pro      |
       | bionic  | aws.pro      |
       | bionic  | azure.pro    |
       | bionic  | gcp.pro      |

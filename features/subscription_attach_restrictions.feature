@@ -41,7 +41,6 @@ Feature: One time pro subscription related tests
 
     Examples: ubuntu release
       | release  | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
-      | xenial   | lxd-container | trusty     | 14.04 LTS   | Trusty Tahr         |
       | bionic   | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
       | focal    | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
       | jammy    | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
@@ -114,9 +113,6 @@ Feature: One time pro subscription related tests
 
     Examples: ubuntu release
       | release  | machine_type  | onlyseries | onlyrelease | onlyseries_codename |
-      | xenial   | lxd-container | xenial     | 16.04 LTS   | Xenial Xerus        |
-      | xenial   | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
-      | xenial   | lxd-container | noble      | 24.04 LTS   | Noble Numbat        |
       | bionic   | lxd-container | bionic     | 18.04 LTS   | Bionic Beaver       |
       | bionic   | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
       | focal    | lxd-container | focal      | 20.04 LTS   | Focal Fossa         |
@@ -188,7 +184,6 @@ Feature: One time pro subscription related tests
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

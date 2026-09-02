@@ -114,7 +114,7 @@ def when_i_install_uat(context, machine_name=SUT):
             context, " ".join(to_install), machine_name=machine_name
         )
     else:
-        if series in ("xenial", "bionic", "focal", "jammy"):
+        if series in ("bionic", "focal", "jammy"):
             when_i_apt_install(
                 context,
                 "ubuntu-pro-client ubuntu-advantage-tools",

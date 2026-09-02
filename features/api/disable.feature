@@ -123,7 +123,6 @@ Feature: u.pro.services.disable
 
     Examples:
       | release | machine_type  | curl_version       |
-      | xenial  | lxd-container | 7.47.0-1ubuntu2.19 |
       | bionic  | lxd-container | 7.58.0-2ubuntu3.24 |
 
   Scenario Outline: u.pro.services.disable.v1 vm services
@@ -200,5 +199,4 @@ Feature: u.pro.services.disable
 
     Examples:
       | release | machine_type  |
-      | xenial  | lxd-container |
       | bionic  | lxd-container |

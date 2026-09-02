@@ -142,8 +142,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
 
     Examples: ubuntu release
       | release | machine_type   | infra-pkg | apps-pkg | fips-kernel-version | fips-meta         | fips-packages                                                                                    |
-      | xenial  | azure.pro-fips | libkrad0  | jq       | fips                | ubuntu-fips       | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
-      | xenial  | aws.pro-fips   | libkrad0  | jq       | fips                | ubuntu-fips       | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | azure.pro-fips | libkrad0  | bundler  | azure-fips          | ubuntu-azure-fips | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | aws.pro-fips   | libkrad0  | bundler  | aws-fips            | ubuntu-aws-fips   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |
       | bionic  | gcp.pro-fips   | libkrad0  | bundler  | gcp-fips            | ubuntu-gcp-fips   | openssh-server openssh-client strongswan openssh-server-hmac openssh-client-hmac strongswan-hmac |

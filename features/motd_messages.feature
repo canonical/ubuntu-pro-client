@@ -46,12 +46,11 @@ Feature: MOTD Messages
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | service   |
-      | xenial   | lxd-container | esm-infra |
-      | bionic   | lxd-container | esm-apps  |
-      | bionic   | wsl           | esm-apps  |
-      | noble    | lxd-container | esm-apps  |
-      | resolute | lxd-container | esm-apps  |
+      | release  | machine_type  | service  |
+      | bionic   | lxd-container | esm-apps |
+      | bionic   | wsl           | esm-apps |
+      | noble    | lxd-container | esm-apps |
+      | resolute | lxd-container | esm-apps |
 
   Scenario Outline: Contract Expiration Messages
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -139,6 +138,5 @@ Feature: MOTD Messages
 
     Examples: ubuntu release
       | release | machine_type  | service   |
-      | xenial  | lxd-container | esm-infra |
       | bionic  | lxd-container | esm-infra |
       | bionic  | wsl           | esm-infra |

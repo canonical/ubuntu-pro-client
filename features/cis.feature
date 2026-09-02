@@ -82,9 +82,8 @@ Feature: Enable cis on Ubuntu
       """
 
     Examples: cis script
-      | release | machine_type  | cis_script                                  |
-      | bionic  | lxd-container | Canonical_Ubuntu_18.04_CIS-harden.sh        |
-      | xenial  | lxd-container | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
+      | release | machine_type  | cis_script                           |
+      | bionic  | lxd-container | Canonical_Ubuntu_18.04_CIS-harden.sh |
 
   Scenario Outline: Attached enable of cis service in a ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

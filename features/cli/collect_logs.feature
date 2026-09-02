@@ -49,7 +49,6 @@ Feature: CLI collect-logs command
 
     Examples: ubuntu release
       | release  | machine_type  | user_spec   |
-      | xenial   | lxd-container | as non-root |
       | bionic   | lxd-container | as non-root |
       | focal    | lxd-container | as non-root |
       | jammy    | lxd-container | as non-root |
@@ -115,7 +114,6 @@ Feature: CLI collect-logs command
 
     Examples: ubuntu release
       | release  | machine_type  | user_spec   |
-      | xenial   | lxd-container | as non-root |
       | bionic   | lxd-container | as non-root |
       | focal    | lxd-container | as non-root |
       | jammy    | lxd-container | as non-root |

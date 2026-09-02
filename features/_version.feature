@@ -24,16 +24,6 @@ Feature: Pro is expected version
 
     Examples: version
       | release  | machine_type   |
-      | xenial   | lxd-container  |
-      | xenial   | lxd-vm         |
-      | xenial   | aws.generic    |
-      | xenial   | aws.pro        |
-      | xenial   | aws.pro-fips   |
-      | xenial   | azure.generic  |
-      | xenial   | azure.pro      |
-      | xenial   | azure.pro-fips |
-      | xenial   | gcp.generic    |
-      | xenial   | gcp.pro        |
       | bionic   | lxd-container  |
       | bionic   | lxd-vm         |
       | bionic   | aws.generic    |
@@ -115,7 +105,6 @@ Feature: Pro is expected version
 
     Examples: version
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -141,7 +130,6 @@ Feature: Pro is expected version
       | release  | machine_type  |
       | bionic   | lxd-container |
       | focal    | lxd-container |
-      | xenial   | lxd-container |
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | questing | lxd-container |
@@ -224,7 +212,6 @@ Feature: Pro is expected version
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |

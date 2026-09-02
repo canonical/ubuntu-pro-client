@@ -20,7 +20,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -74,7 +73,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -296,7 +294,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release | machine_type  | valid_services                                                                                                                                                                 |
-      | xenial  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
       | bionic  | lxd-container | anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
       | focal   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
       | jammy   | lxd-container | anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
@@ -540,7 +537,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  | infra-pkg | apps-pkg | msg                                                                                                                                                                                |
-      | xenial   | lxd-container | libkrad0  | jq       | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
       | bionic   | lxd-container | libkrad0  | bundler  | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
       | focal    | lxd-container | hello     | ant      | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
       | resolute | lxd-container | hello     | acmetool | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
@@ -572,7 +568,6 @@ Feature: CLI enable command
 
     Examples: not entitled services
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -610,35 +605,6 @@ Feature: CLI enable command
       E: Unable to locate package some-package-aws
       """
 
-  Scenario Outline: APT auth file is edited correctly on enable
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    Then I will see the following on stdout:
-      """
-      6 /etc/apt/auth.conf.d/90ubuntu-advantage
-      """
-    # simulate a scenario where the line should get replaced
-    When I run `cp /etc/apt/auth.conf.d/90ubuntu-advantage /etc/apt/auth.conf.d/90ubuntu-advantage.backup` with sudo
-    When I run `pro disable esm-infra` with sudo
-    When I run `cp /etc/apt/auth.conf.d/90ubuntu-advantage.backup /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    When I run `pro enable esm-infra` with sudo
-    When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    Then I will see the following on stdout:
-      """
-      6 /etc/apt/auth.conf.d/90ubuntu-advantage
-      """
-    When I run `pro enable cis` with sudo
-    When I run `wc -l /etc/apt/auth.conf.d/90ubuntu-advantage` with sudo
-    Then I will see the following on stdout:
-      """
-      7 /etc/apt/auth.conf.d/90ubuntu-advantage
-      """
-
-    Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-
   Scenario Outline: Attached enable with corrupt lock
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -658,7 +624,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -786,7 +751,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | bionic   | wsl           |
       | focal    | lxd-container |
@@ -819,7 +783,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
@@ -840,7 +803,6 @@ Feature: CLI enable command
 
     Examples: ubuntu release
       | release  | machine_type  |
-      | xenial   | lxd-container |
       | bionic   | lxd-container |
       | focal    | lxd-container |
       | jammy    | lxd-container |
