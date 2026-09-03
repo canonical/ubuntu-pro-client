@@ -131,9 +131,9 @@ Feature: APT Messages
 
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
-      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
+      | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\\.04 at https:\\/\\/ubuntu\\.com\\/<version>-04 |
+      | focal   | lxd-container | Learn more about Ubuntu Pro at https:\\/\\/ubuntu\\.com\\/pro                             |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook advertises esm-apps on upgrade
@@ -732,10 +732,8 @@ Feature: APT Messages
       | resolute | lxd-container |
       | stonking | lxd-container |
       | stonking | lxd-vm        |
+      | resolute | lxd-vm        |
 
-  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
-  # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
-  # | resolute | lxd-vm        |
   Scenario Outline: Cloud and series-specific URLs
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt install `ansible`
