@@ -461,6 +461,47 @@ class Azure(Cloud):
         # instead of the instance id
         return instance.name
 
+    def locate_image_name(
+        self,
+        series: str,
+        machine_type: str,
+        daily: bool = True,
+        include_deprecated: bool = False,
+    ) -> str:
+        """Locate and return the image name to use for vm provision.
+
+        :param series:
+            The ubuntu release to be used when locating the image name
+        :machine_type:
+            string representing the type of machine to launch (pro or generic)
+
+        :returns:
+            A image name to use when provisioning a virtual machine
+            based on the series value
+        """
+        if not series:
+            raise ValueError(
+                "Must provide either series or image_name to launch azure"
+            )
+
+        image_type = ImageType.GENERIC
+        if "pro-fips" in machine_type:
+            image_type = ImageType.PRO_FIPS
+        elif "pro" in machine_type:
+            image_type = ImageType.PRO
+
+        if daily:
+            logging.debug("looking up daily image for {}".format(series))
+            return self.api.daily_image(
+                release=series,
+                image_type=image_type,
+                include_deprecated=include_deprecated,
+            )
+        else:
+            # pycloudlib.Azure.released_image only accepts `release`
+            logging.debug("looking up released image for {}".format(series))
+            return self.api.released_image(release=series)
+
     def manage_ssh_key(
         self,
         private_key_path: Optional[str] = None,
@@ -529,7 +570,16 @@ class Azure(Cloud):
             An Azure cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series, machine_type)
+            if series == "bionic":
+                # bionic daily images are no longer published on azure
+                logging.debug("defaulting to non-daily image for azure bionic")
+                daily = False
+            else:
+                daily = True
+
+            image_name = self.locate_image_name(
+                series, machine_type, daily=daily
+            )
 
         logging.info(
             "--- Launching Azure image {}({})".format(image_name, series)
