@@ -5,7 +5,7 @@ import shlex
 import threading
 import time
 from contextlib import suppress
-from typing import List, Optional
+from typing import List, NamedTuple, Optional
 
 import pycloudlib  # type: ignore
 import toml
@@ -784,6 +784,52 @@ class LXDContainer(_LXD):
         return pycloudlib.LXDContainer
 
 
+WSL_INSTALL_NATIVE = "wsl"
+WSL_INSTALL_WINGET = "winget"
+
+WSLDistro = NamedTuple(
+    "WSLDistro",
+    [
+        ("name", str),
+        ("install_method", str),
+        ("store_id", Optional[str]),
+        ("launcher", Optional[str]),
+        ("appx_name", Optional[str]),
+    ],
+)
+
+
+def native_wsl_distro(name: str) -> WSLDistro:
+    """
+    Native WSL distros are managed by Microsoft through the wsl.exe installer.
+    """
+    return WSLDistro(
+        name=name,
+        install_method=WSL_INSTALL_NATIVE,
+        store_id=None,
+        launcher=None,
+        appx_name=None,
+    )
+
+
+def winget_wsl_distro(
+    name: str, store_id: str, launcher: str, appx_name: str
+) -> WSLDistro:
+    """
+    Winget WSL distros are published by Canonical into the winget repositories.
+
+    Typically the native WSL distro is preferred; winget is included for support
+    of older Ubuntu releases.
+    """
+    return WSLDistro(
+        name=name,
+        install_method=WSL_INSTALL_WINGET,
+        store_id=store_id,
+        launcher=launcher,
+        appx_name=appx_name,
+    )
+
+
 class WSLCloud(pycloudlib.cloud.BaseCloud):
     def __init__(
         self,
@@ -815,28 +861,22 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         raise NotImplementedError
 
     def launch(self, series: str):
-        instance_parameters = self.released_image(series)
-        if instance_parameters is None:
+        distro = self.released_image(series)
+        if distro is None:
             raise ValueError("No WSL image configured for {}".format(series))
 
         inst = WSLInstance(
             self.key_pair,
-            series=series,
+            distro_name=distro.name,
             ip_address=self.wsl_ip_address,
         )
         inst._wait_for_execute()
         inst.delete()
-        if "appxname" in instance_parameters:
-            inst.uninstall_ubuntu_installer(instance_parameters["appxname"])
+        if distro.appx_name:
+            inst.uninstall_ubuntu_installer(distro.appx_name)
 
-        inst.install_ubuntu_distro(
-            store_id=instance_parameters.get("store_id"),
-            distro_name=instance_parameters.get("distro_name"),
-        )
-        inst.launch_ubuntu_distro(
-            launcher_name=instance_parameters.get("launcher"),
-            distro_name=instance_parameters.get("distro_name"),
-        )
+        inst.install_ubuntu_distro(distro)
+        inst.launch_ubuntu_distro(distro)
         inst.ensure_non_root_user()
 
         return inst
@@ -846,34 +886,31 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
     def released_image(self, release: str, **kwargs):
         wsl_releases = {
-            "resolute": {
-                "name": "Ubuntu-26.04",
-                "distro_name": "Ubuntu-26.04",
-            },
-            "noble": {
-                "name": "Ubuntu-24.04",
-                "store_id": "Canonical.Ubuntu.2404",
-                "launcher": "ubuntu2404.exe",
-                "appxname": "Ubuntu24.04LTS",
-            },
-            "jammy": {
-                "name": "Ubuntu-22.04",
-                "store_id": "9PN20MSR04DW",
-                "launcher": "ubuntu2204.exe",
-                "appxname": "Ubuntu22.04LTS",
-            },
-            "focal": {
-                "name": "Ubuntu-20.04",
-                "store_id": "9MTTCL66CPXJ",
-                "launcher": "ubuntu2004.exe",
-                "appxname": "Ubuntu20.04LTS",
-            },
-            "bionic": {
-                "name": "Ubuntu-18.04",
-                "store_id": "9PNKSF5ZN4SW",
-                "launcher": "ubuntu1804.exe",
-                "appxname": "Ubuntu18.04LTS",
-            },
+            "resolute": native_wsl_distro("Ubuntu-26.04"),
+            "noble": winget_wsl_distro(
+                name="Ubuntu-24.04",
+                store_id="Canonical.Ubuntu.2404",
+                launcher="ubuntu2404.exe",
+                appx_name="Ubuntu24.04LTS",
+            ),
+            "jammy": winget_wsl_distro(
+                name="Ubuntu-22.04",
+                store_id="9PN20MSR04DW",
+                launcher="ubuntu2204.exe",
+                appx_name="Ubuntu22.04LTS",
+            ),
+            "focal": winget_wsl_distro(
+                name="Ubuntu-20.04",
+                store_id="9MTTCL66CPXJ",
+                launcher="ubuntu2004.exe",
+                appx_name="Ubuntu20.04LTS",
+            ),
+            "bionic": winget_wsl_distro(
+                name="Ubuntu-18.04",
+                store_id="9PNKSF5ZN4SW",
+                launcher="ubuntu1804.exe",
+                appx_name="Ubuntu18.04LTS",
+            ),
         }
 
         return wsl_releases.get(release)
@@ -885,34 +922,32 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
     # hanging forever instead of failing with a clear error.
     SSH_COMMAND_TIMEOUT = 30 * 60
 
-    WSL_UBUNTU_MAP = {
-        "resolute": "Ubuntu-26.04",
-        "noble": "Ubuntu-24.04",
-        "jammy": "Ubuntu-22.04",
-        "focal": "Ubuntu-20.04",
-        "bionic": "Ubuntu-18.04",
-    }
-
     def __init__(
         self,
         key_pair,
-        series: str,
+        distro_name: str,
         ip_address: str,
     ):
         super().__init__(key_pair)
         self.ip_address = ip_address
-        self.series = self.WSL_UBUNTU_MAP.get(series, "None")
+        self.series = distro_name
 
-    def install_ubuntu_distro(self, store_id=None, distro_name=None):
-        if distro_name:
+    def install_ubuntu_distro(self, distro: WSLDistro):
+        if distro.install_method == WSL_INSTALL_NATIVE:
             install_cmd = "wsl --install {} --no-launch --web-download".format(
-                shlex.quote(distro_name)
+                shlex.quote(distro.name)
             )
-        else:
+        elif distro.install_method == WSL_INSTALL_WINGET:
             install_cmd = (
                 'winget install --id "{}" --accept-source-agreements '
                 "--accept-package-agreements --silent"
-            ).format(store_id)
+            ).format(distro.store_id)
+        else:
+            raise ValueError(
+                "Unsupported WSL install method: {}".format(
+                    distro.install_method
+                )
+            )
 
         self.execute(
             install_cmd,
@@ -920,13 +955,19 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
             check_stderr=True,
         )
 
-    def launch_ubuntu_distro(self, launcher_name=None, distro_name=None):
-        if distro_name:
+    def launch_ubuntu_distro(self, distro: WSLDistro):
+        if distro.install_method == WSL_INSTALL_NATIVE:
             launch_cmd = "wsl -d {} -u root --exec /bin/true".format(
-                shlex.quote(distro_name)
+                shlex.quote(distro.name)
             )
+        elif distro.install_method == WSL_INSTALL_WINGET:
+            launch_cmd = "{} install --root --ui=none".format(distro.launcher)
         else:
-            launch_cmd = "{} install --root --ui=none".format(launcher_name)
+            raise ValueError(
+                "Unsupported WSL install method: {}".format(
+                    distro.install_method
+                )
+            )
 
         self.execute(launch_cmd, run_on_wsl=False, check_stderr=True)
 
