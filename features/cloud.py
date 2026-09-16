@@ -795,8 +795,8 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         self.wsl_ip_address = wsl_ip_address
         super().__init__(tag="wsl")
 
-    def _check_and_set_config(self, config_file, required_values):
-        self.config = {
+    def _check_and_get_config(self, config_file, required_values):
+        return {
             "public_key_path": self.wsl_pubkey_path,
             "private_key_path": self.wsl_privkey_path,
         }
