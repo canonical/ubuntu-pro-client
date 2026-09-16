@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import shlex
+import threading
 import time
 from contextlib import suppress
 from typing import List, Optional
@@ -815,6 +816,9 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
     def launch(self, series: str):
         instance_parameters = self.released_image(series)
+        if instance_parameters is None:
+            raise ValueError("No WSL image configured for {}".format(series))
+
         inst = WSLInstance(
             self.key_pair,
             series=series,
@@ -822,15 +826,18 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         )
         inst._wait_for_execute()
         inst.delete()
-        inst.uninstall_ubuntu_installer(instance_parameters["appxname"])
+        if "appxname" in instance_parameters:
+            inst.uninstall_ubuntu_installer(instance_parameters["appxname"])
 
         inst.install_ubuntu_distro(
-            store_id=instance_parameters["store_id"],
+            store_id=instance_parameters.get("store_id"),
+            distro_name=instance_parameters.get("distro_name"),
         )
         inst.launch_ubuntu_distro(
-            launcher_name=instance_parameters["launcher"],
+            launcher_name=instance_parameters.get("launcher"),
+            distro_name=instance_parameters.get("distro_name"),
         )
-        inst.create_non_root_user()
+        inst.ensure_non_root_user()
 
         return inst
 
@@ -839,6 +846,16 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
     def released_image(self, release: str, **kwargs):
         wsl_releases = {
+            "resolute": {
+                "name": "Ubuntu-26.04",
+                "distro_name": "Ubuntu-26.04",
+            },
+            "noble": {
+                "name": "Ubuntu-24.04",
+                "store_id": "Canonical.Ubuntu.2404",
+                "launcher": "ubuntu2404.exe",
+                "appxname": "Ubuntu24.04LTS",
+            },
             "jammy": {
                 "name": "Ubuntu-22.04",
                 "store_id": "9PN20MSR04DW",
@@ -863,7 +880,14 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
 
 class WSLInstance(pycloudlib.instance.BaseInstance):
+    # Guards against an orphaned SSH channel (e.g. the Windows host
+    # rebooting mid-command, which has happened via automatic updates)
+    # hanging forever instead of failing with a clear error.
+    SSH_COMMAND_TIMEOUT = 30 * 60
+
     WSL_UBUNTU_MAP = {
+        "resolute": "Ubuntu-26.04",
+        "noble": "Ubuntu-24.04",
         "jammy": "Ubuntu-22.04",
         "focal": "Ubuntu-20.04",
         "bionic": "Ubuntu-18.04",
@@ -879,28 +903,39 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
         self.ip_address = ip_address
         self.series = self.WSL_UBUNTU_MAP.get(series, "None")
 
-    def install_ubuntu_distro(self, store_id: str):
-        install_cmd = (
-            'winget install --id "{}" --accept-source-agreements '
-            "--accept-package-agreements --silent"
-        )
+    def install_ubuntu_distro(self, store_id=None, distro_name=None):
+        if distro_name:
+            install_cmd = "wsl --install {} --no-launch --web-download".format(
+                shlex.quote(distro_name)
+            )
+        else:
+            install_cmd = (
+                'winget install --id "{}" --accept-source-agreements '
+                "--accept-package-agreements --silent"
+            ).format(store_id)
+
         self.execute(
-            install_cmd.format(store_id),
+            install_cmd,
             run_on_wsl=False,
             check_stderr=True,
         )
 
-    def launch_ubuntu_distro(self, launcher_name: str):
-        self.execute(
-            "{} install --root --ui=none".format(launcher_name),
-            run_on_wsl=False,
-            check_stderr=True,
-        )
+    def launch_ubuntu_distro(self, launcher_name=None, distro_name=None):
+        if distro_name:
+            launch_cmd = "wsl -d {} -u root --exec /bin/true".format(
+                shlex.quote(distro_name)
+            )
+        else:
+            launch_cmd = "{} install --root --ui=none".format(launcher_name)
 
-    def create_non_root_user(self, username="ubuntu"):
+        self.execute(launch_cmd, run_on_wsl=False, check_stderr=True)
+
+    def ensure_non_root_user(self, username="ubuntu"):
+        username_arg = shlex.quote(username)
         self.execute(
-            'sh -c "sudo adduser --disabled-password --gecos test {}"'.format(
-                username
+            'sh -c "id -u {0} >/dev/null 2>&1 || '
+            'adduser --disabled-password --gecos test {0}"'.format(
+                username_arg
             ),
             run_on_wsl=True,
             use_sudo=True,
@@ -989,10 +1024,34 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
 
         channel.shutdown_write()
 
-        out = fp_out.read()
-        err = fp_err.read()
+        # Read stdout and stderr concurrently.
+        out_result: List[bytes] = []
+        err_result: List[bytes] = []
+        out_thread = threading.Thread(
+            target=lambda: out_result.append(fp_out.read())
+        )
+        err_thread = threading.Thread(
+            target=lambda: err_result.append(fp_err.read())
+        )
+        out_thread.daemon = True
+        err_thread.daemon = True
+        out_thread.start()
+        err_thread.start()
+        out_thread.join(self.SSH_COMMAND_TIMEOUT)
+        err_thread.join(self.SSH_COMMAND_TIMEOUT)
+        if out_thread.is_alive() or err_thread.is_alive():
+            channel.close()
+            client.close()
+            raise SSHException(
+                "Command '{}' produced no response within {}s; the remote "
+                "session may be orphaned.".format(
+                    cmd, self.SSH_COMMAND_TIMEOUT
+                )
+            )
         return_code = channel.recv_exit_status()
 
+        out = out_result[0]
+        err = err_result[0]
         out = "" if not out else out.rstrip().decode("utf-8")
         err = "" if not err else err.rstrip().decode("utf-8")
 

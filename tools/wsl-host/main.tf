@@ -147,6 +147,13 @@ resource "azurerm_windows_virtual_machine" "wsl" {
   # Windows 11 on Azure needs multitenant hosting rights.
   license_type = "Windows_Client"
 
+  # AutomaticByOS (the default) lets Windows Update reboot the host on its own
+  # schedule, which has silently killed long-running WSL test scenarios
+  # mid-run. Test runs can take much longer than an update-reboot window, so
+  # patching is left to whoever rebuilds the image instead.
+  patch_mode                   = "Manual"
+  enable_automatic_updates     = false
+
   # Security type must stay "Standard": Trusted Launch (secure boot / vTPM)
   # does not support nested virtualization, which WSL 2 requires. Leaving
   # secure_boot_enabled / vtpm_enabled unset selects Standard.
