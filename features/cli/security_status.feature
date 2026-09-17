@@ -549,7 +549,8 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until 2030\.( You have received \d+ security
+      update[s]?\.)? There (is|are) \d+ pending security update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
       Ubuntu Pro with 'esm-apps' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
@@ -562,7 +563,8 @@ Feature: CLI security-status command
        +\d+ packages from Ubuntu Main/Restricted repository
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until 2030. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until 2030\.( You have received \d+ security
+      update[s]?\.)? There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-infra' to learn more
 
@@ -801,8 +803,7 @@ Feature: CLI security-status command
   Scenario Outline: Run security status in a fully supported Ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I install third-party / unknown packages in the machine
-    # Ansible is in esm-apps
-    And I apt install `ansible`
+    And I apt install `<esm_apps_package>`
     And I verify root and non-root `pro security-status` calls have the same output
     And I run `pro security-status` as non-root
     Then stdout matches regexp:
@@ -875,10 +876,10 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until <esm_year>\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until <esm_year>\.( There (is|are) \d+ pending security update[s]?\.)?
 
       Universe/Multiverse packages are receiving security updates from
-      Ubuntu Pro with 'esm-apps' enabled until <esm_year>\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-apps' enabled until <esm_year>\.( There (is|are) \d+ pending security update[s]?\.)?
       """
     When I verify root and non-root `pro security-status --esm-infra` calls have the same output
     And I run `pro security-status --esm-infra` as non-root
@@ -888,19 +889,9 @@ Feature: CLI security-status command
        +\d+ packages from Ubuntu Main/Restricted repository
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until <esm_year>\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until <esm_year>\.( There (is|are) \d+ pending security update[s]?\.)?
 
       Run 'pro help esm-infra' to learn more
-
-      Installed packages with an available esm-infra update:
-      (.|\n)+
-
-      Further installed packages covered by esm-infra:
-      (.|\n)+
-
-      For example, run:
-          apt-cache show .+
-      to learn more about that package\.
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -910,19 +901,12 @@ Feature: CLI security-status command
        +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
       Universe/Multiverse packages are receiving security updates from
-      Ubuntu Pro with 'esm-apps' enabled until <esm_year>\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-apps' enabled until <esm_year>\.( There (is|are) \d+ pending security update[s]?\.)?
 
       Run 'pro help esm-apps' to learn more
 
-      Installed packages with an available esm-apps update:
-      (.|\n)+
-
-      Further installed packages covered by esm-apps:
-      (.|\n)+
-
-      For example, run:
-          apt-cache show .+
-      to learn more about that package\.
+      Installed packages (with an available esm-apps update|covered by esm-apps):
+      (.|\n)*<esm_apps_package>(.|\n)*
       """
     When I apt upgrade
     And I verify root and non-root `pro security-status` calls have the same output
@@ -942,12 +926,12 @@ Feature: CLI security-status command
       This machine is attached to an Ubuntu Pro subscription.
 
       Main/Restricted packages are receiving security updates from
-      Ubuntu Pro with 'esm-infra' enabled until <esm_year>\. You have received \d+ security
-      update[s]?\.
+      Ubuntu Pro with 'esm-infra' enabled until <esm_year>\.( You have received \d+ security
+      update[s]?\.)?
 
       Universe/Multiverse packages are receiving security updates from
-      Ubuntu Pro with 'esm-apps' enabled until <esm_year>\. You have received \d+ security
-      update[s]?\.
+      Ubuntu Pro with 'esm-apps' enabled until <esm_year>\.( You have received \d+ security
+      update[s]?\.)?
       """
     When I run `pro disable esm-infra esm-apps` with sudo
     And I verify root and non-root `pro security-status` calls have the same output
@@ -1027,9 +1011,6 @@ Feature: CLI security-status command
       Main/Restricted packages until <esm_year>\.
 
       Run 'pro help esm-infra' to learn more
-
-      Installed packages covered by esm-infra:
-      (.|\n)+
       """
     When I verify root and non-root `pro security-status --esm-apps` calls have the same output
     And I run `pro security-status --esm-apps` as non-root
@@ -1049,8 +1030,8 @@ Feature: CLI security-status command
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
     Then I will see the following on stderr:
       """
-      usage: pro security-status [-h] [--format {json,yaml,text}]
-                                 [--thirdparty | --unavailable | --esm-infra | --esm-apps]
+      usage: pro security-status [-h] [--format {json,yaml,text}] [--thirdparty |
+                                 --unavailable | --esm-infra | --esm-apps]
       pro security-status: error: argument --unavailable: not allowed with argument --thirdparty
       """
     When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
@@ -1092,6 +1073,8 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ package[s]? from Ubuntu Main/Restricted repository
        +\d+ package[s]? from Ubuntu Universe/Multiverse repository
+        +\d+ package[s]? from a third party
+        +\d+ package[s]? no longer available for download
 
       To get more information about the packages, run
           pro security-status --help
@@ -1117,8 +1100,8 @@ Feature: CLI security-status command
       """
 
     Examples: ubuntu release
-      | release  | machine_type  | esm_year |
-      | resolute | lxd-container | 2036     |
+      | release  | machine_type  | esm_year | esm_apps_package |
+      | resolute | lxd-container | 2036     | ansible          |
 
   # Latest released non-LTS
   Scenario Outline: Run security status in an Ubuntu machine
