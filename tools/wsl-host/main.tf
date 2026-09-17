@@ -149,7 +149,7 @@ resource "azurerm_windows_virtual_machine" "wsl" {
 
   # Skip any automatic reboots
   patch_mode                   = "Manual"
-  enable_automatic_updates     = false
+  automatic_updates_enabled    = false
 
   # Trusted Launch (secure boot / vTPM) does not support nested virtualization,
   # which WSL 2 requires.
