@@ -50,7 +50,7 @@ Feature: Package related API endpoints
       | xenial   | lxd-container | libcurl3-gnutls | 7.47.0-1ubuntu2  | esm-infra         |
       | bionic   | lxd-container | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
       | bionic   | wsl           | libcurl4        | 7.58.0-2ubuntu3  | esm-infra         |
-      | focal    | lxd-container | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
+      | focal    | lxd-container | libcurl4        | 7.68.0-1ubuntu2  | esm-infra         |
       | focal    | wsl           | libcurl4        | 7.68.0-1ubuntu2  | standard-security |
       | jammy    | lxd-container | libcurl4        | 7.81.0-1         | standard-security |
       | jammy    | wsl           | libcurl4        | 7.81.0-1         | standard-security |
