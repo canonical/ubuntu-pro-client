@@ -1,6 +1,11 @@
 # Blocks until the post-logon task (phase 2 of bootstrap.ps1) has written the
 # READY marker, so `terraform apply` only returns once the host is usable.
-# Runs as SYSTEM through an Azure run command after the reboot.
+# Runs as SYSTEM through an Azure Run Command after the reboot.
+#
+# This script is coupled to phase 2 only while winget/App Installer must be set
+# up in the admin user's interactive session. Once WSL distro installs all use
+# native `wsl --install <distro> --web-download`, replace this with direct WSL
+# readiness checks such as `wsl --version` and `wsl --list --online`.
 
 param(
     [int] $TimeoutMinutes = 25

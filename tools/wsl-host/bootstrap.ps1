@@ -1,9 +1,9 @@
 # First-boot configuration for the WSL test host.
 #
-# Runs once as SYSTEM through an Azure run command. Sets up everything that
-# does not need a user session and registers a logon-triggered task
-# (phase 2) that runs as the admin user after the reboot Terraform performs
-# next. Phase 2 writes C:\wsl-host\READY once winget and WSL are usable.
+# This script runs as SYSTEM through Azure Run Command. It handles host-level
+# setup: OpenSSH, Windows features required by WSL, the WSL runtime package,
+# and, while older test distros still use winget, the setup needed for winget
+# to work in the test user's interactive session.
 
 param(
     [Parameter(Mandatory)] [string] $AdminUser,
@@ -72,9 +72,8 @@ try {
     Set-Content -Path $authKeys -Value $SshPublicKey -Encoding ascii
     icacls $authKeys /inheritance:r /grant 'Administrators:F' /grant 'SYSTEM:F' | Out-Null
 
+    # Allow SSH traffic
     if (-not (Get-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -ErrorAction SilentlyContinue)) {
-        # Azure NICs land in the Public profile; without -Profile Any this
-        # rule would only cover Private/Domain and silently drop inbound SSH.
         New-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -DisplayName 'OpenSSH Server (sshd)' `
             -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -Profile Any | Out-Null
     }
@@ -87,8 +86,9 @@ try {
     }
 
     # --- WSL package ----------------------------------------------------------
-    # Installed from the GitHub release MSI so we control the version and do
-    # not depend on the Microsoft Store.
+    # Install the WSL package (not the WSL distros) that gives us the ``wsl`` CLI.
+    # This could also be done with ``wsl --install --no-distribution``, but this
+    # way we get to pin the version and avoid a dependency on the Microsoft Store.
     Write-Host '== WSL'
     $wslMsiUrl = switch ($WslMsiSpec) {
         'latest'     { Resolve-GitHubAsset -Repo 'microsoft/WSL' -Pattern '^wsl\..*x64\.msi$' -Prerelease $false }
@@ -100,12 +100,14 @@ try {
     if ($msi.ExitCode -notin 0, 3010) { throw "WSL msiexec failed with $($msi.ExitCode)" }
 
     # --- winget ---------------------------------------------------------------
-    # The Azure image ships without a usable App Installer. winget is only ever
-    # needed inside the admin user's own session (both phase 2 here and later
-    # test runs use it as that user over SSH), so install it there rather than
-    # provisioning it as SYSTEM: a provisioned package is only picked up by
-    # accounts that don't exist yet, not this already-created profile. Just
-    # fetch the installer artifacts now; phase 2 installs them as the user.
+    # Transitional support for older WSL distro installs. Newer distros should
+    # use `wsl --install <distro> --web-download`, but older Ubuntu releases
+    # still need winget/App Installer for now.
+    #
+    # App Installer is per-user in practice: installing/provisioning it as
+    # SYSTEM does not make winget available in the already-created admin user's
+    # profile. Download the installer artifacts here, then "phase 2" installs
+    # them after the reboot from that user's interactive session.
     Write-Host '== winget (downloading for phase 2 to install)'
     $wingetRelease = Resolve-GitHubRelease -Repo 'microsoft/winget-cli' -Prerelease $false
     Write-Host "Using microsoft/winget-cli $($wingetRelease.tag_name)"
@@ -127,8 +129,10 @@ try {
     }
 
     # --- Automatic logon ------------------------------------------------------
-    # winget needs an interactive user session; the harness reaches it over
-    # SSH as the same user, so keep that user logged on after every boot.
+    # Only needed by phase 2. winget/App Installer setup must run inside the
+    # admin user's interactive session, and Terraform cannot run that directly
+    # through Run Command. Once every WSL distro uses native `wsl --install`
+    # instead of winget, this autologon block and phase 2 should be removable.
     Write-Host '== Automatic logon'
     $winlogon = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
     Set-ItemProperty -Path $winlogon -Name AutoAdminLogon -Value '1' -Type String
@@ -137,6 +141,10 @@ try {
     Set-ItemProperty -Path $winlogon -Name DefaultDomainName -Value $env:COMPUTERNAME -Type String
 
     # --- Phase 2: runs as the admin user after logon --------------------------
+    # Phase 2 is the bridge for winget's per-user setup requirement. It should
+    # disappear when the test harness no longer installs any WSL distro through
+    # winget. At that point wait-ready.ps1 can check WSL readiness directly
+    # after the reboot, without waiting for a READY file from this task.
     Write-Host '== Phase 2 task'
     $phase2 = @'
 $ErrorActionPreference = 'Stop'

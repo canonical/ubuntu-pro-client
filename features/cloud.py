@@ -917,9 +917,6 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
 
 class WSLInstance(pycloudlib.instance.BaseInstance):
-    # Guards against an orphaned SSH channel (e.g. the Windows host
-    # rebooting mid-command, which has happened via automatic updates)
-    # hanging forever instead of failing with a clear error.
     SSH_COMMAND_TIMEOUT = 30 * 60
 
     def __init__(
