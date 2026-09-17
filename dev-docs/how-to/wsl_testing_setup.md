@@ -59,18 +59,9 @@ tox -e behave -- -D machine_types=wsl -D releases=jammy
 `behave_env` sets `UACLIENT_BEHAVE_WSL_IP_ADDRESS`,
 `UACLIENT_BEHAVE_WSL_PRIVKEY_PATH` and `UACLIENT_BEHAVE_WSL_PUBKEY_PATH`.
 
-The harness starts the host at the beginning of a run and powers it off at
-the end, so you never need to start or stop it yourself. A powered-off VM is
-still allocated and billed for compute; if the host will sit unused for a
-while, deallocate it:
-
-```shell
-az vm deallocate --resource-group wsl-test-rg --name wsl-test
-```
-
-The harness starts a deallocated host the same way.
-
 ## Destroy the host
+
+When you are finished testing, destroy the resources:
 
 ```shell
 terraform -chdir=tools/wsl-host destroy
@@ -97,3 +88,9 @@ The VM uses the *Standard* security type because Trusted Launch does not
 support the nested virtualization WSL 2 requires, and `Windows_Client`
 licensing because Windows 11 on Azure needs multitenant hosting rights. Both
 are set in `tools/wsl-host/main.tf`.
+
+## TODOs
+
+There are post-provisioning steps specifically related to enabling `winget`.
+Once all WSL distros that we support are "native" WSL distros, we can remove
+the need for winget and can drop these post-provisioning steps.
