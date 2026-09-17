@@ -187,16 +187,15 @@ Feature: CLI disable command
       """
 
     Examples: ubuntu release
-      | release | machine_type  | msg                                                                                                                                                                                |
-      | xenial  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
-      | bionic  | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
-      | focal   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
-      | jammy   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
-      | noble   | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | release  | machine_type  | msg                                                                                                                                                                                |
+      | xenial   | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | bionic   | lxd-container | Try anbox-cloud, cc-eal, cis, esm-apps, esm-apps-legacy, esm-infra,\nesm-infra-legacy, fips, fips-preview, fips-updates, landscape, livepatch,\nrealtime-kernel, ros, ros-updates. |
+      | focal    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | jammy    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | noble    | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+      | resolute | lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
 
-  # TODO: Re-enable resolute once ua-contracts resource definitions are
-  # updated to present CIS as usg like noble.
-  # | resolute| lxd-container | Try anbox-cloud, cc-eal, esm-apps, esm-apps-legacy, esm-infra, esm-infra-legacy,\nfips, fips-preview, fips-updates, landscape, livepatch, realtime-kernel, ros,\nros-updates, usg. |
+  @uses.config.contract_token
   Scenario Outline: Disable with purge does not work with assume-yes
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -215,37 +214,57 @@ Feature: CLI disable command
       | noble    | lxd-container |
       | resolute | lxd-container |
 
+  @uses.config.contract_token
   Scenario Outline: Disable with purge works and purges repo services not involving a kernel
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
     And I apt update
-    And I apt install `ansible`
+    And I apt install `<package>`
     And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
     Then stdout matches regexp:
       """
       \(The --purge flag is still experimental - use with caution\)
 
       The following package\(s\) will be reinstalled from the archive:
-      .*ansible.*
+      .*<package>.*
 
       Do you want to proceed\? \(y/N\)
       """
     And I verify that `esm-apps` is disabled
-    And I verify that `ansible` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/universe`
+    And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
 
     Examples: ubuntu release
-      | release | machine_type  | pocket           |
+      | release | machine_type  | pocket           | package | archive_component |
       # This ends up in GH #943 but maybe can be improved?
-      | xenial  | lxd-container | xenial-backports |
-      | bionic  | lxd-container | bionic-updates   |
-      | bionic  | wsl           | bionic-updates   |
-      | focal   | lxd-container | focal            |
-      | jammy   | lxd-container | jammy            |
+      | xenial  | lxd-container | xenial-backports | ansible | universe          |
+      | bionic  | lxd-container | bionic-updates   | ansible | universe          |
+      | bionic  | wsl           | bionic-updates   | ansible | universe          |
+      | focal   | lxd-container | focal            | ansible | universe          |
+      | jammy   | lxd-container | jammy            | ansible | universe          |
 
-  # TODO: Ansible does not appear to come from esm-apps on resolute.
-  # This scenario likely needs refactor to assert a package that is
-  # actually reinstalled from archive on resolute.
-  # | resolute| lxd-container | resolute         |
+  @uses.config.contract_token
+  Scenario Outline: Disable with purge works and purges repo services on resolute
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I attach `contract_token` with sudo
+    And I apt update
+    And I apt install `<package>`
+    And I run `pro disable esm-apps --purge` `with sudo` and stdin `y`
+    Then stdout matches regexp:
+      """
+      \(The --purge flag is still experimental - use with caution\)
+
+      Removing APT access to Ubuntu Pro: ESM Apps
+      Updating package lists
+      Uninstalling all packages installed from Ubuntu Pro: ESM Apps
+      """
+    And I verify that `esm-apps` is disabled
+    And I verify that `<package>` is installed from apt source `http://archive.ubuntu.com/ubuntu <pocket>/<archive_component>`
+
+    Examples: ubuntu release
+      | release  | machine_type  | pocket   | package | archive_component |
+      | resolute | lxd-container | resolute | ansible | universe          |
+
+  @uses.config.contract_token
   Scenario Outline: Disable with purge unsupported services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -264,7 +283,7 @@ Feature: CLI disable command
       | noble    | lxd-vm       |
       | resolute | lxd-vm       |
 
-  @slow
+  @slow @uses.config.contract_token
   Scenario Outline: Disable and purge fips
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -332,7 +351,7 @@ Feature: CLI disable command
       | focal   | gcp.generic   | fips         | FIPS         | linux-gcp-fips   | https://esm.ubuntu.com/fips/ubuntu focal/main                  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main  |
       | focal   | gcp.generic   | fips-updates | FIPS Updates | linux-gcp-fips   | https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main  | http://us-west2.gce.archive.ubuntu.com/ubuntu focal-updates/main  |
 
-  @slow
+  @slow @uses.config.contract_token
   Scenario Outline: Disable does not purge if no other kernel found
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I attach `contract_token` with sudo
@@ -490,3 +509,4 @@ Feature: CLI disable command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

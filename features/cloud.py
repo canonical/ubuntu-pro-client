@@ -792,7 +792,7 @@ WSLDistro = NamedTuple(
     [
         ("name", str),
         ("install_method", str),
-        ("store_id", Optional[str]),
+        ("winget_id", Optional[str]),
         ("launcher", Optional[str]),
         ("appx_name", Optional[str]),
     ],
@@ -806,14 +806,14 @@ def native_wsl_distro(name: str) -> WSLDistro:
     return WSLDistro(
         name=name,
         install_method=WSL_INSTALL_NATIVE,
-        store_id=None,
+        winget_id=None,
         launcher=None,
         appx_name=None,
     )
 
 
 def winget_wsl_distro(
-    name: str, store_id: str, launcher: str, appx_name: str
+    name: str, winget_id: str, launcher: str, appx_name: str
 ) -> WSLDistro:
     """
     Winget WSL distros are published by Canonical into the winget repositories.
@@ -824,7 +824,7 @@ def winget_wsl_distro(
     return WSLDistro(
         name=name,
         install_method=WSL_INSTALL_WINGET,
-        store_id=store_id,
+        winget_id=winget_id,
         launcher=launcher,
         appx_name=appx_name,
     )
@@ -889,25 +889,25 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
             "resolute": native_wsl_distro("Ubuntu-26.04"),
             "noble": winget_wsl_distro(
                 name="Ubuntu-24.04",
-                store_id="Canonical.Ubuntu.2404",
+                winget_id="Canonical.Ubuntu.2404",
                 launcher="ubuntu2404.exe",
                 appx_name="Ubuntu24.04LTS",
             ),
             "jammy": winget_wsl_distro(
                 name="Ubuntu-22.04",
-                store_id="9PN20MSR04DW",
+                winget_id="Canonical.Ubuntu.2204",
                 launcher="ubuntu2204.exe",
                 appx_name="Ubuntu22.04LTS",
             ),
             "focal": winget_wsl_distro(
                 name="Ubuntu-20.04",
-                store_id="9MTTCL66CPXJ",
+                winget_id="Canonical.Ubuntu.2004",
                 launcher="ubuntu2004.exe",
                 appx_name="Ubuntu20.04LTS",
             ),
             "bionic": winget_wsl_distro(
                 name="Ubuntu-18.04",
-                store_id="9PNKSF5ZN4SW",
+                winget_id="Canonical.Ubuntu.1804",
                 launcher="ubuntu1804.exe",
                 appx_name="Ubuntu18.04LTS",
             ),
@@ -941,7 +941,7 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
             install_cmd = (
                 'winget install --id "{}" --accept-source-agreements '
                 "--accept-package-agreements --silent"
-            ).format(distro.store_id)
+            ).format(distro.winget_id)
         else:
             raise ValueError(
                 "Unsupported WSL install method: {}".format(

@@ -1,6 +1,6 @@
 Feature: End of contract messages
 
-  @vpn @uses.config.contract_token
+  @vpn @uses.config.contract_token_staging_expired_sometimes @uses.config.contract_staging_service_account_username @uses.config.contract_staging_service_account_password
   Scenario Outline: Display expired messages in all relevant places
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I apt upgrade
