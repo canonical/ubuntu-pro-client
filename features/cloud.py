@@ -818,8 +818,8 @@ def winget_wsl_distro(
     """
     Winget WSL distros are published by Canonical into the winget repositories.
 
-    Typically the native WSL distro is preferred; winget is included for support
-    of older Ubuntu releases.
+    Typically the native WSL distro is preferred; winget is included for
+    support of older Ubuntu releases.
     """
     return WSLDistro(
         name=name,
@@ -1088,10 +1088,10 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
             )
         return_code = channel.recv_exit_status()
 
-        out = out_result[0]
-        err = err_result[0]
-        out = "" if not out else out.rstrip().decode("utf-8")
-        err = "" if not err else err.rstrip().decode("utf-8")
+        out_bytes = out_result[0]
+        err_bytes = err_result[0]
+        out = "" if not out_bytes else out_bytes.rstrip().decode("utf-8")
+        err = "" if not err_bytes else err_bytes.rstrip().decode("utf-8")
 
         return Result(out, err, return_code)
 
