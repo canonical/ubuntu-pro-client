@@ -436,6 +436,10 @@ class Azure(Cloud):
 
     name = "azure"
 
+    # Azure has retired daily generic offers for these releases. Ensure we use
+    # released images for theses releases.
+    released_image_series = ("xenial", "bionic")
+
     @property
     def pycloudlib_cls(self):
         """Return the pycloudlib cls to be used as an api."""
@@ -524,7 +528,16 @@ class Azure(Cloud):
             An Azure cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series, machine_type)
+            if (
+                series in self.released_image_series
+                and machine_type == MachineType.AZURE_GENERIC
+            ):
+                logging.info(
+                    "--- Using released Azure image for {}".format(series)
+                )
+                image_name = self.api.released_image(series)
+            else:
+                image_name = self.locate_image_name(series, machine_type)
 
         logging.info(
             "--- Launching Azure image {}({})".format(image_name, series)
