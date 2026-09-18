@@ -1028,10 +1028,10 @@ Feature: CLI security-status command
       (.|\n)+
       """
     When I verify that running `pro security-status --thirdparty --unavailable` `as non-root` exits `2`
-    Then I will see the following on stderr:
+    Then stderr matches regexp:
       """
-      usage: pro security-status [-h] [--format {json,yaml,text}] [--thirdparty |
-                                 --unavailable | --esm-infra | --esm-apps]
+      usage: pro security-status \[-h\] \[--format \{json,yaml,text\}\]\s+\[--thirdparty\s+\|
+      \s+--unavailable \| --esm-infra \| --esm-apps\]
       pro security-status: error: argument --unavailable: not allowed with argument --thirdparty
       """
     When I run `rm /var/lib/apt/periodic/update-success-stamp` with sudo
