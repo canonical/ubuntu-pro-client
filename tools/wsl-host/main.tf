@@ -256,3 +256,16 @@ resource "azurerm_virtual_machine_run_command" "wait_ready" {
 
   depends_on = [azapi_resource_action.reboot]
 }
+
+# Azure rejects Run Command deletion while its VM is stopped. This destroy-time
+# action runs before its wait_ready dependency is removed, leaving the VM ready
+# for Terraform to delete both Run Command resources.
+resource "azapi_resource_action" "start_vm_for_destroy" {
+  type        = "Microsoft.Compute/virtualMachines@2024-07-01"
+  resource_id = azurerm_windows_virtual_machine.wsl.id
+  action      = "start"
+  method      = "POST"
+  when        = "destroy"
+
+  depends_on = [azurerm_virtual_machine_run_command.wait_ready]
+}
