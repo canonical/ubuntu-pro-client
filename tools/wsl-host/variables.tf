@@ -1,9 +1,3 @@
-variable "name" {
-  description = "VM name. The behave harness looks the Windows host up by this name to start/stop it."
-  type        = string
-  default     = "wsl-test"
-}
-
 variable "location" {
   description = "Azure region. Defaults to pycloudlib's default so resources land next to the other test VMs."
   type        = string

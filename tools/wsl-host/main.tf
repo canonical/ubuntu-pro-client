@@ -11,6 +11,10 @@
 # The `behave_env` output holds the environment the harness needs.
 
 locals {
+  # The behave harness currently looks up the Windows host by this exact name
+  # when starting and stopping WSL test runs.
+  host_name = "wsl-test"
+
   # The harness hard-codes this account: it pushes files to
   # C:\Users\ubuntu\... and runs `wsl` as the SSH login user.
   admin_username = "ubuntu"
@@ -18,12 +22,12 @@ locals {
   admin_password = coalesce(var.admin_password, one(random_password.admin[*].result))
 
   ssh_dir              = "${path.module}/.ssh"
-  ssh_private_key_path = "${local.ssh_dir}/${var.name}"
-  ssh_public_key_path  = "${local.ssh_dir}/${var.name}.pub"
+  ssh_private_key_path = "${local.ssh_dir}/${local.host_name}"
+  ssh_public_key_path  = "${local.ssh_dir}/${local.host_name}.pub"
 
   tags = merge(
     {
-      name       = var.name
+      name       = local.host_name
       created_by = "ubuntu-pro-client/tools/wsl-host"
     },
     var.tags,
@@ -56,20 +60,20 @@ resource "local_sensitive_file" "ssh_private_key" {
 
 resource "local_file" "ssh_public_key" {
   filename        = local.ssh_public_key_path
-  content         = "${trimspace(tls_private_key.ssh.public_key_openssh)} ${var.name}\n"
+  content         = "${trimspace(tls_private_key.ssh.public_key_openssh)} ${local.host_name}\n"
   file_permission = "0644"
 }
 
 # --- Network ------------------------------------------------------------------
 
 resource "azurerm_resource_group" "wsl" {
-  name     = "${var.name}-rg"
+  name     = "${local.host_name}-rg"
   location = var.location
   tags     = local.tags
 }
 
 resource "azurerm_virtual_network" "wsl" {
-  name                = "${var.name}-vnet"
+  name                = "${local.host_name}-vnet"
   location            = azurerm_resource_group.wsl.location
   resource_group_name = azurerm_resource_group.wsl.name
   address_space       = ["10.0.0.0/16"]
@@ -77,14 +81,14 @@ resource "azurerm_virtual_network" "wsl" {
 }
 
 resource "azurerm_subnet" "wsl" {
-  name                 = "${var.name}-subnet"
+  name                 = "${local.host_name}-subnet"
   resource_group_name  = azurerm_resource_group.wsl.name
   virtual_network_name = azurerm_virtual_network.wsl.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "wsl" {
-  name                = "${var.name}-ip"
+  name                = "${local.host_name}-ip"
   location            = azurerm_resource_group.wsl.location
   resource_group_name = azurerm_resource_group.wsl.name
   allocation_method   = "Static"
@@ -93,7 +97,7 @@ resource "azurerm_public_ip" "wsl" {
 }
 
 resource "azurerm_network_security_group" "wsl" {
-  name                = "${var.name}-nsg"
+  name                = "${local.host_name}-nsg"
   location            = azurerm_resource_group.wsl.location
   resource_group_name = azurerm_resource_group.wsl.name
   tags                = local.tags
@@ -112,7 +116,7 @@ resource "azurerm_network_security_group" "wsl" {
 }
 
 resource "azurerm_network_interface" "wsl" {
-  name                = "${var.name}-nic"
+  name                = "${local.host_name}-nic"
   location            = azurerm_resource_group.wsl.location
   resource_group_name = azurerm_resource_group.wsl.name
   tags                = local.tags
@@ -133,8 +137,8 @@ resource "azurerm_network_interface_security_group_association" "wsl" {
 # --- VM -----------------------------------------------------------------------
 
 resource "azurerm_windows_virtual_machine" "wsl" {
-  name                = var.name
-  computer_name       = var.name
+  name                = local.host_name
+  computer_name       = local.host_name
   location            = azurerm_resource_group.wsl.location
   resource_group_name = azurerm_resource_group.wsl.name
   size                = var.vm_size
