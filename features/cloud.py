@@ -1063,8 +1063,8 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
         channel.shutdown_write()
 
         # Read stdout and stderr concurrently.
-        out_result: List[bytes] = []
-        err_result: List[bytes] = []
+        out_result = []  # type: List[bytes]
+        err_result = []  # type: List[bytes]
         out_thread = threading.Thread(
             target=lambda: out_result.append(fp_out.read())
         )
@@ -1075,8 +1075,9 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
         err_thread.daemon = True
         out_thread.start()
         err_thread.start()
+        deadline = time.time() + self.SSH_COMMAND_TIMEOUT
         out_thread.join(self.SSH_COMMAND_TIMEOUT)
-        err_thread.join(self.SSH_COMMAND_TIMEOUT)
+        err_thread.join(max(0, deadline - time.time()))
         if out_thread.is_alive() or err_thread.is_alive():
             channel.close()
             client.close()
@@ -1097,6 +1098,15 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
 
     def delete(self, wait=False):
         self.execute("wsl --shutdown", run_on_wsl=False, check_stderr=True)
+        self._ensure_unregistered()
+
+    def _registered_distros(self):
+        return self.execute("wsl --list --quiet", run_on_wsl=False)
+
+    def _ensure_unregistered(self):
+        if self.series not in self._registered_distros():
+            return
+
         self.execute(
             "wsl --unregister {}".format(self.series),
             run_on_wsl=False,
