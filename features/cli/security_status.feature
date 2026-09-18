@@ -1073,8 +1073,8 @@ Feature: CLI security-status command
       \d+ packages installed:
        +\d+ package[s]? from Ubuntu Main/Restricted repository
        +\d+ package[s]? from Ubuntu Universe/Multiverse repository
-        +\d+ package[s]? from a third party
-        +\d+ package[s]? no longer available for download
+       +\d+ package[s]? from a third party
+       +\d+ package[s]? no longer available for download
 
       To get more information about the packages, run
           pro security-status --help
