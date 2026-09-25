@@ -436,10 +436,6 @@ class Azure(Cloud):
 
     name = "azure"
 
-    # Azure has retired daily generic offers for these releases. Ensure we use
-    # released images for theses releases.
-    released_image_series = ("xenial", "bionic")
-
     @property
     def pycloudlib_cls(self):
         """Return the pycloudlib cls to be used as an api."""
@@ -459,6 +455,31 @@ class Azure(Cloud):
         # For Azure, the API identifier uses the instance name
         # instead of the instance id
         return instance.name
+
+    def _get_image_name(self, series: str, machine_type: MachineType) -> str:
+        """
+        Use a released image when Azure has no daily generic image.
+
+        Azure retires daily generic offers for old releases. Ensure we use
+        released images for theses releases to avoid "image not found" errors.
+
+        Once pycloudlib no longer lists these releases in the set of valid
+        daily images or has a fallback to released images when a daily isn't
+        found, we can remove this workaround.
+        """
+
+        retired_daily_series = ("xenial", "bionic")
+
+        if (
+            series in retired_daily_series
+            and machine_type == MachineType.AZURE_GENERIC
+        ):
+            logging.info(
+                "--- Using released Azure image for {}".format(series)
+            )
+            return self.api.released_image(series)
+
+        return self.locate_image_name(series, machine_type)
 
     def manage_ssh_key(
         self,
@@ -528,16 +549,7 @@ class Azure(Cloud):
             An Azure cloud provider instance
         """
         if not image_name:
-            if (
-                series in self.released_image_series
-                and machine_type == MachineType.AZURE_GENERIC
-            ):
-                logging.info(
-                    "--- Using released Azure image for {}".format(series)
-                )
-                image_name = self.api.released_image(series)
-            else:
-                image_name = self.locate_image_name(series, machine_type)
+            image_name = self._get_image_name(series, machine_type)
 
         logging.info(
             "--- Launching Azure image {}({})".format(image_name, series)
