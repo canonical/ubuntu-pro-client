@@ -37,7 +37,7 @@ class MachineType(Enum):
             raise ValueError("Unsupported machine type: {}".format(value))
 
     @property
-    def is_pro_image(self) -> bool:
+    def uses_pro_image(self) -> bool:
         return self.image_type in (
             ImageType.PRO,
             ImageType.PRO_FIPS,
