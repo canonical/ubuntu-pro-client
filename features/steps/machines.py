@@ -69,7 +69,7 @@ def given_a_machine(
 
     inbound_ports = ports.split(",") if ports is not None else None
 
-    is_pro = machine_type.is_pro_image
+    is_pro = machine_type.uses_pro_image
     pro_user_data = (
         "bootcmd:\n"
         """  - "cloud-init-per once disable-auto-attach printf '\\nfeatures: {disable_auto_attach: true}\\n' >> /etc/ubuntu-advantage/uaclient.conf"\n"""  # noqa: E501

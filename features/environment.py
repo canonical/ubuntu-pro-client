@@ -231,7 +231,7 @@ class UAClientBehaveConfig:
         if (
             self.machine_types
             and len(self.machine_types) == 1
-            and MachineType.from_string(self.machine_types[0]).is_pro_image
+            and MachineType.from_string(self.machine_types[0]).uses_pro_image
         ):
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",

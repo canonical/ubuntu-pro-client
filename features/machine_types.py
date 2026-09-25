@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional  # noqa: F401
 
 from pycloudlib.cloud import ImageType  # type: ignore
 

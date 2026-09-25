@@ -76,7 +76,7 @@ def setup_pro_package_sources(context, machine_name=SUT):
 def when_i_install_uat(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
     series = context.machines[machine_name].series
-    is_pro = context.machines[machine_name].machine_type.is_pro_image
+    is_pro = context.machines[machine_name].machine_type.uses_pro_image
     setup_pro_package_sources(context, machine_name)
 
     if context.pro_config.install_from is InstallationSource.PREBUILT:
@@ -363,7 +363,7 @@ def when_i_check_apt_cache_policy(context):
 
 @when("I install transition package ubuntu-advantage-tools")
 def when_i_install_transition_uat(context, machine_name=SUT):
-    is_pro = context.machines[machine_name].machine_type.is_pro_image
+    is_pro = context.machines[machine_name].machine_type.uses_pro_image
     setup_pro_package_sources(context, machine_name)
 
     when_i_apt_install(
