@@ -15,6 +15,7 @@ from behave.model_core import Status
 from behave.runner import Context
 
 import features.cloud as cloud
+from features.machine_types import MachineType
 from features.util import (
     BUILDER_NAME_PREFIX,
     SUT,
@@ -230,7 +231,7 @@ class UAClientBehaveConfig:
         if (
             self.machine_types
             and len(self.machine_types) == 1
-            and "pro" in self.machine_types[0]
+            and MachineType.from_string(self.machine_types[0]).uses_pro_image
         ):
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",

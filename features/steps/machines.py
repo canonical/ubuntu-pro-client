@@ -6,6 +6,7 @@ from typing import NamedTuple
 from behave import given, when
 from pycloudlib.instance import BaseInstance  # type: ignore
 
+from features.machine_types import MachineType
 from features.steps.packages import when_i_apt_install, when_i_apt_update
 from features.steps.shell import when_i_run_command
 from features.steps.ubuntu_advantage_tools import when_i_install_uat
@@ -22,13 +23,18 @@ MachineTuple = NamedTuple(
     [
         ("series", str),
         ("instance", BaseInstance),
-        ("machine_type", str),
+        ("machine_type", MachineType),
         ("cloud", str),
     ],
 )
 SnapshotTuple = NamedTuple(
     "SnapshotTuple",
-    [("series", str), ("name", str), ("machine_type", str), ("cloud", str)],
+    [
+        ("series", str),
+        ("name", str),
+        ("machine_type", MachineType),
+        ("cloud", str),
+    ],
 )
 
 
@@ -50,7 +56,8 @@ def given_a_machine(
     ports=None,
     cleanup=True,
 ):
-    cloud = machine_type.split(".")[0]
+    machine_type = MachineType.from_string(machine_type)
+    cloud = machine_type.cloud_name
     context.pro_config.clouds.get(cloud).manage_ssh_key()
 
     time_suffix = datetime.datetime.now().strftime("%m%d-%H%M%S%f")
@@ -62,7 +69,7 @@ def given_a_machine(
 
     inbound_ports = ports.split(",") if ports is not None else None
 
-    is_pro = "pro" in machine_type
+    is_pro = machine_type.uses_pro_image
     pro_user_data = (
         "bootcmd:\n"
         """  - "cloud-init-per once disable-auto-attach printf '\\nfeatures: {disable_auto_attach: true}\\n' >> /etc/ubuntu-advantage/uaclient.conf"\n"""  # noqa: E501
