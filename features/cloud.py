@@ -461,7 +461,7 @@ class Azure(Cloud):
         Use a released image when Azure has no daily generic image.
 
         Azure retires daily generic offers for old releases. Ensure we use
-        released images for theses releases to avoid "image not found" errors.
+        released images for these releases to avoid "image not found" errors.
 
         Once pycloudlib no longer lists these releases in the set of valid
         daily images or has a fallback to released images when a daily isn't
