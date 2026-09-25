@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from pycloudlib.cloud import ImageType  # type: ignore
 
@@ -26,7 +27,7 @@ class MachineType(Enum):
 
     def __init__(self, value, cloud_name, image_type):
         self.cloud_name = cloud_name  # type: str
-        self.image_type = image_type  # type: ImageType
+        self.image_type = image_type  # type: Optional[ImageType]
 
     @classmethod
     def from_string(cls, value: str) -> "MachineType":
@@ -36,7 +37,7 @@ class MachineType(Enum):
             raise ValueError("Unsupported machine type: {}".format(value))
 
     @property
-    def is_pro_image(self):
+    def is_pro_image(self) -> bool:
         return self.image_type in (
             ImageType.PRO,
             ImageType.PRO_FIPS,
