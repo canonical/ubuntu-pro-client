@@ -172,3 +172,4 @@ Feature: CLI detach command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

@@ -70,3 +70,4 @@ Feature: Upgrade between releases when uaclient is unattached
       | noble   | lxd-container | resolute     | normal | --devel-release | n/a            |
 
 # | questing | lxd-container | resolute     | normal |               | n/a            |
+# | stonking | lxd-container | resolute     | normal |               | n/a            |

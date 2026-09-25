@@ -171,6 +171,7 @@ Feature: u.pro.services.enable
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: u.pro.services.enable.v1 vm services
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

@@ -56,6 +56,7 @@ Feature: CLI collect-logs command
       | noble    | lxd-container | with sudo   |
       | questing | lxd-container | with sudo   |
       | resolute | lxd-container | with sudo   |
+      | stonking | lxd-container | with sudo   |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Run collect-logs on an attached machine
