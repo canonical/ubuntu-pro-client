@@ -139,8 +139,6 @@ def assert_valid_apt_credentials(repo_url, username, password):
     if not os.path.exists("/usr/lib/apt/apt-helper"):
         return
     protocol, repo_path = repo_url.split("://")
-    apt_auth_file = get_apt_auth_file_from_apt_config()
-    auth_path = apt_auth_file + "-validation"
     if not repo_path.endswith("/"):
         repo_path_slash = repo_path + "/"
     else:
@@ -154,14 +152,24 @@ def assert_valid_apt_credentials(repo_url, username, password):
         )
     )
     try:
-        system.write_file(auth_path, auth_line, mode=0o600)
         with tempfile.TemporaryDirectory() as tmpd:
+            # Use a fully self-contained apt auth configuration for this
+            # validation so that apt-helper reads exactly the credentials we
+            # provide, regardless of how the system's apt auth is configured.
+            auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
+            empty_netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
+            os.makedirs(empty_netrcparts, mode=0o700)
+            system.write_file(auth_file, auth_line, mode=0o600)
             system.subp(
                 [
                     "/usr/lib/apt/apt-helper",
                     "download-file",
                     "{}://{}/pool/".format(protocol, repo_path),
                     os.path.join(tmpd, "apt-helper-output"),
+                    "-o",
+                    "Dir::Etc::netrc={}".format(auth_file),
+                    "-o",
+                    "Dir::Etc::netrcparts={}".format(empty_netrcparts),
                 ],
                 timeout=APT_HELPER_TIMEOUT,
                 retry_sleeps=APT_RETRIES,
@@ -179,8 +187,6 @@ def assert_valid_apt_credentials(repo_url, username, password):
         raise exceptions.APTCommandTimeout(
             seconds=APT_HELPER_TIMEOUT, repo=repo_path
         )
-    finally:
-        system.ensure_file_absent(auth_path)
 
 
 def _parse_apt_update_for_invalid_apt_config(
