@@ -378,16 +378,14 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type  |
-      | xenial  | lxd-container |
-      | bionic  | lxd-container |
-      | focal   | lxd-container |
-      | jammy   | lxd-container |
-      | noble   | lxd-container |
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
 
-  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
-  # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
-  # | resolute | lxd-container |
   @slow
   Scenario Outline: Attach command when authenticated proxy is configured
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1075,12 +1073,9 @@ Feature: Proxy configuration
       """
 
     Examples: ubuntu release
-      | release | machine_type |
-      | bionic  | lxd-vm       |
-      | focal   | lxd-vm       |
-      | jammy   | lxd-vm       |
-      | noble   | lxd-vm       |
-
-# TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
-# gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
-# | resolute | lxd-vm       |
+      | release  | machine_type |
+      | bionic   | lxd-vm       |
+      | focal    | lxd-vm       |
+      | jammy    | lxd-vm       |
+      | noble    | lxd-vm       |
+      | resolute | lxd-vm       |

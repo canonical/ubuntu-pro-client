@@ -146,12 +146,10 @@ Feature: LXD Pro features
       """
 
     Examples:
-      | release | machine_type | guest_release |
-      | jammy   | lxd-vm       | jammy         |
+      | release  | machine_type | guest_release |
+      | jammy    | lxd-vm       | jammy         |
+      | resolute | lxd-vm       | resolute      |
 
-  # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
-  # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
-  # | resolute | lxd-vm | resolute |
   Scenario Outline: LXD guest auto-attach
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     # Ensure default is "off" and setup lxd
@@ -233,9 +231,6 @@ Feature: LXD Pro features
       """
 
     Examples:
-      | release | machine_type | guest_release |
-      | jammy   | lxd-vm       | jammy         |
-
-# TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
-# gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
-# | resolute | lxd-vm | resolute |
+      | release  | machine_type | guest_release |
+      | jammy    | lxd-vm       | jammy         |
+      | resolute | lxd-vm       | resolute      |
