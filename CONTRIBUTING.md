@@ -31,7 +31,7 @@ full tutorial:
 * [Permanently detach Pro instances](dev-docs/how-to/detach_pro_instances.md)
 * [Troubleshoot security confinement](dev-docs/how-to/troubleshoot_security_confinement.md)
 * [Troubleshoot APT news security confinement](dev-docs/how-to/troubleshoot_apt_news_security_confinement.md)
-* [Set up a Windows machine for WSL testing](dev-docs/how-to/wsl_testing_setup.md)
+* [Run the integration tests on WSL](dev-docs/how-to/wsl_testing_setup.md)
 * [Run unit tests](dev-docs/how-to/unit_testing.md)
 * [Run integration tests](dev-docs/how-to/integration_testing.md)
 * [Run dep8 tests](dev-docs/how-to/run_dep8_tests.md)
