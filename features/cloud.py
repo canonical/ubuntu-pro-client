@@ -815,8 +815,8 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         self.wsl_ip_address = wsl_ip_address
         super().__init__(tag="wsl")
 
-    def _check_and_set_config(self, config_file, required_values):
-        self.config = {
+    def _check_and_get_config(self, config_file, required_values):
+        return {
             "public_key_path": self.wsl_pubkey_path,
             "private_key_path": self.wsl_privkey_path,
         }
@@ -834,22 +834,19 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         raise NotImplementedError
 
     def launch(self, series: str):
-        instance_parameters = self.released_image(series)
+        distro_name = self.released_image(series)
+        if distro_name is None:
+            raise ValueError("No WSL image configured for {}".format(series))
+
         inst = WSLInstance(
             self.key_pair,
-            series=series,
+            distro_name=distro_name,
             ip_address=self.wsl_ip_address,
         )
         inst._wait_for_execute()
         inst.delete()
-        inst.uninstall_ubuntu_installer(instance_parameters["appxname"])
-
-        inst.install_ubuntu_distro(
-            winget_id=instance_parameters["winget_id"],
-        )
-        inst.launch_ubuntu_distro(
-            launcher_name=instance_parameters["launcher"],
-        )
+        inst.install_ubuntu_distro()
+        inst.launch_ubuntu_distro()
         inst.create_non_root_user()
 
         return inst
@@ -859,60 +856,40 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
     def released_image(self, release: str, **kwargs):
         wsl_releases = {
-            "jammy": {
-                "name": "Ubuntu-22.04",
-                "winget_id": "Canonical.Ubuntu.2204",
-                "launcher": "ubuntu2204.exe",
-                "appxname": "Ubuntu22.04LTS",
-            },
-            "focal": {
-                "name": "Ubuntu-20.04",
-                "winget_id": "Canonical.Ubuntu.2004",
-                "launcher": "ubuntu2004.exe",
-                "appxname": "Ubuntu20.04LTS",
-            },
-            "bionic": {
-                "name": "Ubuntu-18.04",
-                "winget_id": "Canonical.Ubuntu.1804",
-                "launcher": "ubuntu1804.exe",
-                "appxname": "Ubuntu18.04LTS",
-            },
+            "resolute": "Ubuntu-26.04",
+            "noble": "Ubuntu-24.04",
+            "jammy": "Ubuntu-22.04",
+            "focal": "Ubuntu-20.04",
         }
 
         return wsl_releases.get(release)
 
 
 class WSLInstance(pycloudlib.instance.BaseInstance):
-    WSL_UBUNTU_MAP = {
-        "jammy": "Ubuntu-22.04",
-        "focal": "Ubuntu-20.04",
-        "bionic": "Ubuntu-18.04",
-    }
-
     def __init__(
         self,
         key_pair,
-        series: str,
+        distro_name: str,
         ip_address: str,
     ):
         super().__init__(key_pair)
         self.ip_address = ip_address
-        self.series = self.WSL_UBUNTU_MAP.get(series, "None")
+        self.series = distro_name
 
-    def install_ubuntu_distro(self, winget_id: str):
-        install_cmd = (
-            'winget install --id "{}" --accept-source-agreements '
-            "--accept-package-agreements --silent"
-        )
+    def install_ubuntu_distro(self):
         self.execute(
-            install_cmd.format(winget_id),
+            "wsl --install -d {} --no-launch --web-download".format(
+                shlex.quote(self.series)
+            ),
             run_on_wsl=False,
             check_stderr=True,
         )
 
-    def launch_ubuntu_distro(self, launcher_name: str):
+    def launch_ubuntu_distro(self):
         self.execute(
-            "{} install --root --ui=none".format(launcher_name),
+            "wsl -d {} -u root --exec /bin/true".format(
+                shlex.quote(self.series)
+            ),
             run_on_wsl=False,
             check_stderr=True,
         )
