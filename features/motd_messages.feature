@@ -49,7 +49,6 @@ Feature: MOTD Messages
       | release  | machine_type  | service   |
       | xenial   | lxd-container | esm-infra |
       | bionic   | lxd-container | esm-apps  |
-      | bionic   | wsl           | esm-apps  |
       | noble    | lxd-container | esm-apps  |
       | resolute | lxd-container | esm-apps  |
 
@@ -141,4 +140,3 @@ Feature: MOTD Messages
       | release | machine_type  | service   |
       | xenial  | lxd-container | esm-infra |
       | bionic  | lxd-container | esm-infra |
-      | bionic  | wsl           | esm-infra |

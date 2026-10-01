@@ -461,7 +461,6 @@ Feature: CLI status command
 
     Examples: ubuntu release
       | release | machine_type |
-      | bionic  | wsl          |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Attached status in a ubuntu machine

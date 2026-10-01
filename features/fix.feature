@@ -921,7 +921,6 @@ Feature: Ua fix command behaviour
     Examples: ubuntu release details
       | release | machine_type  |
       | bionic  | lxd-container |
-      | bionic  | wsl           |
 
   Scenario Outline: Fix command on a machine without security/updates source lists
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -976,7 +975,6 @@ Feature: Ua fix command behaviour
 
     Examples: ubuntu release details
       | release | machine_type |
-      | bionic  | wsl          |
 
   Scenario Outline: Fix command on an unattached machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed

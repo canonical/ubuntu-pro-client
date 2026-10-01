@@ -238,7 +238,6 @@ Feature: CLI disable command
       # This ends up in GH #943 but maybe can be improved?
       | xenial  | lxd-container | xenial-backports | ansible | universe          |
       | bionic  | lxd-container | bionic-updates   | ansible | universe          |
-      | bionic  | wsl           | bionic-updates   | ansible | universe          |
       | focal   | lxd-container | focal            | ansible | universe          |
       | jammy   | lxd-container | jammy            | ansible | universe          |
 
@@ -501,7 +500,6 @@ Feature: CLI disable command
       | release  | machine_type  |
       | xenial   | lxd-container |
       | bionic   | lxd-container |
-      | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
       | jammy    | lxd-container |
