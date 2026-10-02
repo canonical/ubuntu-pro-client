@@ -553,7 +553,8 @@ Feature: CLI security-status command
       update[s]?\.)? There (is|are) \d+ pending security update[s]?\.
 
       Universe/Multiverse packages are receiving security updates from
-      Ubuntu Pro with 'esm-apps' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-apps' enabled until 2030\.( You have received \d+ security
+      update[s]?\.)? There (is|are) \d+ pending security update[s]?\.
       """
     When I verify root and non-root `pro security-status --esm-infra` calls have the same output
     And I run `pro security-status --esm-infra` as non-root
@@ -586,7 +587,8 @@ Feature: CLI security-status command
        +\d+ package[s]? from Ubuntu Universe/Multiverse repository
 
       Universe/Multiverse packages are receiving security updates from
-      Ubuntu Pro with 'esm-apps' enabled until 2030\. There (is|are) \d+ pending security update[s]?\.
+      Ubuntu Pro with 'esm-apps' enabled until 2030\.( You have received \d+ security
+      update[s]?\.)? There (is|are) \d+ pending security update[s]?\.
 
       Run 'pro help esm-apps' to learn more
 
