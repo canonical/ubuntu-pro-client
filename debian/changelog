@@ -1,9 +1,3 @@
-ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
-
-  * Open next development version
-  * u.pro.security.usns.v1: List the USNs that affect the system
-
- -- Renan Rodrigo <rr@ubuntu.com>  Thu, 27 Nov 2025 11:18:48 -0300
 ubuntu-advantage-tools (38ubuntu0) stonking; urgency=medium
 
   * d/apparmor/ubuntu_pro_esm_cache.jinja2:
