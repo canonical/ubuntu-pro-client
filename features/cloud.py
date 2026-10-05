@@ -9,9 +9,10 @@ from typing import List, Optional
 import pycloudlib  # type: ignore
 import toml
 from paramiko.ssh_exception import NoValidConnectionsError, SSHException
-from pycloudlib.cloud import ImageType  # type: ignore
 from pycloudlib.errors import PycloudlibTimeoutError  # type: ignore
 from pycloudlib.result import Result  # type: ignore
+
+from features.machine_types import MachineType
 
 DEFAULT_CONFIG_PATH = "~/.config/pycloudlib.toml"
 
@@ -121,7 +122,7 @@ class Cloud:
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -174,7 +175,7 @@ class Cloud:
     def launch(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -235,7 +236,7 @@ class Cloud:
     def locate_image_name(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         daily: bool = True,
         include_deprecated: bool = False,
     ) -> str:
@@ -255,24 +256,18 @@ class Cloud:
                 "Must provide either series or image_name to launch azure"
             )
 
-        image_type = ImageType.GENERIC
-        if "pro-fips" in machine_type:
-            image_type = ImageType.PRO_FIPS
-        elif "pro" in machine_type:
-            image_type = ImageType.PRO
-
         if daily:
             logging.debug("looking up daily image for {}".format(series))
             return self.api.daily_image(
                 release=series,
-                image_type=image_type,
+                image_type=machine_type.image_type,
                 include_deprecated=include_deprecated,
             )
         else:
             logging.debug("looking up released image for {}".format(series))
             return self.api.released_image(
                 release=series,
-                image_type=image_type,
+                image_type=machine_type.image_type,
                 include_deprecated=include_deprecated,
             )
 
@@ -367,7 +362,7 @@ class EC2(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -399,7 +394,7 @@ class EC2(Cloud):
         if not image_name:
             if (
                 series in ("xenial", "bionic", "focal")
-                and "pro" not in machine_type
+                and not machine_type.uses_pro_image
             ):
                 logging.debug(
                     "defaulting to non-daily image for awsgeneric-[16|18].04"
@@ -461,6 +456,31 @@ class Azure(Cloud):
         # instead of the instance id
         return instance.name
 
+    def _get_image_name(self, series: str, machine_type: MachineType) -> str:
+        """
+        Use a released image when Azure has no daily generic image.
+
+        Azure retires daily generic offers for old releases. Ensure we use
+        released images for these releases to avoid "image not found" errors.
+
+        Once pycloudlib no longer lists these releases in the set of valid
+        daily images or has a fallback to released images when a daily isn't
+        found, we can remove this workaround.
+        """
+
+        retired_daily_series = ("xenial", "bionic")
+
+        if (
+            series in retired_daily_series
+            and machine_type == MachineType.AZURE_GENERIC
+        ):
+            logging.info(
+                "--- Using released Azure image for {}".format(series)
+            )
+            return self.api.released_image(series)
+
+        return self.locate_image_name(series, machine_type)
+
     def manage_ssh_key(
         self,
         private_key_path: Optional[str] = None,
@@ -499,7 +519,7 @@ class Azure(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -529,7 +549,7 @@ class Azure(Cloud):
             An Azure cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series, machine_type)
+            image_name = self._get_image_name(series, machine_type)
 
         logging.info(
             "--- Launching Azure image {}({})".format(image_name, series)
@@ -618,7 +638,7 @@ class GCP(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -663,7 +683,7 @@ class _LXD(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -735,7 +755,7 @@ class _LXD(Cloud):
     def locate_image_name(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         daily: bool = True,
         include_deprecated: bool = False,
     ) -> str:
@@ -1161,7 +1181,7 @@ class WSL(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -1183,7 +1203,7 @@ class WSL(Cloud):
     def launch(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -1227,7 +1247,7 @@ class WSL(Cloud):
     def locate_image_name(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         daily: bool = True,
         include_deprecated: bool = False,
     ) -> str:
