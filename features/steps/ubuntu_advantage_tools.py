@@ -273,12 +273,28 @@ def when_i_create_local_ppas(context, release, next_release):
     )
     create_local_ppa(context, release)
     create_local_ppa(context, next_release)
-    repo_line = "deb [trusted=yes] http://{}:8080 {} main".format(
-        context.machines["ppa"].instance.ip, release
-    )
-    repo_file = "/etc/apt/sources.list.d/local-ua.list"
+    repo_ip = context.machines["ppa"].instance.ip
+    # Resolute's upgrader drops trusted=yes when converting .list sources to
+    # deb822. Older upgraders cannot rewrite deb822 suites, so keep their
+    # .list sources.
+    if next_release == "resolute":
+        repo_content = """Types: deb
+URIs: http://{}:8080
+Suites: {}
+Components: main
+Trusted: yes""".format(
+            repo_ip, release
+        )
+        repo_file = "/etc/apt/sources.list.d/local-ua.sources"
+    else:
+        repo_content = "deb [trusted=yes] http://{}:8080 {} main".format(
+            repo_ip, release
+        )
+        repo_file = "/etc/apt/sources.list.d/local-ua.list"
     when_i_run_shell_command(
-        context, "printf '{}\n' > {}".format(repo_line, repo_file), "with sudo"
+        context,
+        "printf '{}\n' > {}".format(repo_content, repo_file),
+        "with sudo",
     )
     when_i_run_command(
         context,
