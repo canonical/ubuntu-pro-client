@@ -138,7 +138,6 @@ Feature: CLI detach command
       | release  | machine_type  |
       | xenial   | lxd-container |
       | bionic   | lxd-container |
-      | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
       | jammy    | lxd-container |
@@ -163,7 +162,6 @@ Feature: CLI detach command
     Examples: pro commands
       | release  | machine_type  |
       | bionic   | lxd-container |
-      | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
       | xenial   | lxd-container |
