@@ -38,7 +38,6 @@ Feature: CLI refresh command
     Examples: ubuntu release
       | release  | machine_type  |
       | bionic   | lxd-container |
-      | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
       | xenial   | lxd-container |
@@ -66,7 +65,6 @@ Feature: CLI refresh command
     Examples: pro commands
       | release  | machine_type  |
       | bionic   | lxd-container |
-      | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
       | xenial   | lxd-container |

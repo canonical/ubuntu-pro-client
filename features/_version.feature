@@ -45,7 +45,6 @@ Feature: Pro is expected version
       | bionic   | gcp.generic    |
       | bionic   | gcp.pro        |
       | bionic   | gcp.pro-fips   |
-      | bionic   | wsl            |
       | focal    | lxd-container  |
       | focal    | lxd-vm         |
       | focal    | aws.generic    |

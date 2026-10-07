@@ -5,14 +5,15 @@ import shlex
 import threading
 import time
 from contextlib import suppress
-from typing import List, NamedTuple, Optional
+from typing import List, Optional
 
 import pycloudlib  # type: ignore
 import toml
 from paramiko.ssh_exception import NoValidConnectionsError, SSHException
-from pycloudlib.cloud import ImageType  # type: ignore
 from pycloudlib.errors import PycloudlibTimeoutError  # type: ignore
 from pycloudlib.result import Result  # type: ignore
+
+from features.machine_types import MachineType
 
 DEFAULT_CONFIG_PATH = "~/.config/pycloudlib.toml"
 
@@ -122,7 +123,7 @@ class Cloud:
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -175,7 +176,7 @@ class Cloud:
     def launch(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -236,7 +237,7 @@ class Cloud:
     def locate_image_name(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         daily: bool = True,
         include_deprecated: bool = False,
     ) -> str:
@@ -256,24 +257,18 @@ class Cloud:
                 "Must provide either series or image_name to launch azure"
             )
 
-        image_type = ImageType.GENERIC
-        if "pro-fips" in machine_type:
-            image_type = ImageType.PRO_FIPS
-        elif "pro" in machine_type:
-            image_type = ImageType.PRO
-
         if daily:
             logging.debug("looking up daily image for {}".format(series))
             return self.api.daily_image(
                 release=series,
-                image_type=image_type,
+                image_type=machine_type.image_type,
                 include_deprecated=include_deprecated,
             )
         else:
             logging.debug("looking up released image for {}".format(series))
             return self.api.released_image(
                 release=series,
-                image_type=image_type,
+                image_type=machine_type.image_type,
                 include_deprecated=include_deprecated,
             )
 
@@ -368,7 +363,7 @@ class EC2(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -400,7 +395,7 @@ class EC2(Cloud):
         if not image_name:
             if (
                 series in ("xenial", "bionic", "focal")
-                and "pro" not in machine_type
+                and not machine_type.uses_pro_image
             ):
                 logging.debug(
                     "defaulting to non-daily image for awsgeneric-[16|18].04"
@@ -462,6 +457,31 @@ class Azure(Cloud):
         # instead of the instance id
         return instance.name
 
+    def _get_image_name(self, series: str, machine_type: MachineType) -> str:
+        """
+        Use a released image when Azure has no daily generic image.
+
+        Azure retires daily generic offers for old releases. Ensure we use
+        released images for these releases to avoid "image not found" errors.
+
+        Once pycloudlib no longer lists these releases in the set of valid
+        daily images or has a fallback to released images when a daily isn't
+        found, we can remove this workaround.
+        """
+
+        retired_daily_series = ("xenial", "bionic")
+
+        if (
+            series in retired_daily_series
+            and machine_type == MachineType.AZURE_GENERIC
+        ):
+            logging.info(
+                "--- Using released Azure image for {}".format(series)
+            )
+            return self.api.released_image(series)
+
+        return self.locate_image_name(series, machine_type)
+
     def manage_ssh_key(
         self,
         private_key_path: Optional[str] = None,
@@ -500,7 +520,7 @@ class Azure(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -530,7 +550,7 @@ class Azure(Cloud):
             An Azure cloud provider instance
         """
         if not image_name:
-            image_name = self.locate_image_name(series, machine_type)
+            image_name = self._get_image_name(series, machine_type)
 
         logging.info(
             "--- Launching Azure image {}({})".format(image_name, series)
@@ -619,7 +639,7 @@ class GCP(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -664,7 +684,7 @@ class _LXD(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -736,7 +756,7 @@ class _LXD(Cloud):
     def locate_image_name(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         daily: bool = True,
         include_deprecated: bool = False,
     ) -> str:
@@ -784,52 +804,6 @@ class LXDContainer(_LXD):
         return pycloudlib.LXDContainer
 
 
-WSL_INSTALL_NATIVE = "wsl"
-WSL_INSTALL_WINGET = "winget"
-
-WSLDistro = NamedTuple(
-    "WSLDistro",
-    [
-        ("name", str),
-        ("install_method", str),
-        ("winget_id", Optional[str]),
-        ("launcher", Optional[str]),
-        ("appx_name", Optional[str]),
-    ],
-)
-
-
-def native_wsl_distro(name: str) -> WSLDistro:
-    """
-    Native WSL distros are managed by Microsoft through the wsl.exe installer.
-    """
-    return WSLDistro(
-        name=name,
-        install_method=WSL_INSTALL_NATIVE,
-        winget_id=None,
-        launcher=None,
-        appx_name=None,
-    )
-
-
-def winget_wsl_distro(
-    name: str, winget_id: str, launcher: str, appx_name: str
-) -> WSLDistro:
-    """
-    Winget WSL distros are published by Canonical into the winget repositories.
-
-    Typically the native WSL distro is preferred; winget is included for
-    support of older Ubuntu releases.
-    """
-    return WSLDistro(
-        name=name,
-        install_method=WSL_INSTALL_WINGET,
-        winget_id=winget_id,
-        launcher=launcher,
-        appx_name=appx_name,
-    )
-
-
 class WSLCloud(pycloudlib.cloud.BaseCloud):
     def __init__(
         self,
@@ -861,22 +835,19 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         raise NotImplementedError
 
     def launch(self, series: str):
-        distro = self.released_image(series)
-        if distro is None:
+        distro_name = self.released_image(series)
+        if distro_name is None:
             raise ValueError("No WSL image configured for {}".format(series))
 
         inst = WSLInstance(
             self.key_pair,
-            distro_name=distro.name,
+            distro_name=distro_name,
             ip_address=self.wsl_ip_address,
         )
         inst._wait_for_execute()
         inst.delete()
-        if distro.appx_name:
-            inst.uninstall_ubuntu_installer(distro.appx_name)
-
-        inst.install_ubuntu_distro(distro)
-        inst.launch_ubuntu_distro(distro)
+        inst.install_ubuntu_distro()
+        inst.launch_ubuntu_distro()
         inst.ensure_non_root_user()
 
         return inst
@@ -886,31 +857,10 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
     def released_image(self, release: str, **kwargs):
         wsl_releases = {
-            "resolute": native_wsl_distro("Ubuntu-26.04"),
-            "noble": winget_wsl_distro(
-                name="Ubuntu-24.04",
-                winget_id="Canonical.Ubuntu.2404",
-                launcher="ubuntu2404.exe",
-                appx_name="Ubuntu24.04LTS",
-            ),
-            "jammy": winget_wsl_distro(
-                name="Ubuntu-22.04",
-                winget_id="Canonical.Ubuntu.2204",
-                launcher="ubuntu2204.exe",
-                appx_name="Ubuntu22.04LTS",
-            ),
-            "focal": winget_wsl_distro(
-                name="Ubuntu-20.04",
-                winget_id="Canonical.Ubuntu.2004",
-                launcher="ubuntu2004.exe",
-                appx_name="Ubuntu20.04LTS",
-            ),
-            "bionic": winget_wsl_distro(
-                name="Ubuntu-18.04",
-                winget_id="Canonical.Ubuntu.1804",
-                launcher="ubuntu1804.exe",
-                appx_name="Ubuntu18.04LTS",
-            ),
+            "resolute": "Ubuntu-26.04",
+            "noble": "Ubuntu-24.04",
+            "jammy": "Ubuntu-22.04",
+            "focal": "Ubuntu-20.04",
         }
 
         return wsl_releases.get(release)
@@ -919,54 +869,28 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 class WSLInstance(pycloudlib.instance.BaseInstance):
     SSH_COMMAND_TIMEOUT = 30 * 60
 
-    def __init__(
-        self,
-        key_pair,
-        distro_name: str,
-        ip_address: str,
-    ):
+    def __init__(self, key_pair, distro_name: str, ip_address: str):
         super().__init__(key_pair)
         self.ip_address = ip_address
         self.series = distro_name
 
-    def install_ubuntu_distro(self, distro: WSLDistro):
-        if distro.install_method == WSL_INSTALL_NATIVE:
-            install_cmd = "wsl --install {} --no-launch --web-download".format(
-                shlex.quote(distro.name)
-            )
-        elif distro.install_method == WSL_INSTALL_WINGET:
-            install_cmd = (
-                'winget install --id "{}" --accept-source-agreements '
-                "--accept-package-agreements --silent"
-            ).format(distro.winget_id)
-        else:
-            raise ValueError(
-                "Unsupported WSL install method: {}".format(
-                    distro.install_method
-                )
-            )
-
+    def install_ubuntu_distro(self):
         self.execute(
-            install_cmd,
+            "wsl --install -d {} --no-launch --web-download".format(
+                shlex.quote(self.series)
+            ),
             run_on_wsl=False,
             check_stderr=True,
         )
 
-    def launch_ubuntu_distro(self, distro: WSLDistro):
-        if distro.install_method == WSL_INSTALL_NATIVE:
-            launch_cmd = "wsl -d {} -u root --exec /bin/true".format(
-                shlex.quote(distro.name)
-            )
-        elif distro.install_method == WSL_INSTALL_WINGET:
-            launch_cmd = "{} install --root --ui=none".format(distro.launcher)
-        else:
-            raise ValueError(
-                "Unsupported WSL install method: {}".format(
-                    distro.install_method
-                )
-            )
-
-        self.execute(launch_cmd, run_on_wsl=False, check_stderr=True)
+    def launch_ubuntu_distro(self):
+        self.execute(
+            "wsl -d {} -u root --exec /bin/true".format(
+                shlex.quote(self.series)
+            ),
+            run_on_wsl=False,
+            check_stderr=True,
+        )
 
     def ensure_non_root_user(self, username="ubuntu"):
         username_arg = shlex.quote(username)
@@ -1268,7 +1192,7 @@ class WSL(Cloud):
     def _create_instance(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -1290,7 +1214,7 @@ class WSL(Cloud):
     def launch(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         instance_name: Optional[str] = None,
         image_name: Optional[str] = None,
         user_data: Optional[str] = None,
@@ -1334,7 +1258,7 @@ class WSL(Cloud):
     def locate_image_name(
         self,
         series: str,
-        machine_type: str,
+        machine_type: MachineType,
         daily: bool = True,
         include_deprecated: bool = False,
     ) -> str:

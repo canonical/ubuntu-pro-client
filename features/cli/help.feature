@@ -643,7 +643,6 @@ Feature: Pro Client help text
       | release  | machine_type  | infra-available |
       | xenial   | lxd-container | yes             |
       | bionic   | lxd-container | yes             |
-      | bionic   | wsl           | yes             |
       | focal    | lxd-container | yes             |
       | focal    | wsl           | yes             |
       | jammy    | lxd-container | yes             |

@@ -3,10 +3,9 @@
 # `terraform apply` leaves a host the behave harness can use immediately:
 #
 #   1. network + VM                   (azurerm)
-#   2. bootstrap.ps1 as SYSTEM        (run command: sshd, WSL, winget, autologon)
+#   2. bootstrap.ps1 as SYSTEM        (run command: sshd and WSL)
 #   3. reboot                         (azapi restart action; WSL features need it)
-#   4. wait-ready.ps1 as SYSTEM       (run command: blocks until the post-logon
-#                                      task has verified winget and WSL work)
+#   4. wait-ready.ps1 as SYSTEM       (run command: verifies WSL is ready)
 #
 # The `behave_env` output holds the environment the harness needs.
 
@@ -152,8 +151,8 @@ resource "azurerm_windows_virtual_machine" "wsl" {
   license_type = "Windows_Client"
 
   # Skip any automatic reboots
-  patch_mode                   = "Manual"
-  automatic_updates_enabled    = false
+  patch_mode                = "Manual"
+  automatic_updates_enabled = false
 
   # Trusted Launch (secure boot / vTPM) does not support nested virtualization,
   # which WSL 2 requires.
@@ -191,10 +190,6 @@ resource "azurerm_virtual_machine_run_command" "bootstrap" {
   # Values are base64-encoded so spaces and shell metacharacters survive the
   # run-command handler's argument quoting.
   parameter {
-    name  = "AdminUser"
-    value = local.admin_username
-  }
-  parameter {
     name  = "SshPublicKeyB64"
     value = base64encode(local_file.ssh_public_key.content)
   }
@@ -202,11 +197,6 @@ resource "azurerm_virtual_machine_run_command" "bootstrap" {
     name  = "WslMsiSpec"
     value = var.wsl_msi_url
   }
-  protected_parameter {
-    name  = "AdminPasswordB64"
-    value = base64encode(local.admin_password)
-  }
-
   timeouts {
     create = "45m"
   }

@@ -23,7 +23,7 @@ variable "ssh_source_address_prefix" {
 }
 
 variable "admin_password" {
-  description = "Admin password for the 'ubuntu' account. Generated when unset. Also used for automatic logon, which winget needs."
+  description = "Admin password for the 'ubuntu' account. Generated when unset."
   type        = string
   default     = null
   sensitive   = true

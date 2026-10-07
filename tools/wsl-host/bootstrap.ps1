@@ -1,13 +1,9 @@
 # First-boot configuration for the WSL test host.
 #
 # This script runs as SYSTEM through Azure Run Command. It handles host-level
-# setup: OpenSSH, Windows features required by WSL, the WSL runtime package,
-# and, while older test distros still use winget, the setup needed for winget
-# to work in the test user's interactive session.
+# setup: OpenSSH, Windows features required by WSL, and the WSL runtime package.
 
 param(
-    [Parameter(Mandatory)] [string] $AdminUser,
-    [Parameter(Mandatory)] [string] $AdminPasswordB64,
     [Parameter(Mandatory)] [string] $SshPublicKeyB64,
     [string] $WslMsiSpec = 'latest'
 )
@@ -17,7 +13,6 @@ $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $Root = 'C:\wsl-host'
-$AdminPassword = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($AdminPasswordB64))
 $SshPublicKey = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($SshPublicKeyB64)).Trim()
 
 New-Item -ItemType Directory -Force -Path $Root | Out-Null
@@ -99,85 +94,6 @@ try {
     $wslMsi = Get-Download -Url $wslMsiUrl -Name 'wsl.msi'
     $msi = Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/i `"$wslMsi`" /quiet /norestart"
     if ($msi.ExitCode -notin 0, 3010) { throw "WSL msiexec failed with $($msi.ExitCode)" }
-
-    # --- winget ---------------------------------------------------------------
-    # Transitional support for older WSL distro installs. Newer distros should
-    # use `wsl --install <distro> --web-download`, but older Ubuntu releases
-    # still need winget/App Installer for now.
-    #
-    # App Installer is per-user in practice: installing/provisioning it as
-    # SYSTEM does not make winget available in the already-created admin user's
-    # profile. Download the installer artifacts here, then "phase 2" installs
-    # them after the reboot from that user's interactive session.
-    Write-Host '== winget (downloading for phase 2 to install)'
-    $wingetRelease = Resolve-GitHubRelease -Repo 'microsoft/winget-cli' -Prerelease $false
-    Write-Host "Using microsoft/winget-cli $($wingetRelease.tag_name)"
-    function Get-WingetAsset {
-        param([string]$Pattern)
-        $asset = $wingetRelease.assets | Where-Object { $_.name -match $Pattern } | Select-Object -First 1
-        if (-not $asset) { throw "No asset matching '$Pattern' in winget-cli $($wingetRelease.tag_name)" }
-        return $asset.browser_download_url
-    }
-
-    Get-Download -Url (Get-WingetAsset '\.msixbundle$') -Name 'winget.msixbundle' | Out-Null
-    $depsZip = Get-Download -Url (Get-WingetAsset '^DesktopAppInstaller_Dependencies\.zip$') -Name 'winget-deps.zip'
-
-    $depsDir = "$Root\winget-deps"
-    Remove-Item -Recurse -Force $depsDir -ErrorAction SilentlyContinue
-    Expand-Archive -Path $depsZip -DestinationPath $depsDir -Force
-    if (-not (Get-ChildItem -Path "$depsDir\x64" -Filter '*.appx' -Recurse)) {
-        throw 'No x64 dependency packages found in DesktopAppInstaller_Dependencies.zip'
-    }
-
-    # --- Automatic logon ------------------------------------------------------
-    # Only needed by phase 2. winget/App Installer setup must run inside the
-    # admin user's interactive session, and Terraform cannot run that directly
-    # through Run Command. Once every WSL distro uses native `wsl --install`
-    # instead of winget, this autologon block and phase 2 should be removable.
-    Write-Host '== Automatic logon'
-    $winlogon = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
-    Set-ItemProperty -Path $winlogon -Name AutoAdminLogon -Value '1' -Type String
-    Set-ItemProperty -Path $winlogon -Name DefaultUserName -Value $AdminUser -Type String
-    Set-ItemProperty -Path $winlogon -Name DefaultPassword -Value $AdminPassword -Type String
-    Set-ItemProperty -Path $winlogon -Name DefaultDomainName -Value $env:COMPUTERNAME -Type String
-
-    # --- Phase 2: runs as the admin user after logon --------------------------
-    # Phase 2 is the bridge for winget's per-user setup requirement. It should
-    # disappear when the test harness no longer installs any WSL distro through
-    # winget. At that point wait-ready.ps1 can check WSL readiness directly
-    # after the reboot, without waiting for a READY file from this task.
-    Write-Host '== Phase 2 task'
-    $phase2 = @'
-$ErrorActionPreference = 'Stop'
-$Root = 'C:\wsl-host'
-Start-Transcript -Path "$Root\phase2.log" -Append
-try {
-    # Install as this user's own session, the same way any interactive user
-    # would sideload the app -- this is the supported path for making a UWP
-    # package usable by a specific, already-existing account.
-    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Write-Host 'Installing winget for this user'
-        $deps = @(Get-ChildItem -Path "$Root\winget-deps\x64" -Filter '*.appx' -Recurse | ForEach-Object { $_.FullName })
-        Add-AppxPackage -Path "$Root\winget.msixbundle" -DependencyPath $deps `
-            -ForceApplicationShutdown -ForceUpdateFromAnyVersion
-    }
-    winget --version
-    wsl --version
-    Set-Content -Path "$Root\READY" -Value (Get-Date -Format o)
-    Write-Host 'Host ready'
-} finally {
-    Stop-Transcript
-}
-'@
-    Set-Content -Path "$Root\phase2.ps1" -Value $phase2 -Encoding ascii
-
-    $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-        -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Root\phase2.ps1"
-    $trigger = New-ScheduledTaskTrigger -AtLogOn -User $AdminUser
-    $principal = New-ScheduledTaskPrincipal -UserId $AdminUser -LogonType Interactive -RunLevel Highest
-    $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
-    Register-ScheduledTask -TaskName 'wsl-host-phase2' -Action $action -Trigger $trigger `
-        -Principal $principal -Settings $settings -Force | Out-Null
 
     Write-Host '== Bootstrap complete; reboot required'
     Stop-Transcript

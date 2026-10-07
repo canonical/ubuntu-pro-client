@@ -15,6 +15,7 @@ from behave.model_core import Status
 from behave.runner import Context
 
 import features.cloud as cloud
+from features.machine_types import MachineType
 from features.util import (
     BUILDER_NAME_PREFIX,
     SUT,
@@ -230,7 +231,7 @@ class UAClientBehaveConfig:
         if (
             self.machine_types
             and len(self.machine_types) == 1
-            and "pro" in self.machine_types[0]
+            and MachineType.from_string(self.machine_types[0]).uses_pro_image
         ):
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",
@@ -543,8 +544,11 @@ def _get_relevant_apparmor_logs(context):
     if hasattr(context, "machines") and SUT in context.machines:
         sut = context.machines[SUT]
         if sut.cloud == "lxd-container":
-            # get apparmor DENIED messages from the host
-            with open("/var/log/syslog", "r") as syslog_fd:
+            # get apparmor DENIED messages from the host. Non-unicode
+            # characters may be written by other processes.
+            with open(
+                "/var/log/syslog", "r", errors="replace", encoding="utf-8"
+            ) as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
             apparmor_denied = [
                 msg.strip()
