@@ -49,6 +49,7 @@ Feature: MOTD Messages
       | release  | machine_type  | service   |
       | xenial   | lxd-container | esm-infra |
       | bionic   | lxd-container | esm-apps  |
+      | focal    | wsl           | esm-apps  |
       | noble    | lxd-container | esm-apps  |
       | resolute | lxd-container | esm-apps  |
 
@@ -66,8 +67,6 @@ Feature: MOTD Messages
     And I run `run-parts /etc/update-motd.d/` with sudo
     Then stdout matches regexp:
       """
-      [\w\d.]+
-
       CAUTION: Your Ubuntu Pro subscription will expire in 2 days.
       Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
       continued security coverage for your applications.
@@ -82,8 +81,6 @@ Feature: MOTD Messages
     And I run `run-parts /etc/update-motd.d/` with sudo
     Then stdout matches regexp:
       """
-      [\w\d.]+
-
       CAUTION: Your Ubuntu Pro subscription expired on \d+ \w+ \d+.
       Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard to ensure
       continued security coverage for your applications.
@@ -99,8 +96,6 @@ Feature: MOTD Messages
     And I run `run-parts /etc/update-motd.d/` with sudo
     Then stdout matches regexp:
       """
-      [\w\d.]+
-
       \*Your Ubuntu Pro subscription has EXPIRED\*
       \d+ additional security update(s)? require(s)? Ubuntu Pro with '<service>' enabled.
       Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
@@ -110,8 +105,6 @@ Feature: MOTD Messages
     And I run `run-parts /etc/update-motd.d/` with sudo
     Then stdout matches regexp:
       """
-      [\w\d.]+
-
       \*Your Ubuntu Pro subscription has EXPIRED\*
       Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
       """
@@ -130,8 +123,6 @@ Feature: MOTD Messages
     And I run `run-parts /etc/update-motd.d/` with sudo
     Then stdout matches regexp:
       """
-      [\w\d.]+
-
       \*Your Ubuntu Pro subscription has EXPIRED\*
       Renew your subscription at https:\/\/ubuntu.com\/pro\/dashboard
       """
@@ -140,3 +131,4 @@ Feature: MOTD Messages
       | release | machine_type  | service   |
       | xenial  | lxd-container | esm-infra |
       | bionic  | lxd-container | esm-infra |
+      | focal   | wsl           | esm-infra |

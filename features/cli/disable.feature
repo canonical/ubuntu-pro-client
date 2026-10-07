@@ -239,6 +239,7 @@ Feature: CLI disable command
       | xenial  | lxd-container | xenial-backports | ansible | universe          |
       | bionic  | lxd-container | bionic-updates   | ansible | universe          |
       | focal   | lxd-container | focal            | ansible | universe          |
+      | focal   | wsl           | focal            | ansible | universe          |
       | jammy   | lxd-container | jammy            | ansible | universe          |
 
   @uses.config.contract_token
