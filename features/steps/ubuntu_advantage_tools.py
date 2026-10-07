@@ -4,7 +4,11 @@ import re
 from behave import then, when
 
 from features.steps.files import when_i_create_file_with_content
-from features.steps.packages import when_i_apt_install, when_i_apt_update
+from features.steps.packages import (
+    when_i_apt_install,
+    when_i_apt_update,
+    write_apt_source,
+)
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 from features.util import (
     ALL_BINARY_PACKAGE_NAMES,
@@ -76,7 +80,7 @@ def setup_pro_package_sources(context, machine_name=SUT):
 def when_i_install_uat(context, machine_name=SUT):
     instance = context.machines[machine_name].instance
     series = context.machines[machine_name].series
-    is_pro = "pro" in context.machines[machine_name].machine_type
+    is_pro = context.machines[machine_name].machine_type.uses_pro_image
     setup_pro_package_sources(context, machine_name)
 
     if context.pro_config.install_from is InstallationSource.PREBUILT:
@@ -273,12 +277,14 @@ def when_i_create_local_ppas(context, release, next_release):
     )
     create_local_ppa(context, release)
     create_local_ppa(context, next_release)
-    repo_line = "deb [trusted=yes] http://{}:8080 {} main".format(
-        context.machines["ppa"].instance.ip, release
-    )
-    repo_file = "/etc/apt/sources.list.d/local-ua.list"
-    when_i_run_shell_command(
-        context, "printf '{}\n' > {}".format(repo_line, repo_file), "with sudo"
+    write_apt_source(
+        context,
+        name="local-ua",
+        uri="http://{}:8080".format(context.machines["ppa"].instance.ip),
+        suite=release,
+        components="main",
+        series=release,
+        trusted=True,
     )
     when_i_run_command(
         context,
@@ -363,7 +369,7 @@ def when_i_check_apt_cache_policy(context):
 
 @when("I install transition package ubuntu-advantage-tools")
 def when_i_install_transition_uat(context, machine_name=SUT):
-    is_pro = "pro" in context.machines[machine_name].machine_type
+    is_pro = context.machines[machine_name].machine_type.uses_pro_image
     setup_pro_package_sources(context, machine_name)
 
     when_i_apt_install(

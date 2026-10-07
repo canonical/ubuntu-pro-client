@@ -788,7 +788,6 @@ Feature: CLI enable command
       | release  | machine_type  |
       | xenial   | lxd-container |
       | bionic   | lxd-container |
-      | bionic   | wsl           |
       | focal    | lxd-container |
       | focal    | wsl           |
       | jammy    | lxd-container |
