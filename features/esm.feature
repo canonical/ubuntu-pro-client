@@ -102,3 +102,39 @@ Feature: ESM Resource Specificities
       | jammy    | lxd-container |
       | noble    | lxd-container |
       | resolute | lxd-container |
+
+  Scenario Outline: enable esm works with nonstandard apt auth locations
+    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    When I create the file `/etc/apt/apt.conf.d/99-pro-nonstandard-auth` with the following:
+      """
+      Dir::Etc::netrc "pro-auth.conf";
+      Dir::Etc::netrcparts "pro-auth.conf.d";
+      """
+    And I run `mkdir -p /etc/apt/pro-auth.conf.d` with sudo
+    And I attach `contract_token` with sudo and options `--no-auto-enable`
+    And I run `pro enable esm-infra esm-apps` with sudo
+    Then I verify that `esm-infra` is enabled
+    And I verify that `esm-apps` is enabled
+    # Credentials must be written to the relocated auth parts dir...
+    When I run `cat /etc/apt/pro-auth.conf.d/90ubuntu-advantage` with sudo
+    Then stdout contains substring:
+      """
+      machine esm.ubuntu.com/infra/ubuntu/ login bearer password
+      """
+    And stdout contains substring:
+      """
+      machine esm.ubuntu.com/apps/ubuntu/ login bearer password
+      """
+    # ...and not to the default location apt is no longer configured to read
+    Then I verify that no files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
+    # apt must be able to authenticate against ESM using the relocated creds
+    Then I ensure apt update runs without errors
+
+    Examples: ubuntu release
+      | release  | machine_type  |
+      | xenial   | lxd-container |
+      | bionic   | lxd-container |
+      | focal    | lxd-container |
+      | jammy    | lxd-container |
+      | noble    | lxd-container |
+      | resolute | lxd-container |
