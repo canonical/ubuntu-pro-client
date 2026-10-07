@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from typing import Any, Dict  # noqa: F401
@@ -199,10 +200,10 @@ def then_i_consolidate_services_on_the_same_mirror(
     context, services_list, machine_name
 ):
     services = services_list.split(",")
-    all_mirrors_path = "/var/spool/apt-mirror/mirror/all-mirrors/"
+    all_mirrors_path = "/var/spool/ditto-repo/all-mirrors/"
 
     for service in services:
-        cmd = "rsync -a /var/spool/apt-mirror/mirror/esm.ubuntu.com/{}/ {}".format(  # noqa
+        cmd = "rsync -a /var/spool/ditto-repo/{}/ {}".format(  # noqa
             service.split("-")[1], all_mirrors_path
         )
         when_i_run_command(
@@ -210,3 +211,97 @@ def then_i_consolidate_services_on_the_same_mirror(
         )
 
     context.service_mirror_cfg["all_mirrors"] = {"path": all_mirrors_path}
+
+
+@when(
+    "I download the ditto binary from `{url}` on the `{machine_name}` machine"
+)
+def download_ditto_binary(context, url, machine_name):
+    """
+    Download the ditto-repo binary from a configurable URL and make it executable.
+    """
+    ditto_binary_path = "/usr/local/bin/ditto"
+
+    # Download the binary using wget
+    download_cmd = "wget -O {} {}".format(ditto_binary_path, url)
+    when_i_run_command(
+        context,
+        download_cmd,
+        "with sudo",
+        machine_name=machine_name,
+    )
+
+    # Make the binary executable
+    chmod_cmd = "chmod +x {}".format(ditto_binary_path)
+    when_i_run_command(
+        context,
+        chmod_cmd,
+        "with sudo",
+        machine_name=machine_name,
+    )
+
+    # Store the binary path in context for later use
+    if not hasattr(context, "ditto_binary_path"):
+        context.ditto_binary_path = ditto_binary_path
+
+
+@when(
+    "I run ditto for `{service}` on `{release}` on the `{machine_name}` machine"  # noqa
+)
+def run_ditto_for_service(context, service, release, machine_name):
+    """
+    Run the ditto command with CLI parameters for a specific service and distribution.
+    Uses --repo-url, --dists, --components, --archs, and --download-path flags.
+    """
+    if not hasattr(context, "service_mirror_cfg"):
+        raise ValueError("No service mirror config found in context")
+
+    service_key = service.replace("-", "_")
+    if service_key not in context.service_mirror_cfg:
+        raise ValueError(
+            "Service '{}' not found in service_mirror_cfg".format(service)
+        )
+
+    token = context.service_mirror_cfg[service_key]["credentials"]
+
+    if "esm" in service:
+        service_type = service.split("-")[1]
+    else:
+        service_type = service
+
+    repo_url = "https://bearer:{}@esm.ubuntu.com/{}/ubuntu/".format(
+        token, service_type
+    )
+
+    if "esm" in service:
+        dists = [
+            "{}-{}-{}".format(release, service_type, dist_suffix)
+            for dist_suffix in ["updates", "security"]
+        ]
+    else:
+        dists = [release]
+
+    download_path = "/var/spool/ditto-repo/{}/ubuntu/".format(service_type)
+
+    if "path" not in context.service_mirror_cfg[service_key]:
+        context.service_mirror_cfg[service_key]["path"] = (
+            "/var/spool/ditto-repo/{}/".format(service_type)
+        )
+
+    ditto_cmd = (
+        "ditto "
+        "--repo-url={} "
+        "--dists={} "
+        "--components=main "
+        "--archs=amd64 "
+        "--languages=en "
+        "--download-path={} "
+        "--workers=5"
+    ).format(repo_url, ",".join(dists), download_path)
+
+    when_i_run_command(
+        context,
+        ditto_cmd,
+        "with sudo",
+        machine_name=machine_name,
+    )
