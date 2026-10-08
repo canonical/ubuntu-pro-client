@@ -1,4 +1,5 @@
 import logging
+import shlex
 
 from behave import then
 
@@ -8,9 +9,28 @@ from features.steps.shell import when_i_run_command, when_i_run_shell_command
 
 @then("`{file_name}` is not present in any docker image layer")
 def file_is_not_present_in_any_docker_image_layer(context, file_name):
+    """Search unpacked layers in two supported overlay storage layouts.
+
+    Prefer Docker's legacy overlay2 directory when present, otherwise use
+    the containerd overlayfs snapshot directory.
+
+    NOTE: This is not a comprehensive check.
+    """
+    layers_path = "/var/lib/docker/overlay2"
     when_i_run_command(
         context,
-        "find /var/lib/docker/overlay2 -name {}".format(file_name),
+        "test -d {}".format(layers_path),
+        "with sudo",
+        verify_return=False,
+    )
+    if context.process.returncode != 0:
+        layers_path = (
+            "/var/lib/containerd/"
+            "io.containerd.snapshotter.v1.overlayfs/snapshots"
+        )
+    when_i_run_command(
+        context,
+        "find {} -name {}".format(layers_path, shlex.quote(file_name)),
         "with sudo",
     )
     results = context.process.stdout.strip()
