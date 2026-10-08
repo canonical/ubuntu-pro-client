@@ -21,6 +21,8 @@ Feature: Pro Client help text
         cve              show information about a CVE
         cves             list the vulnerabilities that affect the system
         fix              check for and mitigate the impact of a CVE/USN on this system
+        usn              show information about a USN
+        usns             list the USNs that affect the system
 
       Troubleshooting-related commands:
 
@@ -62,6 +64,8 @@ Feature: Pro Client help text
         cve              show information about a CVE
         cves             list the vulnerabilities that affect the system
         fix              check for and mitigate the impact of a CVE/USN on this system
+        usn              show information about a USN
+        usns             list the USNs that affect the system
 
       Troubleshooting-related commands:
 
