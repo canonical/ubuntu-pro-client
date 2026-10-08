@@ -4,6 +4,7 @@ import re
 from behave import then, when
 
 from features.steps.files import when_i_create_file_with_content
+from features.steps.lxd_guest import run_lxc_guest_command
 from features.steps.packages import (
     when_i_apt_install,
     when_i_apt_update,
@@ -161,12 +162,10 @@ def when_i_install_uat_on_lxd_guest(context, guest_name):
                 "with sudo",
             )
             to_install.append(guest_path)
-        when_i_run_command(
+        run_lxc_guest_command(
             context,
-            "lxc exec {guest_name} -- apt install -y {packages}".format(
-                guest_name=guest_name, packages=" ".join(to_install)
-            ),
-            "with sudo",
+            guest_name,
+            "apt install -y {}".format(" ".join(to_install)),
         )
     else:
         setup_pro_package_sources(context)
@@ -178,20 +177,15 @@ def when_i_install_uat_on_lxd_guest(context, guest_name):
             ),
             "with sudo",
         )
-        when_i_run_command(
+        run_lxc_guest_command(
             context,
-            "lxc exec {guest_name} -- bash /root/setup_pro.sh".format(
-                guest_name=guest_name
-            ),
-            "with sudo",
+            guest_name,
+            "bash /root/setup_pro.sh",
         )
-        when_i_run_command(
+        run_lxc_guest_command(
             context,
-            "lxc exec {guest_name} -- apt install -y {packages}".format(
-                guest_name=guest_name,
-                packages=" ".join(NORMAL_BINARY_PACKAGE_NAMES),
-            ),
-            "with sudo",
+            guest_name,
+            "apt install -y {}".format(" ".join(NORMAL_BINARY_PACKAGE_NAMES)),
         )
 
 
