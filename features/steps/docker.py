@@ -84,9 +84,10 @@ def files_in_docker_image_layers(context, presence, image_name):
                 )
             elif context.process.returncode != 1:
                 raise AssertionError(
-                    'could not inspect layer "{}" of docker image "{}": {}'.format(
-                        layer, image_name, context.process.stderr.strip()
-                    )
+                    (
+                        'could not inspect layer "{}" of docker image '
+                        '"{}": {}'
+                    ).format(layer, image_name, context.process.stderr.strip())
                 )
 
         if found and not want_found:
@@ -97,9 +98,9 @@ def files_in_docker_image_layers(context, presence, image_name):
             )
         if not found and want_found:
             raise AssertionError(
-                'expected files in docker image "{}" were not found: {}'.format(
-                    image_name, ", ".join(file_names)
-                )
+                (
+                    'expected files in docker image "{}" ' "were not found: {}"
+                ).format(image_name, ", ".join(file_names))
             )
     finally:
         when_i_run_command(
