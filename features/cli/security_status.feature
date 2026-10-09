@@ -454,6 +454,7 @@ Feature: CLI security-status command
   @uses.config.contract_token
   Scenario Outline: Run security status in an Ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
+    And I ensure update_notifier_common is installed
     When I install third-party / unknown packages in the machine
     # Ansible is in esm-apps
     And I apt install `ansible`
