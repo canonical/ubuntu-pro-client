@@ -1,4 +1,8 @@
+import json
 import logging
+import re
+import shlex
+from typing import List  # noqa: F401
 
 from behave import then
 
@@ -6,17 +10,105 @@ from features.steps.files import when_i_create_file_with_content
 from features.steps.shell import when_i_run_command, when_i_run_shell_command
 
 
-@then("`{file_name}` is not present in any docker image layer")
-def file_is_not_present_in_any_docker_image_layer(context, file_name):
+@then(
+    "the following files are {presence} in any layer of docker image "
+    "`{image_name}`"
+)
+def files_in_docker_image_layers(context, presence, image_name):
+    if presence not in ("present", "not present"):
+        raise AssertionError(
+            "unsupported expected file presence: {}".format(presence)
+        )
+    want_found = presence == "present"
+
+    file_names = [row["file_name"] for row in context.table]
     when_i_run_command(
         context,
-        "find /var/lib/docker/overlay2 -name {}".format(file_name),
+        "mktemp -d /tmp/docker-image-layers.XXXXXX",
         "with sudo",
     )
-    results = context.process.stdout.strip()
-    if results:
-        raise AssertionError(
-            'found "{}"'.format(", ".join(results.split("\n")))
+    temp_dir = context.process.stdout.strip()
+    archive_path = "{}/image.tar".format(temp_dir)
+    layer_archive_path = "{}/layer.tar".format(temp_dir)
+    layer_files_path = "{}/layer-files".format(temp_dir)
+
+    try:
+        when_i_run_command(
+            context,
+            "docker image save --output {} {}".format(
+                shlex.quote(archive_path), shlex.quote(image_name)
+            ),
+            "with sudo",
+        )
+        when_i_run_command(
+            context,
+            "tar -xOf {} manifest.json".format(shlex.quote(archive_path)),
+            "with sudo",
+        )
+        manifest = json.loads(context.process.stdout)
+        layers = sorted(
+            {layer for image in manifest for layer in image.get("Layers", [])}
+        )
+        if not layers:
+            raise AssertionError(
+                'docker image "{}" has no layers'.format(image_name)
+            )
+
+        pattern = r"(^|/)({})$".format(
+            "|".join(re.escape(file_name) for file_name in file_names)
+        )
+        found = []  # type: List[str]
+        for layer in layers:
+            scan = (
+                "tar -xOf {archive} {layer} > {layer_archive} && "
+                "if gzip -t {layer_archive} 2>/dev/null; then "
+                "gzip -dc {layer_archive} | tar -tf - > {files} || exit 2; "
+                "else tar -tf {layer_archive} > {files} || exit 2; fi; "
+                "grep -E -- {pattern} {files}"
+            ).format(
+                archive=shlex.quote(archive_path),
+                layer=shlex.quote(layer),
+                layer_archive=shlex.quote(layer_archive_path),
+                files=shlex.quote(layer_files_path),
+                pattern=shlex.quote(pattern),
+            )
+            when_i_run_command(
+                context,
+                "bash -o pipefail -c {}".format(shlex.quote(scan)),
+                "with sudo",
+                verify_return=False,
+            )
+            if context.process.returncode == 0:
+                found.extend(
+                    "{}: {}".format(layer, path)
+                    for path in context.process.stdout.splitlines()
+                )
+            elif context.process.returncode != 1:
+                raise AssertionError(
+                    (
+                        'could not inspect layer "{}" of docker image '
+                        '"{}": {}'
+                    ).format(layer, image_name, context.process.stderr.strip())
+                )
+
+        if found and not want_found:
+            raise AssertionError(
+                'unexpected files in docker image "{}": {}'.format(
+                    image_name, ", ".join(found)
+                )
+            )
+        if not found and want_found:
+            raise AssertionError(
+                (
+                    'expected files in docker image "{}" ' "were not found: {}"
+                ).format(image_name, ", ".join(file_names))
+            )
+    finally:
+        when_i_run_command(
+            context,
+            "rm -rf {}".format(shlex.quote(temp_dir)),
+            "with sudo",
+            verify_return=False,
         )
 
 
