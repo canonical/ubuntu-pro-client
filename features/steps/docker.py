@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import shlex
+from typing import List  # noqa: F401
 
 from behave import then
 
@@ -56,7 +57,7 @@ def files_in_docker_image_layers(context, presence, image_name):
         pattern = r"(^|/)({})$".format(
             "|".join(re.escape(file_name) for file_name in file_names)
         )
-        found = []
+        found = []  # type: List[str]
         for layer in layers:
             scan = (
                 "tar -xOf {archive} {layer} > {layer_archive} && "
