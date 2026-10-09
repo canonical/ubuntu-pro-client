@@ -1,6 +1,6 @@
 import re
 
-from behave import then, when
+from behave import given, then, when
 from hamcrest import assert_that, contains_string, matches_regexp, not_
 
 from features.steps.files import when_i_create_file_with_content
@@ -148,6 +148,21 @@ def when_i_apt_install(context, package_names, machine_name=SUT):
         machine_name=machine_name,
         exit_codes="100",
     )
+
+
+@given("I ensure update_notifier_common is installed")
+def given_i_ensure_update_notifier_common_is_installed(context):
+    """Install the APT timestamp hook, which may be missing from some minimal
+    images. Notably, WSL does not include it.
+
+    update-notifier-common provides the 15update-stamp hook, which writes
+    update-success-stamp after a successful apt update. The client reads that
+    stamp to report APT cache freshness.
+
+    NOTE: We may consider making this package a real dependency if that
+    behavior is required on every supported installation.
+    """
+    when_i_apt_install(context, "update-notifier-common")
 
 
 @when("I apt remove `{package_names}`")
