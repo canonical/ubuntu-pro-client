@@ -56,3 +56,5 @@ debian/po/usr
 
 # git worktrees
 .worktrees/
+
+.workshop.lock
