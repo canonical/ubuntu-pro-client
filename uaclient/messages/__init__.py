@@ -1238,6 +1238,35 @@ CLI_FIXABLE_CVES_NOT_AFFECTED = t.gettext(
 CLI_CVES_NOT_AFFECTED = t.gettext("No CVES found that affect this system")
 
 
+CLI_USN = t.gettext("show information about a USN")
+CLI_USN_DESC = t.gettext(
+    """\
+Show all available information about a given USN.
+"""
+)
+CLI_USN_ISSUE = t.gettext("USN to display information. Format: USN-nnnn-n")
+CLI_USN_NOT_FOUND_IN_DATA = t.gettext(
+    """\
+{issue} doesn't affect Ubuntu {release}.
+For more information, visit: {url}"""
+)
+
+CLI_USNS = t.gettext("list the USNs that affect the system")
+CLI_USNS_DESC = t.gettext(
+    """\
+List the USN vulnerabilities that affects the system."""
+)
+CLI_USNS_UNFIXABLE = t.gettext("List only USNs without a fix available")
+CLI_USNS_FIXABLE = t.gettext("List only USNs with a fix available")
+CLI_UNFIXABLE_USNS_NOT_AFFECTED = t.gettext(
+    "No unfixable USNs found that affect this system"
+)
+CLI_FIXABLE_USNS_NOT_AFFECTED = t.gettext(
+    "No fixable USNs found that affect this system"
+)
+CLI_USNS_NOT_AFFECTED = t.gettext("No USNs found that affect this system")
+
+
 WARNING_HUMAN_READABLE_OUTPUT = t.gettext(
     """\
 WARNING: this output is intended to be human readable, and subject to change.
