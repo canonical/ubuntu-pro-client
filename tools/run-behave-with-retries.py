@@ -1,0 +1,273 @@
+#!/usr/bin/python3
+"""Run behave with bounded reruns for a small number of failures.
+
+This helper runs ``tox -e behave`` once against an initial target and, on
+failure, uses Behave's ``rerun`` formatter output to retry only the failed
+scenario/example locations. Retries stop when the suite passes, when the rerun
+file is empty, when the number of failing locations reaches the configured
+limit, or when the maximum number of attempts is reached.
+
+Examples::
+
+    python3 tools/run-behave-with-retries.py \
+        --runner-group lxd \
+        --rerun-file /tmp/behave.rerun \
+        -- -D machine_types=lxd-container -D releases=resolute
+
+    python3 tools/run-behave-with-retries.py \
+        --initial-target features/cli/attach.feature \
+        -- --tags=-slow
+"""
+
+from __future__ import print_function
+
+import argparse
+import errno
+import os
+import shlex
+import subprocess
+import sys
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Run behave with bounded reruns for a small number of failures."
+    )
+    parser.add_argument(
+        "--rerun-file",
+        default=os.environ.get(
+            "RERUN_FILE",
+            os.path.join(os.environ.get("TMPDIR", "/tmp"), "behave.rerun"),
+        ),
+        help="path to Behave rerun file",
+    )
+    parser.add_argument(
+        "--max-attempts",
+        type=int,
+        default=int(os.environ.get("MAX_ATTEMPTS", 4)),
+        help=(
+            "maximum number of behave runs, counting the initial run "
+            "(e.g. 4 means the initial run plus up to 3 reruns)"
+        ),
+    )
+    parser.add_argument(
+        "--max-failing-examples",
+        type=int,
+        default=int(os.environ.get("MAX_FAILING_EXAMPLES", 10)),
+        help="do not retry when failing locations reach this count",
+    )
+    parser.add_argument(
+        "--initial-target",
+        default=os.environ.get("INITIAL_TARGET", "features"),
+        help="feature path or @rerun file target for the first behave run",
+    )
+    parser.add_argument(
+        "--runner-group",
+        default=os.environ.get("BEHAVE_RUNNER_GROUP", ""),
+        help="optional Unix group name to use via sg -c",
+    )
+    parser.add_argument(
+        "--console-format",
+        default=os.environ.get("CONSOLE_FORMAT", "pretty"),
+        help=(
+            "behave formatter for console output, mapped to stdout "
+            "(default: pretty); use 'none' to disable"
+        ),
+    )
+    parser.add_argument(
+        "behave_args",
+        nargs=argparse.REMAINDER,
+        help="arguments passed to `tox -e behave --`",
+    )
+
+    args = parser.parse_args(argv)
+    if args.behave_args[:1] == ["--"]:
+        args.behave_args = args.behave_args[1:]
+    return args
+
+
+def build_behave_command(
+    target, behave_args, rerun_file, console_format="pretty"
+):
+    # Behave maps formatters to outfiles by position, so keep "rerun" first to
+    # guarantee it owns --outfile. Any extra formatters (the console format
+    # below, or ones in behave_args) then default to stdout. This also stops
+    # behave from dropping console output, which it does whenever a --format is
+    # given but no console formatter is paired with stdout.
+    command = [
+        "tox",
+        "-e",
+        "behave",
+        "--",
+        target,
+        "--format",
+        "rerun",
+        "--outfile",
+        rerun_file,
+    ]
+    command += list(behave_args)
+    if console_format and console_format.lower() != "none":
+        command += ["--format", console_format]
+    return command
+
+
+def run_command(command, runner_group=None, caller=None):
+    caller = caller or subprocess.call
+    if runner_group:
+        quoted = " ".join(shlex.quote(arg) for arg in command)
+        return caller(["sg", runner_group, "-c", quoted])
+    return caller(command)
+
+
+def ensure_parent_dir(path):
+    parent_dir = os.path.dirname(path)
+    if not parent_dir:
+        return
+    try:
+        os.makedirs(parent_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+
+
+def load_rerun_entries(rerun_file, cwd):
+    """Behave emits relative paths for re-runs. If the file isn't emitted to
+    repo root, Behave fails to discover steps. Re-write failures as absolute
+    paths to fix this.
+    """
+
+    entries = []
+    with open(rerun_file) as stream:
+        for line in stream:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+
+            if ":" in stripped:
+                feature_path, line_number = stripped.rsplit(":", 1)
+                feature_path = os.path.abspath(os.path.join(cwd, feature_path))
+                entries.append("{}:{}".format(feature_path, line_number))
+            else:
+                entries.append(os.path.abspath(os.path.join(cwd, stripped)))
+    return entries
+
+
+def count_failing_examples(rerun_file):
+    return len(load_rerun_entries(rerun_file, os.getcwd()))
+
+
+def normalize_rerun_file(rerun_file, cwd):
+    entries = load_rerun_entries(rerun_file, cwd)
+    with open(rerun_file, "w") as stream:
+        for entry in entries:
+            stream.write("{}\n".format(entry))
+
+
+def write_rerun_snapshot(rerun_file, attempt):
+    snapshot_file = "{}.attempt-{}".format(rerun_file, attempt)
+    with open(rerun_file) as source:
+        contents = source.read()
+    with open(snapshot_file, "w") as target:
+        target.write(contents)
+    return snapshot_file
+
+
+def emit_attempt_start(printer, attempt, max_attempts, behave_target, command):
+    if attempt == 1:
+        label = "initial"
+    else:
+        label = "rerun {}".format(attempt - 1)
+    printer(
+        "Starting Behave attempt {}/{} ({}) with target {}".format(
+            attempt, max_attempts, label, behave_target
+        )
+    )
+    printer("Behave command: {}".format(" ".join(command)))
+
+
+def emit_rerun_summary(printer, rerun_file, entries, attempt):
+    snapshot_file = write_rerun_snapshot(rerun_file, attempt)
+    printer(
+        "Saved rerun snapshot for attempt {} to {}".format(
+            attempt, snapshot_file
+        )
+    )
+    printer("Failing rerun targets:")
+    for entry in entries[:20]:
+        printer("  {}".format(entry))
+    if len(entries) > 20:
+        printer("  ... {} more targets omitted".format(len(entries) - 20))
+
+
+def run_with_retries(args, caller=None, printer=None):
+    printer = printer or print
+    attempt = 1
+    cwd = os.getcwd()
+
+    ensure_parent_dir(args.rerun_file)
+
+    if os.path.exists(args.rerun_file):
+        os.unlink(args.rerun_file)
+
+    while True:
+        if attempt == 1:
+            behave_target = args.initial_target
+        else:
+            behave_target = "@{}".format(args.rerun_file)
+
+        command = build_behave_command(
+            behave_target,
+            args.behave_args,
+            args.rerun_file,
+            args.console_format,
+        )
+        emit_attempt_start(
+            printer, attempt, args.max_attempts, behave_target, command
+        )
+        if run_command(command, args.runner_group, caller=caller) == 0:
+            return 0
+
+        if (
+            not os.path.exists(args.rerun_file)
+            or os.path.getsize(args.rerun_file) == 0
+        ):
+            printer(
+                "Behave failed without rerun targets; not retrying",
+                file=sys.stderr,
+            )
+            return 1
+
+        normalize_rerun_file(args.rerun_file, cwd)
+        rerun_entries = load_rerun_entries(args.rerun_file, cwd)
+        failing_examples = len(rerun_entries)
+        emit_rerun_summary(printer, args.rerun_file, rerun_entries, attempt)
+        if failing_examples >= args.max_failing_examples:
+            printer(
+                "Behave reported {} failing examples; not retrying".format(
+                    failing_examples
+                ),
+                file=sys.stderr,
+            )
+            return 1
+
+        if attempt >= args.max_attempts:
+            printer(
+                "Behave still failing after {} attempts".format(attempt),
+                file=sys.stderr,
+            )
+            return 1
+
+        attempt += 1
+        printer(
+            "Retrying Behave for {} failing examples (attempt {}/{})".format(
+                failing_examples, attempt, args.max_attempts
+            )
+        )
+
+
+def main(argv=None):
+    return run_with_retries(parse_args(argv))
+
+
+if __name__ == "__main__":
+    sys.exit(main())
