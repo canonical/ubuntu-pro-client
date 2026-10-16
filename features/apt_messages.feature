@@ -114,7 +114,7 @@ Feature: APT Messages
       Building dependency tree...
       Reading state information...
       Calculating upgrade...
-      The following packages will be upgraded:
+      (?:The following NEW packages will be installed:\s+[-+.\w\s]*?\s+)?The following packages will be upgraded:
       """
     When I apt upgrade
     When I run `pro detach --assume-yes` with sudo
@@ -132,7 +132,7 @@ Feature: APT Messages
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
       | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for 18\.04 at https:\/\/ubuntu\.com\/18-04                    |
       | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
 
   @uses.config.contract_token
