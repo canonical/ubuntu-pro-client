@@ -1,11 +1,11 @@
 ---
 name: ubuntu-releases
-description: 'Classify an Ubuntu release and look up its lifecycle using distro-info. Use whenever you see or are told about an Ubuntu release (version number, series, or full name) and need to know whether it is in development, supported, ESM-only, or unsupported, whether it is LTS, or when it was released or reaches end of life.'
+description: 'Classify an Ubuntu release and look up its lifecycle using distro-info. Use whenever you see or are told about an Ubuntu release (version number, series, or full name) and need to know whether it is in development, supported, ESM-only, legacy, or unsupported, whether it is LTS, or when it was released or reaches end of life.'
 ---
 
 # Ubuntu Releases
 
-Query `ubuntu-distro-info` rather than relying on remembered lifecycle dates. A new release ships every six months, so remembered status goes stale. Get all release data from `ubuntu-distro-info` commands. Don't read its data files directly.
+Query `ubuntu-distro-info` rather than relying on remembered lifecycle dates. A new release ships every six months, so remembered status goes stale. Get all release data from `ubuntu-distro-info` commands.
 
 ## Identify the series
 
@@ -26,7 +26,8 @@ Use the first rule that matches:
 1. **Development**: equals `--devel`.
 2. **Normally supported**: listed by `--supported`.
 3. **ESM-only**: listed by `--supported-esm`.
-4. **Unsupported**: anything else. An unsupported LTS may still be covered by the paid Legacy add-on, which `ubuntu-distro-info` doesn't report. Mention this possibility for an LTS rather than stating it as fact.
+4. **Legacy**: an LTS whose ESM has ended (`--days=eol-esm` is negative) less than five years ago (greater than -1826). The paid Legacy add-on extends security coverage for five years past the end of ESM. `ubuntu-distro-info` doesn't report this directly, so derive it from the rule. For example, as of 2026-10, trusty and xenial are legacy, while precise is not.
+5. **Unsupported**: anything else.
 
 `--devel` exits 1 with `Distribution data outdated` when the installed data knows of no development series. Report that there's no known development series and that the data may be stale.
 
