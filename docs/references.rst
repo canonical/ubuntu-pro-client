@@ -14,6 +14,7 @@ interface (CLI) in your terminal, or automatically via the API.
 * :ref:`CLI reference guide <commands>`
 * :ref:`API reference guide <api>`
 * :ref:`Error messages <error-messages>`
+* :ref:`Logging schema <logging_reference>`
 
 You may, in a staging or canary environment, want to test upcoming changes.
 For this, you can use the available Pro Client Personal Package Archives (PPA).
@@ -38,6 +39,7 @@ want to use are compatible with each other.
     CLI reference guide <references/commands.rst>
     API reference guide <references/api.rst>
     Error messages <references/errors_explained.rst>
+    Logging schema <references/logging.rst>
     Personal Package Archives (PPAs) <references/ppas.rst>
     Supported Ubuntu releases <references/support_matrix.rst>
     Service compatibility matrix <references/compatibility_matrix.md>
