@@ -20,6 +20,20 @@ Pro services
    
    Pro services... <explanations/index_services>
 
+Security of the Pro Client
+==========================
+
+The architecture, trust boundaries, risks, and data handling of ``pro``
+itself.
+
+* :ref:`Security overview <security_overview>`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   Security overview <explanations/security_overview>
+
 Handling security vulnerabilities
 =================================
 
