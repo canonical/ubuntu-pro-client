@@ -283,7 +283,6 @@ def _enable_one_service(
     if already_enabled is not None:
         msg = messages.ALREADY_ENABLED.format(title=ent_title)
         interactive_only_print(msg.msg)
-        interactive_only_print(messages.ENABLE_FAILED.format(title=ent_title))
         return _EnableOneServiceResult(
             success=False,
             needs_reboot=False,
