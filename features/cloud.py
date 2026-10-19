@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import shlex
+import threading
 import time
 from contextlib import suppress
 from typing import List, Optional
@@ -847,7 +848,7 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
         inst.delete()
         inst.install_ubuntu_distro()
         inst.launch_ubuntu_distro()
-        inst.create_non_root_user()
+        inst.ensure_non_root_user()
 
         return inst
 
@@ -866,12 +867,9 @@ class WSLCloud(pycloudlib.cloud.BaseCloud):
 
 
 class WSLInstance(pycloudlib.instance.BaseInstance):
-    def __init__(
-        self,
-        key_pair,
-        distro_name: str,
-        ip_address: str,
-    ):
+    SSH_COMMAND_TIMEOUT = 30 * 60
+
+    def __init__(self, key_pair, distro_name: str, ip_address: str):
         super().__init__(key_pair)
         self.ip_address = ip_address
         self.series = distro_name
@@ -894,10 +892,12 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
             check_stderr=True,
         )
 
-    def create_non_root_user(self, username="ubuntu"):
+    def ensure_non_root_user(self, username="ubuntu"):
+        username_arg = shlex.quote(username)
         self.execute(
-            'sh -c "sudo adduser --disabled-password --gecos test {}"'.format(
-                username
+            'sh -c "id -u {0} >/dev/null 2>&1 || '
+            'adduser --disabled-password --gecos test {0}"'.format(
+                username_arg
             ),
             run_on_wsl=True,
             use_sudo=True,
@@ -986,17 +986,51 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
 
         channel.shutdown_write()
 
-        out = fp_out.read()
-        err = fp_err.read()
+        # Read stdout and stderr concurrently.
+        out_result = []  # type: List[bytes]
+        err_result = []  # type: List[bytes]
+        out_thread = threading.Thread(
+            target=lambda: out_result.append(fp_out.read())
+        )
+        err_thread = threading.Thread(
+            target=lambda: err_result.append(fp_err.read())
+        )
+        out_thread.daemon = True
+        err_thread.daemon = True
+        out_thread.start()
+        err_thread.start()
+        deadline = time.time() + self.SSH_COMMAND_TIMEOUT
+        out_thread.join(self.SSH_COMMAND_TIMEOUT)
+        err_thread.join(max(0, deadline - time.time()))
+        if out_thread.is_alive() or err_thread.is_alive():
+            channel.close()
+            client.close()
+            raise SSHException(
+                "Command '{}' produced no response within {}s; the remote "
+                "session may be orphaned.".format(
+                    cmd, self.SSH_COMMAND_TIMEOUT
+                )
+            )
         return_code = channel.recv_exit_status()
 
-        out = "" if not out else out.rstrip().decode("utf-8")
-        err = "" if not err else err.rstrip().decode("utf-8")
+        out_bytes = out_result[0]
+        err_bytes = err_result[0]
+        out = "" if not out_bytes else out_bytes.rstrip().decode("utf-8")
+        err = "" if not err_bytes else err_bytes.rstrip().decode("utf-8")
 
         return Result(out, err, return_code)
 
     def delete(self, wait=False):
         self.execute("wsl --shutdown", run_on_wsl=False, check_stderr=True)
+        self._ensure_unregistered()
+
+    def _registered_distros(self):
+        return self.execute("wsl --list --quiet", run_on_wsl=False)
+
+    def _ensure_unregistered(self):
+        if self.series not in self._registered_distros():
+            return
+
         self.execute(
             "wsl --unregister {}".format(self.series),
             run_on_wsl=False,

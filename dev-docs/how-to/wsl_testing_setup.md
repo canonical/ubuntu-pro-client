@@ -1,195 +1,96 @@
-# How to set up a Windows machine for WSL testing
+# How to run the integration tests on WSL
 
-To run our integration tests on Windows Subsystem for Linux (WSL) instances, we need to first set up
-a Windows machine that will allow us to launch the WSL instances. After that, we also need to set up
-an OpenSSH server so we can run SSH commands on the Windows machine.
+The WSL integration tests run inside Ubuntu distributions on a Windows 11 host
+in Azure. The behave harness reaches that host over SSH, creates a fresh WSL
+distribution for each scenario, and runs the scenario inside it.
 
-This guide presents all the necessary steps for the set up, from launching the Windows 11 Pro
-image in Azure to testing if WSL is correctly working on the machine.
+`tools/wsl-host/` is a Terraform module that creates a ready-to-use host and
+destroys it again. The tests only need the host's IP address and the SSH key
+that Terraform generates.
 
-## Launching the image on Azure
+## Prerequisites
 
-When launching the Windows instance on Azure, we need to perform some
-configuration to be able to launch WSL instances.
+* [Terraform](https://developer.hashicorp.com/terraform/install) 1.5 or newer.
+* Azure credentials, in either form the Azure providers accept:
+  * `az login` with the Azure CLI, or
+  * `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID` and
+    `ARM_SUBSCRIPTION_ID` in the environment. These are the same values the
+    `[azure]` section of `~/.config/pycloudlib.toml` holds as `client_id`,
+    `client_secret`, `tenant_id` and `subscription_id`.
+* `~/.config/pycloudlib.toml` with the `[azure]` section filled in. The behave
+  harness uses it to start the host before a run and stop it afterwards.
 
-First of all, name the machine as `wsl-test`. Currently, this is the name we expect on the
-integration tests.
+## Create the host
 
-After that, select the `Windows 11` image and mark the `Security Type` as *Standard*.
-![Azure security type](windows-security-type.png)
-
-The alternative "Trusted Launch" [doesn't support Nested Virtualization](https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch#unsupported-features),
-required to run WSL.
-
-For the administrator account, mark the `Authentication Type` as *Password*,
-and set the `Username` to *ubuntu*. 
-We will use this account setting to manually log into the machine to run some commands there directly.
-![Azure SSH setup](windows-ssh-setup.png)
-
-Select the SSH inbound port for the machine.
-![Azure setup port](windows-setup-port.png)
-
-Finally, you will need to check this checkbox here:  
-![Azure license check](windows-license-check.png)
-
-We have already confirmed with the WSL team that our Azure accounts have the proper license to
-launch the Windows machine.
-
-
-## Configure Bastion to log into the machine
-
-To log into the machine and access its GUI, you need to set up Bastion.
-After launching the machine, go for the *Connect via Bastion* option:
-
-![Azure bastion connect](windows-bastion.png)
-
-![Azure bastion deploy](windows-deploy-bastion.png)
-
-After deploying the Bastion, you just need to present your username and password to log into the
-machine.
-
-## Configuring Hyper-V
-
-After logging into the machine through Bastion, you need to configure Hyper-V by following
-this [tutorial](https://learn.microsoft.com/en-us/azure/lab-services/how-to-enable-nested-virtualization-template-vm-using-script?tabs=powershell)
-
-## Installing winget
-
-Each WSL Ubuntu distro has a dedicated installer in the Microsoft store. Therefore, before launching
-any WSL instance, we need to install the installers first. To achieve that, we need to configure
-**winget**.
-
-To install it on the machine, follow this [tutorial](https://winget.pro/winget-install-powershell/)
-
-```
-Note that you can paste the commands in Bastion by using the clipboard feature that can be found
-under this arrow:
+```shell
+terraform -chdir=tools/wsl-host init
+terraform -chdir=tools/wsl-host apply
 ```
 
-![Azure bastion clipboard 1](windows-bastion-clipboard.png) ![Azure bastion clipboard 2](windows-bastion-clipboard-paste.png)
+`apply` returns once the host is ready, which takes 10–15 minutes. It creates
+a resource group named `wsl-test-rg` containing a Windows 11 Pro VM named
+`wsl-test`, runs `bootstrap.ps1` on it (OpenSSH Server, WSL features, WSL,
+winget, automatic logon), reboots it, and then waits until a post-logon task
+has confirmed that winget and WSL work.
 
-```
-Finally, if you see the following error during installation, restart the machine first:
+An SSH key pair is written to `tools/wsl-host/.ssh/`.
 
-Add-AppxPackage : Deployment failed with HRESULT: 0x80073D02, The package could not be installed
-because resources it modifies are currently in use. 
-```
+Variables are documented in `tools/wsl-host/variables.tf` and can be set with
+`-var` or `TF_VAR_*`. For example, to install a WSL pre-release:
 
-## Installing WSL
-
-To install WSL, just run the following command, as an administrator, on powershell:
-
-```console
-$ wsl --install
+```shell
+terraform -chdir=tools/wsl-host apply -var wsl_msi_url=prerelease
 ```
 
-After that, we need to update WSL to the pre-release version by running:
+`latest` and `prerelease` are resolved when `bootstrap.ps1` runs, so two hosts
+created at different times can get different WSL versions. Pass a direct
+`.msi` URL to pin one.
 
-```console
-$ wsl --update --pre-release
+## Run the tests
+
+Export the connection details the harness expects, then run behave with
+`machine_types=wsl`:
+
+```shell
+eval "$(terraform -chdir=tools/wsl-host output -raw behave_env)"
+tox -e behave -- -D machine_types=wsl -D releases=jammy
 ```
 
+`behave_env` sets `UACLIENT_BEHAVE_WSL_IP_ADDRESS`,
+`UACLIENT_BEHAVE_WSL_PRIVKEY_PATH` and `UACLIENT_BEHAVE_WSL_PUBKEY_PATH`.
 
-```{note}
-We are installing the pre-release version because it allows us to directly run wsl commands
-through SSH. Once that fix is officially released, we will no longer need to install the
-pre-release version.
+## Destroy the host
+
+When you are finished testing, destroy the resources:
+
+```shell
+terraform -chdir=tools/wsl-host destroy
 ```
 
-Now, install a Bionic instance to test the whole WSL set up is working as expected:
+This removes the whole resource group and the local SSH key pair.
 
-```console
-$ winget install --name "Ubuntu 18.04 LTS" --accept-source-agreements --accept-package-agreements --silent
-```
+## Troubleshooting
 
-Now, create the instance with:
+`terraform -chdir=tools/wsl-host output -raw ssh_command` prints a command
+that opens a shell on the Windows host. Bootstrap output is in
+`C:\wsl-host\bootstrap.log` (before the reboot, runs as SYSTEM) and
+`C:\wsl-host\phase2.log` (after automatic logon, runs as `ubuntu`). The host
+is ready when `C:\wsl-host\READY` exists.
 
-```console
-$ & ubuntu1804.exe install --root
-```
+If `apply` fails in `bootstrap` or `wait-ready`, the error includes the
+script's exit code and message. Fix the cause and run `apply` again; Terraform
+re-runs only the failed step and everything after it.
 
-After that, just test to see if we can run commands on the WSL instance:
+The admin password, needed only for RDP or Bastion, is available with
+`terraform -chdir=tools/wsl-host output -raw admin_password`.
 
-```console
-$ wsl -d Ubuntu-18.04 --exec lsb_release -a
-```
+The VM uses the *Standard* security type because Trusted Launch does not
+support the nested virtualization WSL 2 requires, and `Windows_Client`
+licensing because Windows 11 on Azure needs multitenant hosting rights. Both
+are set in `tools/wsl-host/main.tf`.
 
-## Installing OpenSSH server
+## TODOs
 
-To install OpenSSH server, follow these steps:
-
-1) Open *Settings*
-2) Go to *System*
-3) Go to *Optional Features*
-4) Go to *Add an optional feature*
-5) Search for *ssh*
-6) Install OpenSSH Server
-
-After installing the Service, open PowerShell and launch it by running:
-
-```console
-$ Start-Service sshd
-```
-
-And set it to automatically start after boot:
-
-```console
-$ Set-Service -Name sshd -StartupType 'Automatic'
-```
-
-### Configure the SSH keys
-
-We need to add a SSH public key into the Windows machine.
-
-To do that, follow these steps:
-
-1) Create a public key to be used in the Windows machine (You can also reuse an existing key if you want to)
-
-2) Set the **UACLIENT_BEHAVE_WSL_IP_ADDRESS** environment variable with the Windows machine IP address. 
-This variable will be used in the integration test, but we will already use it in one of the
-following steps.
-
-2) Send the public key to the Windows machine:
-
-```console
-$ scp PUB_KEY_PATH ubuntu@$UACLIENT_BEHAVE_WSL_IP_ADDRESS:C:\\ProgramData\\ssh
-```
-
-3) SSH into the Windows machine. Note that this SSH will ask you for the password you have set up during the Windows image creation.
-4) Run the following commands:
-
-```console
-$ cd %programdata%/ssh
-```
-
-```console
-$ type PUB_KEY_NAME >> administrators_authorized_keys
-```
-
-```console
-$ icacls administrators_authorized_keys /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"
-```
-
-Now test SSH into the machine using your private key
-
-## Configure the machine for automatic login
-
-To properly run **winget** commands after a machine reboot, a user
-needs to be already logged into the machine. To automate that process,
-follow this [tutorial](https://learn.microsoft.com/en-us/troubleshoot/windows-server/user-profiles-and-logon/turn-on-automatic-logon#use-registry-editor-to-turn-on-automatic-logon)
-
-Note that you also need to manually create the **DefaultUserName** and **DefaultPassword** files.
-
-## Running the integration test
-
-After this set up, you should be able to use that machine to run the WSL tests automatically.
-Before running a WSL test, remember to set the following environment variables:
-
-* **UACLIENT_BEHAVE_WSL_IP_ADDRESS**
-* **UACLIENT_BEHAVE_WSL_PRIVKEY_PATH**
-* **UACLIENT_BEHAVE_WSL_PUBKEY_PATH**
-
-Note that this variables must be set on our local machine. The integration test setup will use them
-to stablish the connection with the Windows host machine to create the WSL instances the tests will
-run on.
-
+There are post-provisioning steps specifically related to enabling `winget`.
+Once all WSL distros that we support are "native" WSL distros, we can remove
+the need for winget and can drop these post-provisioning steps.
