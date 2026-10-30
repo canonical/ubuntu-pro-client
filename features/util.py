@@ -14,7 +14,15 @@ import time
 from base64 import b64encode
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Iterable, List, Optional, Tuple
+from typing import (  # noqa: F401
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+)
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -364,6 +372,68 @@ class SafeLoaderWithoutDatetime(yaml.SafeLoader):
     }
 
 
+REDACTED = "<REDACTED>"
+
+
+def redaction_markers(
+    secrets: Mapping[str, Optional[str]],
+) -> List[Tuple[str, str]]:
+    """Pair each set secret value with the marker that replaces it.
+
+    ``secrets`` maps option names to values. The marker names every option
+    that holds the value, e.g. ``<REDACTED:contract_token>``. Longer values
+    come first, so a value that contains another is replaced whole.
+    """
+    names_by_value = {}  # type: Dict[str, List[str]]
+    for name, value in secrets.items():
+        if value:
+            names_by_value.setdefault(value, []).append(name)
+    markers = [
+        (value, "<REDACTED:{}>".format(",".join(sorted(names))))
+        for value, names in names_by_value.items()
+    ]
+    return sorted(markers, key=lambda marker: len(marker[0]), reverse=True)
+
+
+def redact(text: str, markers: Iterable[Tuple[str, str]]) -> str:
+    """Return text with each secret value replaced by its marker."""
+    for value, marker in markers:
+        text = text.replace(value, marker)
+    return text
+
+
+def install_log_redaction(secrets: Mapping[str, Optional[str]]) -> None:
+    """Redact secrets from every log record, whichever logger made it.
+
+    A record factory runs before any handler sees the record, so this also
+    covers third-party loggers (pycloudlib logs every command it runs) and
+    handlers added later, such as behave's log capture.
+    """
+    markers = redaction_markers(secrets)
+    if not markers:
+        return
+    make_record = logging.getLogRecordFactory()
+
+    def make_redacted_record(*args, **kwargs):
+        record = make_record(*args, **kwargs)
+        try:
+            message = record.getMessage()
+        except Exception:
+            # A bad format string must not break the caller's logging call.
+            message = "{} {}".format(record.msg, record.args)
+        record.msg = redact(message, markers)
+        record.args = ()
+        if record.exc_info:
+            record.exc_text = redact(
+                logging.Formatter().formatException(record.exc_info), markers
+            )
+        if record.stack_info:
+            record.stack_info = redact(record.stack_info, markers)
+        return record
+
+    logging.setLogRecordFactory(make_redacted_record)
+
+
 def _replace_and_log(s, old, new, logger_fn):
     logger_fn('replacing "{}" with "{}"'.format(old, new))
     return s.replace(old, new)
@@ -425,19 +495,21 @@ def process_template_vars(
                 logger_fn,
             )
         elif function_name == "contract_token_staging":
-            processed_template = _replace_and_log(
-                processed_template,
-                match.group(0),
-                context.pro_config.contract_token_staging,
-                logger_fn,
-            )
+            if not shown:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.pro_config.contract_token_staging,
+                    logger_fn,
+                )
         elif function_name == "contract_token":
-            processed_template = _replace_and_log(
-                processed_template,
-                match.group(0),
-                context.pro_config.contract_token,
-                logger_fn,
-            )
+            if not shown:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.pro_config.contract_token,
+                    logger_fn,
+                )
         elif function_name == "config":
             item = args[1]
             if not shown or item not in context.pro_config.redact_options:

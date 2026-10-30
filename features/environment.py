@@ -18,9 +18,11 @@ import features.cloud as cloud
 from features.machine_types import MachineType
 from features.util import (
     BUILDER_NAME_PREFIX,
+    REDACTED,
     SUT,
     UA_TMP_DIR,
     InstallationSource,
+    install_log_redaction,
     landscape_reject_all_pending_computers,
     process_template_vars,
 )
@@ -279,7 +281,7 @@ class UAClientBehaveConfig:
                 None,
                 "<UNSET>",
             ):
-                value = "<REDACTED>"
+                value = REDACTED
             print("  {}".format(option), "=", value)
 
     @classmethod
@@ -355,9 +357,17 @@ def before_all(context: Context) -> None:
         logging.debug("Userdata key / value pairs:")
         print("Userdata key / value pairs:")
         for key, value in userdata.items():
+            if key in UAClientBehaveConfig.redact_options:
+                value = REDACTED
             logging.debug("   - {} = {}".format(key, value))
             print("   - {} = {}".format(key, value))
     context.pro_config = UAClientBehaveConfig.from_environ(context.config)
+    install_log_redaction(
+        {
+            option: getattr(context.pro_config, option)
+            for option in context.pro_config.redact_options
+        }
+    )
     context.snapshots = {}
     context.machines = {}
 
