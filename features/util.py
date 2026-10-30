@@ -402,36 +402,46 @@ def redact(text: str, markers: Iterable[Tuple[str, str]]) -> str:
     return text
 
 
-def install_log_redaction(secrets: Mapping[str, Optional[str]]) -> None:
-    """Redact secrets from every log record, whichever logger made it.
+class RedactingFormatter(logging.Formatter):
+    """Mask secrets in the text another formatter produces.
 
-    A record factory runs before any handler sees the record, so this also
-    covers third-party loggers (pycloudlib logs every command it runs) and
-    handlers added later, such as behave's log capture.
+    The wrapped formatter gets the record unchanged, with its args and
+    exception, so only the finished text is redacted.
+    """
+
+    def __init__(
+        self, inner: logging.Formatter, markers: List[Tuple[str, str]]
+    ) -> None:
+        super().__init__()
+        self.inner = inner
+        self.markers = markers
+
+    def format(self, record: logging.LogRecord) -> str:
+        return redact(self.inner.format(record), self.markers)
+
+
+def redact_log_handlers(
+    secrets: Mapping[str, Optional[str]],
+    logger: Optional[logging.Logger] = None,
+) -> None:
+    """Wrap the formatter of each handler on logger (default: root).
+
+    Records from every logger that propagates to these handlers are
+    redacted, including pycloudlib's, which logs every command it runs.
+    A handler added later is not covered unless this is called again.
     """
     markers = redaction_markers(secrets)
     if not markers:
         return
-    make_record = logging.getLogRecordFactory()
-
-    def make_redacted_record(*args, **kwargs):
-        record = make_record(*args, **kwargs)
-        try:
-            message = record.getMessage()
-        except Exception:
-            # A bad format string must not break the caller's logging call.
-            message = "{} {}".format(record.msg, record.args)
-        record.msg = redact(message, markers)
-        record.args = ()
-        if record.exc_info:
-            record.exc_text = redact(
-                logging.Formatter().formatException(record.exc_info), markers
+    if logger is None:
+        logger = logging.getLogger()
+    for handler in logger.handlers:
+        if not isinstance(handler.formatter, RedactingFormatter):
+            handler.setFormatter(
+                RedactingFormatter(
+                    handler.formatter or logging.Formatter(), markers
+                )
             )
-        if record.stack_info:
-            record.stack_info = redact(record.stack_info, markers)
-        return record
-
-    logging.setLogRecordFactory(make_redacted_record)
 
 
 def _replace_and_log(s, old, new, logger_fn):
