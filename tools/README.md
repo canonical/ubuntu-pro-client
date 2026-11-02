@@ -7,6 +7,7 @@ the packaging.
 ## Files
 
 - apidocgen.py: Generate RST documentation for API endpoints
+- behave_rerun/: Run behave in CI and rerun only the failed scenarios, to absorb flaky tests
 - build.py: Build the package from the current directory
 - build.sh: Shell entrypoint for the build script
 - check-versions-are-consistent.py: Helper script to verify changelog and package version matches.
