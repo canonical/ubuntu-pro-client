@@ -326,9 +326,12 @@ class TestValidAptCredentials:
             retry_sleeps=APT_RETRIES,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        # The temp dir (and the auth file within it) is always cleaned up,
-        # even on error, by the TemporaryDirectory context manager.
-        m_temporary_directory.return_value.__exit__.assert_called_once()
+        m_write_file.assert_called_once_with(
+            auth_file,
+            "machine fakerepo/ login user password pwd\n",
+            mode=0o600,
+        )
+        m_makedirs.assert_called_once_with(netrcparts, mode=0o700)
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.system.subp")
@@ -381,9 +384,12 @@ class TestValidAptCredentials:
             retry_sleeps=APT_RETRIES,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        # The temp dir (and the auth file within it) is always cleaned up,
-        # even on timeout, by the TemporaryDirectory context manager.
-        m_temporary_directory.return_value.__exit__.assert_called_once()
+        m_write_file.assert_called_once_with(
+            auth_file,
+            "machine fakerepo/ login user password pwd\n",
+            mode=0o600,
+        )
+        m_makedirs.assert_called_once_with(netrcparts, mode=0o700)
 
     @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.system.subp")
@@ -433,8 +439,8 @@ class TestValidAptCredentials:
             " password super-secret-bearer-token-value\n",
             mode=0o600,
         )
-        # Assert the temp dir (holding the auth file) is cleaned up
-        m_temporary_directory.return_value.__exit__.assert_called_once()
+        netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
+        m_makedirs.assert_called_once_with(netrcparts, mode=0o700)
 
 
 class TestAddAuthAptRepo:
