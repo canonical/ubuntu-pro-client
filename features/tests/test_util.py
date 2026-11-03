@@ -1,15 +1,14 @@
 import io
-import json
 import logging
 
 import mock
 import pytest
 
 from features.util import (
-    RedactingFormatter,
+    RedactingRecordFactory,
+    install_log_redaction,
     process_template_vars,
     redact,
-    redact_log_handlers,
     redaction_markers,
 )
 
@@ -73,118 +72,138 @@ class TestRedact:
         assert expected == redact(text, redaction_markers(secrets))
 
 
-class JsonFormatter(logging.Formatter):
-    """Renders the exception from exc_info itself, ignoring exc_text."""
+def make_record(factory, msg, args=(), exc_info=None, sinfo=None):
+    """Make a record the way Logger.makeRecord calls the factory."""
+    return factory(
+        "pycloudlib.instance",
+        logging.INFO,
+        __file__,
+        1,
+        msg,
+        args,
+        exc_info,
+        sinfo=sinfo,
+    )
 
-    def format(self, record):
-        entry = {"message": record.getMessage()}
-        if record.exc_info:
-            entry["exc_info"] = self.formatException(record.exc_info)
-        return json.dumps(entry)
+
+def redacting_factory(make=logging.LogRecord):
+    return RedactingRecordFactory(
+        make, redaction_markers({"contract_token": TOKEN})
+    )
 
 
-class RecordingHandler(logging.Handler):
-    """A downstream handler that keeps the records it receives."""
+def record_fields(record):
+    return {
+        "msg": record.msg,
+        "args": record.args,
+        "exc_info": record.exc_info,
+        "stack_info": record.stack_info,
+    }
 
-    def __init__(self):
-        super().__init__()
-        self.records = []
 
-    def emit(self, record):
-        self.records.append(record)
+class TestRedactingRecordFactory:
+    def test_merges_args_into_redacted_message(self):
+        factory = redacting_factory()
+
+        record = make_record(
+            factory, "executing: %s", ("sudo pro attach {}".format(TOKEN),)
+        )
+
+        assert {
+            "msg": "executing: sudo pro attach " + TOKEN_MARKER,
+            "args": (),
+            "exc_info": None,
+            "stack_info": None,
+        } == record_fields(record)
+
+    def test_args_that_do_not_match_the_format_are_appended(self):
+        factory = redacting_factory()
+
+        record = make_record(factory, "attach %s %s", (TOKEN,))
+
+        assert "attach %s %s ('{}',)".format(TOKEN_MARKER) == record.msg
+
+    def test_replaces_exc_info_with_redacted_exc_text(self):
+        factory = redacting_factory()
+        error = RuntimeError("attach failed for {}".format(TOKEN))
+
+        record = make_record(
+            factory,
+            "command failed",
+            exc_info=(RuntimeError, error, error.__traceback__),
+        )
+
+        assert None is record.exc_info
+        assert (
+            "RuntimeError: attach failed for {}".format(TOKEN_MARKER)
+            == record.exc_text
+        )
+
+    def test_redacts_stack_info(self):
+        factory = redacting_factory()
+
+        record = make_record(
+            factory, "attaching", sinfo="Stack:\n  attach({})".format(TOKEN)
+        )
+
+        assert "Stack:\n  attach({})".format(TOKEN_MARKER) == record.stack_info
+
+    def test_uses_the_previous_factory(self):
+        def tagging_factory(*args, **kwargs):
+            record = logging.LogRecord(*args, **kwargs)
+            record.made_by = "tagging_factory"
+            return record
+
+        factory = redacting_factory(make=tagging_factory)
+
+        record = make_record(factory, "attaching")
+
+        assert "tagging_factory" == record.made_by
 
 
 @pytest.fixture
-def parent_logger():
-    """A logger with one handler, standing in for behave's root logger."""
+def record_factory():
+    """Restore the global record factory that a test replaces."""
+    original = logging.getLogRecordFactory()
+    yield original
+    logging.setLogRecordFactory(original)
+
+
+@pytest.fixture
+def isolated_logger():
+    """A logger that doesn't propagate, with its handlers removed after."""
     logger = logging.getLogger("redaction_test")
     logger.propagate = False
     logger.setLevel(logging.INFO)
-    stream = io.StringIO()
-    handler = logging.StreamHandler(stream)
-    handler.setFormatter(logging.Formatter("%(name)s:%(message)s"))
-    logger.handlers = [handler]
-    yield logger, stream
+    yield logger
     logger.handlers = []
 
 
-class TestRedactLogHandlers:
-    def test_redacts_records_from_child_loggers(self, parent_logger):
-        logger, stream = parent_logger
-        redact_log_handlers(
-            {
-                "contract_token": TOKEN,
-                "contract_token_legacy": None,
-                "contract_token_staging": "",
-            },
-            logger=logger,
-        )
+class TestInstallLogRedaction:
+    def test_redacts_output_of_handlers_added_later(
+        self, record_factory, isolated_logger
+    ):
+        install_log_redaction({"contract_token": TOKEN})
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        handler.setFormatter(logging.Formatter("%(name)s:%(message)s"))
+        isolated_logger.addHandler(handler)
 
-        # pycloudlib's loggers have no handlers and propagate to root.
         logging.getLogger("redaction_test.pycloudlib.instance").info(
             "executing: %s", "sudo pro attach {}".format(TOKEN)
         )
-        logger.info("--- Retrying on exit 1: pro attach {}".format(TOKEN))
 
         assert [
             "redaction_test.pycloudlib.instance:executing: sudo pro attach "
-            + TOKEN_MARKER,
-            "redaction_test:--- Retrying on exit 1: pro attach "
-            + TOKEN_MARKER,
+            + TOKEN_MARKER
         ] == stream.getvalue().splitlines()
 
-    @pytest.mark.parametrize(
-        "formatter", (logging.Formatter("%(message)s"), JsonFormatter())
-    )
-    def test_redacts_exceptions(self, parent_logger, formatter):
-        logger, stream = parent_logger
-        logger.handlers[0].setFormatter(formatter)
-        redact_log_handlers({"contract_token": TOKEN}, logger=logger)
-
-        try:
-            raise RuntimeError("attach failed for {}".format(TOKEN))
-        except RuntimeError:
-            logger.exception("command failed")
-
-        assert "attach failed for {}".format(TOKEN_MARKER) in stream.getvalue()
-        assert TOKEN not in stream.getvalue()
-
-    def test_downstream_handlers_get_the_full_record(self, parent_logger):
-        logger, stream = parent_logger
-        recorder = RecordingHandler()
-        logger.addHandler(recorder)
-        redact_log_handlers({"contract_token": TOKEN}, logger=logger)
-
-        try:
-            raise RuntimeError(TOKEN)
-        except RuntimeError:
-            logger.exception("attach %s", TOKEN)
-
-        [record] = recorder.records
-        assert (TOKEN,) == record.args
-        assert TOKEN == str(record.exc_info[1])
-
-    def test_wraps_each_handler_once(self, parent_logger):
-        logger, stream = parent_logger
-        secrets = {"contract_token": TOKEN}
-
-        redact_log_handlers(secrets, logger=logger)
-        wrapped = logger.handlers[0].formatter
-        redact_log_handlers(secrets, logger=logger)
-
-        assert isinstance(wrapped, RedactingFormatter)
-        assert wrapped is logger.handlers[0].formatter
-        assert not isinstance(wrapped.inner, RedactingFormatter)
-
-    def test_no_secrets_leaves_handlers_alone(self, parent_logger):
-        logger, stream = parent_logger
-        formatter = logger.handlers[0].formatter
-
-        redact_log_handlers(
-            {"contract_token": None, "landscape_key": ""}, logger=logger
+    def test_no_secrets_keeps_the_factory(self, record_factory):
+        install_log_redaction(
+            {"contract_token": None, "landscape_registration_key": ""}
         )
 
-        assert formatter is logger.handlers[0].formatter
+        assert record_factory is logging.getLogRecordFactory()
 
 
 class TestProcessTemplateVars:

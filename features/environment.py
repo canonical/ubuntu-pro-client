@@ -22,9 +22,9 @@ from features.util import (
     SUT,
     UA_TMP_DIR,
     InstallationSource,
+    install_log_redaction,
     landscape_reject_all_pending_computers,
     process_template_vars,
-    redact_log_handlers,
 )
 
 PROCESS_LOG_TMPL = """\
@@ -362,7 +362,7 @@ def before_all(context: Context) -> None:
             logging.debug("   - {} = {}".format(key, value))
             print("   - {} = {}".format(key, value))
     context.pro_config = UAClientBehaveConfig.from_environ(context.config)
-    redact_log_handlers(
+    install_log_redaction(
         {
             option: getattr(context.pro_config, option)
             for option in context.pro_config.redact_options

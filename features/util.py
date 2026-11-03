@@ -402,46 +402,68 @@ def redact(text: str, markers: Iterable[Tuple[str, str]]) -> str:
     return text
 
 
-class RedactingFormatter(logging.Formatter):
-    """Mask secrets in the text another formatter produces.
+class RedactingRecordFactory:
+    """Log record factory that replaces secret values with markers.
 
-    The wrapped formatter gets the record unchanged, with its args and
-    exception, so only the finished text is redacted.
+    It wraps the previous factory and redacts each record as it is made,
+    before any filter or handler sees it. This covers every logger and
+    every handler, including handlers added later, such as behave's log
+    capture.
+
+    Every handler gets the changed record:
+
+    - ``msg`` is the formatted, redacted message, and ``args`` is empty.
+    - ``exc_text`` is the redacted traceback, and ``exc_info`` is None.
+      ``logging.Formatter`` prints ``exc_text``. A formatter that renders
+      ``exc_info`` itself prints no traceback.
+    - ``stack_info`` is redacted.
+
+    Dropping ``args`` and ``exc_info`` is a deliberate compromise: they
+    hold the unredacted values, so any handler or formatter that read them
+    could log a secret. Handlers lose the raw values and the exception
+    object in exchange.
+
+    Attributes passed with ``extra=`` are not redacted. If the args don't
+    match the format string, ``msg`` is the format string followed by the
+    args.
     """
 
     def __init__(
-        self, inner: logging.Formatter, markers: List[Tuple[str, str]]
+        self, make_record: Callable, markers: List[Tuple[str, str]]
     ) -> None:
-        super().__init__()
-        self.inner = inner
+        self.make_record = make_record
         self.markers = markers
 
-    def format(self, record: logging.LogRecord) -> str:
-        return redact(self.inner.format(record), self.markers)
+    def __call__(self, *args, **kwargs) -> logging.LogRecord:
+        record = self.make_record(*args, **kwargs)
+        try:
+            message = record.getMessage()
+        except Exception:
+            message = "{} {}".format(record.msg, record.args)
+        record.msg = redact(message, self.markers)
+        record.args = ()
+        if record.exc_info:
+            record.exc_text = redact(
+                logging.Formatter().formatException(record.exc_info),
+                self.markers,
+            )
+            record.exc_info = None
+        if record.stack_info:
+            record.stack_info = redact(record.stack_info, self.markers)
+        return record
 
 
-def redact_log_handlers(
-    secrets: Mapping[str, Optional[str]],
-    logger: Optional[logging.Logger] = None,
-) -> None:
-    """Wrap the formatter of each handler on logger (default: root).
+def install_log_redaction(secrets: Mapping[str, Optional[str]]) -> None:
+    """Redact secrets from every log record made after this call.
 
-    Records from every logger that propagates to these handlers are
-    redacted, including pycloudlib's, which logs every command it runs.
-    A handler added later is not covered unless this is called again.
+    ``secrets`` maps option names to values. If no value is set, the
+    record factory is left as it is.
     """
     markers = redaction_markers(secrets)
-    if not markers:
-        return
-    if logger is None:
-        logger = logging.getLogger()
-    for handler in logger.handlers:
-        if not isinstance(handler.formatter, RedactingFormatter):
-            handler.setFormatter(
-                RedactingFormatter(
-                    handler.formatter or logging.Formatter(), markers
-                )
-            )
+    if markers:
+        logging.setLogRecordFactory(
+            RedactingRecordFactory(logging.getLogRecordFactory(), markers)
+        )
 
 
 def _replace_and_log(s, old, new, logger_fn):
