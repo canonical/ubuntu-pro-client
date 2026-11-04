@@ -389,3 +389,4 @@ Feature: u.pro.services.dependencies
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

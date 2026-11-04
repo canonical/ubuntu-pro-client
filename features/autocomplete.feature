@@ -64,3 +64,4 @@ Feature: Pro autocomplete commands
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

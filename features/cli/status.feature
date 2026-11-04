@@ -77,6 +77,7 @@ Feature: CLI status command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token @arm64
   Scenario Outline: Non-root status can see in-progress operations
@@ -440,47 +441,6 @@ Feature: CLI status command
     And I run `pro status --all` as non-root
     Then stdout matches regexp:
       """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      anbox-cloud     +yes      +n/a      +.*
-      cc-eal          +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      cis             +yes      +n/a      +Security compliance and audit tools
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-      fips            +yes      +n/a      +NIST-certified FIPS crypto packages
-      fips-preview    +yes      +n/a      +Preview of FIPS crypto packages undergoing certification with NIST
-      fips-updates    +yes      +n/a      +FIPS compliant crypto packages with stable security updates
-      landscape       +yes      +n/a      +Management and administration tool for Ubuntu
-      livepatch       +yes      +n/a      +Canonical Livepatch service
-      realtime-kernel +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
-      ros             +yes      +n/a      +Security Updates for the Robot Operating System
-      ros-updates     +yes      +n/a      +All Updates for the Robot Operating System
-
-      Enable services with: pro enable <service>
-      """
-
-    Examples: ubuntu release
-      | release | machine_type |
-      | bionic  | wsl          |
-
-  @uses.config.contract_token @arm64
-  Scenario Outline: Attached status in a ubuntu machine
-    Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
-    When I attach `contract_token` with sudo
-    And I verify root and non-root `pro status` calls have the same output
-    And I run `pro status` as non-root
-    Then stdout matches regexp:
-      """
-      SERVICE         +ENTITLED +STATUS   +DESCRIPTION
-      esm-apps        +yes      +enabled  +Expanded Security Maintenance for Applications
-      esm-infra       +yes      +enabled  +Expanded Security Maintenance for Infrastructure
-
-      For a list of all Ubuntu Pro services, run 'pro status --all'
-      Enable services with: pro enable <service>
-      """
-    When I verify root and non-root `pro status --all` calls have the same output
-    And I run `pro status --all` as non-root
-    Then stdout matches regexp:
-      """
       SERVICE          +ENTITLED +STATUS   +DESCRIPTION
       anbox-cloud      +yes      +n/a      +.*
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
@@ -621,7 +581,6 @@ Feature: CLI status command
       SERVICE          +ENTITLED +STATUS   +DESCRIPTION
       anbox-cloud      +yes      +disabled +.*
       cc-eal           +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-      cis              +yes      +n/a      +Security compliance and audit tools
       esm-apps         +yes      +enabled  +Expanded Security Maintenance for Applications
       esm-infra        +yes      +enabled  +Expanded Security Maintenance for Infrastructure
       fips             +yes      +n/a      +NIST-certified FIPS crypto packages
@@ -632,6 +591,7 @@ Feature: CLI status command
       realtime-kernel  +yes      +n/a      +Ubuntu kernel with PREEMPT_RT patches integrated
       ros              +yes      +n/a      +Security Updates for the Robot Operating System
       ros-updates      +yes      +n/a      +All Updates for the Robot Operating System
+      usg              +yes      +n/a      +Security compliance and audit tools
 
       Enable services with: pro enable <service>
       """
@@ -695,6 +655,7 @@ Feature: CLI status command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @arm64
   Scenario Outline: Unattached status in a ubuntu machine
@@ -1095,7 +1056,7 @@ Feature: CLI status command
       | release | machine_type  |
       | noble   | lxd-container |
 
-  Scenario Outline: Unattached status in a ubuntu machine - resolute
+  Scenario Outline: Unattached status in a Resolute ubuntu machine
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
     When I verify root and non-root `pro status` calls have the same output
     And I run `pro status` as non-root
@@ -1120,7 +1081,6 @@ Feature: CLI status command
       SERVICE          +AVAILABLE +DESCRIPTION
       anbox-cloud      +yes       +.*
       cc-eal           +no        +Common Criteria EAL2 Provisioning Packages
-      cis              +no        +Security compliance and audit tools
       esm-apps         +yes       +Expanded Security Maintenance for Applications
       esm-apps-legacy  +no        +Expanded Security Maintenance for Applications on Legacy Instances
       esm-infra        +yes       +Expanded Security Maintenance for Infrastructure
@@ -1133,6 +1093,7 @@ Feature: CLI status command
       realtime-kernel  +no        +Ubuntu kernel with PREEMPT_RT patches integrated
       ros              +no        +Security Updates for the Robot Operating System
       ros-updates      +no        +All Updates for the Robot Operating System
+      usg              +no        +Security compliance and audit tools
 
       This machine is not attached to an Ubuntu Pro subscription.
       See https://ubuntu.com/pro
@@ -1637,6 +1598,7 @@ Feature: CLI status command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   Scenario Outline: Warn users not to redirect/pipe human readable output
     Given a `<release>` `<machine_type>` machine with ubuntu-advantage-tools installed
@@ -1732,3 +1694,4 @@ Feature: CLI status command
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |

@@ -3,8 +3,46 @@ import re
 from behave import then, when
 from hamcrest import assert_that, contains_string, matches_regexp, not_
 
+from features.steps.files import when_i_create_file_with_content
 from features.steps.shell import when_i_retry_run_command, when_i_run_command
 from features.util import SUT
+
+SERIES_NOT_USING_DEB822 = ("xenial", "bionic", "focal", "jammy")
+
+
+def write_apt_source(
+    context,
+    name,
+    uri,
+    suite,
+    components,
+    series,
+    trusted=False,
+    machine_name=SUT,
+):
+    """Write an APT source using the format native to the series."""
+    if series in SERIES_NOT_USING_DEB822:
+        options = " [trusted=yes]" if trusted else ""
+        content = "deb{} {} {} {}\n".format(options, uri, suite, components)
+        extension = "list"
+    else:
+        content = """Types: deb
+URIs: {}
+Suites: {}
+Components: {}
+""".format(
+            uri, suite, components
+        )
+        if trusted:
+            content += "Trusted: yes\n"
+        extension = "sources"
+
+    when_i_create_file_with_content(
+        context,
+        "/etc/apt/sources.list.d/{}.{}".format(name, extension),
+        machine_name=machine_name,
+        text=content,
+    )
 
 
 @when("I apt autoremove")

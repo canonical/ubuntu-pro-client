@@ -2,6 +2,12 @@
 
 This section contains developer documentation for the Ubuntu Pro Client project.
 
+## Before you begin
+
+Before starting work on a contribution, [open an issue](https://github.com/canonical/ubuntu-pro-client/issues/new/choose) describing your proposed change and ask to be assigned. Or, you can comment on an existing issue and ask to be assigned to it.
+
+Please wait until a maintainer confirms that the work is wanted and assigns the issue to you before opening a PR. This helps us avoid duplicated work and ensures that proposed changes align with the project's plans.
+
 ## Getting started
 
 The recommended way to get a working development environment is

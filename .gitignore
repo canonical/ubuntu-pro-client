@@ -53,3 +53,6 @@ docs/build/
 
 # compiled translations
 debian/po/usr
+
+# git worktrees
+.worktrees/

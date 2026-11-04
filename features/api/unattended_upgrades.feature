@@ -255,3 +255,4 @@ Feature: api.u.unattended_upgrades.status.v1
       | noble    | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | questing | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
       | resolute | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |
+      | stonking | lxd-container | ,\n"Unattended-Upgrade::DevRelease": "auto"  |

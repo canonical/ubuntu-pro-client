@@ -114,7 +114,7 @@ Feature: APT Messages
       Building dependency tree...
       Reading state information...
       Calculating upgrade...
-      The following packages will be upgraded:
+      (?:The following NEW packages will be installed:\s+[-+.\w\s]*?\s+)?The following packages will be upgraded:
       """
     When I apt upgrade
     When I run `pro detach --assume-yes` with sudo
@@ -132,7 +132,7 @@ Feature: APT Messages
     Examples: ubuntu release
       | release | machine_type  | ad_message                                                                                |
       | xenial  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
-      | bionic  | lxd-container | Learn more about Ubuntu Pro for <version>\.04 at https:\/\/ubuntu\.com\/<version>-04      |
+      | bionic  | lxd-container | Learn more about Ubuntu Pro for 18\.04 at https:\/\/ubuntu\.com\/18-04                    |
       | focal   | lxd-container | Learn more about Ubuntu Pro at https:\/\/ubuntu\.com\/pro                                 |
 
   @uses.config.contract_token
@@ -730,6 +730,8 @@ Feature: APT Messages
       | questing | lxd-container |
       | questing | lxd-vm        |
       | resolute | lxd-container |
+      | stonking | lxd-container |
+      | stonking | lxd-vm        |
 
   # TODO: re-enable once AppArmor profile ubuntu_pro_esm_cache_systemd_detect_virt
   # gains capability perfmon on resolute (needed by systemd-detect-virt at boot)
@@ -1585,6 +1587,7 @@ Feature: APT Messages
       | noble    | lxd-container |
       | questing | lxd-container |
       | resolute | lxd-container |
+      | stonking | lxd-container |
 
   @uses.config.contract_token
   Scenario Outline: APT Hook do not advertises esm-apps on upgrade for interim releases
@@ -1634,3 +1637,4 @@ Feature: APT Messages
     Examples: ubuntu release
       | release  | machine_type  |
       | questing | lxd-container |
+      | stonking | lxd-container |

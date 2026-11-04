@@ -15,6 +15,7 @@ from behave.model_core import Status
 from behave.runner import Context
 
 import features.cloud as cloud
+from features.machine_types import MachineType
 from features.util import (
     BUILDER_NAME_PREFIX,
     SUT,
@@ -31,6 +32,20 @@ stdout:
 stderr:
 {stderr}
 """
+
+
+# TODO(srunde3): remove once
+# https://github.com/canonical/ubuntu-pro-client/pull/3540
+# lands upstream.
+# AppArmor checks are brittle against failures upstream; they detect a false
+# positive
+# if there is a denial before the package-under-test has even installed.
+IGNORED_APPARMOR_DENIAL_PATTERNS = [
+    re.compile(
+        r'profile="ubuntu_pro_esm_cache_systemd_detect_virt"'
+        r'.*capname="perfmon"'
+    ),
+]
 
 
 class UAClientBehaveConfig:
@@ -216,7 +231,7 @@ class UAClientBehaveConfig:
         if (
             self.machine_types
             and len(self.machine_types) == 1
-            and "pro" in self.machine_types[0]
+            and MachineType.from_string(self.machine_types[0]).uses_pro_image
         ):
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",
@@ -374,6 +389,8 @@ def before_feature(context: Context, feature: Feature):
 
 def before_scenario(context: Context, scenario: Scenario):
     context.stored_vars = {}
+    context.scenario_release = None
+    context.scenario_machine_type = None
 
     reason = _should_skip_config_tags(context, scenario.effective_tags)
     if reason:
@@ -402,6 +419,9 @@ def before_scenario(context: Context, scenario: Scenario):
         step_machine_type = given_a_series_machine_type_match.group(2)
         if step_machine_type != "<machine_type>":
             scenario_machine_type = step_machine_type
+
+    context.scenario_release = scenario_release
+    context.scenario_machine_type = scenario_machine_type
 
     releases = context.pro_config.releases
     if releases and scenario_release not in releases:
@@ -457,6 +477,16 @@ def before_scenario(context: Context, scenario: Scenario):
 
 def after_scenario(context, scenario):
     """Collect the coverage files after the scenario is run."""
+    # Log accumulated ignored apparmor failures once per scenario
+    if (
+        hasattr(context, "ignored_apparmor_logs_set")
+        and context.ignored_apparmor_logs_set
+    ):
+        logging.warning("Ignored some known failures for AppArmor:")
+        logging.warning("--- BEGIN IGNORED APPARMOR FAILURES --- ")
+        logging.warning("\n".join(sorted(context.ignored_apparmor_logs_set)))
+        logging.warning("--- END IGNORED APPARMOR FAILURES --- ")
+
     if context.pro_config.collect_coverage:
         cov_dir = os.path.join(context.pro_config.artifact_dir, "coverage")
         os.makedirs(cov_dir, exist_ok=True)
@@ -506,11 +536,19 @@ def after_scenario(context, scenario):
 
 
 def _get_relevant_apparmor_logs(context):
+    """Return (true_failures, ignored_failures) tuple for apparmor denials.
+
+    True failures will cause step to fail; ignored failures are accumulated
+    in context to be logged once per scenario to avoid noise.
+    """
     if hasattr(context, "machines") and SUT in context.machines:
         sut = context.machines[SUT]
         if sut.cloud == "lxd-container":
-            # get apparmor DENIED messages from the host
-            with open("/var/log/syslog", "r") as syslog_fd:
+            # get apparmor DENIED messages from the host. Non-unicode
+            # characters may be written by other processes.
+            with open(
+                "/var/log/syslog", "r", errors="replace", encoding="utf-8"
+            ) as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
             apparmor_denied = [
                 msg.strip()
@@ -521,7 +559,7 @@ def _get_relevant_apparmor_logs(context):
                     and sut.instance.name in msg
                 )
             ]
-            return apparmor_denied
+            return apparmor_denied, []
         else:
             # get apparmor DENIED messages from the SUT
             os.makedirs(UA_TMP_DIR, exist_ok=True)
@@ -534,33 +572,50 @@ def _get_relevant_apparmor_logs(context):
                 logging.warning(
                     "Unable to pull syslog. Skipping apparmor log check."
                 )
-                return None
+                return None, []
             except FileNotFoundError:
                 logging.warning(
                     "syslog file doesn't exist. Skipping apparmor log check."
                 )
-                return None
+                return None, []
 
             with open(syslog_dest, "r") as syslog_fd:
                 syslog_messages = syslog_fd.readlines()
-            apparmor_denied = [
-                msg.strip()
-                for msg in syslog_messages
-                if ("DENIED" in msg and "ubuntu_pro_" in msg)
-            ]
-            return apparmor_denied
-    return None
+            apparmor_denied = []
+            ignored_apparmor_denied = []
+            for msg in syslog_messages:
+                if "DENIED" not in msg or "ubuntu_pro_" not in msg:
+                    continue
+
+                if any(
+                    pattern.search(msg)
+                    for pattern in IGNORED_APPARMOR_DENIAL_PATTERNS
+                ):
+                    ignored_apparmor_denied.append(msg.strip())
+                    continue
+
+                apparmor_denied.append(msg.strip())
+
+            return apparmor_denied, ignored_apparmor_denied
+    return None, []
 
 
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
-    apparmor_logs = _get_relevant_apparmor_logs(context)
+    apparmor_logs, ignored_apparmor_logs = _get_relevant_apparmor_logs(context)
     if apparmor_logs:
         logging.warning("XXX apparmor DENIED begin")
         logging.warning("\n".join(apparmor_logs))
         logging.warning("XXX apparmor DENIED end")
         # naughty
         step.status = Status.failed
+
+    # Accumulate ignored apparmor logs to log once per scenario
+    if ignored_apparmor_logs:
+        if not hasattr(context, "ignored_apparmor_logs_set"):
+            context.ignored_apparmor_logs_set = set()
+        context.ignored_apparmor_logs_set.update(ignored_apparmor_logs)
+
     if step.status == "failed":
         logging.warning("STEP FAILED. Collecting logs.")
         inner_dir = os.path.join(
