@@ -571,6 +571,45 @@ class TestActionEnable:
             == m_print_json_output.call_args_list
         )
 
+    @mock.patch("uaclient.cli.enable.entitlements.entitlement_factory")
+    @mock.patch("uaclient.cli.cli_util.create_interactive_only_print_function")
+    def test_enable_one_service_already_enabled_message(
+        self,
+        m_print_factory,
+        m_entitlement_factory,
+        FakeConfig,
+    ):
+        mock_ent = mock.MagicMock()
+        mock_ent.name = "one"
+        mock_ent.title = "One"
+        m_entitlement_factory.return_value = mock_ent
+
+        result = _enable_one_service(
+            FakeConfig(),
+            ent_name="one",
+            variant="",
+            access_only=False,
+            assume_yes=False,
+            json_output=False,
+            extra_args=None,
+            enabled_services=[EnabledService(name="one")],
+            all_dependencies=[],
+        )
+
+        already_enabled = messages.ALREADY_ENABLED.format(title="One")
+        assert result == _EnableOneServiceResult(
+            success=False,
+            needs_reboot=False,
+            error={
+                "type": "service",
+                "service": "one",
+                "message": already_enabled.msg,
+                "message_code": already_enabled.name,
+            },
+        )
+        interactive_print = m_print_factory.return_value
+        interactive_print.assert_called_once_with(already_enabled.msg)
+
     @pytest.mark.parametrize(
         [
             "kwargs",
