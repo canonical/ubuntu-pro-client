@@ -1,0 +1,96 @@
+---
+
+name: Integration
+
+on:
+  workflow_call:
+    inputs:
+      behave-tags:
+        description: 'behave --tags arguments that select the scenarios to run'
+        type: string
+        required: true
+    # The caller must pass these by name. Their values come from the
+    # integration environment set on the job below.
+    secrets:
+      UACLIENT_BEHAVE_CONTRACT_TOKEN:
+        required: true
+      UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING:
+        required: true
+      UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED:
+        required: true
+      UACLIENT_BEHAVE_LANDSCAPE_REGISTRATION_KEY:
+        required: true
+      UACLIENT_BEHAVE_LANDSCAPE_API_ACCESS_KEY:
+        required: true
+      UACLIENT_BEHAVE_LANDSCAPE_API_SECRET_KEY:
+        required: true
+
+defaults:
+  run:
+    shell: sh -ex {0}
+
+jobs:
+  behave:
+    name: ${{ matrix.release }} ${{ matrix.machine_type }}
+    runs-on: ubuntu-24.04
+    # Secrets come from this environment, not from the repository.
+    environment:
+      name: integration
+      deployment: false
+    strategy:
+      # Disable fail-fast as these jobs are slow, so we want to extract
+      # as much information as possible from them.
+      fail-fast: false
+      matrix:
+        release: ['bionic', 'focal', 'jammy', 'noble', 'resolute']
+        machine_type: ['lxd-container', 'lxd-vm']
+    steps:
+      - name: Prepare test tools
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox distro-info
+          sudo adduser $USER lxd
+          # GH Action runners have docker installed, which edits iptables
+          # in a way that is incompatible with lxd.
+          # https://linuxcontainers.org/lxd/docs/master/howto/network_bridge_firewalld/#prevent-issues-with-lxd-and-docker
+          sudo iptables -I DOCKER-USER -j ACCEPT
+      - name: Refresh LXD
+        run: sudo snap refresh --channel latest/stable lxd
+      - name: Initialize LXD
+        run: sudo lxd init --auto
+      - name: Git checkout
+        uses: actions/checkout@v4
+      - name: Retrieve debs
+        uses: actions/download-artifact@v4
+        with:
+          name: 'ci-debs-${{ matrix.release }}'
+          path: '${{ runner.temp }}'
+      - name: Canonicalize deb filenames
+        working-directory: '${{ runner.temp }}'
+        run: |
+          ln -s ubuntu-advantage-tools*.deb ubuntu-advantage-tools-${{ matrix.release }}.deb
+          ln -s ubuntu-advantage-pro*.deb ubuntu-advantage-pro-${{ matrix.release }}.deb
+      - name: Behave
+        env:
+          UACLIENT_BEHAVE_DEBS_PATH: '${{ runner.temp }}'
+          UACLIENT_BEHAVE_ARTIFACT_DIR: '${{ runner.temp }}/artifacts/behave-${{ matrix.machine_type }}-${{ matrix.release }}'
+          UACLIENT_BEHAVE_SNAPSHOT_STRATEGY: '1'
+          UACLIENT_BEHAVE_INSTALL_FROM: 'prebuilt'
+          UACLIENT_BEHAVE_CONTRACT_TOKEN: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN }}'
+          UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING }}'
+          UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED }}'
+          UACLIENT_BEHAVE_LANDSCAPE_REGISTRATION_KEY: '${{ secrets.UACLIENT_BEHAVE_LANDSCAPE_REGISTRATION_KEY }}'
+          UACLIENT_BEHAVE_LANDSCAPE_API_ACCESS_KEY: '${{ secrets.UACLIENT_BEHAVE_LANDSCAPE_API_ACCESS_KEY }}'
+          UACLIENT_BEHAVE_LANDSCAPE_API_SECRET_KEY: '${{ secrets.UACLIENT_BEHAVE_LANDSCAPE_API_SECRET_KEY }}'
+          MACHINE_TYPE: '${{ matrix.machine_type }}'
+          RELEASE: '${{ matrix.release }}'
+          BEHAVE_TAGS: '${{ inputs.behave-tags }}'
+        run: |
+          sg lxd -c "tox -e behave -- -D machine_types=$MACHINE_TYPE -D releases=$RELEASE $BEHAVE_TAGS"
+      - name: Archive test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'ci-behave-${{ matrix.release }}-${{ matrix.machine_type }}'
+          path: '${{ runner.temp }}/artifacts/behave*'
+          retention-days: 7

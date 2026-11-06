@@ -1,0 +1,106 @@
+---
+
+# Entry point for CI. Each concern lives in its own reusable workflow; this
+# file decides what runs on which event and reduces everything to a single
+# required check.
+
+name: CI
+
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'release-v*'
+
+concurrency:
+  group: 'ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}'
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: sh -ex {0}
+
+jobs:
+  static-analysis:
+    name: Static Analysis
+    uses: ./.github/workflows/static-analysis.yaml
+  workflow-lint:
+    name: Workflow Lint
+    uses: ./.github/workflows/workflow-lint.yaml
+  unit-tests:
+    name: Unit Tests
+    uses: ./.github/workflows/unit-tests.yaml
+  packaging:
+    name: Packaging
+    uses: ./.github/workflows/packaging.yaml
+  integration:
+    name: Integration
+    needs: packaging
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/integration.yaml
+    with:
+      # TODO: update these tags once we confirm the required list.
+      behave-tags: '--tags=-slow --tags=-upgrade --tags=-no_gh --tags=-vpn'
+    secrets:
+      UACLIENT_BEHAVE_CONTRACT_TOKEN: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN }}'
+      UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING }}'
+      UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED }}'
+      UACLIENT_BEHAVE_LANDSCAPE_REGISTRATION_KEY: '${{ secrets.UACLIENT_BEHAVE_LANDSCAPE_REGISTRATION_KEY }}'
+      UACLIENT_BEHAVE_LANDSCAPE_API_ACCESS_KEY: '${{ secrets.UACLIENT_BEHAVE_LANDSCAPE_API_ACCESS_KEY }}'
+      UACLIENT_BEHAVE_LANDSCAPE_API_SECRET_KEY: '${{ secrets.UACLIENT_BEHAVE_LANDSCAPE_API_SECRET_KEY }}'
+  ci:
+    name: CI
+    if: ${{ always() }}
+    needs:
+      - static-analysis
+      - workflow-lint
+      - unit-tests
+      - packaging
+      - integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        env:
+          EVENT: '${{ github.event_name }}'
+          STATIC_ANALYSIS: '${{ needs.static-analysis.result }}'
+          WORKFLOW_LINT: '${{ needs.workflow-lint.result }}'
+          UNIT_TESTS: '${{ needs.unit-tests.result }}'
+          PACKAGING: '${{ needs.packaging.result }}'
+          INTEGRATION: '${{ needs.integration.result }}'
+        run: |
+          failed=0
+          check() {
+            if [ "$2" != "$3" ]; then
+              echo "::error::$1 is '$2', expected '$3'"
+              failed=1
+            fi
+          }
+          check "Static Analysis" "$STATIC_ANALYSIS" success
+          check "Workflow Lint" "$WORKFLOW_LINT" success
+          check "Unit Tests" "$UNIT_TESTS" success
+          check "Packaging" "$PACKAGING" success
+          case "$EVENT" in
+            merge_group|workflow_dispatch)
+              check "Integration" "$INTEGRATION" success
+              ;;
+            pull_request)
+              check "Integration" "$INTEGRATION" skipped
+              echo "Integration tests are deferred to the merge queue." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            push)
+              check "Integration" "$INTEGRATION" skipped
+              echo "Integration tests run in the merge queue, not on push." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            *)
+              echo "::error::Unexpected event '$EVENT'"
+              failed=1
+              ;;
+          esac
+          exit "$failed"

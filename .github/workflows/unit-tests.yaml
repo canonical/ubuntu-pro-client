@@ -1,0 +1,25 @@
+---
+
+name: Unit Tests
+
+on:
+  workflow_call:
+
+defaults:
+  run:
+    shell: sh -ex {0}
+
+jobs:
+  unit-tests:
+    name: tox -e test
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
+          # tox test env inherits the distro python3-apt extension.
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev python3-apt
+      - name: Git checkout
+        uses: actions/checkout@v4
+      - name: Unit
+        run: tox -e test

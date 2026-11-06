@@ -1,10 +1,9 @@
 ---
 
-name: CI (base)
+name: Static Analysis
 
 on:
-  push:
-  pull_request:
+  workflow_call:
 
 defaults:
   run:
@@ -12,7 +11,7 @@ defaults:
 
 jobs:
   lint-and-style:
-    name: Static Analysis
+    name: Lint, format and type checks
     runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
@@ -20,7 +19,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev intltool hunspell
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Formatting
         run: tox -e black -e isort
       - name: Style
@@ -34,16 +33,3 @@ jobs:
           hunspell -p ./tools/spellcheck-allowed-words.txt -L ./uaclient/messages/__init__.py
           hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py
           [ $(hunspell -p ./tools/spellcheck-allowed-words.txt -l ./uaclient/messages/__init__.py | wc -c) = "0" ]
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Install dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          # tox test env inherits the distro python3-apt extension.
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox libapt-pkg-dev python3-apt
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Unit
-        run: tox -e test
