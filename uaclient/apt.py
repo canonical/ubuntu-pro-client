@@ -32,6 +32,28 @@ CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 # Hope for an optimal first try.
 APT_RETRIES = [1.0, 5.0, 10.0]
 
+_UNSAFE_APT_CHARS = re.compile(r"[\n\r\x00 ]")
+
+
+def assert_valid_apt_directives(repo_url, suites):
+    """Validate that apt directive values contain no injected content.
+
+    @param repo_url: The apt repository URL from contract directives.
+    @param suites: List of suite strings from contract directives.
+
+    @raises: UserFacingError if any value contains newline, carriage return,
+        or null byte characters which could inject additional apt sources.
+    """
+    if _UNSAFE_APT_CHARS.search(repo_url):
+        raise exceptions.UserFacingError(
+            "APT repository URL directive contains invalid characters"
+        )
+    for suite in suites:
+        if _UNSAFE_APT_CHARS.search(suite):
+            raise exceptions.UserFacingError(
+                "APT suite directive contains invalid characters"
+            )
+
 
 def assert_valid_apt_credentials(repo_url, username, password):
     """Validate apt credentials for a PPA.
@@ -43,19 +65,40 @@ def assert_valid_apt_credentials(repo_url, username, password):
     @raises: UserFacingError for invalid credentials, timeout or unexpected
         errors.
     """
-    protocol, repo_path = repo_url.split("://")
     if not os.path.exists("/usr/lib/apt/apt-helper"):
         return
+    protocol, repo_path = repo_url.split("://")
+    if not repo_path.endswith("/"):
+        repo_path_slash = repo_path + "/"
+    else:
+        repo_path_slash = repo_path
+    auth_line = (
+        "machine {repo_path} login {username}"
+        " password {password}\n".format(
+            repo_path=repo_path_slash,
+            username=username,
+            password=password,
+        )
+    )
     try:
         with tempfile.TemporaryDirectory() as tmpd:
+            # Use a fully self-contained apt auth configuration for this
+            # validation so that apt-helper reads exactly the credentials we
+            # provide, regardless of how the system's apt auth is configured.
+            auth_file = os.path.join(tmpd, "ubuntu-advantage-auth-temp.conf")
+            empty_netrcparts = os.path.join(tmpd, "empty-auth.conf.d")
+            os.makedirs(empty_netrcparts, mode=0o700)
+            util.write_file(auth_file, auth_line, mode=0o600)
             util.subp(
                 [
                     "/usr/lib/apt/apt-helper",
                     "download-file",
-                    "{}://{}:{}@{}/ubuntu/pool/".format(
-                        protocol, username, password, repo_path
-                    ),
+                    "{}://{}/ubuntu/pool/".format(protocol, repo_path),
                     os.path.join(tmpd, "apt-helper-output"),
+                    "-o",
+                    "Dir::Etc::netrc={}".format(auth_file),
+                    "-o",
+                    "Dir::Etc::netrcparts={}".format(empty_netrcparts),
                 ],
                 timeout=APT_HELPER_TIMEOUT,
             )
@@ -119,6 +162,7 @@ def add_auth_apt_repo(
     series = util.get_platform_info()["series"]
     if repo_url.endswith("/"):
         repo_url = repo_url[:-1]
+    assert_valid_apt_directives(repo_url, suites)
     assert_valid_apt_credentials(repo_url, username, password)
 
     # Does this system have updates suite enabled?
