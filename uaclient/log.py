@@ -3,17 +3,36 @@ import logging
 import os
 import pathlib
 from collections import OrderedDict
-from typing import Any, Dict, List, Union  # noqa: F401
+from typing import Any, Callable, Dict, List, Union  # noqa: F401
 
 from uaclient import defaults, secret_manager, system, util
 from uaclient.config import UAConfig
+
+
+def _redact_record(
+    record: logging.LogRecord, redact: Callable[[str], str]
+) -> None:
+    """Redact the fully rendered message of a log record.
+
+    Sensitive data may be passed in record.args instead of record.msg, so
+    the message is rendered (msg % args) before redacting. The args are then
+    cleared so they are not interpolated again by the formatter.
+    """
+    try:
+        message = record.getMessage()
+    except Exception:
+        # Leave malformed records for the handler to report as usual
+        record.msg = redact(str(record.msg))
+        return
+    record.msg = redact(message)
+    record.args = ()
 
 
 class RegexRedactionFilter(logging.Filter):
     """A logging filter to redact confidential info"""
 
     def filter(self, record: logging.LogRecord):
-        record.msg = util.redact_sensitive_logs(str(record.msg))
+        _redact_record(record, util.redact_sensitive_logs)
         return True
 
 
@@ -21,7 +40,7 @@ class KnownSecretRedactionFilter(logging.Filter):
     """A logging filter to redact confidential info"""
 
     def filter(self, record: logging.LogRecord):
-        record.msg = secret_manager.secrets.redact_secrets(str(record.msg))
+        _redact_record(record, secret_manager.secrets.redact_secrets)
         return True
 
 

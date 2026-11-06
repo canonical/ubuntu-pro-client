@@ -124,6 +124,67 @@ class TestLogger:
         assert expected in log_text
 
 
+def _make_record(msg, args):
+    return logging.LogRecord(
+        "ubuntupro", logging.INFO, __file__, 1, msg, args, None
+    )
+
+
+class TestRedactionFilters:
+    @pytest.mark.parametrize(
+        "msg,args,expected",
+        (
+            (
+                "Executed with sys.argv: %s",
+                (["/usr/bin/ua", "attach", "SEKRET"],),
+                "Executed with sys.argv:"
+                " ['/usr/bin/ua', 'attach', '<REDACTED>']",
+            ),
+            (
+                "Stderr: %s\nStdout: %s",
+                ("", "{'token': 'SEKRET'}"),
+                "Stderr: \nStdout: {'token': '<REDACTED>'}",
+            ),
+            (
+                "response: %(response)s",
+                ({"response": "Hi 'Bearer SEKRET', data"},),
+                "response: Hi 'Bearer <REDACTED>', data",
+            ),
+            ("100% %s", (), "100% %s"),
+        ),
+    )
+    def test_regex_filter_redacts_args(self, msg, args, expected):
+        record = _make_record(msg, args)
+        assert log.RegexRedactionFilter().filter(record) is True
+        assert expected == record.getMessage()
+        assert "SEKRET" not in record.getMessage()
+
+    @mock.patch(
+        "uaclient.secret_manager.secrets.redact_secrets",
+        side_effect=lambda text: text.replace("SEKRET", "<REDACTED>"),
+    )
+    def test_known_secret_filter_redacts_args(self, _m_redact_secrets):
+        record = _make_record("Attaching with token %s", ("SEKRET",))
+        assert log.KnownSecretRedactionFilter().filter(record) is True
+        assert "Attaching with token <REDACTED>" == record.getMessage()
+
+    @mock.patch(
+        "uaclient.secret_manager.secrets.redact_secrets",
+        side_effect=lambda text: text,
+    )
+    def test_filters_chain_on_same_record(self, _m_redact_secrets):
+        record = _make_record("token: %s", ("'token': 'SEKRET'",))
+        log.RegexRedactionFilter().filter(record)
+        log.KnownSecretRedactionFilter().filter(record)
+        assert "token: 'token': '<REDACTED>'" == record.getMessage()
+
+    def test_malformed_record_is_left_for_handler(self):
+        record = _make_record("'token': 'SEKRET' %s %s", ("only-one",))
+        assert log.RegexRedactionFilter().filter(record) is True
+        assert "'token': '<REDACTED>' %s %s" == record.msg
+        assert ("only-one",) == record.args
+
+
 class TestLoggerFormatter:
     @pytest.mark.parametrize(
         "message,level,log_fn,levelname,extra",
