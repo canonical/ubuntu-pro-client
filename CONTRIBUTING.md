@@ -50,6 +50,7 @@ full tutorial:
 ## Explanation
 
 * [PR review policy](dev-docs/explanation/pr_review_policy.md)
+* [CI strategy](dev-docs/explanation/ci_strategy.md)
 * [Early review sign-off](dev-docs/explanation/early_review_signoff.md)
 * [Translations](dev-docs/explanation/translations.md)
 * [Policy on string changes](dev-docs/explanation/string_changes_policy.md)
