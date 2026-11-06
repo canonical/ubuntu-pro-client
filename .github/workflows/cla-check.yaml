@@ -2,11 +2,18 @@
 
 name: cla-check
 
-on: [pull_request_target]
+on:
+  pull_request_target:
+  merge_group:
+    types: [checks_requested]
 
 jobs:
   cla-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check if CLA signed
+        if: ${{ github.event_name == 'pull_request_target' }}
         uses: canonical/has-signed-canonical-cla@v2
+      - name: CLA checked on the pull request
+        if: ${{ github.event_name == 'merge_group' }}
+        run: echo "CLA was checked on the pull request before it was queued."
