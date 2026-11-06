@@ -14,7 +14,15 @@ import time
 from base64 import b64encode
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Iterable, List, Optional, Tuple
+from typing import (  # noqa: F401
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+)
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -364,6 +372,100 @@ class SafeLoaderWithoutDatetime(yaml.SafeLoader):
     }
 
 
+REDACTED = "<REDACTED>"
+
+
+def redaction_markers(
+    secrets: Mapping[str, Optional[str]],
+) -> List[Tuple[str, str]]:
+    """Pair each set secret value with the marker that replaces it.
+
+    ``secrets`` maps option names to values. The marker names every option
+    that holds the value, e.g. ``<REDACTED:contract_token>``. Longer values
+    come first, so a value that contains another is replaced whole.
+    """
+    names_by_value = {}  # type: Dict[str, List[str]]
+    for name, value in secrets.items():
+        if value:
+            names_by_value.setdefault(value, []).append(name)
+    markers = [
+        (value, "<REDACTED:{}>".format(",".join(sorted(names))))
+        for value, names in names_by_value.items()
+    ]
+    return sorted(markers, key=lambda marker: len(marker[0]), reverse=True)
+
+
+def redact(text: str, markers: Iterable[Tuple[str, str]]) -> str:
+    """Return text with each secret value replaced by its marker."""
+    for value, marker in markers:
+        text = text.replace(value, marker)
+    return text
+
+
+class RedactingRecordFactory:
+    """Log record factory that replaces secret values with markers.
+
+    It wraps the previous factory and redacts each record as it is made,
+    before any filter or handler sees it. This covers every logger and
+    every handler, including handlers added later, such as behave's log
+    capture.
+
+    Every handler gets the changed record:
+
+    - ``msg`` is the formatted, redacted message, and ``args`` is empty.
+    - ``exc_text`` is the redacted traceback, and ``exc_info`` is None.
+      ``logging.Formatter`` prints ``exc_text``. A formatter that renders
+      ``exc_info`` itself prints no traceback.
+    - ``stack_info`` is redacted.
+
+    Dropping ``args`` and ``exc_info`` is a deliberate compromise: they
+    hold the unredacted values, so any handler or formatter that read them
+    could log a secret. Handlers lose the raw values and the exception
+    object in exchange.
+
+    Attributes passed with ``extra=`` are not redacted. If the args don't
+    match the format string, ``msg`` is the format string followed by the
+    args.
+    """
+
+    def __init__(
+        self, make_record: Callable, markers: List[Tuple[str, str]]
+    ) -> None:
+        self.make_record = make_record
+        self.markers = markers
+
+    def __call__(self, *args, **kwargs) -> logging.LogRecord:
+        record = self.make_record(*args, **kwargs)
+        try:
+            message = record.getMessage()
+        except Exception:
+            message = "{} {}".format(record.msg, record.args)
+        record.msg = redact(message, self.markers)
+        record.args = ()
+        if record.exc_info:
+            record.exc_text = redact(
+                logging.Formatter().formatException(record.exc_info),
+                self.markers,
+            )
+            record.exc_info = None
+        if record.stack_info:
+            record.stack_info = redact(record.stack_info, self.markers)
+        return record
+
+
+def install_log_redaction(secrets: Mapping[str, Optional[str]]) -> None:
+    """Redact secrets from every log record made after this call.
+
+    ``secrets`` maps option names to values. If no value is set, the
+    record factory is left as it is.
+    """
+    markers = redaction_markers(secrets)
+    if markers:
+        logging.setLogRecordFactory(
+            RedactingRecordFactory(logging.getLogRecordFactory(), markers)
+        )
+
+
 def _replace_and_log(s, old, new, logger_fn):
     logger_fn('replacing "{}" with "{}"'.format(old, new))
     return s.replace(old, new)
@@ -425,19 +527,21 @@ def process_template_vars(
                 logger_fn,
             )
         elif function_name == "contract_token_staging":
-            processed_template = _replace_and_log(
-                processed_template,
-                match.group(0),
-                context.pro_config.contract_token_staging,
-                logger_fn,
-            )
+            if not shown:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.pro_config.contract_token_staging,
+                    logger_fn,
+                )
         elif function_name == "contract_token":
-            processed_template = _replace_and_log(
-                processed_template,
-                match.group(0),
-                context.pro_config.contract_token,
-                logger_fn,
-            )
+            if not shown:
+                processed_template = _replace_and_log(
+                    processed_template,
+                    match.group(0),
+                    context.pro_config.contract_token,
+                    logger_fn,
+                )
         elif function_name == "config":
             item = args[1]
             if not shown or item not in context.pro_config.redact_options:
