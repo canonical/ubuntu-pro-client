@@ -17,14 +17,20 @@ def write_apt_source(
     suite,
     components,
     series,
-    trusted=False,
+    keyring_path=None,
     machine_name=SUT,
 ):
-    """Write an APT source using the format native to the series."""
+    """Write an APT source using the format native to the series.
+
+    keyring_path is a local binary keyring that signs the source. It is
+    installed as trusted.gpg.d/<name>.gpg for one-line sources (the release
+    upgrader inlines it as Signed-By when migrating them to deb822), or as
+    keyrings/<name>.gpg with Signed-By for deb822 sources.
+    """
     if series in SERIES_NOT_USING_DEB822:
-        options = " [trusted=yes]" if trusted else ""
-        content = "deb{} {} {} {}\n".format(options, uri, suite, components)
+        content = "deb {} {} {}\n".format(uri, suite, components)
         extension = "list"
+        keyring_dest = "/etc/apt/trusted.gpg.d/{}.gpg".format(name)
     else:
         content = """Types: deb
 URIs: {}
@@ -33,9 +39,22 @@ Components: {}
 """.format(
             uri, suite, components
         )
-        if trusted:
-            content += "Trusted: yes\n"
         extension = "sources"
+        keyring_dest = "/etc/apt/keyrings/{}.gpg".format(name)
+        if keyring_path:
+            content += "Signed-By: {}\n".format(keyring_dest)
+
+    if keyring_path:
+        instance_tmp_path = "/tmp/behave_{}.gpg".format(name)
+        context.machines[machine_name].instance.push_file(
+            keyring_path, instance_tmp_path
+        )
+        when_i_run_command(
+            context,
+            "install -D -m 644 {} {}".format(instance_tmp_path, keyring_dest),
+            "with sudo",
+            machine_name=machine_name,
+        )
 
     when_i_create_file_with_content(
         context,
