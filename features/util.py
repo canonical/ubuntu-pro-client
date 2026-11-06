@@ -156,6 +156,7 @@ def repo_state_hash(
         if os.path.isdir(fname):
             continue
         with open(fname) as f:
+            print(fname)
             new_file_content += f.read()
 
     output_to_hash = rev_out + diff_out + new_file_content.encode("utf-8")
