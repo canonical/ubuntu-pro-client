@@ -424,7 +424,15 @@ def is_current_series_active_esm() -> bool:
 
 @lru_cache(maxsize=None)
 def is_container(run_path: str = "/run") -> bool:
-    """Checks to see if this code running in a container of some sort"""
+    """Check for a container, unless settings_overrides.is_container is set."""
+    from uaclient.config import parse_config
+
+    cfg, _ = parse_config()
+    overrides = cfg.get("settings_overrides")
+    if isinstance(overrides, dict) and "is_container" in overrides:
+        return util.is_config_value_true(
+            cfg, "settings_overrides.is_container"
+        )
 
     # We may mistake schroot environments for containers by just relying
     # in the other checks present in that function. To guarantee that
