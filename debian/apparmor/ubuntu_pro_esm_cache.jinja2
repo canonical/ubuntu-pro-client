@@ -95,6 +95,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     include <abstractions/nameservice>
 
     capability sys_ptrace,
+  {% if ubuntu_codename == "noble" %}
+    capability perfmon,
+  {% endif %}
 
     # GH: #3079
     capability dac_read_search,
