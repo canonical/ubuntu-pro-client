@@ -1,4 +1,5 @@
 $chroot_mode = 'unshare';
+$unshare_mmdebstrap_keep_tarball = 1;
 $unshare_tmpdir_template = '/var/tmp/tmp.sbuild.XXXXXXXXXX';
 $unshare_mmdebstrap_extra_args = [
     '*' => ['--components=main,universe'],
@@ -7,8 +8,7 @@ $unshare_mmdebstrap_extra_args = [
     # changes. Keep the release as APT's default so proposed is used only when
     # required by the package dependency resolver.
     'stonking' => [
-        '--include=ca-certificates',
-        '--setup-hook=echo "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://snapshot.ubuntu.com/ubuntu stonking-proposed main universe" > "$1"/etc/apt/sources.list.d/proposed.list',
+        '--setup-hook=echo "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] http://archive.ubuntu.com/ubuntu stonking-proposed main universe" > "$1"/etc/apt/sources.list.d/proposed.list',
         '--aptopt=APT::Default-Release "stonking";',
     ],
 ];
