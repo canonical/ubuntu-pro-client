@@ -37,9 +37,13 @@ jobs:
           DEBEMAIL: nobody@nowhere.invalid
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild schroot ubuntu-dev-tools debootstrap mmdebstrap uidmap git-buildpackage
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild mmdebstrap uidmap git-buildpackage
           sbuild_version="$(dpkg-query -W -f='${Version}' sbuild)"
           dpkg --compare-versions "$sbuild_version" ge '0.88.3ubuntu2~bpo24.04.1'
+      - name: Prepare xenial build tools
+        if: ${{ matrix.release == 'xenial' }}
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install --no-install-recommends schroot ubuntu-dev-tools debootstrap
           sudo sbuild-adduser $USER
       - name: Build package
         env:

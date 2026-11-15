@@ -38,7 +38,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
   ```bash
   apt-get install sbuild-launchpad-chroot
   # do this for each supported release, e.g. xenial, bionic, focal, jammy, noble, etc.
-  sbuild-launchpad-chroot create -d $release -a amd64 -n $release-amd64
+  sbuild-launchpad-chroot create -s $release -a amd64 -n $release-amd64
   ```
 
 * In order to run the `ppa` command, install `ppa-dev-tools` from `bryce`'s PPA:
