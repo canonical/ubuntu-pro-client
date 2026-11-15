@@ -173,7 +173,7 @@ This command also assumes you are on an AMD64 system. You will have to adjust
 the command accordingly if you are not.
 
 ```bash
-env RELEASES="xenial bionic focal jammy mantic noble" ARCHS="amd64" bash tools/setup_sbuild.sh
+env RELEASES="xenial bionic focal jammy noble resolute stonking" ARCHS="amd64" bash tools/setup_sbuild.sh
 ```
 
 This command will take some time. It sets up schroots for each release with the
