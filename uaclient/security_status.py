@@ -133,6 +133,7 @@ def get_update_status(
     service_name: str,
     ua_info: Dict[str, Any],
     version: apt_pkg.Version,
+    candidate_versions: Dict[str, str] = None,
 ) -> str:
     """Defines the update status for a package based on the service name.
 
@@ -142,8 +143,10 @@ def get_update_status(
     if service_name in ("standard-security", "standard-updates") or (
         ua_info["attached"] and service_name in ua_info["enabled_services"]
     ):
-        is_candidate = _is_candidate_version(
-            version.parent_pkg.name, version.ver_str
+        is_candidate = (
+            version.ver_str == candidate_versions.get(version.parent_pkg.name)
+            if candidate_versions is not None
+            else _is_candidate_version(version.parent_pkg.name, version.ver_str)
         )
         return (
             UpdateStatus.AVAILABLE.value
@@ -282,10 +285,34 @@ def create_updates_list(
     upgradable_versions: DefaultDict[str, List[Tuple[apt_pkg.Version, str]]],
     ua_info: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
+    # Build the APT cache once, rather than once per update. Preserve the
+    # same candidate selection used by get_pkg_candidate_version().
+    candidate_versions: Dict[str, str] = {}
+    candidate_packages = {
+        version.parent_pkg.name
+        for service, versions in upgradable_versions.items()
+        if service in ("standard-security", "standard-updates")
+        or (ua_info["attached"] and service in ua_info["enabled_services"])
+        for version, _ in versions
+    }
+    if candidate_packages:
+        with PreserveAptCfg(get_apt_pkg_cache) as cache:
+            dep_cache = apt_pkg.DepCache(cache)
+            for name in candidate_packages:
+                try:
+                    package = cache[name]
+                except KeyError:
+                    continue
+                candidate = dep_cache.get_candidate_ver(package)
+                if candidate:
+                    candidate_versions[name] = candidate.ver_str
+
     updates = []
     for service, version_list in upgradable_versions.items():
         for version, origin in version_list:
-            status = get_update_status(service, ua_info, version)
+            status = get_update_status(
+                service, ua_info, version, candidate_versions=candidate_versions
+            )
             updates.append(
                 {
                     "package": version.parent_pkg.name,
