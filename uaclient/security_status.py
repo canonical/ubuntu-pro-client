@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from functools import lru_cache
 from random import choice
-from typing import Any, DefaultDict, Dict, List, Tuple
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
 import apt_pkg  # type: ignore
 
@@ -133,7 +133,7 @@ def get_update_status(
     service_name: str,
     ua_info: Dict[str, Any],
     version: apt_pkg.Version,
-    candidate_versions: Dict[str, str] = None,
+    candidate_versions: Optional[Dict[str, str]] = None,
 ) -> str:
     """Defines the update status for a package based on the service name.
 
