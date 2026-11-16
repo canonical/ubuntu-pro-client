@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (24.2~14.04.2) trusty; urgency=medium
+
+  * Fix CVE-2026-9494 and CVE-2026-11386.
+  * Use isolated apt authentication configuration when validating
+    esm-infra-legacy credentials.
+
+ -- Spencer Runde <spencer.runde@canonical.com>  Wed, 04 Nov 2026 14:12:03 -0600
+
 ubuntu-advantage-tools (24.2~14.04.1) trusty; urgency=medium
 
   * Add support to new esm-infra-legacy service (LP: #2060566)
