@@ -21,7 +21,7 @@ If you prefer to manage the toolchain yourself, install the necessary host
 tooling:
 
 ```bash
-sudo apt install git tox pre-commit intltool libapt-pkg-dev sbuild-launchpad-chroot
+sudo apt install git tox pre-commit intltool libapt-pkg-dev
 ```
 
 > **Note**
@@ -162,37 +162,37 @@ lxc delete --force test-xenial
 ## Building Ubuntu Pro Client for testing
 
 To install a local version of Ubuntu Pro Client in a LXD container, we need to
-build a deb package. We have a script that will set up the environment
-necessary to build debs for any target Ubuntu release.
+build a deb package. We build with `sbuild`, which creates a clean build root
+for each target Ubuntu release with `mmdebstrap` and no root access.
 
-At time of writing, Ubuntu Pro Client supports the Ubuntu releases in this
-example command. You may need to adjust the command in the future as Ubuntu
-releases come and go.
-
-This command also assumes you are on an AMD64 system. You will have to adjust
-the command accordingly if you are not.
+This requires Ubuntu 24.04 or later on the host. On 24.04, install `sbuild`
+from `noble-backports`, because the release's own version can't create build
+roots this way:
 
 ```bash
-env RELEASES="xenial bionic focal jammy mantic noble" ARCHS="amd64" bash tools/setup_sbuild.sh
+sudo apt install -t noble-backports sbuild mmdebstrap uidmap
 ```
 
-This command will take some time. It sets up schroots for each release with the
-dependencies of Ubuntu Pro Client pre-installed. This will make building the
-deb packages for each release go faster. As time goes by, Ubuntu releases get
-updates which need to be installed for each build; you can re-run the
-`setup_sbuild.sh` script and it will update the schroots to keep your Pro
-Client builds fast.
+On Ubuntu 25.10 and later, install the same packages without `-t`.
 
-You also need to run the following to ensure your user can use the schroots:
+Build for any supported release other than Xenial with:
 
 ```bash
+./tools/build.sh noble
+```
+
+The first build for a release downloads and caches a build root, so it takes
+longer than later builds. `tools/sbuild-config.pl` holds the `sbuild`
+configuration that the build uses.
+
+Xenial's build root can't be created with `mmdebstrap`, so Xenial builds in a
+schroot instead. Set it up once and then build:
+
+```bash
+sudo apt install schroot ubuntu-dev-tools debootstrap
 sudo sbuild-adduser $USER
 newgrp sbuild
-```
-
-After that is complete, try out a Xenial build:
-
-```bash
+mk-sbuild --skip-proposed xenial
 ./tools/build.sh xenial
 ```
 
