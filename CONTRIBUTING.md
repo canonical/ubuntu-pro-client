@@ -41,6 +41,7 @@ full tutorial:
 * [Run unit tests](dev-docs/how-to/unit_testing.md)
 * [Run integration tests](dev-docs/how-to/integration_testing.md)
 * [Run dep8 tests](dev-docs/how-to/run_dep8_tests.md)
+* [Move a Legacy Ubuntu release off `main`](dev-docs/how-to/move_a_legacy_release_off_main.md)
 
 ## Reference
 
@@ -49,6 +50,7 @@ full tutorial:
 
 ## Explanation
 
+* [Ubuntu release and branch policy](dev-docs/explanation/release_and_branch_policy.md)
 * [PR review policy](dev-docs/explanation/pr_review_policy.md)
 * [Early review sign-off](dev-docs/explanation/early_review_signoff.md)
 * [Translations](dev-docs/explanation/translations.md)

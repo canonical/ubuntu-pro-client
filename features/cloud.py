@@ -926,7 +926,7 @@ class WSLInstance(pycloudlib.instance.BaseInstance):
         run_on_wsl=True,
         use_sudo=False,
         check_stderr=False,
-        **kwargs
+        **kwargs,
     ):
         if isinstance(command, list):
             command = shlex.join(command)

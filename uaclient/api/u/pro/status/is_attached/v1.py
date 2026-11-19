@@ -54,7 +54,7 @@ class IsAttachedResult(DataObject, AdditionalInfo):
         is_attached: bool,
         contract_status: Optional[str],
         contract_remaining_days: int,
-        is_attached_and_contract_valid: bool
+        is_attached_and_contract_valid: bool,
     ):
         self.is_attached = is_attached
         self.contract_status = contract_status

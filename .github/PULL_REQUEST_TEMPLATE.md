@@ -9,7 +9,7 @@ This PR solves all of our problems because...
 
 <!-- Example:
 ```
-env SHELL_BEFORE=1 ./tools/test-in-lxd.sh xenial
+env SHELL_BEFORE=1 ./tools/test-in-lxd.sh bionic
 # Set up test scenario before upgrade
 exit # new version gets installed after exit and lxc shell is re-started
 sudo pro new-sub-command --new-flag

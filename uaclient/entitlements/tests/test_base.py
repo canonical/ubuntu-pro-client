@@ -42,7 +42,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         incompatible_services=None,
         blocking_incompatible_services=None,
         variant_name="",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             cfg,

@@ -61,5 +61,5 @@ tox -e test -- uaclient/tests/test_actions.py
 The client also includes built-in dep8 tests. These are run as follows:
 
 ```shell
-autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
+autopkgtest -U --shell-fail . -- lxd ubuntu:bionic
 ```

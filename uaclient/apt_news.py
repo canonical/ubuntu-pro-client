@@ -47,7 +47,7 @@ class AptNewsMessageSelectors(DataObject):
         clouds: Optional[List[str]] = None,
         pro: Optional[bool] = None,
         architectures: Optional[List[str]] = None,
-        packages: Optional[List[List[str]]] = None
+        packages: Optional[List[List[str]]] = None,
     ):
         self.codenames = codenames
         self.clouds = clouds
@@ -70,7 +70,7 @@ class AptNewsMessage(DataObject):
         begin: datetime.datetime,
         end: Optional[datetime.datetime] = None,
         selectors: Optional[AptNewsMessageSelectors] = None,
-        lines: List[str]
+        lines: List[str],
     ):
         self.begin = begin
         self.end = end

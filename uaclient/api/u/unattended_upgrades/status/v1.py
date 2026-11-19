@@ -116,7 +116,7 @@ class UnattendedUpgradesStatusResult(DataObject, AdditionalInfo):
         unattended_upgrades_disabled_reason: Optional[
             UnattendedUpgradesDisabledReason
         ],
-        unattended_upgrades_last_run: Optional[datetime.datetime]
+        unattended_upgrades_last_run: Optional[datetime.datetime],
     ):
         self.systemd_apt_timer_enabled = systemd_apt_timer_enabled
         self.apt_periodic_job_enabled = apt_periodic_job_enabled

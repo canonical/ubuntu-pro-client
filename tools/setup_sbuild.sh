@@ -5,7 +5,7 @@ WARNING: This will create or modify chroots on your system with names matching
 \"ua-\$release-\$arch\" based on the RELEASES and ARCHS environment vars.
 
 Example Usage:
-env RELEASES=\"xenial bionic\" ARCHS=\"amd64\" bash tools/setup_sbuild.sh
+env RELEASES=\"bionic focal\" ARCHS=\"amd64\" bash tools/setup_sbuild.sh
 "
 
 if [ -z "$RELEASES" ]; then

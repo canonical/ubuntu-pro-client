@@ -78,7 +78,7 @@ class ServiceWithDependencies(DataObject):
         *,
         name: str,
         incompatible_with: List[ServiceWithReason],
-        depends_on: List[ServiceWithReason]
+        depends_on: List[ServiceWithReason],
     ):
         self.name = name
         self.incompatible_with = incompatible_with
