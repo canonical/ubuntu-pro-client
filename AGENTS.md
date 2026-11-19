@@ -12,9 +12,9 @@ MAY -- This action is optional. Use judgment based on the task and surrounding c
 
 ## Project overview
 
-`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports very old Ubuntu releases (back to 16.04 Xenial), so avoid modern-only syntax and dependencies. Xenial runs on Python 3.5.
+`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports old Ubuntu releases (back to 18.04 Bionic), so avoid modern-only syntax and dependencies. Bionic runs on Python 3.6. See [dev-docs/explanation/release_and_branch_policy.md](dev-docs/explanation/release_and_branch_policy.md) for which releases `main` supports.
 
-- The target Python is the version shipped with supported Ubuntu releases (3.5); you MUST NOT assume the latest Python features are available.
+- The target Python is the version shipped with the oldest LTS release `main` supports (3.6); you MUST NOT assume the latest Python features are available.
 - You MUST only use dependencies already declared in `requirements*.txt` / `setup.py`. You SHOULD NOT add new runtime dependencies unless there is strong justification.
 
 ## Repository layout
@@ -51,7 +51,7 @@ See `tox.ini` for the full list.
 ## Code style
 
 - You MUST format with `black` and sort imports with `isort`.
-- You MUST keep code compatible with Python 3.5 to preserve Xenial support.
+- You MUST keep code compatible with Python 3.6 to preserve Bionic support.
 - You SHOULD use type annotations and keep `tox -e mypy` clean.
 - You SHOULD match existing patterns in the module you are editing and prefer small, focused changes over broad refactors.
 
