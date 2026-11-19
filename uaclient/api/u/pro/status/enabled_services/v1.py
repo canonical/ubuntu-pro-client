@@ -34,7 +34,7 @@ class EnabledService(DataObject):
         *,
         name: str,
         variant_enabled: bool = False,
-        variant_name: Optional[str] = None
+        variant_name: Optional[str] = None,
     ):
         self.name = name
         self.variant_enabled = variant_enabled

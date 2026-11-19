@@ -468,7 +468,7 @@ class ExampleDataObject(DataObject):
         dt: datetime.datetime,
         dt_opt: Optional[datetime.datetime],
         dtlist: List[datetime.datetime],
-        dtlist_opt: Optional[List[datetime.datetime]]
+        dtlist_opt: Optional[List[datetime.datetime]],
     ):
         self.string = string
         self.string_opt = string_opt

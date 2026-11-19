@@ -41,7 +41,7 @@ class CLIEnableDisableProgress(api.AbstractProgress):
         total_steps: int,
         done_steps: int,
         previous_step_message: Optional[str],
-        current_step_message: Optional[str]
+        current_step_message: Optional[str],
     ):
         if current_step_message is not None:
             print(current_step_message)

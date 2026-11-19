@@ -44,7 +44,7 @@ class EnableOptions(DataObject):
         *,
         service: str,
         variant: Optional[str] = None,
-        access_only: bool = False
+        access_only: bool = False,
     ):
         self.service = service
         self.variant = variant
@@ -87,7 +87,7 @@ class EnableResult(DataObject, AdditionalInfo):
         enabled: List[str],
         disabled: List[str],
         reboot_required: bool,
-        messages: List[str]
+        messages: List[str],
     ):
         self.enabled = enabled
         self.disabled = disabled

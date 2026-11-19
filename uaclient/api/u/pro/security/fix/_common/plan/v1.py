@@ -129,7 +129,7 @@ class AptUpgradeData(DataObject):
         *,
         binary_packages: List[str],
         source_packages: List[str],
-        pocket: str
+        pocket: str,
     ):
         self.binary_packages = binary_packages
         self.source_packages = source_packages
@@ -407,7 +407,7 @@ class PackageCannotBeInstalledData(DataObject):
         binary_package_version: str,
         source_package: str,
         pocket: str,
-        related_source_packages: List[str]
+        related_source_packages: List[str],
     ):
         self.source_package = source_package
         self.binary_package = binary_package
@@ -491,7 +491,7 @@ class USNAdditionalData(AdditionalData):
         self,
         *,
         associated_cves: List[str],
-        associated_launchpad_bugs: List[str]
+        associated_launchpad_bugs: List[str],
     ):
         self.associated_cves = associated_cves
         self.associated_launchpad_bugs = associated_launchpad_bugs
@@ -559,7 +559,7 @@ class FixPlanResult(DataObject):
         additional_data: AdditionalData,
         description: Optional[str] = None,
         affected_packages: Optional[List[str]] = None,
-        current_status: Optional[str] = None
+        current_status: Optional[str] = None,
     ):
         self.title = title
         self.description = description
@@ -591,7 +591,7 @@ class FixPlanUSNResult(DataObject):
         self,
         *,
         target_usn_plan: FixPlanResult,
-        related_usns_plan: List[FixPlanResult]
+        related_usns_plan: List[FixPlanResult],
     ):
         self.target_usn_plan = target_usn_plan
         self.related_usns_plan = related_usns_plan
@@ -1039,7 +1039,7 @@ def _generate_fix_plan(
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
     installed_pkgs: Dict[str, Dict[str, str]],
     cfg: UAConfig,
-    additional_data=None
+    additional_data=None,
 ) -> FixPlanResult:
     count = len(affected_pkg_status)
     src_pocket_pkgs = defaultdict(list)
