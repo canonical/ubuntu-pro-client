@@ -1,7 +1,7 @@
 import mock
 
 try:  # Drop try-except after xenial EOL
-    from contextlib import AbstractContextManager
+    from contextlib import AbstractContextManager  # novermin
 except ImportError:
     AbstractContextManager = object
 
