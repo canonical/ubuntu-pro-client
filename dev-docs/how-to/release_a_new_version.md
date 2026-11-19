@@ -37,7 +37,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
   Run the following to set up chroots with dependencies pre-installed for each release:
   ```bash
   apt-get install sbuild-launchpad-chroot
-  # do this for each supported release, e.g. xenial, bionic, focal, jammy, noble, etc.
+  # do this for each supported release, e.g. bionic, focal, jammy, noble, etc.
   sbuild-launchpad-chroot create -d $release -a amd64 -n $release-amd64
   ```
 
@@ -80,14 +80,14 @@ gitGraph LR:
   merge main id: "Release PR" type:HIGHLIGHT
 
   checkout main
-  branch release-v42-xenial order: 4
-  commit id: "Xenial Backport" type: HIGHLIGHT
-  checkout main
-  branch release-v42-bionic order: 5
+  branch release-v42-bionic order: 4
   commit id: "Bionic Backport" type: HIGHLIGHT
   checkout main
-  branch release-v42-focal order: 6
+  branch release-v42-focal order: 5
   commit id: "Focal Backport" type: HIGHLIGHT
+  checkout main
+  branch release-v42-jammy order: 6
+  commit id: "Jammy Backport" type: HIGHLIGHT
 
   checkout main
   merge next-v43
@@ -106,7 +106,7 @@ When we reach a point in `main` where we are ready to release version 42, we do 
 * Sponsor and SRU review uses the `main`->`review-v42` PR
   * Feedback that requires changes are added to `main`
 * When version 42 is approved, the tip of `main` is tagged `42` and the Sponsor uploads using that commit
-  * `release-v42-$release` branches are created with a backport changelog entry for each supported Ubuntu release. These are used to upload to the SRU unapproved queue for each release. (Only `xenial`, `bionic`, and `focal` shown in the diagram).
+  * `release-v42-$release` branches are created with a backport changelog entry for each supported Ubuntu release. These are used to upload to the SRU unapproved queue for each release. (Only `bionic`, `focal`, and `jammy` shown in the diagram).
   * The `review-v42` branch is now deleted along with the `main`->`review-v42` PR (the PR is not merged).
 * After version 42 is released, `next-v43` is rebased on top of `main` and `next-v43` is deleted
 * Development continues on `main` until we are ready to begin releasing version 43
@@ -207,7 +207,7 @@ When reviewing the release PR, please use the following guidelines when reviewin
     * We do this even before a successful merge into `ubuntu/devel` because the context added to these bugs is useful for the Server Team reviewer.
 
     * Create a new bug on Launchpad for ubuntu-advantage-tools and use the [SRU template](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates#SRU_Template) to format the description.
-      * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Xenial, Bionic, Focal, Jammy`, substituting version numbers and release names as necessary.
+      * The title should be in the format `[SRU] ubuntu-advantage-tools (27.1 -> 27.2) Bionic, Focal, Jammy, Noble`, substituting version numbers and release names as necessary.
       * If any of the changes for the SRU is in the [Early Review Sign-off list](../explanation/early_review_signoff.md), include a pointer in the `[Discussion]` section to where the discussion/approval of that feature took place (if possible).
 
     * For each Launchpad bug fixed by this release (which should all be referenced in our changelog), add the SRU template to the description and fill out each section.

@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-DRY_RUN_USAGE="usage: env RELEASES=\"xenial bionic focal jammy\" PRO_VERSION=27.3 SRU_BUG=1942929 bash tools/create-gh-release-branches.sh"
+DRY_RUN_USAGE="usage: env RELEASES=\"bionic focal jammy noble\" PRO_VERSION=27.3 SRU_BUG=1942929 bash tools/create-gh-release-branches.sh"
 
 if [ -z "$RELEASES" ]; then
   echo "please set RELEASES"
