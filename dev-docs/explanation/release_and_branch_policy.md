@@ -19,6 +19,7 @@ the current list from `distro-info`, which stays current as releases change:
 ```bash
 ubuntu-distro-info --supported
 ubuntu-distro-info --supported-esm
+ubuntu-distro-info --devel
 ```
 
 An LTS release leaves `main` when its ESM period ends and it enters Legacy
