@@ -155,7 +155,8 @@ Build for any supported release with:
 ```
 
 The first build for a release downloads and caches a build root, so it takes
-longer than later builds. `tools/sbuild-config.pl` holds the `sbuild`
+longer than later builds. CI builds packages with the same command, so a
+local build matches what CI produces. `tools/sbuild-config.pl` holds the `sbuild`
 configuration that the build uses.
 
 ### Configuring pycloudlib

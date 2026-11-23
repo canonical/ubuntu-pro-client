@@ -37,10 +37,9 @@ jobs:
           DEBEMAIL: nobody@nowhere.invalid
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild schroot ubuntu-dev-tools debootstrap mmdebstrap uidmap git-buildpackage
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install -t noble-backports sbuild mmdebstrap uidmap git-buildpackage python3-click python3-yaml
           sbuild_version="$(dpkg-query -W -f='${Version}' sbuild)"
           dpkg --compare-versions "$sbuild_version" ge '0.88.3ubuntu2~bpo24.04.1'
-          sudo sbuild-adduser $USER
       - name: Build package
         env:
           DEBFULLNAME: GitHub CI Auto Builder
@@ -48,19 +47,19 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
-          # Xenial's systemd post-installation fails during mmdebstrap bootstrap.
-          # Build with a schroot instead.
+          # tools/build.sh is the same entrypoint used for local builds.
+          # Xenial builds in a schroot (see features/util.py:build_debs).
           if [ "${{ matrix.release }}" = "xenial" ]; then
             sg sbuild -c "mk-sbuild --skip-proposed xenial"
-            sg sbuild -c "sbuild --chroot-mode=schroot --dist=xenial --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
+            sg sbuild -c "./tools/build.sh --output-dir '${{ runner.temp }}/debs' xenial"
           else
-            SBUILD_CONFIG="$PWD/tools/sbuild-config.pl" sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'
+            ./tools/build.sh --output-dir '${{ runner.temp }}/debs' '${{ matrix.release }}'
           fi
       - name: Archive debs as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: 'ci-debs-${{ matrix.release }}'
-          path: '${{ runner.temp }}/*.deb'
+          path: '${{ runner.temp }}/debs/*.deb'
           retention-days: 3
   integration-tests:
     name: Integration
@@ -110,11 +109,6 @@ jobs:
         with:
           name: 'ci-debs-${{ matrix.release }}'
           path: '${{ runner.temp }}'
-      - name: Canonicalize deb filenames
-        working-directory: '${{ runner.temp }}'
-        run: |
-          ln -s ubuntu-advantage-tools*.deb ubuntu-advantage-tools-${{ matrix.release }}.deb
-          ln -s ubuntu-advantage-pro*.deb ubuntu-advantage-pro-${{ matrix.release }}.deb
       - name: Behave
         env:
           PYCLOUDLIB_CONFIG_CONTENTS: '${{ secrets.PYCLOUDLIB_CONFIG_CONTENTS }}'

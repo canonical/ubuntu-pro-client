@@ -5,7 +5,7 @@ in this directory will be shipped as part of the packaging
 
 ## Files
 
-- build.py: Build the package from the current directory
+- build.py: Build the package from the current directory (`--output-dir` also copies the debs elsewhere). This is the single build path used by local testing, behave and CI.
 - build.sh: Shell entrypoint for the build script
 - create-lp-release-branches.sh: Generate the stable release branches on Launchpad, after the devel branch is ready
 - check-versions-are-consistent.py: Helper script to verify changelog and package version matches.

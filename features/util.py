@@ -323,7 +323,8 @@ def build_debs(
     except subprocess.CalledProcessError as e:
         logging.error("--- Error running sbuild")
         pattern = os.path.join(
-            SBUILD_DIR, "ubuntu-advantage-tools_*_amd64.build"
+            SBUILD_DIR,
+            "ubuntu-advantage-tools_*_{}.build".format(architecture),
         )
         sbuild_log = [f for f in glob.glob(pattern)]
 
