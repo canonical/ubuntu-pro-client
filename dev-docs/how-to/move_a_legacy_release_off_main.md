@@ -25,7 +25,15 @@ on `main`, then replace the tree with the archive contents.
 
 Use `git-ubuntu` to clone the package. It imports the archive's history and
 sets up a `pkg` remote with one `ubuntu/<series>-devel` branch per release.
-Then add `ubuntu-pro-client` as `upstream` in that clone:
+Then add `ubuntu-pro-client` as `upstream` in that clone.
+
+`git-ubuntu` is available as a snap:
+
+```bash
+sudo snap install --classic git-ubuntu
+```
+
+Clone the package and add the remote:
 
 ```bash
 git-ubuntu clone ubuntu-advantage-tools
