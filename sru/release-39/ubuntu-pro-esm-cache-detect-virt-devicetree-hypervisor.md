@@ -12,7 +12,7 @@ Reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advan
 
 ## Notes for SRU uploader
 
-The denial only occurs on ppc64el, which we do not test ourselves. CPC must reproduce and confirm the fix with a test build.
+The denial only occurs on ppc64el, which we do not test ourselves. The CPC team reproduced the denial and confirmed with a test build that this change fixes the bug reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156929).
 
 Launch a jammy ppc64el VM and SSH in. The denial is logged by the kernel when `esm-cache.service` runs `systemd-detect-virt`. `sudo apt update` starts that unit in the background (`--no-block`), so wait for it to finish before checking the logs.
 
@@ -50,4 +50,4 @@ sleep 10
 journalctl -k --no-pager --since "$START" | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
 ```
 
-CPC confirmation: _pending_
+CPC confirmation: confirmed.
