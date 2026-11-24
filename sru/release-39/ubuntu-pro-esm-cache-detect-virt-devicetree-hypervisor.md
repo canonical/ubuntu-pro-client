@@ -8,7 +8,7 @@ apparmor="DENIED" operation="open" profile="ubuntu_pro_esm_cache_systemd_detect_
 
 This fix adds a read rule for that path to the profile, rendered only for jammy (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`). It is a file read, not a capability denial, so it does not re-apply the reverted `perfmon` change for jammy.
 
-Reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156929). Tracked in UPRO-1339.
+Reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156929).
 
 ## Notes for SRU uploader
 
