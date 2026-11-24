@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (1:1+devel) UNRELEASED; urgency=medium
+
+  * Open next development version
+
+ -- Spencer Runde <spencer.runde@canonical.com>  Tue, 24 Nov 2026 11:38:02 -0600
+
 ubuntu-advantage-tools (38ubuntu0) stonking; urgency=medium
 
   * d/apparmor/ubuntu_pro_esm_cache.jinja2:
