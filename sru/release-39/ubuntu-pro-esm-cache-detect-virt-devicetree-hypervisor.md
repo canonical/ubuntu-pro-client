@@ -14,40 +14,40 @@ Reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advan
 
 The denial only occurs on ppc64el, which we do not test ourselves. CPC must reproduce and confirm the fix with a test build.
 
-Launch a jammy ppc64el VM, SSH in and run:
+Launch a jammy ppc64el VM and SSH in. The denial is logged by the kernel when `esm-cache.service` runs `systemd-detect-virt`. `sudo apt update` starts that unit in the background (`--no-block`), so wait for it to finish before checking the logs.
+
+### Reproduce the denial (before the fix)
 
 ```sh
-# Confirm no logs
-journalctl --no-pager | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
-
-# Attach to Pro:
-sudo pro attach <token> --no-auto-enable
+# Record the start time so older log entries are ignored
+START="$(date '+%Y-%m-%d %H:%M:%S')"
 
 # Action which triggers denied logs
 sudo apt update
+sleep 10
 
-# Confirm logs now present (before the fix)
-journalctl --no-pager | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
+# Expect a DENIED line for the devicetree hypervisor path
+journalctl -k --no-pager --since "$START" | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
 ```
 
-Install the new package and confirm the fix:
+### Confirm the fix
 
 ```sh
-# Clear existing logs
-sudo journalctl --rotate
-sudo journalctl --vacuum-time=1s
-
-# Confirm no logs
-journalctl --no-pager | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
-
-# Install test package
+# Install test package (this also reloads the AppArmor profile)
 sudo dpkg -i <test.deb>
 
-# Action which triggers denied logs
-sudo apt update
+# Confirm the profile is loaded
+sudo aa-status | grep ubuntu_pro_esm_cache
 
-# Confirm still no logs
-journalctl --no-pager | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
+# Record a new start time
+START="$(date '+%Y-%m-%d %H:%M:%S')"
+
+# Action which triggered denied logs before the fix
+sudo apt update
+sleep 10
+
+# Expect no output
+journalctl -k --no-pager --since "$START" | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
 ```
 
 CPC confirmation: _pending_
