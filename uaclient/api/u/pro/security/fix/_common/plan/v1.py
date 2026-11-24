@@ -777,14 +777,20 @@ def _get_usn_data(
 def _get_upgradable_pkgs(
     binary_pkgs: List[BinaryPackageFix],
     check_esm_cache: bool,
+    installed_pkgs: Dict[str, Dict[str, str]],
 ) -> Tuple[List[str], List[UnfixedPackage]]:
     upgrade_pkgs = []
     unfixed_pkgs = []
 
     for binary_pkg in sorted(binary_pkgs):
-        candidate_version = apt.get_pkg_candidate_version(
-            binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
-        )
+        candidate_version = None  # type: Optional[str]
+        # apt --only-upgrade can't install a package that isn't installed
+        if binary_pkg.binary_pkg in installed_pkgs.get(
+            binary_pkg.source_pkg, {}
+        ):
+            candidate_version = apt.get_pkg_candidate_version(
+                binary_pkg.binary_pkg, check_esm_cache=check_esm_cache
+            )
         if (
             candidate_version
             and apt.version_compare(
@@ -803,6 +809,69 @@ def _get_upgradable_pkgs(
             )
 
     return upgrade_pkgs, unfixed_pkgs
+
+
+_KERNEL_ABI_REGEX = re.compile(r"(?<=-)\d+\.\d+\.\d+-\d+(?=-|$)")
+
+
+def _strip_kernel_abi(binary_pkg: str) -> str:
+    return _KERNEL_ABI_REGEX.sub("ABI", binary_pkg)
+
+
+def _get_abi_bumped_binary_fixes(
+    src_pkg: str,
+    usn_released_src: Dict[str, Dict[str, str]],
+    installed_src: Dict[str, str],
+) -> List[BinaryPackageFix]:
+    """Find fixes for installed binaries whose name changes on an ABI bump.
+
+    Kernel binaries embed the ABI in their name (e.g.
+    linux-image-6.8.0-1067-aws-fips), so a USN only lists the new ABI names.
+    Return the fixed binary (new ABI name and version) for each installed
+    old ABI binary, so it can be reported to the user instead of being
+    silently ignored. Any installed metapackage (e.g.
+    linux-image-aws-fips) is already handled by the exact-name check of the
+    caller.
+    """
+    fixed_by_abi_name = {}  # type: Dict[str, Tuple[str, str]]
+    for name, metadata in usn_released_src.items():
+        abi_name = _strip_kernel_abi(name)
+        version = metadata.get("version", "")
+        if abi_name != name and (
+            abi_name not in fixed_by_abi_name
+            or apt.version_compare(version, fixed_by_abi_name[abi_name][1]) > 0
+        ):
+            fixed_by_abi_name[abi_name] = (name, version)
+
+    # A newer ABI that is installed, or will be upgraded in place by the
+    # exact-name check of the caller, already covers its old ABI binaries
+    covered_abi_names = set()
+    for binary_pkg, version in installed_src.items():
+        abi_name = _strip_kernel_abi(binary_pkg)
+        if abi_name in fixed_by_abi_name and (
+            binary_pkg in usn_released_src
+            or apt.version_compare(fixed_by_abi_name[abi_name][1], version)
+            <= 0
+        ):
+            covered_abi_names.add(abi_name)
+
+    outdated_abi_pkgs = {}  # type: Dict[str, BinaryPackageFix]
+    for binary_pkg in installed_src:
+        abi_name = _strip_kernel_abi(binary_pkg)
+        if (
+            binary_pkg in usn_released_src
+            or abi_name not in fixed_by_abi_name
+            or abi_name in covered_abi_names
+        ):
+            continue
+        fixed_name, fixed_version = fixed_by_abi_name[abi_name]
+        outdated_abi_pkgs[abi_name] = BinaryPackageFix(
+            source_pkg=src_pkg,
+            binary_pkg=fixed_name,
+            fixed_version=fixed_version,
+        )
+
+    return sorted(outdated_abi_pkgs.values())
 
 
 def _get_upgradable_package_candidates_by_pocket(
@@ -831,6 +900,14 @@ def _get_upgradable_package_candidates_by_pocket(
                         fixed_version=fixed_version,
                     )
                 )
+
+        binary_pocket_pkgs[pkg_status.pocket_source].extend(
+            _get_abi_bumped_binary_fixes(
+                src_pkg,
+                usn_released_pkgs.get(src_pkg, {}),
+                installed_pkgs[src_pkg],
+            )
+        )
 
     return src_pocket_pkgs, binary_pocket_pkgs
 
@@ -1142,7 +1219,7 @@ def _generate_fix_plan(
                 )
 
         upgrade_pkgs, unfixed_pkgs = _get_upgradable_pkgs(
-            binary_pkgs, check_esm_cache
+            binary_pkgs, check_esm_cache, installed_pkgs
         )
 
         if unfixed_pkgs:
