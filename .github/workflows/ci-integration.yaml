@@ -84,7 +84,11 @@ jobs:
           sudo iptables -I DOCKER-USER -j ACCEPT
       - name: Refresh LXD
         if: matrix.platform == 'lxd-container' || matrix.platform == 'lxd-vm'
-        run: sudo snap refresh --channel latest/stable lxd
+        # Pin LXD to 5.21 (latest needs a newer snapd than the self-hosted
+        # focal runner ships, and may drop xenial container support).
+        run: |
+          sudo snap refresh snapd
+          sudo snap refresh --channel 5.21/stable lxd
       - name: Initialize LXD
         if: matrix.platform == 'lxd-container' || matrix.platform == 'lxd-vm'
         run: sudo lxd init --auto
