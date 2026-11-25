@@ -12,9 +12,9 @@ MAY -- This action is optional. Use judgment based on the task and surrounding c
 
 ## Project overview
 
-`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports very old Ubuntu releases (back to 16.04 Xenial), so avoid modern-only syntax and dependencies. Xenial runs on Python 3.5.
+`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports very old Ubuntu releases (back to 16.04 Xenial), so avoid modern-only syntax and dependencies.
 
-- The target Python is the version shipped with supported Ubuntu releases (3.5); you MUST NOT assume the latest Python features are available.
+- Code MUST run on the Python shipped with the oldest supported Ubuntu release; you MUST NOT assume the latest Python features are available. `tox -e vermin` checks the minimum version.
 - You MUST only use dependencies already declared in `requirements*.txt` / `setup.py`. You SHOULD NOT add new runtime dependencies unless there is strong justification.
 
 ## Repository layout
@@ -41,6 +41,7 @@ Common environments:
 - `tox -e test -- uaclient/tests/test_actions.py` -- a single test file.
 - `tox -e flake8` -- Python linter.
 - `tox -e mypy` -- type checker.
+- `tox -e vermin` -- minimum Python version check.
 - `tox -e black` / `tox -e isort` -- formatting checks.
 - `tox -e shellcheck` -- shell script linter.
 - `tox -e reformat-gherkin` -- `.feature` file formatting.
@@ -51,7 +52,7 @@ See `tox.ini` for the full list.
 ## Code style
 
 - You MUST format with `black` and sort imports with `isort`.
-- You MUST keep code compatible with Python 3.5 to preserve Xenial support.
+- You MUST run `tox -e vermin` after changing Python code and keep it passing. If a newer Python feature is used behind a guard, mark the guarded line `# novermin`.
 - You SHOULD use type annotations and keep `tox -e mypy` clean.
 - You SHOULD match existing patterns in the module you are editing and prefer small, focused changes over broad refactors.
 
