@@ -1,4 +1,4 @@
-# AppArmor: allow `systemd-detect-virt` to read the devicetree hypervisor node on jammy
+# AppArmor: allow `systemd-detect-virt` to read the devicetree hypervisor node
 
 On jammy ppc64el, `systemd-detect-virt` run by the ESM cache update is confined by `ubuntu_pro_esm_cache_systemd_detect_virt`. The profile did not allow reading `/sys/firmware/devicetree/base/hypervisor/compatible`, so AppArmor logged:
 
@@ -6,7 +6,7 @@ On jammy ppc64el, `systemd-detect-virt` run by the ESM cache update is confined 
 apparmor="DENIED" operation="open" profile="ubuntu_pro_esm_cache_systemd_detect_virt" name="/sys/firmware/devicetree/base/hypervisor/compatible" comm="systemd-detect-" requested_mask="r" denied_mask="r"
 ```
 
-This fix adds a read rule for that path to the profile, rendered only for jammy (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`). It is a file read, not a capability denial, so it does not re-apply the reverted `perfmon` change for jammy.
+This fix adds a read rule for that path to the profile, rendered for all releases, as advised by the AppArmor team (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`). It is a file read, not a capability denial, so it does not re-apply the reverted `perfmon` change for jammy.
 
 Reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156929).
 
