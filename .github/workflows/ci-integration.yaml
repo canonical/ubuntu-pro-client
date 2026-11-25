@@ -68,8 +68,10 @@ jobs:
       matrix:
         release: ['xenial']
         platform: ['lxd-container']
-        # xenial lxd containers dont work on hosts >20.04
-        host_os: ['ubuntu-20.04']
+        # xenial lxd containers dont work on hosts >20.04, and GitHub no
+        # longer provides ubuntu-20.04 hosted runners, so use Canonical's
+        # self-hosted focal runner.
+        host_os: ['self-hosted-linux-amd64-focal-medium']
     steps:
       - name: Prepare test tools
         run: |
