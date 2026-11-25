@@ -6,7 +6,13 @@ On s390x, the `python3` process confined by `ubuntu_pro_esm_cache` (run by the E
 apparmor="DENIED" operation="open" profile="ubuntu_pro_esm_cache" name="/proc/sysinfo" comm="python3" requested_mask="r" denied_mask="r"
 ```
 
-This fix adds a read rule for `@{PROC}/sysinfo` to the profile, rendered only for jammy, noble and resolute (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`).
+`systemd-detect-virt` is run under its own child profile (`ubuntu_pro_esm_cache_systemd_detect_virt`), which does not inherit the parent's rules, and it reads `/proc/sysinfo` as well:
+
+```text
+apparmor="DENIED" operation="open" profile="ubuntu_pro_esm_cache_systemd_detect_virt" name="/proc/sysinfo" comm="systemd-detect-" requested_mask="r" denied_mask="r"
+```
+
+This fix adds a read rule for `@{PROC}/sysinfo` to both the `ubuntu_pro_esm_cache` profile and the `ubuntu_pro_esm_cache_systemd_detect_virt` child profile, rendered only for jammy, noble and resolute (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`).
 
 Reported in [LP #2156933](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156933).
 

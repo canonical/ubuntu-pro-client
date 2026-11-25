@@ -354,4 +354,10 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     # LP: #2156929
     # ppc64el: systemd-detect-virt reads the hypervisor node from the devicetree
     /sys/firmware/devicetree/base/hypervisor/compatible r,
+
+{% if ubuntu_codename in ["jammy", "noble", "resolute"] %}
+    # LP: #2156933
+    # s390x: systemd-detect-virt reads /proc/sysinfo
+    @{PROC}/sysinfo r,
+{% endif %}
   }
