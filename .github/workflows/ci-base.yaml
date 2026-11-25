@@ -4,7 +4,9 @@ name: CI (base)
 
 on:
   push:
+    branches: [xenial]
   pull_request:
+    branches: [xenial]
 
 defaults:
   run:
