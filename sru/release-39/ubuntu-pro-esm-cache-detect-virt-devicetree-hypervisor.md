@@ -6,7 +6,7 @@ On jammy ppc64el, `systemd-detect-virt` run by the ESM cache update is confined 
 apparmor="DENIED" operation="open" profile="ubuntu_pro_esm_cache_systemd_detect_virt" name="/sys/firmware/devicetree/base/hypervisor/compatible" comm="systemd-detect-" requested_mask="r" denied_mask="r"
 ```
 
-This fix adds a read rule for that path to the profile, rendered for all releases, as advised by the AppArmor team (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`). It is a file read, not a capability denial, so it does not re-apply the reverted `perfmon` change for jammy.
+The denial was reported on jammy (ppc64el). This fix adds a read rule for that path to the profile (see `debian/apparmor/ubuntu_pro_esm_cache.jinja2`). As advised by the AppArmor team, the rule is unconditional and rendered for all releases rather than only jammy.
 
 Reported in [LP #2156929](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/2156929).
 
