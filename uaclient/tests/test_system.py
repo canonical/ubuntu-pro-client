@@ -484,6 +484,13 @@ class TestIsActiveESM:
 
 
 class TestIsContainer:
+    @pytest.yield_fixture(autouse=True)
+    def config_without_overrides(self):
+        with mock.patch(
+            "uaclient.config.parse_config", return_value=({}, set())
+        ):
+            yield
+
     @mock.patch("uaclient.system.subp")
     def test_true_systemd_detect_virt_success(self, m_subp):
         """Return True when systemd-detect virt exits success."""
@@ -578,6 +585,55 @@ class TestIsContainer:
 
         calls = [mock.call(["ischroot"])]
         assert calls == m_subp.call_args_list
+
+
+class TestIsContainerSettingsOverride:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("true", True),
+            ("false", False),
+            ("yes", True),
+            ("no", False),
+            ('"true"', True),
+            ('"false"', False),
+            ('"TrUe"', True),
+            ('"FaLsE"', False),
+        ],
+    )
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.system.subp")
+    def test_override_skips_detection(
+        self, m_subp, m_load_file, _m_exists, value, expected
+    ):
+        m_load_file.return_value = (
+            "settings_overrides:\n  is_container: {}".format(value)
+        )
+        system.is_container.cache_clear()
+        try:
+            assert system.is_container() is expected
+            m_subp.assert_not_called()
+        finally:
+            system.is_container.cache_clear()
+
+    @pytest.mark.parametrize(
+        "value", ['"invalid"', '"yes"', '"no"', "null", "0", "1", "[]", "{}"]
+    )
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    @mock.patch("uaclient.system.load_file")
+    @mock.patch("uaclient.system.subp")
+    def test_invalid_override_raises(
+        self, m_subp, m_load_file, _m_exists, value
+    ):
+        m_load_file.return_value = (
+            "settings_overrides:\n  is_container: {}".format(value)
+        )
+        system.is_container.cache_clear()
+        with pytest.raises(exceptions.InvalidBooleanConfigValue) as excinfo:
+            system.is_container()
+        assert "settings_overrides.is_container" in str(excinfo.value)
+        m_subp.assert_not_called()
 
 
 class TestIsDesktop:
