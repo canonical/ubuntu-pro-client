@@ -252,7 +252,7 @@ The exact meaning of each sandboxing feature is well documented upstream, in the
 [systemd.exec sandboxing](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Sandboxing)
 section of the manpage. But as with AppArmor, be mindful of differences between
 Ubuntu Releases: not all features from the latest releases will be available
-in, say, Ubuntu Xenial, for example.
+in, say, Ubuntu Bionic, for example.
 
 There is one additional troubleshooting tip that can be helpful, and that is to
 run any command with specific sandboxing features enabled.

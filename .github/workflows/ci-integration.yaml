@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         # TODO test on stonking: https://warthogs.atlassian.net/browse/UPRO-1274
-        release: ['xenial', 'bionic', 'focal', 'jammy', 'noble', 'resolute']
+        release: ['bionic', 'focal', 'jammy', 'noble', 'resolute']
     steps:
       - name: Prepare build tools
         env:
@@ -79,10 +79,6 @@ jobs:
         platform: ['lxd-container']
         host_os: ['ubuntu-22.04']
         include:
-          # xenial lxd containers dont work on hosts >20.04
-          - release: xenial
-            platform: lxd-container
-            host_os: ubuntu-20.04
           - release: bionic
             platform: aws.pro
             host_os: ubuntu-22.04

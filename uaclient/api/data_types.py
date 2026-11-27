@@ -59,7 +59,7 @@ class APIResponse(DataObject):
         result: str = "success",
         errors: List[ErrorWarningObject] = [],
         warnings: List[ErrorWarningObject] = [],
-        data: Union[APIData, dict]
+        data: Union[APIData, dict],
     ):
         self._schema_version = _schema_version
         self.result = result

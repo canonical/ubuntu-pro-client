@@ -95,7 +95,7 @@ def _full_auto_attach(
     options: FullAutoAttachOptions,
     cfg: UAConfig,
     *,
-    mode: event_logger.EventLoggerMode = event_logger.EventLoggerMode.JSON
+    mode: event_logger.EventLoggerMode = event_logger.EventLoggerMode.JSON,
 ) -> FullAutoAttachResult:
     """
     This endpoint runs the whole auto-attach process on the system.
