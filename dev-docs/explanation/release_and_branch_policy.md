@@ -75,20 +75,20 @@ in [Move a Legacy Ubuntu release off `main`](../how-to/move_a_legacy_release_off
 applies to Xenial except two, which are deferred: removing code that only
 runs on Xenial, and replacing its rows in the feature tests.
 
-### TODO: remove Xenial rows from the feature tests
+### Xenial rows in the feature tests
 
-The Xenial rows in `features/` stay in place for now. A maintainer will
-replace them once they can be reviewed.
+The Xenial rows in `features/` stay in place for now. Each one will be removed
+or replaced with a Bionic row, depending on existing coverage. Tracked in
+[#3658](https://github.com/canonical/ubuntu-pro-client/issues/3658).
 
-Until that is done:
+CI on `main` skips Xenial rows, and new scenarios on `main` don't get them.
 
-- CI on `main` skips Xenial rows.
-- New scenarios on `main` don't get Xenial rows.
-
-### TODO: remove code that only runs on Xenial
+### Code that only runs on Xenial
 
 The client, its packaging and its tests still contain code that only runs on
 Xenial, such as release checks in `uaclient/`, `debian/rules` and the postinst
 scripts, and the AppArmor templates. That code is dead on `main` but harmless.
 A maintainer will remove it following
 [Remove code that only runs on the release](../how-to/move_a_legacy_release_off_main.md#remove-code-that-only-runs-on-the-release).
+Tracked in
+[#3659](https://github.com/canonical/ubuntu-pro-client/issues/3659).
