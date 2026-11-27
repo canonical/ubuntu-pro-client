@@ -79,11 +79,9 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
   # LP: #2131292
   /sys/firmware/devicetree/base/model r,
 
-{% if ubuntu_codename in ["jammy", "noble", "resolute"] %}
   # LP: #2156933
   # s390x: python3 reads /proc/sysinfo
   @{PROC}/sysinfo r,
-{% endif %}
 
 {% if ubuntu_codename in ["bionic", "xenial"] %}
   # see https://bugs.python.org/issue40501
@@ -355,9 +353,7 @@ profile ubuntu_pro_esm_cache flags=(attach_disconnected) {
     # ppc64el: systemd-detect-virt reads the hypervisor node from the devicetree
     /sys/firmware/devicetree/base/hypervisor/compatible r,
 
-{% if ubuntu_codename in ["jammy", "noble", "resolute"] %}
     # LP: #2156933
     # s390x: systemd-detect-virt reads /proc/sysinfo
     @{PROC}/sysinfo r,
-{% endif %}
   }
