@@ -20,8 +20,8 @@ sudo apt install autopkgtest
 2. Run the following command:
 
 ```shell
-autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
+autopkgtest -U --shell-fail . -- lxd ubuntu:bionic
 ```
 
-Note that you can run this command on any release we support, not only Xenial,
+Note that you can run this command on any release we support, not only Bionic,
 and it will run for all releases by launchpad when dependencies are updated.

@@ -29,6 +29,11 @@ SOURCE_PR_TGZ = os.path.join(UA_TMP_DIR, "pr_source.tar.gz")
 SOURCE_PR_UNTAR_DIR = os.path.join(UA_TMP_DIR, "behave-ua-src")
 SBUILD_DIR = os.path.join(UA_TMP_DIR, "sbuild")
 UA_DEB_BUILD_CACHE = os.path.join(UA_TMP_DIR, "deb-cache")
+SBUILD_CONFIG = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "tools",
+    "sbuild-config.pl",
+)
 
 
 ALL_BINARY_PACKAGE_NAMES = [
@@ -197,7 +202,6 @@ def _create_deb_path(prefix: str, name: str):
 def build_debs(
     series: str,
     architecture: Optional[str] = None,
-    chroot: Optional[str] = None,
     sbuild_output_to_terminal: bool = False,
 ) -> ProDebPaths:
     """
@@ -280,8 +284,6 @@ def build_debs(
 
     sbuild_cmd = [
         "sbuild",
-        "--chroot-mode",
-        "schroot",
         "--no-run-lintian",
         "--resolve-alternatives",
         "--no-clean-source",
@@ -293,21 +295,11 @@ def build_debs(
         series,
         SOURCE_PR_UNTAR_DIR,
     ]
-    if chroot is not None:
-        sbuild_cmd += ["--chroot", chroot]
-    else:
-        # use ua-series-arch chroot if present
-        ua_chroot = "ua-{}-{}".format(series, architecture)
-        proc = subprocess.run(
-            ["schroot", "--info", "--chroot", ua_chroot],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        if proc.returncode == 0:
-            sbuild_cmd += ["--chroot", ua_chroot]
+
+    env = os.environ.copy()
+    env["SBUILD_CONFIG"] = SBUILD_CONFIG
 
     # disable unit-test during sbuild
-    env = os.environ.copy()
     env["DEB_BUILD_OPTIONS"] = env.get("DEB_BUILD_OPTIONS", "") + " nocheck"
 
     logging.info('--- Running "{}"'.format(" ".join(sbuild_cmd)))
@@ -326,7 +318,8 @@ def build_debs(
     except subprocess.CalledProcessError as e:
         logging.error("--- Error running sbuild")
         pattern = os.path.join(
-            SBUILD_DIR, "ubuntu-advantage-tools_*_amd64.build"
+            SBUILD_DIR,
+            "ubuntu-advantage-tools_*_{}.build".format(architecture),
         )
         sbuild_log = [f for f in glob.glob(pattern)]
 

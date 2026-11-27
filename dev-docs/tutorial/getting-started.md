@@ -21,7 +21,7 @@ If you prefer to manage the toolchain yourself, install the necessary host
 tooling:
 
 ```bash
-sudo apt install git tox pre-commit intltool libapt-pkg-dev sbuild-launchpad-chroot
+sudo apt install git tox pre-commit intltool libapt-pkg-dev
 ```
 
 > **Note**
@@ -95,10 +95,8 @@ sudo snap install lxd
 
 > **Note**
 > We develop and test against LXD 6.x (the version available on recent Ubuntu
-> LTS releases such as Noble). Some behaviour the test suite relies on -- for
-> example the `boot.mode` instance option used for Xenial VMs -- requires a
-> recent LXD, so older LXD versions are not supported for running the
-> integration tests.
+> LTS releases such as Noble). Older LXD versions are not supported for running
+> the integration tests.
 
 Add yourself to the `lxd` group and use `newgrp` to apply the change without
 logging out and back in:
@@ -114,43 +112,18 @@ Initialise `lxd` -- use the defaults:
 lxd init
 ```
 
-Ubuntu Pro Client is unique in that it supports very old releases of Ubuntu,
-including 16.04 Xenial Xerus (`xenial`). We test this support by using Xenial
-LXD containers. In order for hosts running newer releases of Ubuntu to run
-Xenial containers, we need to configure systemd to use an older cgroup version
-for compatibility. This is configured by editing the Linux kernel boot
-parameters.
-
-We need the boot parameters `systemd.unified_cgroup_hierarchy=0` and
-`systemd.legacy_systemd_cgroup_controller`.
-
-> **Note**
-> Unfortunately, this means your host will miss out on the benefits and safety
-> features of cgroup v2, but it is necessary for developing and supporting
-> Ubuntu Pro Client for Xenial.
-
-We also test Xenial support using Xenial LXD virtual machines. Xenial VMs must
-be launched with secure boot disabled, so the test suite sets the
-`boot.mode: uefi-nosecureboot` instance option when creating them. This option
-is provided by LXD 6.x; it replaces the older `security.secureboot` key that
-newer LXD versions no longer accept for virtual machines.
-
-Use [this how-to guide](https://wiki.ubuntu.com/Kernel/KernelBootParameters) to
-edit your Linux kernel boot parameter. First make the change temporarily, and
-ensure your system still boots and works. Then make the change permanently.
-
-Now, with the boot parameter in place, test that a xenial container can start
+Test that a container for the oldest release that `main` supports can start
 and reach the network:
 
 ```bash
-lxc launch ubuntu-daily:xenial test-xenial
-lxc shell test-xenial
+lxc launch ubuntu-daily:bionic test-bionic
+lxc shell test-bionic
 # now you should be inside the container
 ping -c 3 ubuntu.com
 # the ping command should succeed
 exit
 # now you should be back on your host
-lxc delete --force test-xenial
+lxc delete --force test-bionic
 ```
 
 > **Note**
@@ -162,39 +135,25 @@ lxc delete --force test-xenial
 ## Building Ubuntu Pro Client for testing
 
 To install a local version of Ubuntu Pro Client in a LXD container, we need to
-build a deb package. We have a script that will set up the environment
-necessary to build debs for any target Ubuntu release.
+build a deb package. We build with `sbuild` and `mmdebstrap`.
 
-At time of writing, Ubuntu Pro Client supports the Ubuntu releases in this
-example command. You may need to adjust the command in the future as Ubuntu
-releases come and go.
-
-This command also assumes you are on an AMD64 system. You will have to adjust
-the command accordingly if you are not.
+`sbuild` 0.88.3ubuntu2~bpo24.04.1 or later is required, because earlier
+versions lack Ubuntu-specific `mmdebstrap` handling. Ubuntu 24.04 ships an
+older version, so install from `noble-backports` there:
 
 ```bash
-env RELEASES="xenial bionic focal jammy mantic noble" ARCHS="amd64" bash tools/setup_sbuild.sh
+sudo apt install -t noble-backports sbuild mmdebstrap uidmap
 ```
 
-This command will take some time. It sets up schroots for each release with the
-dependencies of Ubuntu Pro Client pre-installed. This will make building the
-deb packages for each release go faster. As time goes by, Ubuntu releases get
-updates which need to be installed for each build; you can re-run the
-`setup_sbuild.sh` script and it will update the schroots to keep your Pro
-Client builds fast.
-
-You also need to run the following to ensure your user can use the schroots:
+Build for any supported release with:
 
 ```bash
-sudo sbuild-adduser $USER
-newgrp sbuild
+./tools/build.sh noble
 ```
 
-After that is complete, try out a Xenial build:
-
-```bash
-./tools/build.sh xenial
-```
+The first build for a release downloads and caches a build root, so it takes
+longer than later builds. `tools/sbuild-config.pl` holds the `sbuild`
+configuration that the build uses.
 
 ### Configuring pycloudlib
 
@@ -213,12 +172,12 @@ wget https://raw.githubusercontent.com/canonical/pycloudlib/main/pycloudlib.toml
 ### Run a simple behave test
 
 ```bash
-tox -e behave -- features/config.feature -D releases=xenial -D machine_types=lxd-container
+tox -e behave -- features/config.feature -D releases=bionic -D machine_types=lxd-container
 ```
 
 All of the arguments after the `--` are passed to behave. In this case, we're
 telling behave to only run the `config.feature` test, and to filter the tests
-in that file to only those for Xenial LXD containers. Note that the `-D`
+in that file to only those for Bionic LXD containers. Note that the `-D`
 options are specific to our behave tests and are not behave options.
 
 ### Configuring a contract token
@@ -260,7 +219,7 @@ Now use our helper script to build a deb with your changes, launch a LXD
 container, install your deb, and drop you into a shell on the container:
 
 ```bash
-./tools/test-in-lxd.sh xenial
+./tools/test-in-lxd.sh bionic
 ```
 
 In the container, you can now run `pro version` and see your changes in action.
@@ -272,8 +231,8 @@ of your shell, or by running `lxc list` on your host machine.
 
 ### Try it out in a VM
 
-While we use LXD VMs for behave tests, it is difficult to set up Xenial and
-Bionic VMs manually for interactive testing. Instead, we use
+While we use LXD VMs for behave tests, it is difficult to set up Bionic VMs
+manually for interactive testing. Instead, we use
 [Multipass](https://multipass.run/) to launch VMs for interactive testing.
 
 Install Multipass.
@@ -286,7 +245,7 @@ Now use our helper script to build a deb with your changes, launch a Multipass
 VM, install your deb, and drop you into a shell on the VM.
 
 ```bash
-./tools/test-in-multipass.sh xenial
+./tools/test-in-multipass.sh bionic
 ```
 
 In the VM, you can now run `pro version` and see your changes in action.

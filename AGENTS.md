@@ -12,7 +12,7 @@ MAY -- This action is optional. Use judgment based on the task and surrounding c
 
 ## Project overview
 
-`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports very old Ubuntu releases (back to 16.04 Xenial), so avoid modern-only syntax and dependencies.
+`ubuntu-pro-client` is a Python client that attaches Ubuntu machines to Ubuntu Pro and manages its services (ESM, Livepatch, FIPS, etc.). The `main` branch supports old Ubuntu releases (back to 18.04 Bionic), so avoid modern-only syntax and dependencies. See [dev-docs/explanation/release_and_branch_policy.md](dev-docs/explanation/release_and_branch_policy.md) for which releases `main` supports.
 
 - Code MUST run on the Python shipped with the oldest supported Ubuntu release; you MUST NOT assume the latest Python features are available. `tox -e vermin` checks the minimum version.
 - You MUST only use dependencies already declared in `requirements*.txt` / `setup.py`. You SHOULD NOT add new runtime dependencies unless there is strong justification.

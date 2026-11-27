@@ -17,7 +17,7 @@ class CLIAPIProgress(AbstractProgress):
         total_steps: int,
         done_steps: int,
         previous_step_message: Optional[str],
-        current_step_message: Optional[str]
+        current_step_message: Optional[str],
     ):
         d = OrderedDict()  # type: OrderedDict[str, Any]
         d["total_steps"] = total_steps

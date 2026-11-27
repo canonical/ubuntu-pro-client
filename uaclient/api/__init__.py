@@ -14,7 +14,7 @@ class AbstractProgress(metaclass=abc.ABCMeta):
         total_steps: int,
         done_steps: int,
         previous_step_message: Optional[str],
-        current_step_message: Optional[str]
+        current_step_message: Optional[str],
     ):
         pass
 
@@ -26,7 +26,7 @@ class NullProgress(AbstractProgress):
         total_steps: int,
         done_steps: int,
         previous_step_message: Optional[str],
-        current_step_message: Optional[str]
+        current_step_message: Optional[str],
     ):
         pass
 

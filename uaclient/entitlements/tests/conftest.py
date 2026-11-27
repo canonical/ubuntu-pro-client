@@ -14,7 +14,7 @@ def machine_token(
     entitled: bool = True,
     obligations: Optional[Dict[str, Any]] = None,
     suites: Optional[List[str]] = None,
-    additional_packages: Optional[List[str]] = None
+    additional_packages: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     return {
         "resourceTokens": [
@@ -52,7 +52,7 @@ def machine_access(
     entitled: bool = True,
     obligations: Optional[Dict[str, Any]] = None,
     suites: Optional[List[str]] = None,
-    additional_packages: Optional[List[str]] = None
+    additional_packages: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     if affordances is None:
         affordances = {}
@@ -112,7 +112,7 @@ def entitlement_factory(tmpdir, FakeConfig, fake_machine_token_file):
         # Those extra args should be used for scenarios where a cls
         # instance requires something that is not shared between all
         # entitlement classes
-        extra_args: Optional[Dict[str, Any]] = None
+        extra_args: Optional[Dict[str, Any]] = None,
     ):
         if not cfg:
             cfg_arg = {"data_dir": tmpdir.strpath}

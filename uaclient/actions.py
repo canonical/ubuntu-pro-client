@@ -252,7 +252,7 @@ def enable_entitlement_by_name(
     access_only: bool = False,
     variant: str = "",
     silent: bool = False,
-    extra_args: Optional[List[str]] = None
+    extra_args: Optional[List[str]] = None,
 ):
     """
     Constructs an entitlement based on the name provided. Passes kwargs onto
@@ -283,7 +283,7 @@ def status(
     cfg: config.UAConfig,
     *,
     simulate_with_token: Optional[str] = None,
-    show_all: bool = False
+    show_all: bool = False,
 ):
     """
     Construct the current Pro status dictionary.

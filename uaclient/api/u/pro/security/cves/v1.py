@@ -42,7 +42,7 @@ class CVEsOptions(DataObject):
         self,
         *,
         unfixable: Optional[bool] = False,
-        fixable: Optional[bool] = False
+        fixable: Optional[bool] = False,
     ):
         self.unfixable = unfixable
         self.fixable = fixable
@@ -171,7 +171,7 @@ class CVEInfo(DataObject):
         cvss_score: Optional[float] = None,
         cvss_severity: Optional[str] = None,
         related_usns: Optional[List[RelatedUSN]] = None,
-        related_packages: Optional[List[str]] = None
+        related_packages: Optional[List[str]] = None,
     ):
         self.description = description
         self.published_at = published_at
@@ -209,7 +209,7 @@ class CVEsResult(DataObject, AdditionalInfo):
         # because we want to access them in the CLI, but
         # not output them in the API
         vulnerability_data_published_at: datetime.datetime,
-        apt_updated_at: Optional[datetime.datetime] = None
+        apt_updated_at: Optional[datetime.datetime] = None,
     ):
         self.packages = packages
         self.cves = cves

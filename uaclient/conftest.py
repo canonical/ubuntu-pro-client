@@ -344,7 +344,7 @@ def mock_entitlement():
         application_status=(ApplicationStatus.DISABLED, ""),
         can_disable=(False, None),
         disable=(False, None),
-        enable=(False, None)
+        enable=(False, None),
     ):
         m_ent_cls = mock.MagicMock()
         type(m_ent_cls).name = mock.PropertyMock(return_value=name)

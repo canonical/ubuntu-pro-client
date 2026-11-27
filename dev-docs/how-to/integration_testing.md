@@ -105,10 +105,10 @@ tox -e behave -- -D release=focal -D machine_types=aws.generic
 ```
 
 To run the test for a different release, update the release version string. For
-example, to run AWS Pro Xenial tests, you can run:
+example, to run AWS Pro Bionic tests, you can run:
 
 ```
-tox -e behave -- -D release=xenial -D machine_types=aws.pro
+tox -e behave -- -D releases=bionic -D machine_types=aws.pro
 ```
 
 To run EC2 tests, first set up the
@@ -143,10 +143,10 @@ tox -e behave -- -D release=focal -D machine_types=aws.generic
 ```
 
 To run the test for a different release, update the release version string. For
-example, to run Azure Pro Xenial tests, you can run:
+example, to run Azure Pro Bionic tests, you can run:
 
 ```
-tox -e behave -- -D machine_types=azure.pro
+tox -e behave -- -D releases=bionic -D machine_types=azure.pro
 ```
 
 In order to run Azure tests, first set up the
@@ -181,10 +181,10 @@ tox -e behave -- -D release=focal -D machine_types=gcp.generic
 ```
 
 To run the test for a different release, update the release version string. For
-example, to run GCP Pro Xenial tests, you can run:
+example, to run GCP Pro Bionic tests, you can run:
 
 ```
-tox -e behave -- -D release=xenial machine_types=gcp.pro
+tox -e behave -- -D releases=bionic -D machine_types=gcp.pro
 ```
 
 In order to run GCP tests, first set up the

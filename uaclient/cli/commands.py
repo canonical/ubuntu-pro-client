@@ -11,7 +11,7 @@ class ProArgument:
         long_name: str,
         help: str,
         short_name: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         self.names = (
             (long_name,) if short_name is None else (short_name, long_name)

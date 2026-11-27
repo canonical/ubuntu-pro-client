@@ -103,7 +103,7 @@ class RetryLock:
         *_args,
         lock_holder: str,
         sleep_time: int = 10,
-        max_retries: int = 12
+        max_retries: int = 12,
     ):
         self.lock_holder = lock_holder
         self.sleep_time = sleep_time

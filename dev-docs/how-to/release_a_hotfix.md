@@ -109,7 +109,7 @@ but with PRs on the `ubuntu-pro-client` GitHub instead of in `git-ubuntu`.
      `$hotfix_version~<release-number>`
    * Tell the Sponsor that the branches are ready for them to upload to
      `devel` and the SRU unapproved queue.
-   * Check the [`-proposed` release queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=1&queue_text=ubuntu-advantage-tools)
+   * Check the [`-proposed` release queue](https://launchpad.net/ubuntu/bionic/+queue?queue_state=1&queue_text=ubuntu-advantage-tools)
      for the presence of `ubuntu-advantage-tools` in an unapproved state for
      each supported release. Note: Libera chat `#ubuntu-release` IRC channel
      has a bot that reports queued uploads of any package in a message like
