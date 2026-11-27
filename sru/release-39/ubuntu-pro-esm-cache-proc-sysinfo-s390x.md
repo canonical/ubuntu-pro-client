@@ -56,4 +56,4 @@ sleep 10
 journalctl -k --no-pager --since "$START" | grep 'apparmor="DENIED"' | grep 'ubuntu_pro_esm_cache'
 ```
 
-CPC confirmation: _pending_
+CPC confirmation: confirmed
