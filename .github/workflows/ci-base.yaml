@@ -27,6 +27,8 @@ jobs:
         run: tox -e flake8
       - name: Mypy
         run: tox -e mypy
+      - name: Minimum Python version
+        run: tox -e vermin
       - name: Version Consistency
         run: python3 ./tools/check-versions-are-consistent.py
       - name: Spellcheck messages
