@@ -137,9 +137,9 @@ lxc delete --force test-bionic
 To install a local version of Ubuntu Pro Client in a LXD container, we need to
 build a deb package. We build with `sbuild` and `mmdebstrap`.
 
-`sbuild` 0.88.3ubuntu1 or later is required, because it is the first version
-with Ubuntu-specific `mmdebstrap` handling. Ubuntu 24.04 ships an older
-version, so install from `noble-backports` there:
+`sbuild` 0.88.3ubuntu2~bpo24.04.1 or later is required, because earlier
+versions lack Ubuntu-specific `mmdebstrap` handling. Ubuntu 24.04 ships an
+older version, so install from `noble-backports` there:
 
 ```bash
 sudo apt install -t noble-backports sbuild mmdebstrap uidmap
@@ -154,6 +154,9 @@ Build for any supported release with:
 The first build for a release downloads and caches a build root, so it takes
 longer than later builds. `tools/sbuild-config.pl` holds the `sbuild`
 configuration that the build uses.
+
+Builds for the development release are currently only supported on amd64 and
+i386 hosts because the configuration adds its proposed pocket from `archive.ubuntu.com`.
 
 ### Configuring pycloudlib
 
