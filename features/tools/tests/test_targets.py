@@ -1,5 +1,6 @@
 import pytest
 
+from features.machine_types import MachineType
 from features.tools.targets import (
     ApplicabilityDataError,
     TargetApplicability,
@@ -7,107 +8,162 @@ from features.tools.targets import (
     UnknownReleaseError,
 )
 
-# Neither machine type is offered on a contiguous run of releases.
-DISCONTINUOUS = {
-    "alpha": ["bionic", "jammy", "noble"],
-    "beta": ["jammy", "noble", "oracular"],
+# "skips-focal" is offered on the releases either side of focal, but not on
+# focal itself.
+OFFERED = {
+    "all-lts": ["bionic", "focal", "jammy", "noble"],
+    "skips-focal": ["bionic", "jammy", "noble"],
+    "newest-only": ["noble", "oracular"],
 }
 
 
-class TestQuery:
+@pytest.fixture
+def data():
+    return TargetApplicability(OFFERED)
+
+
+@pytest.fixture(scope="module")
+def real_data():
+    return TargetApplicability.from_file()
+
+
+class TestIsApplicable:
     @pytest.mark.parametrize(
         "release,machine_type,expected",
         (
-            ("bionic", "alpha", True),
-            ("jammy", "alpha", True),
-            ("oracular", "alpha", False),
-            ("bionic", "beta", False),
-            ("oracular", "beta", True),
+            ("focal", "all-lts", True),
+            ("focal", "skips-focal", False),
+            ("noble", "skips-focal", True),
+            ("bionic", "newest-only", False),
+            ("oracular", "newest-only", True),
+            ("oracular", "all-lts", False),
         ),
     )
-    def test_known_pair(self, release, machine_type, expected):
-        data = TargetApplicability(DISCONTINUOUS)
-        assert expected is data.is_applicable(release, machine_type)
+    def test_known_pair(self, data, release, machine_type, expected):
+        assert expected == data.is_applicable(release, machine_type)
 
-    def test_gap_in_availability(self):
-        data = TargetApplicability(
-            {"alpha": ["bionic", "noble"], "beta": ["jammy"]}
-        )
-        assert not data.is_applicable("jammy", "alpha")
-        assert data.is_applicable("noble", "alpha")
+    def test_unknown_machine_type_raises(self, data):
+        with pytest.raises(UnknownMachineTypeError, match="unlisted"):
+            data.is_applicable("jammy", "unlisted")
 
-    def test_unknown_machine_type_raises(self):
-        data = TargetApplicability(DISCONTINUOUS)
+    def test_unknown_release_raises(self, data):
+        with pytest.raises(UnknownReleaseError, match="warty"):
+            data.is_applicable("warty", "skips-focal")
+
+    def test_unknown_machine_type_reported_before_unknown_release(self, data):
         with pytest.raises(UnknownMachineTypeError):
-            data.is_applicable("jammy", "gamma")
+            data.is_applicable("warty", "unlisted")
 
-    def test_unknown_release_raises(self):
-        data = TargetApplicability(DISCONTINUOUS)
-        with pytest.raises(UnknownReleaseError):
-            data.is_applicable("warty", "alpha")
 
-    def test_known_sets(self):
-        data = TargetApplicability(DISCONTINUOUS)
-        assert frozenset(["alpha", "beta"]) == data.machine_types
+class TestOfferedData:
+    def test_offered_releases(self, data):
+        assert frozenset(["noble", "oracular"]) == data.offered_releases(
+            "newest-only"
+        )
+
+    def test_offered_releases_of_unknown_machine_type_raises(self, data):
+        with pytest.raises(UnknownMachineTypeError, match="unlisted"):
+            data.offered_releases("unlisted")
+
+    def test_machine_types(self, data):
         assert (
-            frozenset(["bionic", "jammy", "noble", "oracular"])
+            frozenset(["all-lts", "skips-focal", "newest-only"])
+            == data.machine_types
+        )
+
+    def test_releases_are_those_of_any_machine_type(self, data):
+        assert (
+            frozenset(["bionic", "focal", "jammy", "noble", "oracular"])
             == data.releases
         )
 
 
 class TestValidation:
     @pytest.mark.parametrize(
-        "raw",
+        "raw,message",
         (
-            {},
-            {"alpha": []},
-            {"alpha": "jammy"},
-            {"alpha": None},
-            {"alpha": ["jammy", "jammy"]},
-            {"alpha": ["Jammy"]},
-            {"alpha": [22]},
-            {"Alpha": ["jammy"]},
-            {1: ["jammy"]},
+            pytest.param({}, "no machine types", id="empty"),
+            pytest.param({"wsl": []}, "non-empty list", id="empty-list"),
+            pytest.param({"wsl": "jammy"}, "non-empty list", id="string"),
+            pytest.param({"wsl": None}, "non-empty list", id="none"),
+            pytest.param({"wsl": ("jammy",)}, "non-empty list", id="tuple"),
+            pytest.param(
+                {"wsl": ["jammy", "jammy"]}, "duplicate release", id="dup"
+            ),
+            pytest.param(
+                {"wsl": ["Jammy"]}, "invalid release name", id="capitalised"
+            ),
+            pytest.param(
+                {"wsl": ["jammy-2"]}, "invalid release name", id="digit"
+            ),
+            pytest.param({"wsl": [""]}, "invalid release name", id="blank"),
+            pytest.param(
+                {"wsl": [22]}, "invalid release name", id="non-string-release"
+            ),
+            pytest.param(
+                {"Wsl": ["jammy"]}, "invalid machine type", id="uppercase"
+            ),
+            pytest.param(
+                {"a..b": ["jammy"]}, "invalid machine type", id="double-dot"
+            ),
+            pytest.param(
+                {"-a": ["jammy"]}, "invalid machine type", id="leading-dash"
+            ),
+            pytest.param(
+                {"": ["jammy"]}, "invalid machine type", id="blank-name"
+            ),
+            pytest.param(
+                {1: ["jammy"]}, "invalid machine type", id="non-string-name"
+            ),
         ),
     )
-    def test_malformed_data_rejected(self, raw):
-        with pytest.raises(ApplicabilityDataError):
+    def test_malformed_data_rejected(self, raw, message):
+        with pytest.raises(ApplicabilityDataError, match=message):
             TargetApplicability(raw)
 
-    @pytest.mark.parametrize("content", ("- jammy\n", "", "alpha: [a\n"))
+    def test_dotted_and_dashed_machine_types_accepted(self):
+        data = TargetApplicability(
+            {"aws.pro-fips": ["jammy"], "lxd-vm": ["noble"]}
+        )
+        assert frozenset(["aws.pro-fips", "lxd-vm"]) == data.machine_types
+
+
+class TestFromFile:
+    def test_valid_file(self, tmpdir):
+        path = tmpdir.join("targets.yaml")
+        path.write("wsl:\n  - jammy\n  - noble\n")
+        data = TargetApplicability.from_file(str(path))
+        assert frozenset(["jammy", "noble"]) == data.offered_releases("wsl")
+
+    @pytest.mark.parametrize(
+        "content",
+        (
+            pytest.param("- jammy\n", id="list"),
+            pytest.param("", id="empty-file"),
+            pytest.param("wsl: [a\n", id="invalid-yaml"),
+        ),
+    )
     def test_malformed_file_rejected(self, content, tmpdir):
         path = tmpdir.join("targets.yaml")
         path.write(content)
-        with pytest.raises(ApplicabilityDataError):
+        with pytest.raises(ApplicabilityDataError, match="targets.yaml"):
+            TargetApplicability.from_file(str(path))
+
+    def test_invalid_entry_in_file_rejected(self, tmpdir):
+        path = tmpdir.join("targets.yaml")
+        path.write("wsl: jammy\n")
+        with pytest.raises(ApplicabilityDataError, match="non-empty list"):
             TargetApplicability.from_file(str(path))
 
     def test_missing_file_rejected(self, tmpdir):
-        with pytest.raises(ApplicabilityDataError):
-            TargetApplicability.from_file(str(tmpdir.join("nope.yaml")))
+        path = str(tmpdir.join("nope.yaml"))
+        with pytest.raises(ApplicabilityDataError, match="nope.yaml"):
+            TargetApplicability.from_file(path)
 
 
 class TestRepositoryData:
-    def test_current_machine_types(self):
-        data = TargetApplicability.from_file()
-        assert (
-            frozenset(
-                [
-                    "lxd-container",
-                    "lxd-vm",
-                    "aws.generic",
-                    "aws.pro",
-                    "aws.pro-fips",
-                    "azure.generic",
-                    "azure.pro",
-                    "azure.pro-fips",
-                    "gcp.generic",
-                    "gcp.pro",
-                    "gcp.pro-fips",
-                    "wsl",
-                ]
-            )
-            == data.machine_types
-        )
+    def test_machine_types_match_enum(self, real_data):
+        assert {m.value for m in MachineType} == real_data.machine_types
 
     @pytest.mark.parametrize(
         "release,machine_type,expected",
@@ -123,6 +179,5 @@ class TestRepositoryData:
             ("jammy", "wsl", True),
         ),
     )
-    def test_current_pairs(self, release, machine_type, expected):
-        data = TargetApplicability.from_file()
-        assert expected is data.is_applicable(release, machine_type)
+    def test_current_pairs(self, real_data, release, machine_type, expected):
+        assert expected == real_data.is_applicable(release, machine_type)

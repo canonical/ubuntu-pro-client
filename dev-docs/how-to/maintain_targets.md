@@ -43,8 +43,8 @@ A release that is not listed for a machine type is not applicable to it.
 1. Add the machine type to `MachineType` in `features/machine_types.py`.
 2. Add a key with the same name to `features/targets.yaml`, listing every
    release it is offered on.
-3. Add the new name to the expected set in `TestRepositoryData` in
-   `features/tools/tests/test_targets.py`.
+3. Run the check described in [Validate the change](#validate-the-change). It
+   fails if `MachineType` and `features/targets.yaml` list different names.
 
 ## Remove a release
 
