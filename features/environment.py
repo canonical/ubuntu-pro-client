@@ -118,7 +118,6 @@ class UAClientBehaveConfig:
         "debs_path",
         "userdata_file",
         "check_version",
-        "sbuild_chroot",
         "wsl_pubkey_path",
         "wsl_privkey_path",
         "wsl_ip_address",
@@ -168,7 +167,6 @@ class UAClientBehaveConfig:
         debs_path: Optional[str] = None,
         userdata_file: Optional[str] = None,
         check_version: Optional[str] = None,
-        sbuild_chroot: Optional[str] = None,
         wsl_pubkey_path: Optional[str] = None,
         wsl_privkey_path: Optional[str] = None,
         wsl_ip_address: Optional[str] = None,
@@ -204,7 +202,6 @@ class UAClientBehaveConfig:
         self.debs_path = debs_path
         self.userdata_file = userdata_file
         self.check_version = check_version
-        self.sbuild_chroot = sbuild_chroot
         self.wsl_pubkey_path = wsl_pubkey_path
         self.wsl_privkey_path = wsl_privkey_path
         self.wsl_ip_address = wsl_ip_address
