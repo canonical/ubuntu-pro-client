@@ -155,9 +155,6 @@ The first build for a release downloads and caches a build root, so it takes
 longer than later builds. `tools/sbuild-config.pl` holds the `sbuild`
 configuration that the build uses.
 
-Builds for the development release are currently only supported on amd64 and
-i386 hosts because the configuration adds its proposed pocket from `archive.ubuntu.com`.
-
 ### Configuring pycloudlib
 
 We use [`pycloudlib`](https://github.com/canonical/pycloudlib) to manage
