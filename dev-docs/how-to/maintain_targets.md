@@ -159,26 +159,33 @@ describes the same images.
 
 ### WSL
 
-The WSL entries follow the `wsl_releases` map in `features/cloud.py`, which
-lists the distributions the tests install. Change both together.
+The Ubuntu Pro client is available on official WSL distributions. On a Windows
+machine, list them from PowerShell:
+
+```powershell
+wsl --list --online
+```
+
+Each `Ubuntu-<version>` name is a release, such as `Ubuntu-24.04` for noble.
+Ignore the unversioned `Ubuntu` entry, which tracks the latest LTS. Releases
+that are not listed are not available on `wsl`.
+
+Update the `wsl_releases` map in `features/cloud.py` to match, along with
+`features/targets.yaml`.
 
 ### LXD
 
 `lxd-container` and `lxd-vm` are not checked against a publisher. The tests
-cover the releases in ESM, the supported releases (interim releases included)
-and the development release. These commands print them:
+cover the releases in ESM, the supported releases (including interim)
+and the development release. Check the releases in those categories:
 
 ```bash
 ubuntu-distro-info --supported-esm
 ubuntu-distro-info --supported
 ```
 
-The second list includes the development release. Combined, the two lists are
-the releases to cover.
-
-An interim release that has reached end of life drops out of both lists.
-Add a new release to both LXD machine types when it becomes the development
-release, and remove a release when it leaves both lists.
+`lxd-container` and `lxd-vm` should include all the releases listed by those
+two commands.
 
 ## Validate the change
 
