@@ -48,13 +48,7 @@ jobs:
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
           # tools/build.sh is the same entrypoint used for local builds.
-          # Xenial builds in a schroot (see features/util.py:build_debs).
-          if [ "${{ matrix.release }}" = "xenial" ]; then
-            sg sbuild -c "mk-sbuild --skip-proposed xenial"
-            sg sbuild -c "./tools/build.sh --output-dir '${{ runner.temp }}/debs' xenial"
-          else
-            ./tools/build.sh --output-dir '${{ runner.temp }}/debs' '${{ matrix.release }}'
-          fi
+          ./tools/build.sh --output-dir '${{ runner.temp }}/debs' '${{ matrix.release }}'
       - name: Archive debs as artifacts
         uses: actions/upload-artifact@v4
         with:

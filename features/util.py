@@ -297,12 +297,7 @@ def build_debs(
     ]
 
     env = os.environ.copy()
-    if series == "xenial":
-        # Xenial's systemd postinst fails under mmdebstrap, so it builds in
-        # the schroot created by `mk-sbuild xenial`.
-        sbuild_cmd += ["--chroot-mode", "schroot"]
-    else:
-        env["SBUILD_CONFIG"] = SBUILD_CONFIG
+    env["SBUILD_CONFIG"] = SBUILD_CONFIG
 
     # disable unit-test during sbuild
     env["DEB_BUILD_OPTIONS"] = env.get("DEB_BUILD_OPTIONS", "") + " nocheck"
