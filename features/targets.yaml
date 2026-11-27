@@ -1,0 +1,95 @@
+# Which Ubuntu releases each machine type is offered on.
+#
+# See dev-docs/how-to/maintain_targets.md for how to update this file and
+# check it against what each publisher offers.
+
+
+lxd-container:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - questing
+  - resolute
+  - stonking
+  - tenacious
+
+lxd-vm:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - questing
+  - resolute
+  - stonking
+  - tenacious
+
+aws.generic:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - questing
+  - resolute
+  - stonking
+
+azure.generic:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - questing
+  - resolute
+  - stonking
+
+gcp.generic:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - questing
+  - resolute
+  - stonking
+
+aws.pro:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - resolute
+
+azure.pro:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - resolute
+
+gcp.pro:
+  - bionic
+  - focal
+  - jammy
+  - noble
+  - resolute
+
+aws.pro-fips:
+  - bionic
+  - focal
+  - jammy
+
+azure.pro-fips:
+  - bionic
+  - focal
+  - jammy
+  - noble
+
+gcp.pro-fips:
+  - bionic
+  - focal
+  - jammy
+
+wsl:
+  - focal
+  - jammy
+  - noble
+  - resolute
