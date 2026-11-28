@@ -1,5 +1,7 @@
 import logging
+import os
 import re
+import tempfile
 
 from behave import then, when
 
@@ -258,6 +260,10 @@ def when_i_have_the_debs_under_test(context, series, dest):
             )
 
 
+LOCAL_PPA_KEY_UID = "pro-client-test-ppa@localhost"
+PPA_MACHINE_KEYRING_PATH = "/tmp/local-ppa.gpg"
+
+
 @when(
     "I prepare the local PPAs to upgrade from `{release}` to `{next_release}`"
 )
@@ -275,20 +281,48 @@ def when_i_create_local_ppas(context, release, next_release):
     when_i_run_command(
         context, "apt-get install -y aptly", "with sudo", machine_name="ppa"
     )
+    create_local_ppa_signing_key(context)
     create_local_ppa(context, release)
     create_local_ppa(context, next_release)
-    write_apt_source(
-        context,
-        name="local-ua",
-        uri="http://{}:8080".format(context.machines["ppa"].instance.ip),
-        suite=release,
-        components="main",
-        series=release,
-        trusted=True,
-    )
+    with tempfile.TemporaryDirectory() as tmpd:
+        keyring_path = os.path.join(tmpd, "keyring.gpg")
+        context.machines["ppa"].instance.pull_file(
+            PPA_MACHINE_KEYRING_PATH, keyring_path
+        )
+        write_apt_source(
+            context,
+            name="local-ua",
+            uri="http://{}:8080".format(context.machines["ppa"].instance.ip),
+            suite=release,
+            components="main",
+            series=release,
+            keyring_path=keyring_path,
+        )
     when_i_run_command(
         context,
         "sh -c 'nohup aptly serve > /dev/null 2>&1 &'",
+        "with sudo",
+        machine_name="ppa",
+    )
+
+
+def create_local_ppa_signing_key(context):
+    """Create and export the key that signs the local PPAs.
+
+    The release upgrader drops unsigned third-party sources (LP: #2169768).
+    """
+    when_i_run_command(
+        context,
+        "gpg --batch --pinentry-mode loopback --passphrase '' "
+        "--quick-gen-key {}".format(LOCAL_PPA_KEY_UID),
+        "with sudo",
+        machine_name="ppa",
+    )
+    when_i_run_command(
+        context,
+        "gpg --batch --yes --output {} --export {}".format(
+            PPA_MACHINE_KEYRING_PATH, LOCAL_PPA_KEY_UID
+        ),
         "with sudo",
         machine_name="ppa",
     )
@@ -316,7 +350,9 @@ def create_local_ppa(context, release):
         )
     when_i_run_command(
         context,
-        "aptly publish repo -skip-signing repo-{}".format(release),
+        "aptly publish repo -batch -gpg-key={} repo-{}".format(
+            LOCAL_PPA_KEY_UID, release
+        ),
         "with sudo",
         machine_name="ppa",
     )
