@@ -5,6 +5,7 @@ import pytest
 
 from uaclient import exceptions, messages
 from uaclient.api.u.pro.security.fix._common import (
+    BinaryPackageFix,
     CVEPackageStatus,
     FixStatus,
     UASecurityClient,
@@ -33,6 +34,8 @@ from uaclient.api.u.pro.security.fix._common.plan.v1 import (
     PackageCannotBeInstalledData,
     SecurityIssueNotFixedData,
     USNAdditionalData,
+    _generate_fix_plan,
+    _get_abi_bumped_binary_fixes,
     _get_cve_description,
     fix_plan_cve,
     fix_plan_usn,
@@ -1255,3 +1258,157 @@ class TestGetCVEDescription:
         assert expected_description == _get_cve_description(
             cve, installed_pkgs
         )
+
+
+class TestGetAbiBumpedBinaryFixes:
+    def test_highest_abi_fix_is_used(self):
+        usn_src = {
+            "linux-image-6.8.0-1071-aws-fips": {"version": "6.8.0-1071.76"},
+            "linux-image-6.8.0-1069-aws-fips": {"version": "6.8.0-1069.74"},
+        }
+        installed_src = {"linux-image-6.8.0-1067-aws-fips": "6.8.0-1067.70"}
+        assert [
+            BinaryPackageFix(
+                source_pkg="linux-aws-fips",
+                binary_pkg="linux-image-6.8.0-1071-aws-fips",
+                fixed_version="6.8.0-1071.76",
+            )
+        ] == _get_abi_bumped_binary_fixes(
+            "linux-aws-fips", usn_src, installed_src
+        )
+
+    @pytest.mark.parametrize(
+        "installed_src,expected",
+        (
+            # Old ABI image only: reported so it isn't silently ignored
+            (
+                {"linux-image-6.8.0-1067-aws-fips": "6.8.0-1067.70"},
+                [
+                    BinaryPackageFix(
+                        source_pkg="linux-aws-fips",
+                        binary_pkg="linux-image-6.8.0-1069-aws-fips",
+                        fixed_version="6.8.0-1069.74",
+                    )
+                ],
+            ),
+            # New ABI already installed alongside the old one
+            (
+                {
+                    "linux-image-6.8.0-1067-aws-fips": "6.8.0-1067.70",
+                    "linux-image-6.8.0-1069-aws-fips": "6.8.0-1069.74",
+                },
+                [],
+            ),
+            # New ABI installed but older than the fix: upgraded in place
+            (
+                {
+                    "linux-image-6.8.0-1067-aws-fips": "6.8.0-1067.70",
+                    "linux-image-6.8.0-1069-aws-fips": "6.8.0-1069.70",
+                },
+                [],
+            ),
+            # Binary without an ABI in its name is left to the caller
+            ({"linux-image-aws-fips": "6.8.0-1067.70"}, []),
+        ),
+    )
+    def test_abi_bumped_binary_fixes(self, installed_src, expected):
+        usn_src = {
+            "linux-image-6.8.0-1069-aws-fips": {"version": "6.8.0-1069.74"},
+        }
+        assert expected == _get_abi_bumped_binary_fixes(
+            "linux-aws-fips", usn_src, installed_src
+        )
+
+
+class TestGenerateFixPlanKernelAbiBump:
+    # LP: #2174423
+    @mock.patch(M_PATH + "_should_update_esm_cache", return_value=False)
+    @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
+    def test_old_abi_kernel_is_not_reported_as_fixed(
+        self, m_candidate, _m_should_update_esm_cache
+    ):
+        usn_pkgs = {
+            "linux-aws-fips": {
+                "linux-image-6.8.0-1069-aws-fips": {
+                    "version": "6.8.0-1069.74+fips1"
+                },
+            },
+            "linux": {"linux-libc-dev": {"version": "6.8.0-149.149"}},
+        }
+        installed_pkgs = {
+            "linux-aws-fips": {
+                "linux-image-6.8.0-1067-aws-fips": "6.8.0-1067.70+fips1"
+            },
+            "linux": {"linux-libc-dev": "6.8.0-100.100"},
+        }
+        affected_pkg_status = {
+            src: CVEPackageStatus(
+                cve_response={"status": "released", "pocket": "updates"}
+            )
+            for src in ("linux", "linux-aws-fips")
+        }
+        m_candidate.return_value = "6.8.0-149.149"
+
+        plan = _generate_fix_plan(
+            issue_id="CVE-2026-98432",
+            issue_description="desc",
+            affected_pkg_status=affected_pkg_status,
+            usn_released_pkgs=usn_pkgs,
+            installed_pkgs=installed_pkgs,
+            cfg=mock.MagicMock(),
+        )
+
+        assert (
+            FixStatus.SYSTEM_STILL_VULNERABLE.value.msg == plan.current_status
+        )
+        assert 1 == len(plan.warnings)
+        assert (
+            "linux-image-6.8.0-1069-aws-fips"
+            == plan.warnings[0].data.binary_package
+        )
+        assert (
+            "6.8.0-1069.74+fips1"
+            == plan.warnings[0].data.binary_package_version
+        )
+
+    @mock.patch(M_PATH + "_should_update_esm_cache", return_value=False)
+    @mock.patch(M_PATH + "apt.get_pkg_candidate_version")
+    def test_old_abi_kernel_only_is_not_already_fixed(
+        self, m_candidate, _m_should_update_esm_cache
+    ):
+        usn_pkgs = {
+            "linux-aws-fips": {
+                "linux-image-6.8.0-1069-aws-fips": {
+                    "version": "6.8.0-1069.74+fips1"
+                },
+            },
+        }
+        installed_pkgs = {
+            "linux-aws-fips": {
+                "linux-image-6.8.0-1067-aws-fips": "6.8.0-1067.70+fips1"
+            },
+        }
+        affected_pkg_status = {
+            "linux-aws-fips": CVEPackageStatus(
+                cve_response={"status": "released", "pocket": "updates"}
+            )
+        }
+        # The new ABI is available but not installed: it must not be queued
+        # for an upgrade, which would be a no-op
+        m_candidate.return_value = "6.8.0-1069.74+fips1"
+
+        plan = _generate_fix_plan(
+            issue_id="CVE-2026-98432",
+            issue_description="desc",
+            affected_pkg_status=affected_pkg_status,
+            usn_released_pkgs=usn_pkgs,
+            installed_pkgs=installed_pkgs,
+            cfg=mock.MagicMock(),
+        )
+
+        assert (
+            FixStatus.SYSTEM_STILL_VULNERABLE.value.msg == plan.current_status
+        )
+        assert ["apt-upgrade"] == [step.operation for step in plan.plan]
+        assert [] == plan.plan[0].data.binary_packages
+        assert 1 == len(plan.warnings)
